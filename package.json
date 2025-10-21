@@ -18,6 +18,12 @@
     "format:check": "prettier --check .",
     "prepare": "echo \"Preparing repository...\"",
     "postinstall": "echo \"Jules automation configured and ready!\"",
+    "deploy:cloudflare": "npx wrangler deploy",
+    "deploy:railway": "railway up",
+    "deploy:vercel": "vercel --prod",
+    "deploy:all": "npm run deploy:cloudflare && npm run deploy:railway && npm run deploy:vercel",
+    "deploy:status": "echo \"Checking deployment status...\" && npx wrangler deployments list && railway status && vercel ls",
+    "domain:setup": "echo \"📋 Domain Setup Guide:\\n\\n1. Get Cloudflare Zone ID from dashboard\\n2. Update wrangler.toml with zone_id\\n3. Run: npm run deploy:cloudflare\\n4. Configure DNS records (see DEPLOYMENT.md)\\n5. Deploy to Railway and Vercel\\n\\nSee DEPLOYMENT.md for detailed instructions.\""
     "agent:ollama-autonomous": "echo \"Starting Ollama autonomous agent...\" && node scripts/ollama-agent.js || echo \"Ollama agent script not found, running in echo mode\"",
     "agent:cloud": "echo \"Starting cloud agent...\" && node scripts/cloud-agent.js || echo \"Cloud agent script not found, running in echo mode\""
   },
