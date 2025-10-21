@@ -3,8 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws://localhost:65028 http://localhost:65029; media-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';">
+  <meta name="description" content="Monitor multi-model workloads, compare responses, and orchestrate AI queries from a single dashboard.">
+  <meta name="color-scheme" content="dark light">
+  <meta name="theme-color" content="#0a0e1a">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws://localhost:65028 http://localhost:65029; media-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self';">
   <title>AI Orchestration Dashboard</title>
+  <link rel="preload" href="vendor/chart.umd.min.js" as="script">
+  <link rel="preload" href="ai-orchestrator-renderer-enhanced.js" as="script">
   <script src="vendor/chart.umd.min.js" defer></script>
   <style>
     :root {
@@ -31,9 +36,11 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
       color: var(--text-color);
-      overflow: hidden;
-      height: 100vh;
+      min-height: 100vh;
+      overflow-x: hidden;
+      overflow-y: auto;
       position: relative;
+      scroll-behavior: smooth;
     }
 
     body::before {
@@ -60,8 +67,8 @@
 
     .container {
       display: grid;
-      grid-template-rows: 70px 1fr 250px;
-      height: 100vh;
+      grid-template-rows: minmax(64px, auto) 1fr minmax(200px, auto);
+      min-height: 100vh;
       gap: 1px;
       background: var(--bg-dark);
       animation: fadeIn 1s ease-out;
@@ -74,6 +81,43 @@
       to {
         opacity: 1;
       }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+
+      body {
+        scroll-behavior: auto;
+      }
+
+      body::before {
+        animation: none;
+      }
+    }
+
+    .skip-link {
+      position: absolute;
+      left: 1rem;
+      top: 3.5rem;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--bg-dark);
+      text-decoration: none;
+      font-weight: 600;
+      transform: translateY(-200%);
+      transition: transform 0.3s ease;
+      z-index: 15;
+    }
+
+    .skip-link:focus-visible {
+      transform: translateY(0);
     }
 
     .nav-link {
@@ -96,6 +140,14 @@
       transform: translateX(-3px);
     }
 
+    a:focus-visible,
+    button:focus-visible,
+    textarea:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 2px;
+    }
+
     /* Header */
     .header {
       background: linear-gradient(90deg, var(--bg-dark) 0%, var(--bg-light) 100%);
@@ -116,6 +168,12 @@
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+
+    .logo-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
     }
 
     .status-indicator {
@@ -395,9 +453,12 @@
     }
 
     .empty-icon {
-      font-size: 64px;
+      font-size: 32px;
+      font-weight: 600;
       margin-bottom: 16px;
-      opacity: 0.3;
+      opacity: 0.4;
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
 
     /* Log Panel */
@@ -483,6 +544,10 @@
       text-transform: uppercase;
       font-weight: 600;
       letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
     }
 
     .action-btn:hover {
@@ -660,37 +725,46 @@
   </style>
 </head>
 <body>
-  <a href="../website/" class="nav-link">← Back to Home</a>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <a href="../website/" class="nav-link" aria-label="Return to home view">&larr; Back to Home</a>
   <div class="container">
     <!-- Header -->
-    <div class="header">
+    <header class="header">
       <h1>
-        <span class="status-indicator" id="status-indicator"></span>
-        🤖 AI Orchestration Dashboard
+        <span class="status-indicator" id="status-indicator" role="status" aria-live="polite" aria-label="Connection status"></span>
+        <div class="logo-header">
+            <svg width="30" height="30" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M30 20 L70 20 L50 80 L30 20 Z" fill="var(--accent-color)" opacity="0.7"/>
+                <path d="M70 20 L50 80 L90 80 L70 20 Z" fill="var(--primary-color)" opacity="0.7"/>
+                <path d="M50 80 L30 20 L10 80 L50 80 Z" fill="var(--secondary-color)" opacity="0.7"/>
+                <circle cx="50" cy="50" r="15" fill="var(--text-color)" opacity="0.2"/>
+            </svg>
+            AI Orchestration Dashboard
+        </div>
       </h1>
       <div class="stats">
         <div class="stat">
-          <div class="stat-value" id="stat-models">0</div>
+          <div class="stat-value" id="stat-models" aria-live="polite">0</div>
           <div class="stat-label">Models</div>
         </div>
         <div class="stat">
-          <div class="stat-value" id="stat-queries">0</div>
+          <div class="stat-value" id="stat-queries" aria-live="polite">0</div>
           <div class="stat-label">Queries</div>
         </div>
         <div class="stat">
-          <div class="stat-value" id="stat-latency">--</div>
+          <div class="stat-value" id="stat-latency" aria-live="polite">--</div>
           <div class="stat-label">Latency</div>
         </div>
-        <button class="theme-toggle" id="theme-toggle">🌙 Dark</button>
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle between dark and light themes" aria-pressed="false">Dark Theme</button>
       </div>
-    </div>
+    </header>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <main id="main-content" class="main-content" role="main">
       <!-- Control Panel -->
-      <div class="control-panel">
+      <aside class="control-panel" aria-label="AI configuration panel">
         <div class="section">
-          <div class="section-title">🎯 AI Models</div>
+          <div class="section-title">AI Models</div>
           <div class="ai-model selected" data-model="llama-3.3-70b-versatile">
             <div class="ai-model-name">LLaMA 3.3 70B</div>
             <div class="ai-model-desc">High intelligence, creative responses</div>
@@ -710,27 +784,27 @@
         </div>
 
         <div class="section">
-          <div class="section-title">📜 Query History</div>
-          <div class="history-panel" id="history-panel"></div>
+          <div class="section-title">Query History</div>
+          <div class="history-panel" id="history-panel" role="list" aria-live="polite"></div>
         </div>
 
         <div class="section">
-          <div class="section-title">💬 Query Input</div>
+          <div class="section-title">Query Input</div>
           <div class="input-group input-group--relative">
             <label>Prompt</label>
-            <textarea id="prompt-input" placeholder="Enter your prompt for all selected AIs...">What is the most important innovation in AI this year?</textarea>
-            <button class="voice-btn" id="voice-btn" title="Voice Input (Ctrl+Space)">🎤</button>
+            <textarea id="prompt-input" placeholder="Enter your prompt for all selected AIs..." aria-label="Prompt input for selected AI models">What is the most important innovation in AI this year?</textarea>
+            <button class="voice-btn" id="voice-btn" type="button" title="Voice Input (Ctrl+Space)" aria-label="Start voice input">Mic</button>
           </div>
         </div>
 
         <div class="action-buttons">
-          <button class="action-btn" id="save-history-btn" title="Ctrl+S">💾 Save</button>
-          <button class="action-btn" id="load-history-btn" title="Ctrl+O">📂 Load</button>
-          <button class="action-btn" id="clear-btn" title="Ctrl+K">🗑️ Clear</button>
+          <button class="action-btn" id="save-history-btn" type="button" title="Ctrl+S" aria-label="Save query history">Save</button>
+          <button class="action-btn" id="load-history-btn" type="button" title="Ctrl+O" aria-label="Load query history">Load</button>
+          <button class="action-btn" id="clear-btn" type="button" title="Ctrl+K" aria-label="Clear workspace">Clear</button>
         </div>
 
         <div class="section">
-          <div class="section-title">🎚️ Temperature</div>
+          <div class="section-title">Temperature</div>
           <div class="slider-container">
             <input type="range" id="temperature-slider" min="0" max="2" step="0.1" value="0.7">
             <div class="slider-value">
@@ -741,40 +815,40 @@
           </div>
         </div>
 
-        <button class="execute-btn" id="execute-btn">
-          🚀 Execute Multi-AI Query
+        <button class="execute-btn" id="execute-btn" type="button" aria-label="Execute query against selected AI models">
+          Run Multi-AI Query
         </button>
-      </div>
+      </aside>
 
       <!-- Visualization Area -->
-      <div class="visualization-area" id="visualization-area">
+      <section class="visualization-area" id="visualization-area" aria-label="AI performance visualization">
         <div class="export-menu">
-          <button class="action-btn" id="export-btn">📥 Export</button>
-          <div class="export-dropdown" id="export-dropdown">
-            <div class="export-option" data-format="json">Export as JSON</div>
-            <div class="export-option" data-format="md">Export as Markdown</div>
-            <div class="export-option" data-format="txt">Export as Text</div>
+          <button class="action-btn" id="export-btn" type="button" aria-expanded="false" aria-controls="export-dropdown">Export</button>
+          <div class="export-dropdown" id="export-dropdown" role="menu" aria-label="Export options" aria-hidden="true">
+            <div class="export-option" data-format="json" role="menuitem" tabindex="0">Export as JSON</div>
+            <div class="export-option" data-format="md" role="menuitem" tabindex="0">Export as Markdown</div>
+            <div class="export-option" data-format="txt" role="menuitem" tabindex="0">Export as Text</div>
           </div>
         </div>
 
         <div class="chart-container">
-          <canvas id="performance-chart"></canvas>
+          <canvas id="performance-chart" role="img" aria-label="AI performance metrics chart">AI performance metrics chart will render here.</canvas>
         </div>
 
         <div class="empty-state">
-          <div class="empty-icon">🤖</div>
+          <div class="empty-icon">No Data</div>
           <p>Select AI models and execute a query to see results</p>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
 
     <!-- Keyboard Hints -->
-    <div class="keyboard-hint" id="keyboard-hint">
-      <kbd>Ctrl+Enter</kbd> Execute • <kbd>Ctrl+K</kbd> Clear • <kbd>Ctrl+Space</kbd> Voice • <kbd>Ctrl+/</kbd> Help
-    </div>
+    <aside class="keyboard-hint" id="keyboard-hint" role="note" aria-live="polite" aria-label="Keyboard shortcuts">
+      <kbd>Ctrl+Enter</kbd> Execute | <kbd>Ctrl+K</kbd> Clear | <kbd>Ctrl+Space</kbd> Voice | <kbd>Ctrl+/</kbd> Help
+    </aside>
 
     <!-- Log Panel -->
-    <div class="log-panel" id="log-panel"></div>
+    <section class="log-panel" id="log-panel" role="log" aria-live="polite" aria-label="System log"></section>
   </div>
 
   <script src="ai-orchestrator-renderer-enhanced.js"></script>
