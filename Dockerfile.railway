@@ -98,5 +98,5 @@ EXPOSE 8080
 ENV NODE_ENV=production \
     PORT=8080
 
-# Start the cloud agent
-CMD ["npm", "run", "agent:cloud"]
+# Start the Railway HTTP server (runs autonomous agent in background)
+CMD ["node", "server.js"]
