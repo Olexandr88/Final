@@ -105,9 +105,32 @@
             margin-bottom: 3rem;
         }
 
+        .header .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .logo svg {
+            margin-right: 10px;
+            animation: rotateIn 1s ease-out;
+        }
+
+        @keyframes rotateIn {
+            from {
+                opacity: 0;
+                transform: rotate(-90deg);
+            }
+            to {
+                opacity: 1;
+                transform: rotate(0deg);
+            }
+        }
+
         .header h1 {
             font-size: 3em;
-            margin-bottom: 0.5rem;
+            margin: 0;
             color: var(--accent-color);
             text-shadow: 2px 2px 8px rgba(0, 217, 255, 0.3);
         }
@@ -134,6 +157,16 @@
             transition: transform 0.3s ease, box-shadow 0.3s ease;
             animation: cardFadeIn 0.8s ease-out forwards;
             opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-card .card-icon {
+            font-size: 2em;
+            margin-top: 10px;
+            color: var(--accent-color);
         }
 
         .stat-card:nth-child(1) { animation-delay: 0.1s; }
@@ -222,6 +255,7 @@
         .project-card:hover {
             transform: translateY(-10px) scale(1.02);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+            border-color: var(--accent-color);
         }
 
         .project-header {
@@ -424,6 +458,27 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+
+        .projects-grid .project-card:nth-child(1) { animation-delay: 0.3s; }
+        .projects-grid .project-card:nth-child(2) { animation-delay: 0.4s; }
+        .projects-grid .project-card:nth-child(3) { animation-delay: 0.5s; }
+        .projects-grid .project-card:nth-child(4) { animation-delay: 0.6s; }
+        .projects-grid .project-card:nth-child(5) { animation-delay: 0.7s; }
+        .projects-grid .project-card:nth-child(6) { animation-delay: 0.8s; }
     </style>
 </head>
 <body>
@@ -431,7 +486,15 @@
     
     <div class="container">
         <div class="header">
-            <h1>🛠️ Projects Dashboard</h1>
+            <div class="logo">
+                <svg width="50" height="50" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M30 20 L70 20 L50 80 L30 20 Z" fill="var(--accent-color)" opacity="0.7"/>
+                    <path d="M70 20 L50 80 L90 80 L70 20 Z" fill="var(--primary-color)" opacity="0.7"/>
+                    <path d="M50 80 L30 20 L10 80 L50 80 Z" fill="var(--secondary-color)" opacity="0.7"/>
+                    <circle cx="50" cy="50" r="15" fill="var(--text-color)" opacity="0.2"/>
+                </svg>
+                <h1>Projects Dashboard</h1>
+            </div>
             <p>Manage, test, and deploy your AI-powered projects with Nitric.</p>
         </div>
         
@@ -439,10 +502,12 @@
             <div class="stat-card">
                 <div class="number" id="total-projects">0</div>
                 <div class="label">Total Projects</div>
+                <div class="card-icon">📁</div>
             </div>
             <div class="stat-card">
                 <div class="number" id="active-deployments">0</div>
                 <div class="label">Active Deployments</div>
+                <div class="card-icon">🚀</div>
             </div>
         </div>
         
