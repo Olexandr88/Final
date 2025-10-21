@@ -17,7 +17,7 @@ permissions:
 # Improved concurrency settings
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
