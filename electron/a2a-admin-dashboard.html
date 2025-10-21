@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2A Admin Dashboard - Real-Time System Monitoring</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #333;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: white;
+      padding: 20px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      color: #667eea;
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    .status-bar {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      padding: 10px 0;
+      border-top: 2px solid #f0f0f0;
+      margin-top: 15px;
+    }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-dot.online {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .status-dot.offline {
+      background: #ef4444;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      color: #667eea;
+      font-size: 1.3em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .metric {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .metric:last-child {
+      border-bottom: none;
+    }
+
+    .metric-label {
+      color: #666;
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-weight: bold;
+      color: #667eea;
+      font-size: 1.1em;
+    }
+
+    .agent-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+
+    .agent-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .agent-id {
+      font-weight: bold;
+      font-size: 1.1em;
+    }
+
+    .agent-health {
+      background: rgba(255,255,255,0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
+    }
+
+    .agent-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 0.9em;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-top: 20px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 500;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .message-log {
+      max-height: 400px;
+      overflow-y: auto;
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+    }
+
+    .message-item {
+      padding: 10px;
+      margin-bottom: 8px;
+      background: white;
+      border-radius: 6px;
+      border-left: 4px solid #667eea;
+      font-size: 0.9em;
+    }
+
+    .message-time {
+      color: #999;
+      font-size: 0.85em;
+      margin-bottom: 5px;
+    }
+
+    .message-type {
+      display: inline-block;
+      background: #667eea;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      margin-right: 8px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎛️ A2A Admin Dashboard</h1>
+      <p>Real-Time System Monitoring & Control</p>
+      <div class="status-bar">
+        <div class="status-indicator">
+          <div class="status-dot" id="bridgeStatus"></div>
+          <span>AI Bridge: <strong id="bridgeStatusText">Checking...</strong></span>
+        </div>
+        <div class="status-indicator">
+          <div class="status-dot" id="ollamaStatus"></div>
+          <span>Ollama: <strong id="ollamaStatusText">Checking...</strong></span>
+        </div>
+        <div class="status-indicator">
+          <span>🕒 Uptime: <strong id="uptime">--</strong></span>
+        </div>
+        <div class="status-indicator">
+          <span>💾 Memory: <strong id="memory">-- MB</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <div id="errorContainer"></div>
+
+    <div class="controls">
+      <button onclick="startBridge()">🚀 Start Bridge</button>
+      <button onclick="startOllamaAgent()">🤖 Start Ollama Agent</button>
+      <button onclick="startClaudeAgent()">🧠 Start Claude Agent</button>
+      <button onclick="stopAll()" class="danger">🛑 Stop All</button>
+      <button onclick="refreshData()">🔄 Refresh</button>
+      <button onclick="openDocs()">📚 Documentation</button>
+    </div>
+
+    <div class="grid">
+      <!-- System Metrics -->
+      <div class="card">
+        <h2>📊 System Metrics</h2>
+        <div class="metric">
+          <span class="metric-label">Messages Processed</span>
+          <span class="metric-value" id="messagesProcessed">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Total Connections</span>
+          <span class="metric-value" id="totalConnections">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Connected Clients</span>
+          <span class="metric-value" id="connectedClients">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Errors</span>
+          <span class="metric-value" id="errors">0</span>
+        </div>
+        <div class="metric">
+          <span class="metric-label">Messages/Second</span>
+          <span class="metric-value" id="messagesPerSecond">0</span>
+        </div>
+      </div>
+
+      <!-- Connected Agents -->
+      <div class="card">
+        <h2>🤖 Connected Agents</h2>
+        <div id="agentsList">
+          <div class="loading">Loading agents...</div>
+        </div>
+      </div>
+
+      <!-- Performance Chart -->
+      <div class="card" style="grid-column: span 2;">
+        <h2>📈 Message Throughput</h2>
+        <div class="chart-container">
+          <canvas id="throughputChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Messages -->
+      <div class="card" style="grid-column: span 2;">
+        <h2>📨 Recent Messages</h2>
+        <div class="message-log" id="messageLog">
+          <div class="loading">Loading message history...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BRIDGE_HTTP = 'http://localhost:65029';
+    let throughputChart = null;
+    let refreshInterval = null;
+    const throughputData = { labels: [], data: [] };
+
+    // Initialize chart
+    function initChart() {
+      const ctx = document.getElementById('throughputChart').getContext('2d');
+      throughputChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: throughputData.labels,
+          datasets: [{
+            label: 'Messages/Second',
+            data: throughputData.data,
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: { beginAtZero: true }
+          },
+          plugins: {
+            legend: { display: false }
+          }
+        }
+      });
+    }
+
+    // Fetch system status
+    async function fetchStatus() {
+      try {
+        const response = await fetch(`${BRIDGE_HTTP}/api/status`);
+        const data = await response.json();
+
+        // Update status indicators
+        document.getElementById('bridgeStatus').className = 'status-dot online';
+        document.getElementById('bridgeStatusText').textContent = 'Online';
+        document.getElementById('uptime').textContent = Math.floor(data.uptime / 60) + ' min';
+        document.getElementById('memory').textContent = data.stats.performance.memoryUsage.toFixed(2) + ' MB';
+
+        // Update metrics
+        document.getElementById('messagesProcessed').textContent = data.stats.messagesProcessed;
+        document.getElementById('totalConnections').textContent = data.stats.totalConnections;
+        document.getElementById('connectedClients').textContent = data.stats.connectedClients;
+        document.getElementById('errors').textContent = data.stats.errors;
+        document.getElementById('messagesPerSecond').textContent = data.stats.messagesPerSecond.toFixed(2);
+
+        // Update chart
+        const now = new Date().toLocaleTimeString();
+        throughputData.labels.push(now);
+        throughputData.data.push(data.stats.messagesPerSecond);
+        if (throughputData.labels.length > 20) {
+          throughputData.labels.shift();
+          throughputData.data.shift();
+        }
+        throughputChart.update();
+
+        clearError();
+      } catch (error) {
+        document.getElementById('bridgeStatus').className = 'status-dot offline';
+        document.getElementById('bridgeStatusText').textContent = 'Offline';
+        showError('AI Bridge is offline. Start it with: npm run bridge:start');
+      }
+    }
+
+    // Fetch connected agents
+    async function fetchAgents() {
+      try {
+        const response = await fetch(`${BRIDGE_HTTP}/agents`);
+        const data = await response.json();
+        const agents = data.agents || [];
+
+        const agentsList = document.getElementById('agentsList');
+        if (agents.length === 0) {
+          agentsList.innerHTML = '<div class="loading">No agents connected</div>';
+          return;
+        }
+
+        agentsList.innerHTML = agents.map(agent => `
+          <div class="agent-card">
+            <div class="agent-header">
+              <div class="agent-id">${agent.id}</div>
+              <div class="agent-health">${agent.healthScore}% Health</div>
+            </div>
+            <div class="agent-stats">
+              <div>Role: ${agent.role}</div>
+              <div>Sent: ${agent.messagesSent}</div>
+              <div>Received: ${agent.messagesReceived}</div>
+              <div>Last: ${new Date(agent.lastSeen).toLocaleTimeString()}</div>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+      }
+    }
+
+    // Fetch message history
+    async function fetchMessages() {
+      try {
+        const response = await fetch(`${BRIDGE_HTTP}/history`);
+        const messages = await response.json();
+
+        const messageLog = document.getElementById('messageLog');
+        if (!messages || messages.length === 0) {
+          messageLog.innerHTML = '<div class="loading">No messages yet</div>';
+          return;
+        }
+
+        const recent = messages.slice(-20).reverse();
+        messageLog.innerHTML = recent.map(msg => `
+          <div class="message-item">
+            <div class="message-time">${new Date(msg.timestamp).toLocaleTimeString()}</div>
+            <div>
+              <span class="message-type">${msg.type}</span>
+              ${msg.metadata?.from ? `From: ${msg.metadata.from} → ${msg.metadata.to || 'broadcast'}` : ''}
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    }
+
+    // Check Ollama status
+    async function checkOllama() {
+      try {
+        const response = await fetch('http://localhost:11434/api/tags');
+        const data = await response.json();
+        document.getElementById('ollamaStatus').className = 'status-dot online';
+        document.getElementById('ollamaStatusText').textContent = `Online (${data.models.length} models)`;
+      } catch (error) {
+        document.getElementById('ollamaStatus').className = 'status-dot offline';
+        document.getElementById('ollamaStatusText').textContent = 'Offline';
+      }
+    }
+
+    // Control functions
+    function startBridge() {
+      alert('Start AI Bridge via CLI: a2a start bridge\nor npm run bridge:start');
+    }
+
+    function startOllamaAgent() {
+      alert('Start Ollama Agent via CLI: a2a start ollama\nor npm run agent:ollama');
+    }
+
+    function startClaudeAgent() {
+      alert('Start Claude Agent via CLI: a2a start claude\nor npm run agent:claude');
+    }
+
+    function stopAll() {
+      if (confirm('Stop all components?')) {
+        alert('Stop all via CLI: a2a stop all');
+      }
+    }
+
+    function refreshData() {
+      fetchStatus();
+      fetchAgents();
+      fetchMessages();
+      checkOllama();
+    }
+
+    function openDocs() {
+      window.open('https://github.com/Scarmonit/LLM/blob/main/docs/A2A_MCP_INTEGRATION_GUIDE.md', '_blank');
+    }
+
+    function showError(message) {
+      document.getElementById('errorContainer').innerHTML = `
+        <div class="error">${message}</div>
+      `;
+    }
+
+    function clearError() {
+      document.getElementById('errorContainer').innerHTML = '';
+    }
+
+    // Initialize
+    window.addEventListener('load', () => {
+      initChart();
+      refreshData();
+      refreshInterval = setInterval(refreshData, 5000); // Refresh every 5 seconds
+    });
+
+    // Cleanup
+    window.addEventListener('beforeunload', () => {
+      if (refreshInterval) clearInterval(refreshInterval);
+    });
+  </script>
+</body>
+</html>

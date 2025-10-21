@@ -4,7 +4,12 @@
   "description": "LLM integration project with Ultra-Advanced Optimization Systems - BREAKTHROUGH PERFORMANCE + AI-DRIVEN OPTIMIZATION + PARALLEL NAVIGATION",
   "main": "electron/main.cjs",
   "type": "module",
+  "bin": {
+    "a2a": "./src/cli/a2a-cli.js"
+  },
   "scripts": {
+    "a2a": "node src/cli/a2a-cli.js",
+    "dashboard:admin": "npx electron electron/a2a-admin-dashboard.html",
     "multi-agent:workflow": "node scripts/coordinate-ollama-agents.js",
     "multi-agent:send-tasks": "node scripts/send-agent-tasks.js",
     "multi-agent:status": "curl http://localhost:51179/api/status",
@@ -151,6 +156,8 @@
     "mcp:jules": "node src/mcp/jules-mcp-server.js",
     "mcp:continue": "node src/mcp/continue-ollama-server.js",
     "mcp:continue:dev": "cross-env NODE_ENV=development LOG_LEVEL=debug node src/mcp/continue-ollama-server.js",
+    "test:mcp": "node test-mcp-server.js",
+    "verify:mcp": "node verify-mcp-setup.js",
     "test:a2a": "node test-control-center-live.js",
     "system:start": "concurrently \"npm run bridge:start\" \"npm run agent:ollama\" \"npm run agent:analyzer\"",
     "system:full": "concurrently \"npm run bridge:start\" \"npm run agent:ollama\" \"npm run agent:analyzer\" \"npm run agent:claude\" \"npm run control-center\"",
