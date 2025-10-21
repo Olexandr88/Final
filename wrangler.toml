@@ -3,14 +3,14 @@
 # Domain Setup: Add your zone_id below and uncomment routes
 
 name = "scarmonit-final"
-main = "workers/autonomous-agent.js"
+main = "workers/webhook-handler.js"
 compatibility_date = "2024-01-01"
 
 # Custom Domain Routes for www.scarmonit.com
 # Uncomment and add your Cloudflare zone_id after setting up the domain
 # routes = [
+#   { pattern = "www.scarmonit.com/webhook", zone_id = "YOUR_ZONE_ID" },
 #   { pattern = "www.scarmonit.com/health", zone_id = "YOUR_ZONE_ID" },
-#   { pattern = "www.scarmonit.com/solve", zone_id = "YOUR_ZONE_ID" },
 #   { pattern = "www.scarmonit.com/api/*", zone_id = "YOUR_ZONE_ID" }
 # ]
 
@@ -18,9 +18,12 @@ compatibility_date = "2024-01-01"
 [ai]
 binding = "AI"
 
-# Cron trigger - runs daily at midnight UTC
+# Cron triggers - scheduled maintenance and health checks
 [triggers]
-crons = ["0 0 * * *"]
+crons = [
+  "0 0 * * *",     # Daily maintenance at midnight UTC
+  "*/30 * * * *"   # Health check every 30 minutes
+]
 
 # Environment variables (set via: wrangler secret put GITHUB_TOKEN)
 # GITHUB_TOKEN - Your GitHub personal access token
