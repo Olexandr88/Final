@@ -1,9 +1,18 @@
 # Cloudflare Workers Configuration
 # Deploy: npx wrangler deploy
+# Domain Setup: Add your zone_id below and uncomment routes
 
-name = "ollama-autonomous-agent"
+name = "scarmonit-agent"
 main = "workers/autonomous-agent.js"
 compatibility_date = "2024-01-01"
+
+# Custom Domain Routes for www.scarmonit.com
+# Uncomment and add your Cloudflare zone_id after setting up the domain
+# routes = [
+#   { pattern = "www.scarmonit.com/health", zone_id = "YOUR_ZONE_ID" },
+#   { pattern = "www.scarmonit.com/solve", zone_id = "YOUR_ZONE_ID" },
+#   { pattern = "www.scarmonit.com/api/*", zone_id = "YOUR_ZONE_ID" }
+# ]
 
 # Workers AI binding
 [ai]
@@ -15,8 +24,19 @@ crons = ["0 0 * * *"]
 
 # Environment variables (set via: wrangler secret put GITHUB_TOKEN)
 # GITHUB_TOKEN - Your GitHub personal access token
+#
+# To set secrets:
+# wrangler secret put GITHUB_TOKEN
+# wrangler secret put GITHUB_REPO (optional: format "owner/repo")
 
 # Free tier limits:
 # - 100,000 requests/day
 # - 10,000 AI neurons/day (enough for ~100 issues)
 # - 10ms CPU time per request
+
+# Deployment Instructions:
+# 1. Get your Cloudflare Zone ID from: https://dash.cloudflare.com/
+# 2. Uncomment the routes section above and add your zone_id
+# 3. Run: wrangler secret put GITHUB_TOKEN
+# 4. Run: npx wrangler deploy
+# 5. Configure DNS in Cloudflare dashboard (see DEPLOYMENT.md)
