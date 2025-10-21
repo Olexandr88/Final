@@ -7,15 +7,22 @@ on:
     branches: [ "Scarmonit" ]
   schedule:
     - cron: '0 0 * * 0'
+  workflow_dispatch:
 
 permissions:
   actions: read
   contents: read
   security-events: write
+  pull-requests: write
+
+# Improved concurrency settings
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
 
 jobs:
   analyze:
-    name: Analyze
+    name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
@@ -32,6 +39,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
       
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
@@ -40,3 +48,10 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{matrix.language}}"
+      
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: ../results
+        continue-on-error: true
