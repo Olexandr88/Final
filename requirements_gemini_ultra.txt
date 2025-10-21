@@ -1,0 +1,20 @@
+# Gemini Ultra Integration Requirements
+# Install these dependencies to use Gemini Ultra functionality
+
+# Core Google Generative AI SDK
+google-generativeai>=0.3.0
+
+# Google Cloud authentication
+google-auth>=2.17.0
+google-auth-oauthlib>=1.0.0
+google-auth-httplib2>=0.1.0
+
+# Additional dependencies
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Optional: For async operations
+aiohttp>=3.8.0
+
+# Optional: For enhanced logging
+coloredlogs>=15.0
