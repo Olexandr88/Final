@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' ws://localhost:65028 http://localhost:65029; media-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';">
+  <title>AI Orchestration Dashboard</title>
+  <script src="vendor/chart.umd.min.js" defer></script>
+  <style>
+    :root {
+      --primary-color: #667eea;
+      --secondary-color: #764ba2;
+      --accent-color: #00d9ff;
+      --text-color: #e0e6ed;
+      --bg-dark: #0a0e1a;
+      --bg-light: #1a1f2e;
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.15);
+      --success-color: #00ff88;
+      --error-color: #ff6b6b;
+      --warning-color: #ffd93d;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+      color: var(--text-color);
+      overflow: hidden;
+      height: 100vh;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==') repeat;
+      animation: backgroundMove 60s linear infinite;
+      opacity: 0.1;
+      z-index: -1;
+    }
+
+    @keyframes backgroundMove {
+      from {
+        background-position: 0 0;
+      }
+      to {
+        background-position: 600px 600px;
+      }
+    }
+
+    .container {
+      display: grid;
+      grid-template-rows: 70px 1fr 250px;
+      height: 100vh;
+      gap: 1px;
+      background: var(--bg-dark);
+      animation: fadeIn 1s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .nav-link {
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-color);
+      padding: 0.6rem 1rem;
+      border-radius: 20px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      z-index: 10;
+      font-size: 0.9em;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateX(-3px);
+    }
+
+    /* Header */
+    .header {
+      background: linear-gradient(90deg, var(--bg-dark) 0%, var(--bg-light) 100%);
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--accent-color);
+      box-shadow: 0 4px 12px rgba(0, 217, 255, 0.1);
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      background: linear-gradient(45deg, var(--accent-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--error-color);
+      box-shadow: 0 0 10px rgba(255, 59, 59, 0.5);
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.connected {
+      background: var(--success-color);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      font-size: 13px;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--accent-color);
+    }
+
+    .stat-label {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .theme-toggle {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--accent-color);
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+      margin-left: 20px;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 12px rgba(0, 217, 255, 0.3);
+    }
+
+    /* Main Content */
+    .main-content {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 1px;
+      background: var(--bg-dark);
+      overflow: hidden;
+    }
+
+    /* Control Panel */
+    .control-panel {
+      background: var(--bg-light);
+      padding: 20px;
+      overflow-y: auto;
+      border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--accent-color);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .ai-model {
+      background: var(--card-bg);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .ai-model:hover {
+      border-color: var(--accent-color);
+      transform: translateX(4px);
+    }
+
+    .ai-model.selected {
+      border-color: var(--secondary-color);
+      background: rgba(118, 75, 162, 0.3);
+    }
+
+    .ai-model-name {
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 4px;
+    }
+
+    .ai-model-desc {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .input-group {
+      margin-bottom: 16px;
+    }
+
+    .input-group--relative {
+      position: relative;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--text-color);
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .slider-container {
+      margin-bottom: 16px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--card-bg);
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent-color);
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
+    }
+
+    .slider-value {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 4px;
+    }
+
+    .execute-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .execute-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 217, 255, 0.4);
+    }
+
+    .execute-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Visualization Area */
+    .visualization-area {
+      background: var(--bg-light);
+      padding: 20px;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .ai-response {
+      background: var(--card-bg);
+      border-left: 4px solid var(--accent-color);
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .ai-response-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .ai-name {
+      font-weight: 600;
+      color: var(--accent-color);
+      font-size: 14px;
+    }
+
+    .ai-meta {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .ai-response-content {
+      color: var(--text-color);
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-wrap;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .empty-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+    }
+
+    /* Log Panel */
+    .log-panel {
+      background: var(--bg-light);
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      overflow-y: auto;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    .log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .log-time {
+      color: rgba(255, 255, 255, 0.4);
+      margin-right: 8px;
+    }
+
+    .log-type {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .log-type.info { color: var(--accent-color); }
+    .log-type.success { color: var(--success-color); }
+    .log-type.error { color: var(--error-color); }
+    .log-type.warning { color: var(--warning-color); }
+
+    .loading {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--accent-color);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--accent-color);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-color);
+      box-shadow: 0 0 8px rgba(0, 217, 255, 0.2);
+    }
+
+    .voice-btn {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      color: var(--accent-color);
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 18px;
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+    }
+
+    .voice-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: var(--accent-color);
+    }
+
+    .voice-btn.listening {
+      background: var(--error-color);
+      border-color: var(--error-color);
+      animation: pulse 1s infinite;
+    }
+
+    .chart-container {
+      height: 150px;
+      margin: 16px 0;
+      background: var(--card-bg);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .export-menu {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 100;
+    }
+
+    .export-dropdown {
+      background: var(--bg-light);
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 8px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: none;
+    }
+
+    .export-dropdown.show {
+      display: block;
+    }
+
+    .export-option {
+      padding: 8px 16px;
+      cursor: pointer;
+      color: var(--text-color);
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .export-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--accent-color);
+    }
+
+    .history-panel {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-bottom: 16px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      border: 1px solid var(--card-border);
+    }
+
+    .history-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      font-size: 12px;
+      border-left: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .history-item:hover {
+      border-left-color: var(--accent-color);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .history-timestamp {
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 10px;
+    }
+
+    .ab-test-mode {
+      background: rgba(118, 75, 162, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      border: 2px solid var(--secondary-color);
+    }
+
+    .ab-test-label {
+      color: var(--secondary-color);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(37, 42, 61, 0.95);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      opacity: 0;
+      transition: opacity 0.3s;
+      z-index: 100;
+    }
+
+    .keyboard-hint.show {
+      opacity: 1;
+    }
+
+    .keyboard-hint kbd {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: var(--accent-color);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+      }
+      .control-panel {
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .header {
+        padding: 0 15px;
+      }
+      .stats {
+        display: none;
+      }
+      .theme-toggle {
+        margin-left: 0;
+      }
+      .keyboard-hint {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        width: auto;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="../website/" class="nav-link">← Back to Home</a>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>
+        <span class="status-indicator" id="status-indicator"></span>
+        🤖 AI Orchestration Dashboard
+      </h1>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value" id="stat-models">0</div>
+          <div class="stat-label">Models</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-queries">0</div>
+          <div class="stat-label">Queries</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value" id="stat-latency">--</div>
+          <div class="stat-label">Latency</div>
+        </div>
+        <button class="theme-toggle" id="theme-toggle">🌙 Dark</button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <div class="section">
+          <div class="section-title">🎯 AI Models</div>
+          <div class="ai-model selected" data-model="llama-3.3-70b-versatile">
+            <div class="ai-model-name">LLaMA 3.3 70B</div>
+            <div class="ai-model-desc">High intelligence, creative responses</div>
+          </div>
+          <div class="ai-model selected" data-model="llama-3.1-8b-instant">
+            <div class="ai-model-name">LLaMA 3.1 8B</div>
+            <div class="ai-model-desc">Fast, efficient, balanced</div>
+          </div>
+          <div class="ai-model" data-model="gemma2-9b-it">
+            <div class="ai-model-name">Gemma2 9B</div>
+            <div class="ai-model-desc">Google's instruction-tuned model</div>
+          </div>
+          <div class="ai-model" data-model="mixtral-8x7b-32768">
+            <div class="ai-model-name">Mixtral 8x7B</div>
+            <div class="ai-model-desc">Mixture of experts, large context</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">📜 Query History</div>
+          <div class="history-panel" id="history-panel"></div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">💬 Query Input</div>
+          <div class="input-group input-group--relative">
+            <label>Prompt</label>
+            <textarea id="prompt-input" placeholder="Enter your prompt for all selected AIs...">What is the most important innovation in AI this year?</textarea>
+            <button class="voice-btn" id="voice-btn" title="Voice Input (Ctrl+Space)">🎤</button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button class="action-btn" id="save-history-btn" title="Ctrl+S">💾 Save</button>
+          <button class="action-btn" id="load-history-btn" title="Ctrl+O">📂 Load</button>
+          <button class="action-btn" id="clear-btn" title="Ctrl+K">🗑️ Clear</button>
+        </div>
+
+        <div class="section">
+          <div class="section-title">🎚️ Temperature</div>
+          <div class="slider-container">
+            <input type="range" id="temperature-slider" min="0" max="2" step="0.1" value="0.7">
+            <div class="slider-value">
+              <span>0.0 (Precise)</span>
+              <span id="temp-value">0.7</span>
+              <span>2.0 (Creative)</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="execute-btn" id="execute-btn">
+          🚀 Execute Multi-AI Query
+        </button>
+      </div>
+
+      <!-- Visualization Area -->
+      <div class="visualization-area" id="visualization-area">
+        <div class="export-menu">
+          <button class="action-btn" id="export-btn">📥 Export</button>
+          <div class="export-dropdown" id="export-dropdown">
+            <div class="export-option" data-format="json">Export as JSON</div>
+            <div class="export-option" data-format="md">Export as Markdown</div>
+            <div class="export-option" data-format="txt">Export as Text</div>
+          </div>
+        </div>
+
+        <div class="chart-container">
+          <canvas id="performance-chart"></canvas>
+        </div>
+
+        <div class="empty-state">
+          <div class="empty-icon">🤖</div>
+          <p>Select AI models and execute a query to see results</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyboard Hints -->
+    <div class="keyboard-hint" id="keyboard-hint">
+      <kbd>Ctrl+Enter</kbd> Execute • <kbd>Ctrl+K</kbd> Clear • <kbd>Ctrl+Space</kbd> Voice • <kbd>Ctrl+/</kbd> Help
+    </div>
+
+    <!-- Log Panel -->
+    <div class="log-panel" id="log-panel"></div>
+  </div>
+
+  <script src="ai-orchestrator-renderer-enhanced.js"></script>
+</body>
+</html>
