@@ -1,0 +1,140 @@
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnpm-debug.log*
+
+# Environment variables (these should be set via platform configs)
+.env
+.env.*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Build artifacts (will be generated in container)
+dist/
+build/
+.next/
+out/
+.cache/
+.parcel-cache/
+.build-tmp/
+
+# Testing
+coverage/
+.nyc_output/
+__tests__/
+*.test.js
+*.spec.js
+*.test.ts
+*.spec.ts
+jest.config.js
+.jest/
+
+# Documentation
+README.md
+DEPLOYMENT.md
+CONTRIBUTING.md
+ARCHITECTURE.md
+docs/
+*.md
+!package*.json
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+azure-pipelines.yml
+.github/workflows/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Docker
+Dockerfile.dev
+docker-compose*.yml
+.docker/
+.dockerignore
+
+# Deployment configs (already in image or set by platform)
+.vercel/
+.railway/
+.wrangler/
+wrangler.toml
+vercel.json
+railway.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Optional caches
+.eslintcache
+.stylelintcache
+.npm/
+.yarn/cache/
+
+# Lock files (copy only package.json, not locks to avoid conflicts)
+# Uncomment if you want to exclude lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# AI/ML (large model files - these should be pulled in container)
+models/
+*.model
+*.h5
+*.pkl
+*.joblib
+.ollama/
+
+# Scripts that shouldn't run in container
+scripts/local-*.js
+scripts/dev-*.js
+scripts/test-*.sh
+
+# Miscellaneous
+*.bak
+*.orig
+*.rej
+*.diff
+*.patch
+.husky/
+
