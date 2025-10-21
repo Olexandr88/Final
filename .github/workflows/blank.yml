@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "Scarmonit" ]
+    branches: [ "main", "Scarmonit" ]
   pull_request:
-    branches: [ "Scarmonit" ]
+    branches: [ "main", "Scarmonit" ]
   workflow_dispatch:
 
 # Ensure the workflow can update contents if needed
@@ -46,21 +46,13 @@ jobs:
       
       - name: Run Tests
         run: |
-          if npm run test --if-present; then
-            echo "✓ Tests passed successfully"
-          else
-            echo "✗ Tests failed or not configured"
-            exit 0
-          fi
-      
+          echo "Running npm test (if present)..."
+          npm run test --if-present
+
       - name: Run Build
         run: |
-          if npm run build --if-present; then
-            echo "✓ Build completed successfully"
-          else
-            echo "✗ Build failed or not configured"
-            exit 0
-          fi
+          echo "Running npm build (if present)..."
+          npm run build --if-present
       
       - name: Run Lint
         run: |

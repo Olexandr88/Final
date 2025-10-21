@@ -22,6 +22,8 @@ const buildConfig = {
 console.log('✓ Starting build process...');
 console.log(`  Build time: ${buildConfig.buildTime}`);
 
+let hasFailure = false;
+
 // Step 1: Clean previous builds
 console.log('\n✓ Step 1: Cleaning previous builds');
 try {
@@ -32,6 +34,7 @@ try {
   console.log('  ✓ Clean completed');
 } catch (error) {
   console.log('  ✗ Clean failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 2: Create output directory
@@ -43,6 +46,7 @@ try {
   }
 } catch (error) {
   console.log('  ✗ Directory creation failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 3: Validate source files
@@ -61,6 +65,7 @@ sourceFiles.forEach(file => {
   } else {
     console.log(`  ✗ ${file} not found`);
     validationPassed = false;
+    hasFailure = true;
   }
 });
 
@@ -80,10 +85,14 @@ try {
     if (fs.existsSync(sourcePath)) {
       fs.copyFileSync(sourcePath, destPath);
       console.log(`  ✓ Copied ${file} to ${buildConfig.outputDir}`);
+    } else {
+      console.log(`  ✗ ${file} missing, skipping copy`);
+      hasFailure = true;
     }
   });
 } catch (error) {
   console.log('  ✗ Copy failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 5: Generate build metadata
@@ -106,6 +115,7 @@ try {
   console.log(`  - Node: ${metadata.nodeVersion}`);
 } catch (error) {
   console.log('  ✗ Metadata generation failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 6: Jules optimization
@@ -117,9 +127,14 @@ console.log('  ✓ Jules optimization completed');
 
 // Step 7: Build summary
 console.log('\n=== Build Summary ===');
-console.log('✓ Build completed successfully');
-console.log(`✓ Output directory: ${buildConfig.outputDir}`);
-console.log('✓ All steps completed');
-console.log('✓ Repository is ready for deployment\n');
+if (hasFailure) {
+  console.log('✗ Build completed with issues');
+  console.log('✗ Review errors above before deploying');
+} else {
+  console.log('✓ Build completed successfully');
+  console.log(`✓ Output directory: ${buildConfig.outputDir}`);
+  console.log('✓ All steps completed');
+  console.log('✓ Repository is ready for deployment\n');
+}
 
-process.exit(0);
+process.exit(hasFailure ? 1 : 0);

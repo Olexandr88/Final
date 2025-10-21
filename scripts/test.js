@@ -23,6 +23,7 @@ const requiredFiles = [
 ];
 
 let allFilesExist = true;
+let hasFailure = false;
 requiredFiles.forEach(file => {
   const filePath = path.join(process.cwd(), file);
   if (fs.existsSync(filePath)) {
@@ -30,6 +31,7 @@ requiredFiles.forEach(file => {
   } else {
     console.log(`  ✗ ${file} missing`);
     allFilesExist = false;
+    hasFailure = true;
   }
 });
 
@@ -56,6 +58,7 @@ try {
   }
 } catch (error) {
   console.log('  ✗ Error validating package.json:', error.message);
+  hasFailure = true;
 }
 
 // Test 3: Jules Configuration
@@ -71,12 +74,13 @@ try {
   if (julesConfig.automation) {
     console.log('  ✓ Automation settings configured');
   }
-  
+
   if (julesConfig.checks) {
     console.log('  ✓ Health checks configured');
   }
 } catch (error) {
   console.log('  ✗ Error loading jules.config.js:', error.message);
+  hasFailure = true;
 }
 
 // Test 4: Workflow Configuration
@@ -90,18 +94,24 @@ try {
     if (workflowContent.includes('Jules')) {
       console.log('  ✓ Workflow includes Jules automation');
     }
-    
+
     if (workflowContent.includes('actions/checkout')) {
       console.log('  ✓ Workflow includes checkout action');
     }
   }
 } catch (error) {
   console.log('  ✗ Error validating workflow:', error.message);
+  hasFailure = true;
 }
 
 // Test Summary
 console.log('\n=== Test Suite Complete ===');
-console.log('✓ All tests passed successfully');
-console.log('✓ Repository is healthy and Jules is properly configured\n');
+if (hasFailure) {
+  console.log('✗ Issues detected during tests');
+  console.log('✗ Repository requires attention before Jules automation can pass\n');
+} else {
+  console.log('✓ All tests passed successfully');
+  console.log('✓ Repository is healthy and Jules is properly configured\n');
+}
 
-process.exit(0);
+process.exit(hasFailure ? 1 : 0);
