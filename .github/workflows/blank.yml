@@ -1,6 +1,5 @@
 # CI Workflow with Jules Automation
 name: CI
-
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events
@@ -10,7 +9,6 @@ on:
     branches: [ "Scarmonit", "main" ]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # Main build and test job
@@ -40,7 +38,7 @@ jobs:
       - name: Run tests
         run: |
           if [ -f package.json ]; then
-            npm test || echo "No tests configured"
+            npm test
           else
             echo "No package.json found, skipping tests"
           fi
@@ -57,7 +55,7 @@ jobs:
       - name: Build project
         run: |
           if [ -f package.json ]; then
-            npm run build || echo "No build script configured"
+            npm run build
           else
             echo "No package.json found, skipping build"
           fi
