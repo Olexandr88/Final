@@ -11,10 +11,10 @@ on:
         description: 'Run example scripts'
         required: false
         default: 'true'
-# Optimized concurrency controls - allow parallel main branch pushes
+# Fixed concurrency controls - use github.ref for proper cancellation
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 jobs:
   # Job 1: Setup and validate environment (runs in parallel with linting)
   setup-and-validate:
