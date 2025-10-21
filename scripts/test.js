@@ -9,6 +9,8 @@
 
 console.log('\n=== Jules Test Suite ===\n');
 
+let hasFailure = false;
+
 // Test 1: Repository Structure
 console.log('✓ Test 1: Repository structure validation');
 console.log('  - Checking required files...');
@@ -30,6 +32,7 @@ requiredFiles.forEach(file => {
   } else {
     console.log(`  ✗ ${file} missing`);
     allFilesExist = false;
+    hasFailure = true;
   }
 });
 
@@ -37,6 +40,7 @@ if (allFilesExist) {
   console.log('\n✓ All required files present\n');
 } else {
   console.log('\n✗ Some required files are missing\n');
+  hasFailure = true;
 }
 
 // Test 2: Package.json Validation
@@ -56,6 +60,7 @@ try {
   }
 } catch (error) {
   console.log('  ✗ Error validating package.json:', error.message);
+  hasFailure = true;
 }
 
 // Test 3: Jules Configuration
@@ -77,6 +82,7 @@ try {
   }
 } catch (error) {
   console.log('  ✗ Error loading jules.config.js:', error.message);
+  hasFailure = true;
 }
 
 // Test 4: Workflow Configuration
@@ -97,10 +103,18 @@ try {
   }
 } catch (error) {
   console.log('  ✗ Error validating workflow:', error.message);
+  hasFailure = true;
 }
 
 // Test Summary
 console.log('\n=== Test Suite Complete ===');
+
+if (hasFailure) {
+  console.log('✗ Failures detected during tests');
+  console.log('✗ Repository requires attention before Jules automation can pass\n');
+  process.exit(1);
+}
+
 console.log('✓ All tests passed successfully');
 console.log('✓ Repository is healthy and Jules is properly configured\n');
 

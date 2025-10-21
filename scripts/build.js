@@ -12,6 +12,8 @@ console.log('\n=== Jules Build Process ===\n');
 const fs = require('fs');
 const path = require('path');
 
+let hasFailure = false;
+
 // Build Configuration
 const buildConfig = {
   outputDir: 'dist',
@@ -32,6 +34,7 @@ try {
   console.log('  ✓ Clean completed');
 } catch (error) {
   console.log('  ✗ Clean failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 2: Create output directory
@@ -43,6 +46,7 @@ try {
   }
 } catch (error) {
   console.log('  ✗ Directory creation failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 3: Validate source files
@@ -61,6 +65,7 @@ sourceFiles.forEach(file => {
   } else {
     console.log(`  ✗ ${file} not found`);
     validationPassed = false;
+    hasFailure = true;
   }
 });
 
@@ -68,6 +73,7 @@ if (validationPassed) {
   console.log('  ✓ All source files validated');
 } else {
   console.log('  ✗ Some source files are missing');
+  hasFailure = true;
 }
 
 // Step 4: Copy configuration files
@@ -84,6 +90,7 @@ try {
   });
 } catch (error) {
   console.log('  ✗ Copy failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 5: Generate build metadata
@@ -106,6 +113,7 @@ try {
   console.log(`  - Node: ${metadata.nodeVersion}`);
 } catch (error) {
   console.log('  ✗ Metadata generation failed:', error.message);
+  hasFailure = true;
 }
 
 // Step 6: Jules optimization
@@ -117,6 +125,13 @@ console.log('  ✓ Jules optimization completed');
 
 // Step 7: Build summary
 console.log('\n=== Build Summary ===');
+
+if (hasFailure) {
+  console.log('✗ Build completed with errors');
+  console.log('✗ Repository is not ready for deployment\n');
+  process.exit(1);
+}
+
 console.log('✓ Build completed successfully');
 console.log(`✓ Output directory: ${buildConfig.outputDir}`);
 console.log('✓ All steps completed');

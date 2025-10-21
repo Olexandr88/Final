@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "Scarmonit" ]
+    branches: [ "main", "Scarmonit" ]
   pull_request:
-    branches: [ "Scarmonit" ]
+    branches: [ "main", "Scarmonit" ]
   workflow_dispatch:
 
 # Ensure the workflow can update contents if needed
@@ -50,7 +50,7 @@ jobs:
             echo "✓ Tests passed successfully"
           else
             echo "✗ Tests failed or not configured"
-            exit 0
+            exit 1
           fi
       
       - name: Run Build
@@ -59,7 +59,7 @@ jobs:
             echo "✓ Build completed successfully"
           else
             echo "✗ Build failed or not configured"
-            exit 0
+            exit 1
           fi
       
       - name: Run Lint
