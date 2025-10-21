@@ -22,8 +22,11 @@
     "deploy:railway": "railway up",
     "deploy:vercel": "vercel --prod",
     "deploy:all": "npm run deploy:cloudflare && npm run deploy:railway && npm run deploy:vercel",
+    "deploy:production": "node scripts/deploy-production.js",
     "deploy:status": "echo \"Checking deployment status...\" && npx wrangler deployments list && railway status && vercel ls",
     "domain:setup": "echo \"📋 Domain Setup Guide:\\n\\n1. Get Cloudflare Zone ID from dashboard\\n2. Update wrangler.toml with zone_id\\n3. Run: npm run deploy:cloudflare\\n4. Configure DNS records (see DEPLOYMENT.md)\\n5. Deploy to Railway and Vercel\\n\\nSee DEPLOYMENT.md for detailed instructions.\"",
+    "dashboard:dev": "npx live-server public --port=8080",
+    "dashboard:deploy": "vercel --prod",
     "agent:ollama-autonomous": "echo \"Starting Ollama autonomous agent...\" && node scripts/ollama-agent.js || echo \"Ollama agent script not found, running in echo mode\"",
     "agent:cloud": "echo \"Starting cloud agent...\" && node scripts/cloud-agent.js || echo \"Cloud agent script not found, running in echo mode\"",
     "agent:orchestrator": "node scripts/autonomous-orchestrator.js",
@@ -41,7 +44,9 @@
     "automation",
     "ci-cd",
     "github-actions",
-    "auto-fix"
+    "auto-fix",
+    "dashboard",
+    "monitoring"
   ],
   "author": "Scarmonit",
   "license": "MIT",
@@ -79,7 +84,8 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-n": "^16.6.2",
-    "prettier": "^3.2.5"
+    "prettier": "^3.2.5",
+    "live-server": "^1.2.2"
   },
   "dependencies": {
     "axios": "^1.6.8",
