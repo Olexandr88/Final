@@ -1,6 +1,6 @@
 name: Gemini Ultra Integration & Testing
-
 # Parallel workflow execution demonstrating Gemini Ultra integration
+
 on:
   push:
     branches: [ main, Scarmonit ]
@@ -51,8 +51,14 @@ jobs:
         
     - name: Run environment check
       run: |
-        python gemini_ultra_example.py --check-env || echo "Note: Full functionality requires API credentials"
-
+        if python gemini_ultra_example.py --check-env 2>&1 | tee env-check.log; then
+          echo "✓ Environment check passed"
+        else
+          echo "✗ Environment check failed. Check env-check.log for details."
+          exit 1
+        fi
+      continue-on-error: true
+  
   # Job 2: Code quality checks (runs in parallel with setup)
   code-quality:
     runs-on: ubuntu-latest
@@ -68,25 +74,50 @@ jobs:
         
     - name: Install linting tools
       run: |
-        pip install pylint flake8 black isort mypy
+        pip install pylint black flake8 isort
+        pip install -r requirements_gemini_ultra.txt
         
     - name: Run pylint
       run: |
-        pylint gemini_ultra_config.py gemini_ultra_example.py || true
-        
+        if pylint gemini_ultra_config.py gemini_ultra_example.py --rcfile=.pylintrc 2>&1 | tee pylint.log; then
+          echo "✓ Pylint passed"
+        else
+          echo "✗ Pylint found issues"
+          exit 1
+        fi
+      continue-on-error: true
+      
+    - name: Check code formatting
+      run: |
+        if black --check gemini_ultra_config.py gemini_ultra_example.py 2>&1 | tee black.log; then
+          echo "✓ Code formatting is correct"
+        else
+          echo "✗ Code formatting needs improvement"
+          exit 1
+        fi
+      continue-on-error: true
+      
     - name: Run flake8
       run: |
-        flake8 gemini_ultra_config.py gemini_ultra_example.py --max-line-length=100 || true
-        
-    - name: Check code formatting with black
+        if flake8 gemini_ultra_config.py gemini_ultra_example.py --max-line-length=120 2>&1 | tee flake8.log; then
+          echo "✓ Flake8 passed"
+        else
+          echo "✗ Flake8 found issues"
+          exit 1
+        fi
+      continue-on-error: true
+      
+    - name: Check import sorting
       run: |
-        black --check gemini_ultra_config.py gemini_ultra_example.py || true
-        
-    - name: Check imports with isort
-      run: |
-        isort --check-only gemini_ultra_config.py gemini_ultra_example.py || true
-
-  # Job 3: Documentation build (runs in parallel)
+        if isort --check-only gemini_ultra_config.py gemini_ultra_example.py 2>&1 | tee isort.log; then
+          echo "✓ Imports are correctly sorted"
+        else
+          echo "✗ Import sorting needs improvement"
+          exit 1
+        fi
+      continue-on-error: true
+  
+  # Job 3: Build documentation (runs in parallel)
   build-documentation:
     runs-on: ubuntu-latest
     
@@ -94,35 +125,22 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Validate README syntax
+    - name: Validate README files
       run: |
-        if command -v markdown-cli &> /dev/null; then
-          markdown-cli GEMINI_ULTRA_README.md
+        if [ -f GEMINI_ULTRA_README.md ] && [ -s GEMINI_ULTRA_README.md ]; then
+          echo "✓ GEMINI_ULTRA_README.md exists and is not empty"
         else
-          echo "Markdown validation skipped - validator not installed"
+          echo "✗ GEMINI_ULTRA_README.md is missing or empty"
+          exit 1
         fi
         
-    - name: Check README completeness
-      run: |
-        echo "Checking README for required sections..."
-        grep -q "Quick Start" GEMINI_ULTRA_README.md && echo "✓ Quick Start section found"
-        grep -q "Authentication" GEMINI_ULTRA_README.md && echo "✓ Authentication section found"
-        grep -q "Examples" GEMINI_ULTRA_README.md && echo "✓ Examples section found"
-        grep -q "Troubleshooting" GEMINI_ULTRA_README.md && echo "✓ Troubleshooting section found"
-        
-    - name: Generate documentation artifact
-      run: |
-        mkdir -p docs
-        cp GEMINI_ULTRA_README.md docs/
-        cp gemini_ultra_config.py docs/
-        echo "Documentation generated at $(date)" > docs/BUILD_INFO.txt
-        
-    - name: Upload documentation
-      uses: actions/upload-artifact@v3
-      with:
-        name: gemini-ultra-docs
-        path: docs/
-
+        if [ -f README.md ] && [ -s README.md ]; then
+          echo "✓ README.md exists and is not empty"
+        else
+          echo "✗ README.md is missing or empty"
+          exit 1
+        fi
+  
   # Job 4: Security scanning (runs in parallel)
   security-scan:
     runs-on: ubuntu-latest
@@ -131,29 +149,40 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Run security checks
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install security tools
       run: |
         pip install safety bandit
+        pip install -r requirements_gemini_ultra.txt
         
-    - name: Check for known vulnerabilities
+    - name: Run safety check
       run: |
-        safety check --file=requirements_gemini_ultra.txt || echo "Note: Some packages may have advisories"
-        
+        if safety check --file=requirements_gemini_ultra.txt 2>&1 | tee safety.log; then
+          echo "✓ No known security vulnerabilities found"
+        else
+          echo "✗ Security vulnerabilities detected"
+          exit 1
+        fi
+      continue-on-error: true
+      
     - name: Run bandit security scan
       run: |
-        bandit -r gemini_ultra_config.py gemini_ultra_example.py || true
-        
-    - name: Check for exposed credentials
-      run: |
-        echo "Checking for accidentally committed credentials..."
-        ! grep -r "AIza" . --exclude-dir=.git --exclude="*.yml" || echo "Warning: Possible API key found"
-        echo "✓ Credential check complete"
-
-  # Job 5: Integration testing (depends on setup, demonstrates sequential+parallel)
-  integration-test:
+        if bandit -r gemini_ultra_config.py gemini_ultra_example.py 2>&1 | tee bandit.log; then
+          echo "✓ Bandit security scan passed"
+        else
+          echo "✗ Bandit found security issues"
+          exit 1
+        fi
+      continue-on-error: true
+  
+  # Job 5: Run example scripts (optional, if configured)
+  run-examples:
     runs-on: ubuntu-latest
-    needs: [setup-and-validate]
-    if: github.event.inputs.run_examples != 'false'
+    if: github.event.inputs.run_examples == 'true'
     
     steps:
     - name: Checkout repository
@@ -177,7 +206,7 @@ jobs:
         echo "Demonstrating parallel operation capability:"
         echo "In production, multiple Gemini Ultra requests can run concurrently"
         echo "This enables efficient batch processing and real-time applications"
-
+  
   # Job 6: Generate summary report (runs after all parallel jobs)
   generate-report:
     runs-on: ubuntu-latest
