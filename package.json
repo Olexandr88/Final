@@ -29,7 +29,8 @@
     "agent:orchestrator": "node scripts/autonomous-orchestrator.js",
     "agent:continuous": "NODE_ENV=production node scripts/autonomous-orchestrator.js",
     "agent:dev": "NODE_ENV=development POLL_INTERVAL_MS=60000 node scripts/autonomous-orchestrator.js",
-    "agent:monitor": "ENABLE_AUTO_SOLVE=false node scripts/autonomous-orchestrator.js"
+    "agent:monitor": "ENABLE_AUTO_SOLVE=false node scripts/autonomous-orchestrator.js",
+    "scrape": "node scripts/scraper.js"
   },
   "repository": {
     "type": "git",
@@ -79,5 +80,9 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-node": "^11.1.0",
     "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "axios": "^1.12.2",
+    "cheerio": "^1.1.2"
   }
 }
