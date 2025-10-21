@@ -46,21 +46,13 @@ jobs:
       
       - name: Run Tests
         run: |
-          if npm run test --if-present; then
-            echo "✓ Tests passed successfully"
-          else
-            echo "✗ Tests failed or not configured"
-            exit 0
-          fi
+          echo "▶ Running tests"
+          npm run test --if-present
       
       - name: Run Build
         run: |
-          if npm run build --if-present; then
-            echo "✓ Build completed successfully"
-          else
-            echo "✗ Build failed or not configured"
-            exit 0
-          fi
+          echo "▶ Running build"
+          npm run build --if-present
       
       - name: Run Lint
         run: |
