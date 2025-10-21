@@ -14,10 +14,10 @@ permissions:
   pull-requests: write
   issues: write
 
-# Improved concurrency settings
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+# Improved concurrency settings - TEMPORARILY DISABLED to clear queue
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+#   cancel-in-progress: true
 
 jobs:
   build-and-test:
@@ -66,17 +66,17 @@ jobs:
           if npm run lint --if-present 2>&1 | tee lint.log; then
             echo "✓ Lint passed successfully"
           else
-            echo "✗ Lint failed or not configured"
+            echo "✗ Lint failed"
             exit 1
           fi
       
-      - name: Upload test logs
-        if: failure()
+      - name: Upload Logs
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-logs
+          name: ci-logs
           path: |
             test.log
             build.log
             lint.log
-          retention-days: 7
+          retention-days: 5
