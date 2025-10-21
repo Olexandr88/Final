@@ -18,7 +18,8 @@
     "format:check": "prettier --check .",
     "prepare": "echo \"Preparing repository...\"",
     "postinstall": "echo \"Jules automation configured and ready!\"",
-    "agent:ollama-autonomous": "echo \"Starting Ollama autonomous agent...\" && node scripts/ollama-agent.js || echo \"Ollama agent script not found, running in echo mode\""
+    "agent:ollama-autonomous": "echo \"Starting Ollama autonomous agent...\" && node scripts/ollama-agent.js || echo \"Ollama agent script not found, running in echo mode\"",
+    "agent:cloud": "echo \"Starting cloud agent...\" && node scripts/cloud-agent.js || echo \"Cloud agent script not found, running in echo mode\""
   },
   "repository": {
     "type": "git",
@@ -68,6 +69,5 @@
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-node": "^11.1.0",
     "prettier": "^3.2.5"
-  },
-  "dependencies": {}
+  }
 }
