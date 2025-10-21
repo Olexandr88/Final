@@ -47,6 +47,7 @@ The system consists of three complementary components:
 ### 1. Configure Environment Variables
 
 #### Railway Environment Variables
+
 ```bash
 GITHUB_TOKEN=ghp_xxxxxxxxxxxxx
 GITHUB_REPO=Scarmonit/Final
@@ -58,6 +59,7 @@ ENABLE_AUTO_SOLVE=true           # Enable automatic solving (optional)
 ```
 
 #### Cloudflare Worker Secrets
+
 ```bash
 wrangler secret put GITHUB_TOKEN
 wrangler secret put RAILWAY_SERVICE_URL  # Your Railway deployment URL
@@ -67,6 +69,7 @@ wrangler secret put GITHUB_REPO          # Optional: Scarmonit/Final
 ### 2. Deploy Components
 
 #### Deploy Railway Orchestrator
+
 ```bash
 railway up
 # or
@@ -76,6 +79,7 @@ npm run deploy:railway
 The orchestrator will start automatically and begin monitoring issues.
 
 #### Deploy Cloudflare Workers
+
 ```bash
 npx wrangler deploy
 # or
@@ -150,9 +154,11 @@ Comment on any issue with these commands:
 ### Emergency Controls
 
 #### Stop Agent
+
 Create an issue with label `agent:stop` to halt all processing.
 
 #### Resume Agent
+
 Remove `agent:stop` label or create issue with `agent:resume`.
 
 ## 📈 Monitoring
@@ -160,11 +166,13 @@ Remove `agent:stop` label or create issue with `agent:resume`.
 ### Health Check Endpoints
 
 #### Railway Orchestrator
+
 ```bash
 curl https://your-railway-app.railway.app/health
 ```
 
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -182,6 +190,7 @@ Response:
 ```
 
 #### Cloudflare Worker
+
 ```bash
 curl https://scarmonit-final.your-subdomain.workers.dev/health
 ```
@@ -210,11 +219,13 @@ The agent persists its state to `.agent-state.json` in the repository:
 ### Logs
 
 #### Railway Logs
+
 ```bash
 railway logs --follow
 ```
 
 #### Cloudflare Worker Logs
+
 ```bash
 wrangler tail
 ```
@@ -263,22 +274,26 @@ ENABLE_AUTO_SOLVE=false
 ## 🔒 Safety Features
 
 ### Rate Limiting
+
 - GitHub API calls are throttled to prevent rate limiting
 - Respects GitHub's rate limit headers
 - Backs off on errors
 
 ### Error Recovery
+
 - Automatically retries failed operations
 - Stops after 3 consecutive errors
 - Creates alert issues for critical failures
 - Graceful shutdown on SIGTERM/SIGINT
 
 ### State Persistence
+
 - State saved to `.agent-state.json` after each operation
 - Survives restarts and redeployments
 - Prevents duplicate work
 
 ### Circuit Breaker
+
 - Stops processing after repeated failures
 - Requires manual intervention to resume
 - Prevents runaway processes
@@ -294,6 +309,7 @@ npm run agent:dev
 ```
 
 This sets:
+
 - `NODE_ENV=development`
 - `POLL_INTERVAL_MS=60000` (1 minute)
 
@@ -326,16 +342,19 @@ cloudflared tunnel --url http://localhost:8787
 ### Agent Not Processing Issues
 
 1. **Check health endpoint**:
+
    ```bash
    curl https://your-railway-app.railway.app/health
    ```
 
 2. **Check environment variables**:
+
    ```bash
    railway variables
    ```
 
 3. **Check logs**:
+
    ```bash
    railway logs --follow
    ```
@@ -360,6 +379,7 @@ cloudflared tunnel --url http://localhost:8787
 ### High Error Count
 
 Check `.agent-state.json` for error count:
+
 - If `errorCount >= 3`, agent has stopped
 - Review recent issue comments for error details
 - Fix underlying issue
@@ -387,12 +407,12 @@ Edit `scripts/autonomous-orchestrator.js` to customize priority weights:
 
 ```javascript
 const PRIORITY_WEIGHTS = {
-  'security': 2000,      // Increase security priority
-  'bug': 500,
+  security: 2000, // Increase security priority
+  bug: 500,
   'customer-request': 300, // Add custom label
-  'enhancement': 200,
-  'documentation': 100,
-  'question': 50
+  enhancement: 200,
+  documentation: 100,
+  question: 50,
 };
 ```
 
@@ -433,6 +453,7 @@ Customize in `workers/webhook-handler.js` `scheduled()` function.
 ## 📞 Support
 
 For issues or questions:
+
 1. Check troubleshooting section above
 2. Review logs (Railway and Cloudflare)
 3. Create an issue in the repository
@@ -450,4 +471,3 @@ npx wrangler deploy     # Redeploy Cloudflare
 ```
 
 The orchestrator will automatically reload with new configuration.
-

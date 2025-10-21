@@ -16,6 +16,7 @@ npm run deploy:status
 ## 📋 Prerequisites
 
 ### Required Tools
+
 - Node.js 18+ installed
 - Git repository initialized
 - Vercel CLI installed (`npm i -g vercel`)
@@ -25,11 +26,13 @@ npm run deploy:status
 ### Environment Setup
 
 1. **Vercel Authentication**
+
    ```bash
    vercel login
    ```
 
 2. **Railway Authentication** (optional)
+
    ```bash
    railway login
    ```
@@ -50,15 +53,15 @@ npm run deploy:status
    - Add `www.scarmonit.com` and `scarmonit.com`
 
 2. **DNS Configuration**
-   
+
    Add these records to your DNS provider:
-   
+
    ```
    Type: CNAME
    Name: www
    Value: cname.vercel-dns.com
    TTL: 3600
-   
+
    Type: A
    Name: @
    Value: 76.76.21.21
@@ -92,6 +95,7 @@ node scripts/deploy-production.js
 ```
 
 **Features:**
+
 - Pre-deployment validation
 - Automated testing
 - Build verification
@@ -99,6 +103,7 @@ node scripts/deploy-production.js
 - Deployment reporting
 
 **Process:**
+
 1. ✅ Pre-checks (Git status, dependencies)
 2. 🏗️ Build project
 3. 🚀 Deploy to Vercel
@@ -108,16 +113,19 @@ node scripts/deploy-production.js
 ### Manual Deployment
 
 **Vercel:**
+
 ```bash
 vercel --prod
 ```
 
 **Railway:**
+
 ```bash
 railway up
 ```
 
 **Cloudflare:**
+
 ```bash
 wrangler deploy
 ```
@@ -135,6 +143,7 @@ wrangler deploy
 Deployment reports are saved to `reports/deployment-*.json`
 
 **Report Contents:**
+
 - Deployment timestamp
 - Duration
 - Pre-check results
@@ -147,21 +156,25 @@ Deployment reports are saved to `reports/deployment-*.json`
 ### Common Issues
 
 **Issue: Domain not resolving**
+
 - Check DNS propagation (can take up to 48 hours)
 - Verify DNS records are correct
 - Use `dig www.scarmonit.com` to check DNS
 
 **Issue: SSL certificate not provisioned**
+
 - Wait 24 hours for auto-provisioning
 - Ensure domain ownership is verified
 - Check Vercel dashboard for certificate status
 
 **Issue: Health check fails**
+
 - Verify deployment completed successfully
 - Check server logs for errors
 - Test endpoints manually with curl
 
 **Issue: Build fails**
+
 - Check Node version (18+ required)
 - Verify all dependencies installed
 - Review build logs for errors
@@ -191,6 +204,7 @@ nslookup www.scarmonit.com
 ### GitHub Actions Integration
 
 Deployments are automatically triggered on:
+
 - Push to `main` branch
 - Pull request merge
 - Manual workflow dispatch
@@ -216,6 +230,7 @@ vercel rollback https://final-abc123.vercel.app
 ### CDN Configuration
 
 Vercel automatically provides:
+
 - Global CDN
 - Edge caching
 - Automatic compression
@@ -226,6 +241,7 @@ Vercel automatically provides:
 ### Security Headers
 
 Configured in `vercel.json`:
+
 - X-Content-Type-Options: nosniff
 - X-Frame-Options: DENY/SAMEORIGIN
 - X-XSS-Protection: 1; mode=block
@@ -234,6 +250,7 @@ Configured in `vercel.json`:
 ### Environment Variables
 
 Set via Vercel dashboard:
+
 1. Go to Settings → Environment Variables
 2. Add production variables
 3. Redeploy for changes to take effect

@@ -29,6 +29,7 @@ npm run deploy:production
 ## 📊 Features
 
 ### Interactive AI Dashboard
+
 - **Real-time monitoring** with 5-second auto-refresh
 - **Multi-platform status** (Vercel, Railway, Cloudflare)
 - **Agent orchestration** controls
@@ -37,17 +38,20 @@ npm run deploy:production
 - **Jules automation** insights
 
 ### Multi-Platform Deployment
+
 - ✅ **Vercel** - Edge deployment with serverless functions
 - ✅ **Railway** - Container-based server deployment
 - ✅ **Cloudflare Workers** - Global CDN and workers
 
 ### Jules Automation System
+
 - 🔧 **Auto-fix** - Automatically fixes common issues
 - ⚡ **Auto-optimize** - Performance improvements
 - ✅ **Auto-validate** - Repository health checks
 - 📊 **Continuous monitoring** - Real-time issue detection
 
 ### AI Agent Capabilities
+
 - 🤖 **Autonomous agents** - Self-managing AI systems
 - 🔄 **Agent orchestration** - Multi-agent coordination
 - 📈 **Performance tracking** - Real-time metrics
@@ -82,6 +86,7 @@ Final/
 ## 🛠️ Available Scripts
 
 ### Deployment
+
 ```bash
 npm run deploy:vercel       # Deploy to Vercel
 npm run deploy:railway      # Deploy to Railway
@@ -92,6 +97,7 @@ npm run deploy:status       # Check deployment status
 ```
 
 ### Development
+
 ```bash
 npm run dashboard:dev       # Run dashboard locally (http://localhost:8080)
 npm run dashboard:deploy    # Deploy dashboard to production
@@ -103,6 +109,7 @@ npm run format              # Format code with Prettier
 ```
 
 ### Jules Automation
+
 ```bash
 npm run jules:analyze       # Analyze repository for issues
 npm run jules:fix           # Auto-fix common problems
@@ -112,6 +119,7 @@ npm run jules:full          # Run complete Jules suite
 ```
 
 ### Agent Management
+
 ```bash
 npm run agent:orchestrator  # Start agent orchestrator
 npm run agent:continuous    # Continuous production mode
@@ -122,18 +130,21 @@ npm run agent:monitor       # Monitor-only mode (no auto-solve)
 ## 🌐 Deployment Platforms
 
 ### Vercel (Primary)
+
 - **Edge Functions**: Global CDN with serverless functions
 - **Domain**: www.scarmonit.com
 - **Deploy**: `npm run deploy:vercel`
 - **Dashboard**: Automatic deployment via GitHub integration
 
 ### Railway (Server)
+
 - **Container Deployment**: Docker-based server hosting
 - **Health Checks**: `/health` endpoint monitoring
 - **Deploy**: `npm run deploy:railway`
 - **Auto-scaling**: Enabled with resource monitoring
 
 ### Cloudflare Workers
+
 - **Global CDN**: Distributed edge computing
 - **Workers**: Serverless JavaScript execution
 - **Deploy**: `npm run deploy:cloudflare`
@@ -142,24 +153,28 @@ npm run agent:monitor       # Monitor-only mode (no auto-solve)
 ## 📊 Dashboard Features
 
 ### Real-Time Monitoring
+
 - System uptime tracking
 - Memory usage visualization
 - Response time metrics
 - Agent status indicators
 
 ### Agent Management
+
 - Start/stop agent controls
 - Active agent count
 - Agent health status
 - Performance metrics
 
 ### Deployment Status
+
 - Platform health indicators (Vercel/Railway/Cloudflare)
 - GitHub Actions workflow status
 - Build success/failure tracking
 - Deployment history
 
 ### Jules Automation Metrics
+
 - Auto-fixes applied counter
 - Optimizations performed
 - Issues automatically resolved
@@ -197,6 +212,7 @@ CNAME   www     cname.vercel-dns.com    Auto
 ```
 
 **Vercel Domain Configuration**:
+
 1. Go to Vercel Dashboard → Settings → Domains
 2. Add `scarmonit.com` and `www.scarmonit.com`
 3. Verify DNS propagation
@@ -241,17 +257,20 @@ See [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md) for detailed 
 ## 🔐 Security
 
 ### Security Headers
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
 - HTTPS enforced on all domains
 
 ### CORS Configuration
+
 - Configured for dashboard API access
 - Origin validation enabled
 - Credentials support disabled by default
 
 ### Rate Limiting
+
 - Vercel: 100 requests/minute per IP
 - Railway: Configurable via environment
 - Cloudflare: Built-in DDoS protection
@@ -259,12 +278,14 @@ See [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md) for detailed 
 ## 📈 Performance
 
 ### Metrics
+
 - **Response Time**: <200ms average
 - **Uptime**: 99.9% target
 - **Memory**: <100MB baseline
 - **CPU**: <50% average usage
 
 ### Optimization
+
 - Edge caching via Vercel/Cloudflare
 - Serverless functions for dynamic content
 - Static asset CDN distribution

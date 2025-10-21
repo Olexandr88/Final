@@ -22,10 +22,9 @@ export default async function handler(req, res) {
     endpoints: {
       health: '/health',
       api: '/api/*',
-      docs: 'https://github.com/Scarmonit/Final'
+      docs: 'https://github.com/Scarmonit/Final',
     },
     status: 'operational',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 }
-

@@ -21,14 +21,14 @@ export default async function handler(req, res) {
     // Read and serve the dashboard HTML
     const dashboardPath = join(process.cwd(), 'public', 'dashboard.html');
     const dashboardHTML = readFileSync(dashboardPath, 'utf-8');
-    
+
     res.setHeader('Content-Type', 'text/html');
     return res.status(200).send(dashboardHTML);
   } catch (error) {
     console.error('Error serving dashboard:', error);
     return res.status(500).json({
       error: 'Failed to load dashboard',
-      message: error.message
+      message: error.message,
     });
   }
 }
