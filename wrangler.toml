@@ -1,0 +1,22 @@
+# Cloudflare Workers Configuration
+# Deploy: npx wrangler deploy
+
+name = "ollama-autonomous-agent"
+main = "workers/autonomous-agent.js"
+compatibility_date = "2024-01-01"
+
+# Workers AI binding
+[ai]
+binding = "AI"
+
+# Cron trigger - runs daily at midnight UTC
+[triggers]
+crons = ["0 0 * * *"]
+
+# Environment variables (set via: wrangler secret put GITHUB_TOKEN)
+# GITHUB_TOKEN - Your GitHub personal access token
+
+# Free tier limits:
+# - 100,000 requests/day
+# - 10,000 AI neurons/day (enough for ~100 issues)
+# - 10ms CPU time per request
