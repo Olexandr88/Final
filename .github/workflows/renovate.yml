@@ -1,15 +1,27 @@
 name: Renovate
+# Automate dependency updates using Renovate Bot
 on:
   schedule:
     - cron: '0 0 1 * *' # Runs on the first day of every month
   workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   renovate:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
-      - name: Renovate
-        uses: renovatebot/github-action@v39.1.4
+        uses: actions/checkout@v4
+        
+      - name: Run Renovate
+        uses: renovatebot/github-action@v40.3.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
