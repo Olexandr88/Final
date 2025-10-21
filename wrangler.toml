@@ -2,7 +2,7 @@
 # Deploy: npx wrangler deploy
 # Domain Setup: Add your zone_id below and uncomment routes
 
-name = "scarmonit-agent"
+name = "scarmonit-final"
 main = "workers/autonomous-agent.js"
 compatibility_date = "2024-01-01"
 
