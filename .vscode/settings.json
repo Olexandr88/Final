@@ -1,0 +1,35 @@
+{
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": true,
+    "markdown": true
+  },
+  "github.copilot.advanced": {
+    "debug.overrideEngine": "gpt-4",
+    "debug.testOverrideProxyUrl": "",
+    "debug.overrideProxyUrl": ""
+  },
+  "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+  "github.copilot.chat.followUps.enabled": true,
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.editor.enableCodeActions": true,
+  "files.associations": {
+    "*.md": "markdown",
+    "*.js": "javascript",
+    "*.mjs": "javascript",
+    "*.cjs": "javascript"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "javascript.preferences.importModuleSpecifier": "relative",
+  "javascript.preferences.quoteStyle": "single",
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact"
+  ]
+}
