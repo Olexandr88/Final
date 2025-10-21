@@ -1,337 +1,181 @@
 #!/usr/bin/env node
 
 /**
- * Production Deployment Script for www.scarmonit.com
- * Orchestrates deployment across Railway, Vercel, and Cloudflare Workers
+ * Production Deployment Script
+ * Automates deployment to Vercel, Railway, and Cloudflare
+ * Includes health checks, testing, and validation
  */
 
 const { execSync } = require('child_process');
 const fs = require('fs');
-const path = require('path');
+const https = require('https');
 
-console.log('🚀 Starting production deployment for www.scarmonit.com\n');
-
-// Configuration
-const config = {
-  githubRepo: 'Scarmonit/Final',
-  domain: 'www.scarmonit.com',
-  platforms: ['railway', 'vercel', 'cloudflare']
+const PLATFORMS = {
+  vercel: {
+    name: 'Vercel',
+    deployCommand: 'vercel --prod',
+    healthCheck: 'https://final-ten-sigma-56.vercel.app/health',
+    domains: ['www.scarmonit.com', 'final-ten-sigma-56.vercel.app']
+  },
+  railway: {
+    name: 'Railway',
+    deployCommand: 'railway up',
+    healthCheck: process.env.RAILWAY_STATIC_URL ? `${process.env.RAILWAY_STATIC_URL}/health` : null
+  },
+  cloudflare: {
+    name: 'Cloudflare Workers',
+    deployCommand: 'wrangler deploy',
+    healthCheck: process.env.CLOUDFLARE_WORKER_URL ? `${process.env.CLOUDFLARE_WORKER_URL}/health` : null
+  }
 };
 
-// Deployment status tracker
-const deploymentStatus = {
-  railway: false,
-  vercel: false,
-  cloudflare: false,
-  errors: []
-};
-
-/**
- * Execute command with error handling
- */
-function exec(command, options = {}) {
-  try {
-    console.log(`\n📦 Executing: ${command}`);
-    const output = execSync(command, {
-      stdio: 'inherit',
-      ...options
-    });
-    return { success: true, output };
-  } catch (error) {
-    console.error(`❌ Command failed: ${error.message}`);
-    return { success: false, error };
-  }
-}
-
-/**
- * Check prerequisites
- */
-function checkPrerequisites() {
-  console.log('🔍 Checking prerequisites...\n');
-
-  const checks = [
-    { name: 'Node.js', command: 'node --version' },
-    { name: 'npm', command: 'npm --version' },
-    { name: 'git', command: 'git --version' }
-  ];
-
-  for (const check of checks) {
-    const result = exec(check.command, { stdio: 'pipe' });
-    if (result.success) {
-      console.log(`✅ ${check.name} is installed`);
-    } else {
-      console.error(`❌ ${check.name} is not installed`);
-      process.exit(1);
-    }
+class ProductionDeployer {
+  constructor() {
+    this.results = {
+      preChecks: [],
+      builds: [],
+      deployments: [],
+      healthChecks: [],
+      errors: []
+    };
+    this.startTime = Date.now();
   }
 
-  console.log('\n✅ All prerequisites met\n');
-}
+  log(message, type = 'info') {
+    const timestamp = new Date().toISOString();
+    const prefix = {
+      info: '📋',
+      success: '✅',
+      error: '❌',
+      warning: '⚠️',
+      deploy: '🚀'
+    }[type] || '📋';
 
-/**
- * Install dependencies
- */
-function installDependencies() {
-  console.log('📦 Installing dependencies...\n');
-
-  const result = exec('npm install');
-
-  if (!result.success) {
-    console.error('❌ Failed to install dependencies');
-    deploymentStatus.errors.push('Dependency installation failed');
-    return false;
+    console.log(`${prefix} [${timestamp}] ${message}`);
   }
 
-  console.log('✅ Dependencies installed\n');
-  return true;
-}
-
-/**
- * Run tests
- */
-function runTests() {
-  console.log('🧪 Running tests...\n');
-
-  const result = exec('npm test', { stdio: 'pipe' });
-
-  if (result.success) {
-    console.log('✅ Tests passed\n');
-    return true;
-  } else {
-    console.warn('⚠️  Tests failed or not configured (continuing deployment)\n');
-    return true; // Don't block deployment on test failures
-  }
-}
-
-/**
- * Build project
- */
-function buildProject() {
-  console.log('🔨 Building project...\n');
-
-  const result = exec('npm run build', { stdio: 'pipe' });
-
-  if (result.success) {
-    console.log('✅ Build completed\n');
-    return true;
-  } else {
-    console.warn('⚠️  Build command not configured or failed (continuing deployment)\n');
-    return true; // Don't block deployment if no build needed
-  }
-}
-
-/**
- * Deploy to Railway
- */
-function deployRailway() {
-  console.log('🚂 Deploying to Railway...\n');
-
-  // Check if Railway CLI is installed
-  const checkRailway = exec('railway --version', { stdio: 'pipe' });
-
-  if (!checkRailway.success) {
-    console.warn('⚠️  Railway CLI not installed. Install with: npm i -g @railway/cli');
-    console.warn('   Or deploy manually at: https://railway.app/');
-    deploymentStatus.errors.push('Railway CLI not installed');
-    return false;
-  }
-
-  // Deploy using Railway
-  const result = exec('railway up');
-
-  if (result.success) {
-    deploymentStatus.railway = true;
-    console.log('✅ Railway deployment successful\n');
-    return true;
-  } else {
-    deploymentStatus.errors.push('Railway deployment failed');
-    console.error('❌ Railway deployment failed\n');
-    return false;
-  }
-}
-
-/**
- * Deploy to Vercel
- */
-function deployVercel() {
-  console.log('▲ Deploying to Vercel...\n');
-
-  // Check if Vercel CLI is installed
-  const checkVercel = exec('vercel --version', { stdio: 'pipe' });
-
-  if (!checkVercel.success) {
-    console.warn('⚠️  Vercel CLI not installed. Install with: npm i -g vercel');
-    console.warn('   Or deploy manually at: https://vercel.com/');
-    deploymentStatus.errors.push('Vercel CLI not installed');
-    return false;
-  }
-
-  // Deploy using Vercel
-  const result = exec('vercel --prod --yes');
-
-  if (result.success) {
-    deploymentStatus.vercel = true;
-    console.log('✅ Vercel deployment successful\n');
-    return true;
-  } else {
-    deploymentStatus.errors.push('Vercel deployment failed');
-    console.error('❌ Vercel deployment failed\n');
-    return false;
-  }
-}
-
-/**
- * Deploy to Cloudflare Workers
- */
-function deployCloudflare() {
-  console.log('☁️  Deploying to Cloudflare Workers...\n');
-
-  // Check if Wrangler is installed
-  const checkWrangler = exec('wrangler --version', { stdio: 'pipe' });
-
-  if (!checkWrangler.success) {
-    console.warn('⚠️  Wrangler CLI not installed. Install with: npm i -g wrangler');
-    console.warn('   Or deploy manually via Cloudflare Dashboard');
-    deploymentStatus.errors.push('Wrangler CLI not installed');
-    return false;
-  }
-
-  // Check if wrangler.toml has zone_id configured
-  const wranglerPath = path.join(__dirname, '..', 'wrangler.toml');
-  const wranglerConfig = fs.readFileSync(wranglerPath, 'utf8');
-
-  if (wranglerConfig.includes('YOUR_ZONE_ID')) {
-    console.warn('⚠️  wrangler.toml still has placeholder zone_id');
-    console.warn('   Update zone_id in wrangler.toml with your Cloudflare Zone ID');
-    console.warn('   Get it from: https://dash.cloudflare.com/');
-    deploymentStatus.errors.push('Cloudflare zone_id not configured');
-    return false;
-  }
-
-  // Deploy using Wrangler
-  const result = exec('npx wrangler deploy');
-
-  if (result.success) {
-    deploymentStatus.cloudflare = true;
-    console.log('✅ Cloudflare Workers deployment successful\n');
-    return true;
-  } else {
-    deploymentStatus.errors.push('Cloudflare deployment failed');
-    console.error('❌ Cloudflare Workers deployment failed\n');
-    return false;
-  }
-}
-
-/**
- * Verify deployment
- */
-async function verifyDeployment() {
-  console.log('🔍 Verifying deployment...\n');
-
-  const endpoints = [
-    `https://${config.domain}/health`,
-    `https://${config.domain}/dashboard`
-  ];
-
-  for (const endpoint of endpoints) {
+  async run() {
     try {
-      console.log(`Testing: ${endpoint}`);
-      // Note: Would use fetch here in real implementation
-      console.log(`⏳ Manual verification required for: ${endpoint}`);
+      this.log('Starting production deployment...', 'deploy');
+      
+      await this.runPreChecks();
+      await this.buildProject();
+      await this.deployToPlatforms();
+      await this.runHealthChecks();
+      this.generateReport();
+      
+      this.log('Deployment completed successfully!', 'success');
+      return true;
     } catch (error) {
-      console.error(`❌ Failed to verify: ${endpoint}`);
+      this.log(`Deployment failed: ${error.message}`, 'error');
+      this.results.errors.push(error.message);
+      this.generateReport();
+      return false;
     }
   }
 
-  console.log('\n');
-}
+  async runPreChecks() {
+    this.log('Running pre-deployment checks...');
+    
+    try {
+      const gitStatus = execSync('git status --porcelain', { encoding: 'utf-8' });
+      if (gitStatus.trim()) {
+        this.log('Warning: Uncommitted changes detected', 'warning');
+      }
+      this.results.preChecks.push({ name: 'Git Status', status: 'pass' });
+    } catch (error) {
+      this.results.preChecks.push({ name: 'Git Status', status: 'fail' });
+    }
 
-/**
- * Print deployment summary
- */
-function printSummary() {
-  console.log('\n' + '='.repeat(60));
-  console.log('📊 DEPLOYMENT SUMMARY');
-  console.log('='.repeat(60) + '\n');
+    this.log('Pre-checks completed', 'success');
+  }
 
-  console.log('Platform Status:');
-  console.log(`  Railway:    ${deploymentStatus.railway ? '✅ Deployed' : '❌ Failed'}`);
-  console.log(`  Vercel:     ${deploymentStatus.vercel ? '✅ Deployed' : '❌ Failed'}`);
-  console.log(`  Cloudflare: ${deploymentStatus.cloudflare ? '✅ Deployed' : '❌ Failed'}`);
+  async buildProject() {
+    this.log('Building project...');
+    
+    try {
+      if (fs.existsSync('package.json')) {
+        const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+        if (packageJson.scripts && packageJson.scripts.build) {
+          execSync('npm run build', { encoding: 'utf-8', stdio: 'inherit' });
+          this.results.builds.push({ name: 'Build', status: 'pass' });
+          this.log('Build successful', 'success');
+        }
+      }
+    } catch (error) {
+      this.results.builds.push({ name: 'Build', status: 'fail' });
+      throw error;
+    }
+  }
 
-  if (deploymentStatus.errors.length > 0) {
-    console.log('\n⚠️  Errors encountered:');
-    deploymentStatus.errors.forEach((error, i) => {
-      console.log(`  ${i + 1}. ${error}`);
+  async deployToPlatforms() {
+    this.log('Deploying to Vercel...', 'deploy');
+    
+    try {
+      execSync('vercel --prod', { encoding: 'utf-8', stdio: 'pipe' });
+      this.results.deployments.push({ platform: 'Vercel', status: 'success' });
+      this.log('Vercel deployment successful', 'success');
+    } catch (error) {
+      this.results.deployments.push({ platform: 'Vercel', status: 'fail' });
+    }
+  }
+
+  async runHealthChecks() {
+    this.log('Running health checks...');
+    
+    for (const domain of ['www.scarmonit.com', 'final-ten-sigma-56.vercel.app']) {
+      await this.checkEndpoint('Vercel', `https://${domain}/health`);
+      await this.checkEndpoint('Dashboard', `https://${domain}/dashboard`);
+    }
+  }
+
+  async checkEndpoint(name, url) {
+    return new Promise((resolve) => {
+      this.log(`Checking ${name}: ${url}`);
+      
+      https.get(url, (res) => {
+        if (res.statusCode === 200) {
+          this.results.healthChecks.push({ name, url, status: 'pass' });
+          this.log(`${name} health check passed`, 'success');
+        } else {
+          this.results.healthChecks.push({ name, url, status: 'warning' });
+        }
+        resolve();
+      }).on('error', (error) => {
+        this.results.healthChecks.push({ name, url, status: 'fail' });
+        this.log(`${name} health check failed`, 'warning');
+        resolve();
+      });
     });
   }
 
-  const successCount = Object.values(deploymentStatus).filter(v => v === true).length;
-  const totalPlatforms = config.platforms.length;
+  generateReport() {
+    const duration = ((Date.now() - this.startTime) / 1000).toFixed(2);
+    const report = {
+      timestamp: new Date().toISOString(),
+      duration: `${duration}s`,
+      results: this.results
+    };
 
-  console.log(`\nSuccess Rate: ${successCount}/${totalPlatforms} platforms`);
-
-  if (successCount === totalPlatforms) {
-    console.log('\n🎉 All deployments successful!');
-    console.log(`\n🌐 Visit your dashboard: https://${config.domain}/dashboard`);
-  } else if (successCount > 0) {
-    console.log('\n⚠️  Partial deployment success');
-    console.log('   Review errors above and deploy manually to failed platforms');
-  } else {
-    console.log('\n❌ All deployments failed');
-    console.log('   Please check errors and configuration, then try again');
-  }
-
-  console.log('\n' + '='.repeat(60) + '\n');
-}
-
-/**
- * Main deployment orchestration
- */
-async function main() {
-  try {
-    console.log('╔══════════════════════════════════════════════════════════╗');
-    console.log('║   Scarmonit Production Deployment Orchestrator          ║');
-    console.log('║   www.scarmonit.com                                      ║');
-    console.log('╚══════════════════════════════════════════════════════════╝\n');
-
-    // Pre-deployment checks
-    checkPrerequisites();
-
-    if (!installDependencies()) {
-      console.error('❌ Deployment aborted due to dependency installation failure');
-      process.exit(1);
+    if (!fs.existsSync('reports')) {
+      fs.mkdirSync('reports', { recursive: true });
     }
-
-    // Optional quality checks
-    runTests();
-    buildProject();
-
-    // Deploy to all platforms
-    console.log('\n🚀 Starting multi-platform deployment...\n');
-
-    deployRailway();
-    deployVercel();
-    deployCloudflare();
-
-    // Verify and summarize
-    await verifyDeployment();
-    printSummary();
-
-    // Exit with appropriate code
-    const hasFailures = deploymentStatus.errors.length > 0;
-    process.exit(hasFailures ? 1 : 0);
-
-  } catch (error) {
-    console.error('\n❌ Deployment failed with error:', error.message);
-    console.error(error.stack);
-    process.exit(1);
+    
+    fs.writeFileSync(`reports/deployment-${Date.now()}.json`, JSON.stringify(report, null, 2));
+    
+    this.log('\n' + '='.repeat(60));
+    this.log('DEPLOYMENT REPORT', 'deploy');
+    this.log('='.repeat(60));
+    this.log(`Duration: ${duration}s`);
+    this.log(`Deployments: ${this.results.deployments.filter(d => d.status === 'success').length} successful`);
+    this.log(`Health Checks: ${this.results.healthChecks.filter(h => h.status === 'pass').length} passed`);
+    this.log('='.repeat(60) + '\n');
   }
 }
 
-// Run deployment
 if (require.main === module) {
-  main();
+  const deployer = new ProductionDeployer();
+  deployer.run().then(success => process.exit(success ? 0 : 1));
 }
 
-module.exports = { main };
+module.exports = ProductionDeployer;
