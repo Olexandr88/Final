@@ -46,7 +46,7 @@ class RWLockManager {
         readers: new Set(),
         writer: null,
         queue: [],
-        waitingWriters: 0
+        waitingWriters: 0,
       });
     }
     return this.locks.get(resourcePath);
@@ -75,11 +75,13 @@ class RWLockManager {
       const tryAcquire = () => {
         // Check timeout
         if (Date.now() - startTime >= timeout) {
-          reject(new Error(
-            `Timeout acquiring read lock for ${resourcePath}. ` +
-            `Writer active: ${lockStructure.writer !== null}, ` +
-            `Waiting writers: ${lockStructure.waitingWriters}`
-          ));
+          reject(
+            new Error(
+              `Timeout acquiring read lock for ${resourcePath}. ` +
+                `Writer active: ${lockStructure.writer !== null}, ` +
+                `Waiting writers: ${lockStructure.waitingWriters}`
+            )
+          );
           return;
         }
 
@@ -92,10 +94,14 @@ class RWLockManager {
 
           // Record in database
           const now = Date.now();
-          this.sessionManager.db.prepare(`
+          this.sessionManager.db
+            .prepare(
+              `
             INSERT INTO locks (resource_path, session_id, acquired_at, lock_type)
             VALUES (?, ?, ?, ?)
-          `).run(resourcePath, sessionId, now, 'read');
+          `
+            )
+            .run(resourcePath, sessionId, now, 'read');
 
           // Track locally
           const lockKey = `${resourcePath}:read`;
@@ -104,7 +110,7 @@ class RWLockManager {
               resourcePath,
               lockType: 'read',
               acquiredAt: now,
-              count: 0
+              count: 0,
             });
           }
           this.localLocks.get(lockKey).count++;
@@ -113,7 +119,7 @@ class RWLockManager {
             resourcePath,
             lockType: 'read',
             acquiredAt: now,
-            readerCount: lockStructure.readers.size
+            readerCount: lockStructure.readers.size,
           });
         } else {
           // Wait and retry
@@ -154,11 +160,13 @@ class RWLockManager {
         // Check timeout
         if (Date.now() - startTime >= timeout) {
           lockStructure.waitingWriters--;
-          reject(new Error(
-            `Timeout acquiring write lock for ${resourcePath}. ` +
-            `Active readers: ${lockStructure.readers.size}, ` +
-            `Active writer: ${lockStructure.writer !== null}`
-          ));
+          reject(
+            new Error(
+              `Timeout acquiring write lock for ${resourcePath}. ` +
+                `Active readers: ${lockStructure.readers.size}, ` +
+                `Active writer: ${lockStructure.writer !== null}`
+            )
+          );
           return;
         }
 
@@ -172,23 +180,27 @@ class RWLockManager {
 
           // Record in database
           const now = Date.now();
-          this.sessionManager.db.prepare(`
+          this.sessionManager.db
+            .prepare(
+              `
             INSERT INTO locks (resource_path, session_id, acquired_at, lock_type)
             VALUES (?, ?, ?, ?)
-          `).run(resourcePath, sessionId, now, 'write');
+          `
+            )
+            .run(resourcePath, sessionId, now, 'write');
 
           // Track locally
           const lockKey = `${resourcePath}:write`;
           this.localLocks.set(lockKey, {
             resourcePath,
             lockType: 'write',
-            acquiredAt: now
+            acquiredAt: now,
           });
 
           resolve({
             resourcePath,
             lockType: 'write',
-            acquiredAt: now
+            acquiredAt: now,
           });
         } else {
           // Wait and retry
@@ -227,11 +239,15 @@ class RWLockManager {
     }
 
     // Remove from database
-    this.sessionManager.db.prepare(`
+    this.sessionManager.db
+      .prepare(
+        `
       DELETE FROM locks
       WHERE resource_path = ? AND session_id = ? AND lock_type = 'read'
       LIMIT 1
-    `).run(resourcePath, sessionId);
+    `
+      )
+      .run(resourcePath, sessionId);
 
     // Cleanup if no more readers/writers
     if (lockStructure.readers.size === 0 && lockStructure.writer === null) {
@@ -258,10 +274,14 @@ class RWLockManager {
     this.localLocks.delete(lockKey);
 
     // Remove from database
-    this.sessionManager.db.prepare(`
+    this.sessionManager.db
+      .prepare(
+        `
       DELETE FROM locks
       WHERE resource_path = ? AND session_id = ? AND lock_type = 'write'
-    `).run(resourcePath, sessionId);
+    `
+      )
+      .run(resourcePath, sessionId);
 
     // Cleanup if no more readers/writers
     if (lockStructure.readers.size === 0 && lockStructure.writer === null) {
@@ -348,7 +368,7 @@ class RWLockManager {
       writer: lockStructure.writer,
       readerCount: lockStructure.readers.size,
       hasWriter: lockStructure.writer !== null,
-      waitingWriters: lockStructure.waitingWriters
+      waitingWriters: lockStructure.waitingWriters,
     };
   }
 
@@ -360,12 +380,16 @@ class RWLockManager {
     const sessionId = this.sessionManager.getCurrentSessionId();
     if (!sessionId) return [];
 
-    const locks = this.sessionManager.db.prepare(`
+    const locks = this.sessionManager.db
+      .prepare(
+        `
       SELECT resource_path, lock_type, acquired_at
       FROM locks
       WHERE session_id = ?
       ORDER BY acquired_at DESC
-    `).all(sessionId);
+    `
+      )
+      .all(sessionId);
 
     return locks;
   }
@@ -401,7 +425,7 @@ class RWLockManager {
       totalReaders,
       totalWriters,
       totalWaitingWriters,
-      avgReadersPerLock: this.locks.size > 0 ? totalReaders / this.locks.size : 0
+      avgReadersPerLock: this.locks.size > 0 ? totalReaders / this.locks.size : 0,
     };
   }
 }

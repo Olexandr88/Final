@@ -7,23 +7,23 @@ class OptimizedMemoryManager {
     this.maxCacheSize = options.maxSize || 1000;
     this.cacheTimeout = options.timeout || 300000; // 5 minutes
     this.cleanupInterval = options.cleanupInterval || 60000; // 1 minute
-    
+
     // Performance metrics
     this.metrics = {
       hits: 0,
       misses: 0,
       evictions: 0,
       cleanups: 0,
-      totalOperations: 0
+      totalOperations: 0,
     };
-    
+
     this.startTime = Date.now();
     this.startCleanupCycle();
-    
+
     console.log('🧠 OptimizedMemoryManager initialized with', {
       maxSize: this.maxCacheSize,
       timeout: this.cacheTimeout + 'ms',
-      cleanup: this.cleanupInterval + 'ms'
+      cleanup: this.cleanupInterval + 'ms',
     });
   }
 
@@ -40,15 +40,15 @@ class OptimizedMemoryManager {
       this.cache.delete(oldestKey);
       this.metrics.evictions++;
     }
-    
+
     this.cache.set(key, {
       data: value,
       timestamp: Date.now(),
       ttl: customTTL || this.cacheTimeout,
       accessCount: 0,
-      lastAccess: Date.now()
+      lastAccess: Date.now(),
     });
-    
+
     this.metrics.totalOperations++;
   }
 
@@ -59,13 +59,13 @@ class OptimizedMemoryManager {
    */
   get(key) {
     const item = this.cache.get(key);
-    
+
     if (!item) {
       this.metrics.misses++;
       this.metrics.totalOperations++;
       return null;
     }
-    
+
     // Check if expired
     const now = Date.now();
     if (now - item.timestamp > item.ttl) {
@@ -74,13 +74,13 @@ class OptimizedMemoryManager {
       this.metrics.totalOperations++;
       return null;
     }
-    
+
     // Update access info
     item.accessCount++;
     item.lastAccess = now;
     this.metrics.hits++;
     this.metrics.totalOperations++;
-    
+
     return item.data;
   }
 
@@ -92,13 +92,13 @@ class OptimizedMemoryManager {
   has(key) {
     const item = this.cache.get(key);
     if (!item) return false;
-    
+
     const now = Date.now();
     if (now - item.timestamp > item.ttl) {
       this.cache.delete(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -126,10 +126,11 @@ class OptimizedMemoryManager {
    */
   getStats() {
     const uptime = Date.now() - this.startTime;
-    const hitRate = this.metrics.totalOperations > 0 
-      ? (this.metrics.hits / this.metrics.totalOperations) * 100 
-      : 0;
-    
+    const hitRate =
+      this.metrics.totalOperations > 0
+        ? (this.metrics.hits / this.metrics.totalOperations) * 100
+        : 0;
+
     return {
       size: this.cache.size,
       maxSize: this.maxCacheSize,
@@ -140,7 +141,7 @@ class OptimizedMemoryManager {
       cleanups: this.metrics.cleanups,
       totalOperations: this.metrics.totalOperations,
       uptime: Math.round(uptime / 1000), // seconds
-      memoryEstimate: this.estimateMemoryUsage()
+      memoryEstimate: this.estimateMemoryUsage(),
     };
   }
 
@@ -150,14 +151,14 @@ class OptimizedMemoryManager {
    */
   estimateMemoryUsage() {
     let totalSize = 0;
-    
+
     for (const [key, item] of this.cache.entries()) {
       // Rough estimation: key + data + metadata
       totalSize += key.length * 2; // UTF-16
       totalSize += JSON.stringify(item.data).length * 2;
       totalSize += 100; // Metadata overhead
     }
-    
+
     return Math.round(totalSize / 1024); // Convert to KB
   }
 
@@ -169,19 +170,19 @@ class OptimizedMemoryManager {
    */
   getTopEntries(sortBy = 'frequency', limit = 10) {
     const entries = Array.from(this.cache.entries());
-    
+
     if (sortBy === 'frequency') {
-      entries.sort(([,a], [,b]) => b.accessCount - a.accessCount);
+      entries.sort(([, a], [, b]) => b.accessCount - a.accessCount);
     } else if (sortBy === 'recency') {
-      entries.sort(([,a], [,b]) => b.lastAccess - a.lastAccess);
+      entries.sort(([, a], [, b]) => b.lastAccess - a.lastAccess);
     }
-    
+
     return entries.slice(0, limit).map(([key, item]) => ({
       key,
       accessCount: item.accessCount,
       lastAccess: new Date(item.lastAccess).toISOString(),
       age: Date.now() - item.timestamp,
-      size: JSON.stringify(item.data).length
+      size: JSON.stringify(item.data).length,
     }));
   }
 
@@ -201,19 +202,19 @@ class OptimizedMemoryManager {
   cleanup() {
     const now = Date.now();
     let cleanedCount = 0;
-    
+
     for (const [key, item] of this.cache.entries()) {
       if (now - item.timestamp > item.ttl) {
         this.cache.delete(key);
         cleanedCount++;
       }
     }
-    
+
     if (cleanedCount > 0) {
       this.metrics.cleanups++;
       console.log(`🧹 Cleaned ${cleanedCount} expired cache entries`);
     }
-    
+
     return cleanedCount;
   }
 
@@ -223,26 +224,26 @@ class OptimizedMemoryManager {
    */
   exportData() {
     const data = {};
-    
+
     for (const [key, item] of this.cache.entries()) {
       data[key] = {
         data: item.data,
         timestamp: item.timestamp,
         ttl: item.ttl,
         accessCount: item.accessCount,
-        lastAccess: item.lastAccess
+        lastAccess: item.lastAccess,
       };
     }
-    
+
     return {
       cache: data,
       metrics: this.metrics,
       config: {
         maxCacheSize: this.maxCacheSize,
         cacheTimeout: this.cacheTimeout,
-        cleanupInterval: this.cleanupInterval
+        cleanupInterval: this.cleanupInterval,
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -252,9 +253,9 @@ class OptimizedMemoryManager {
    */
   importData(data) {
     if (!data || !data.cache) return;
-    
+
     this.cache.clear();
-    
+
     for (const [key, item] of Object.entries(data.cache)) {
       // Only import non-expired entries
       const now = Date.now();
@@ -262,7 +263,7 @@ class OptimizedMemoryManager {
         this.cache.set(key, item);
       }
     }
-    
+
     console.log(`📥 Imported ${this.cache.size} cache entries`);
   }
 }

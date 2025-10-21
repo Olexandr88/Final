@@ -32,7 +32,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'find-recent': {
@@ -53,7 +53,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'find-duplicates': {
@@ -72,7 +72,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'find-by-extension': {
@@ -97,7 +97,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'disk-usage': {
@@ -116,7 +116,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'count-lines': {
@@ -144,7 +144,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'empty-dirs': {
@@ -163,7 +163,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'file-stats': {
@@ -177,7 +177,7 @@ const COMMANDS = {
           files: 0,
           dirs: 0,
           totalSize: 0,
-          byExt: new Map()
+          byExt: new Map(),
         };
 
         async function scan(dir) {
@@ -215,9 +215,7 @@ const COMMANDS = {
         console.log(`  Total size: ${(stats.totalSize / (1024 * 1024)).toFixed(2)} MB\n`);
 
         console.log('  Top 10 file types:');
-        const sorted = [...stats.byExt.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10);
+        const sorted = [...stats.byExt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
 
         sorted.forEach(([ext, count]) => {
           console.log(`    .${ext}: ${count} files`);
@@ -225,7 +223,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'search-content': {
@@ -252,8 +250,8 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  Error: ${err.message}`);
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {

@@ -45,7 +45,7 @@ async function startComponent(component, options = {}) {
     bridge: {
       script: 'bridge:start',
       name: 'AI Bridge',
-      check: () => checkBridgeHealth()
+      check: () => checkBridgeHealth(),
     },
     ollama: {
       script: 'agent:ollama',
@@ -53,7 +53,7 @@ async function startComponent(component, options = {}) {
       check: async () => {
         const health = await checkBridgeHealth();
         return health?.stats?.connectedClients > 0;
-      }
+      },
     },
     claude: {
       script: 'agent:claude',
@@ -61,24 +61,24 @@ async function startComponent(component, options = {}) {
       check: async () => {
         const health = await checkBridgeHealth();
         return health?.stats?.connectedClients > 0;
-      }
+      },
     },
     analyzer: {
       script: 'agent:analyzer',
-      name: 'Code Analyzer Agent'
+      name: 'Code Analyzer Agent',
     },
     'mcp-continue': {
       script: 'mcp:continue',
-      name: 'Continue MCP Server'
+      name: 'Continue MCP Server',
     },
     'mcp-jules': {
       script: 'mcp:jules',
-      name: 'Jules MCP Server'
+      name: 'Jules MCP Server',
     },
     all: {
       script: 'system:start',
-      name: 'Full A2A System'
-    }
+      name: 'Full A2A System',
+    },
   };
 
   const config = components[component];
@@ -94,7 +94,7 @@ async function startComponent(component, options = {}) {
     cwd: PROJECT_ROOT,
     stdio: options.detached ? 'ignore' : 'inherit',
     shell: true,
-    detached: options.detached
+    detached: options.detached,
   });
 
   if (options.detached) {
@@ -116,7 +116,7 @@ async function startComponent(component, options = {}) {
     console.log(chalk.yellow(`⏳ Waiting for ${config.name} to be healthy...`));
     let attempts = 0;
     while (attempts < 30) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const healthy = await config.check();
       if (healthy) {
         console.log(chalk.green(`✅ ${config.name} is healthy!`));
@@ -163,7 +163,11 @@ async function showStatus() {
     console.log(chalk.gray('   Connected Agents:'), bridgeHealth.stats.connectedClients);
     console.log(chalk.gray('   Messages Processed:'), bridgeHealth.stats.messagesProcessed);
     console.log(chalk.gray('   Errors:'), bridgeHealth.stats.errors);
-    console.log(chalk.gray('   Memory:'), bridgeHealth.stats.performance.memoryUsage.toFixed(2), 'MB');
+    console.log(
+      chalk.gray('   Memory:'),
+      bridgeHealth.stats.performance.memoryUsage.toFixed(2),
+      'MB'
+    );
   } else {
     console.log(chalk.red('❌ AI Bridge:'), 'Not running');
   }
@@ -178,11 +182,14 @@ async function showStatus() {
       if (agents.length === 0) {
         console.log(chalk.yellow('No agents connected'));
       } else {
-        agents.forEach(agent => {
+        agents.forEach((agent) => {
           console.log(chalk.green(`✅ ${agent.id}`));
           console.log(chalk.gray('   Role:'), agent.role);
           console.log(chalk.gray('   Health Score:'), agent.healthScore + '%');
-          console.log(chalk.gray('   Messages:'), `${agent.messagesSent} sent, ${agent.messagesReceived} received`);
+          console.log(
+            chalk.gray('   Messages:'),
+            `${agent.messagesSent} sent, ${agent.messagesReceived} received`
+          );
           console.log(chalk.gray('   Last Seen:'), new Date(agent.lastSeen).toLocaleTimeString());
         });
       }
@@ -236,7 +243,7 @@ async function deploy(target, options) {
       console.log(chalk.yellow('Deploying to Vercel...'));
       await execAsync('npm run deploy:vercel', { cwd: PROJECT_ROOT });
       console.log(chalk.green('✅ Vercel deployment complete'));
-    }
+    },
   };
 
   if (!deployTargets[target]) {
@@ -260,13 +267,17 @@ async function showLogs(component, options) {
   const lines = options.lines || 50;
   const follow = options.follow || false;
 
-  console.log(chalk.blue(`📋 Logs for ${component} (last ${lines} lines)${follow ? ' [following...]' : ''}:\n`));
+  console.log(
+    chalk.blue(
+      `📋 Logs for ${component} (last ${lines} lines)${follow ? ' [following...]' : ''}:\n`
+    )
+  );
 
   const logCommands = {
     bridge: `tail ${follow ? '-f' : ''} -n ${lines} logs/ai-bridge.log`,
     ollama: `tail ${follow ? '-f' : ''} -n ${lines} logs/ollama-agent.log`,
     claude: `tail ${follow ? '-f' : ''} -n ${lines} logs/claude-agent.log`,
-    all: `tail ${follow ? '-f' : ''} -n ${lines} logs/*.log`
+    all: `tail ${follow ? '-f' : ''} -n ${lines} logs/*.log`,
   };
 
   const cmd = logCommands[component] || logCommands.all;
@@ -275,7 +286,7 @@ async function showLogs(component, options) {
     if (follow) {
       const child = spawn('tail', ['-f', '-n', lines.toString(), `logs/${component}.log`], {
         cwd: PROJECT_ROOT,
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
 
       process.on('SIGINT', () => {
@@ -303,15 +314,9 @@ program
   .option('-d, --detached', 'Run in detached mode')
   .action(startComponent);
 
-program
-  .command('stop <component>')
-  .description('Stop a component')
-  .action(stopComponent);
+program.command('stop <component>').description('Stop a component').action(stopComponent);
 
-program
-  .command('status')
-  .description('Show system status')
-  .action(showStatus);
+program.command('status').description('Show system status').action(showStatus);
 
 program
   .command('deploy <target>')
@@ -347,14 +352,16 @@ program
       const agents = response.data.agents || [];
 
       console.log(chalk.bold.blue('\n━━━ Connected Agents ━━━\n'));
-      console.table(agents.map(a => ({
-        ID: a.id,
-        Role: a.role,
-        'Health %': a.healthScore,
-        Sent: a.messagesSent,
-        Received: a.messagesReceived,
-        'Last Seen': new Date(a.lastSeen).toLocaleTimeString()
-      })));
+      console.table(
+        agents.map((a) => ({
+          ID: a.id,
+          Role: a.role,
+          'Health %': a.healthScore,
+          Sent: a.messagesSent,
+          Received: a.messagesReceived,
+          'Last Seen': new Date(a.lastSeen).toLocaleTimeString(),
+        }))
+      );
     } catch (error) {
       console.error(chalk.red('Error fetching agents:'), error.message);
     }

@@ -30,8 +30,16 @@ class CodestralClient {
     const optimizations = [];
 
     if (code.includes('readFileSync')) {
-      issues.push({ type: 'performance', severity: 'high', message: 'Sync file operations detected' });
-      optimizations.push({ pattern: /readFileSync/g, replacement: 'promises.readFile', impact: 'high' });
+      issues.push({
+        type: 'performance',
+        severity: 'high',
+        message: 'Sync file operations detected',
+      });
+      optimizations.push({
+        pattern: /readFileSync/g,
+        replacement: 'promises.readFile',
+        impact: 'high',
+      });
     }
 
     if (code.includes('console.log') && !code.includes('// debug')) {
@@ -104,8 +112,8 @@ export class CodestralOptimizer {
         filesAnalyzed: this.metrics.filesAnalyzed,
         issuesFound: this.metrics.issuesFound,
         optimizationsApplied: this.metrics.optimizationsApplied,
-        estimatedPerformanceGain: `${this.metrics.optimizationsApplied * 15}%`
-      }
+        estimatedPerformanceGain: `${this.metrics.optimizationsApplied * 15}%`,
+      },
     };
   }
 
@@ -114,8 +122,8 @@ export class CodestralOptimizer {
     return {
       memory: {
         heapUsed: Math.round(mem.heapUsed / 1024 / 1024),
-        heapTotal: Math.round(mem.heapTotal / 1024 / 1024)
-      }
+        heapTotal: Math.round(mem.heapTotal / 1024 / 1024),
+      },
     };
   }
 }

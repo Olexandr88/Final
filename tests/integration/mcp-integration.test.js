@@ -42,20 +42,20 @@ class MockMCPServer extends EventEmitter {
         apiKeys: [],
         sessionTimeout: 3600000,
         keyRotation: false,
-        ...config.authentication
+        ...config.authentication,
       },
       rateLimiting: {
         windowMs: 60000,
         maxRequests: 120,
         skipSuccessfulRequests: false,
-        ...config.rateLimiting
+        ...config.rateLimiting,
       },
       performance: {
         enableMetrics: true,
         enableCaching: true,
         cacheTtl: 300000,
         enableCompression: false,
-        ...config.performance
+        ...config.performance,
       },
       tools: {
         claude_chat: { enabled: true },
@@ -65,8 +65,8 @@ class MockMCPServer extends EventEmitter {
         get_browser_history: { enabled: true },
         knowledge_graph_query: { enabled: true },
         ai_bridge_coordinate: { enabled: true },
-        ...config.tools
-      }
+        ...config.tools,
+      },
     };
 
     this.activeSessions = new Map();
@@ -78,7 +78,7 @@ class MockMCPServer extends EventEmitter {
       toolUsage: new Map(),
       cacheHits: 0,
       cacheMisses: 0,
-      startTime: Date.now()
+      startTime: Date.now(),
     };
     this.responseCache = new Map();
 
@@ -96,8 +96,8 @@ class MockMCPServer extends EventEmitter {
       cache: {
         size: this.responseCache.size,
         hits: this.performanceMetrics.cacheHits,
-        misses: this.performanceMetrics.cacheMisses
-      }
+        misses: this.performanceMetrics.cacheMisses,
+      },
     };
   }
 
@@ -125,7 +125,7 @@ const TEST_CONFIG = {
   },
   claudeCode: {
     port: 0,
-  }
+  },
 };
 
 describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
@@ -144,7 +144,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
     // Initialize MCP integration client
     mcpIntegration = new MCPIntegration({
       debug: true,
-      configPath: '.mcp-test.json'
+      configPath: '.mcp-test.json',
     });
 
     console.log('✓ Test environment initialized');
@@ -163,7 +163,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
     }
 
     if (testHttpServer) {
-      await new Promise(resolve => testHttpServer.close(resolve));
+      await new Promise((resolve) => testHttpServer.close(resolve));
     }
 
     // Remove test config file
@@ -187,14 +187,14 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           enabled: false, // Disable for testing
           apiKeys: [TEST_CONFIG.mcpServer.apiKey],
           sessionTimeout: 3600000,
-          keyRotation: false
+          keyRotation: false,
         },
         performance: {
           enableMetrics: true,
           enableCaching: true,
           cacheTtl: 60000,
-          enableCompression: false
-        }
+          enableCompression: false,
+        },
       });
     });
 
@@ -261,7 +261,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
       mcpServer.emit('metrics', {
         timestamp: new Date().toISOString(),
         requests: 0,
-        avgResponseTime: 0
+        avgResponseTime: 0,
       });
 
       assert.ok(metricsEmitted, 'Metrics event should be emitted');
@@ -274,8 +274,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           enabled: true,
           apiKeys: ['valid-key-123'],
           sessionTimeout: 3600000,
-          keyRotation: false
-        }
+          keyRotation: false,
+        },
       });
 
       // Test authentication logic by checking private method behavior
@@ -322,8 +322,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           enableMetrics: true,
           enableCaching: true,
           cacheTtl: 100, // 100ms
-          enableCompression: false
-        }
+          enableCompression: false,
+        },
       });
 
       // Wait for cache cleanup cycle
@@ -361,16 +361,20 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           const toolName = url.pathname.split('/').pop();
 
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({
-            content: [{
-              type: 'text',
-              text: `Mock response for tool: ${toolName}`
-            }],
-            metadata: {
-              tool: toolName,
-              timestamp: Date.now()
-            }
-          }));
+          res.end(
+            JSON.stringify({
+              content: [
+                {
+                  type: 'text',
+                  text: `Mock response for tool: ${toolName}`,
+                },
+              ],
+              metadata: {
+                tool: toolName,
+                timestamp: Date.now(),
+              },
+            })
+          );
         } else {
           res.writeHead(404);
           res.end();
@@ -388,7 +392,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
 
     afterEach(async () => {
       if (testServer) {
-        await new Promise(resolve => testServer.close(resolve));
+        await new Promise((resolve) => testServer.close(resolve));
       }
     });
 
@@ -399,7 +403,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         url: testServerUrl,
         scope: 'project',
         tools: ['test_tool'],
-        auth: null
+        auth: null,
       });
 
       assert.strictEqual(serverName, 'test-http-server');
@@ -417,7 +421,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'test-connect-server',
         transport: 'http',
         url: testServerUrl,
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       const connection = await mcpIntegration.connect('test-connect-server');
@@ -435,13 +439,13 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'test-tool-server',
         transport: 'http',
         url: testServerUrl,
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       await mcpIntegration.connect('test-tool-server');
 
       const result = await mcpIntegration.callTool('test-tool-server', 'test_tool', {
-        param: 'value'
+        param: 'value',
       });
 
       assert.ok(result);
@@ -457,14 +461,14 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'server-1',
         transport: 'http',
         url: testServerUrl,
-        tools: ['tool_a', 'tool_b']
+        tools: ['tool_a', 'tool_b'],
       });
 
       await mcpIntegration.addServer({
         name: 'server-2',
         transport: 'http',
         url: testServerUrl,
-        tools: ['tool_c']
+        tools: ['tool_c'],
       });
 
       const tools = mcpIntegration.listTools();
@@ -472,7 +476,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
       assert.ok(Array.isArray(tools));
       assert.ok(tools.length >= 3);
 
-      const toolNames = tools.map(t => t.tool);
+      const toolNames = tools.map((t) => t.tool);
       assert.ok(toolNames.includes('tool_a'));
       assert.ok(toolNames.includes('tool_b'));
       assert.ok(toolNames.includes('tool_c'));
@@ -486,7 +490,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'invalid-server',
         transport: 'http',
         url: 'http://localhost:99999', // Invalid port
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       // HTTP connection itself succeeds (it's stateless), but actual fetch will fail
@@ -511,7 +515,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'event-test-server',
         transport: 'http',
         url: testServerUrl,
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       await mcpIntegration.connect('event-test-server');
@@ -533,11 +537,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         transport: 'http',
         url: 'http://localhost:3000', // Would be actual Continue.dev endpoint
         scope: 'project', // Use 'project' instead of 'user' to avoid file permission issues
-        tools: [
-          'claude_chat',
-          'rag_query',
-          'get_browser_history'
-        ]
+        tools: ['claude_chat', 'rag_query', 'get_browser_history'],
       });
 
       assert.strictEqual(continueServer, 'continue-dev-mcp');
@@ -558,8 +558,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         command: '@MCP',
         tool: 'claude_chat',
         args: {
-          message: 'Test message from Continue.dev'
-        }
+          message: 'Test message from Continue.dev',
+        },
       };
 
       assert.ok(mockContinueRequest.tool);
@@ -598,12 +598,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         transport: 'http',
         url: 'http://localhost:3001', // Would be actual MCP server endpoint
         scope: 'project',
-        tools: [
-          'claude_chat',
-          'ollama_query',
-          'rag_query',
-          'ai_bridge_coordinate'
-        ]
+        tools: ['claude_chat', 'ollama_query', 'rag_query', 'ai_bridge_coordinate'],
       });
 
       assert.strictEqual(claudeCodeServer, 'claude-code-llm-framework');
@@ -623,7 +618,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'error-test-server',
         transport: 'http',
         url: 'http://localhost:99999',
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       // HTTP transport returns a connection object even if server is unreachable
@@ -642,8 +637,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           enabled: true,
           apiKeys: ['claude-code-api-key'],
           sessionTimeout: 7200000,
-          keyRotation: false
-        }
+          keyRotation: false,
+        },
       });
 
       const stats = authenticatedServer.getStats();
@@ -664,41 +659,45 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
       // Create two mock MCP servers
       httpServer1 = createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          content: [{ type: 'text', text: 'Response from server 1' }],
-          server: 'server-1'
-        }));
+        res.end(
+          JSON.stringify({
+            content: [{ type: 'text', text: 'Response from server 1' }],
+            server: 'server-1',
+          })
+        );
       });
 
       httpServer2 = createServer((req, res) => {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          content: [{ type: 'text', text: 'Response from server 2' }],
-          server: 'server-2'
-        }));
+        res.end(
+          JSON.stringify({
+            content: [{ type: 'text', text: 'Response from server 2' }],
+            server: 'server-2',
+          })
+        );
       });
 
       await Promise.all([
-        new Promise(resolve => {
+        new Promise((resolve) => {
           httpServer1.listen(0, () => {
             const addr = httpServer1.address();
             serverUrl1 = `http://localhost:${addr.port}`;
             resolve();
           });
         }),
-        new Promise(resolve => {
+        new Promise((resolve) => {
           httpServer2.listen(0, () => {
             const addr = httpServer2.address();
             serverUrl2 = `http://localhost:${addr.port}`;
             resolve();
           });
-        })
+        }),
       ]);
     });
 
     afterEach(async () => {
-      if (httpServer1) await new Promise(r => httpServer1.close(r));
-      if (httpServer2) await new Promise(r => httpServer2.close(r));
+      if (httpServer1) await new Promise((r) => httpServer1.close(r));
+      if (httpServer2) await new Promise((r) => httpServer2.close(r));
     });
 
     it('should handle simultaneous connections from Continue.dev and Claude Code', async () => {
@@ -707,7 +706,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'continue-connection',
         transport: 'http',
         url: serverUrl1,
-        tools: ['tool_a']
+        tools: ['tool_a'],
       });
 
       // Add server for Claude Code
@@ -715,13 +714,13 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'claude-connection',
         transport: 'http',
         url: serverUrl2,
-        tools: ['tool_b']
+        tools: ['tool_b'],
       });
 
       // Connect both simultaneously
       const [conn1, conn2] = await Promise.all([
         mcpIntegration.connect('continue-connection'),
-        mcpIntegration.connect('claude-connection')
+        mcpIntegration.connect('claude-connection'),
       ]);
 
       assert.ok(conn1);
@@ -729,9 +728,12 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
 
       // Both should be connected
       const servers = mcpIntegration.listServers();
-      const connectedServers = servers.filter(s => s.connected);
+      const connectedServers = servers.filter((s) => s.connected);
       // May have more than 2 if previous tests didn't clean up perfectly
-      assert.ok(connectedServers.length >= 2, `Should have at least 2 connected servers, got ${connectedServers.length}`);
+      assert.ok(
+        connectedServers.length >= 2,
+        `Should have at least 2 connected servers, got ${connectedServers.length}`
+      );
 
       await mcpIntegration.disconnect('continue-connection');
       await mcpIntegration.disconnect('claude-connection');
@@ -744,7 +746,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'concurrent-server',
         transport: 'http',
         url: serverUrl1,
-        tools: ['tool_a', 'tool_b', 'tool_c']
+        tools: ['tool_a', 'tool_b', 'tool_c'],
       });
 
       await mcpIntegration.connect('concurrent-server');
@@ -753,14 +755,14 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
       const calls = [
         mcpIntegration.callTool('concurrent-server', 'tool_a', {}),
         mcpIntegration.callTool('concurrent-server', 'tool_b', {}),
-        mcpIntegration.callTool('concurrent-server', 'tool_c', {})
+        mcpIntegration.callTool('concurrent-server', 'tool_c', {}),
       ];
 
       const results = await Promise.all(calls);
 
       // All should succeed
       assert.strictEqual(results.length, 3);
-      results.forEach(result => {
+      results.forEach((result) => {
         assert.ok(result);
         assert.ok(result.content);
       });
@@ -773,7 +775,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
       const metricsCollector = new EventEmitter();
       const metrics = {
         continuedev: { calls: 0, errors: 0 },
-        claudecode: { calls: 0, errors: 0 }
+        claudecode: { calls: 0, errors: 0 },
       };
 
       metricsCollector.on('continue:call', () => metrics.continuedev.calls++);
@@ -794,7 +796,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'shared-state-server',
         transport: 'http',
         url: serverUrl1,
-        tools: ['shared_tool']
+        tools: ['shared_tool'],
       });
 
       // "Continue.dev" checks server
@@ -818,14 +820,14 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'dynamic-tools-server',
         transport: 'http',
         url: serverUrl1,
-        tools: ['tool_1', 'tool_2']
+        tools: ['tool_1', 'tool_2'],
       });
 
       await mcpIntegration.connect('dynamic-tools-server');
 
       // List tools - should show both
       let tools = mcpIntegration.listTools();
-      let serverTools = tools.filter(t => t.server === 'dynamic-tools-server');
+      let serverTools = tools.filter((t) => t.server === 'dynamic-tools-server');
       assert.strictEqual(serverTools.length, 2);
 
       // Disconnect
@@ -833,8 +835,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
 
       // List tools again - should show as unavailable
       tools = mcpIntegration.listTools();
-      serverTools = tools.filter(t => t.server === 'dynamic-tools-server');
-      assert.ok(serverTools.every(t => !t.available));
+      serverTools = tools.filter((t) => t.server === 'dynamic-tools-server');
+      assert.ok(serverTools.every((t) => !t.available));
 
       await mcpIntegration.removeServer('dynamic-tools-server');
     });
@@ -847,8 +849,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           enableMetrics: true,
           enableCaching: true,
           cacheTtl: 60000,
-          enableCompression: false
-        }
+          enableCompression: false,
+        },
       });
 
       // Simulate 100 rapid metrics updates
@@ -872,8 +874,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         tools: {
           claude_chat: { enabled: true },
           get_browser_history: { enabled: true },
-          ollama_query: { enabled: false } // Disabled tool
-        }
+          ollama_query: { enabled: false }, // Disabled tool
+        },
       });
 
       const stats = resilientServer.getStats();
@@ -894,8 +896,8 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
           enableMetrics: true,
           enableCaching: true,
           cacheTtl: 60000,
-          enableCompression: false
-        }
+          enableCompression: false,
+        },
       });
 
       // Get initial memory baseline
@@ -921,7 +923,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
 
         // Collect request body for POST requests
         let body = '';
-        req.on('data', chunk => body += chunk);
+        req.on('data', (chunk) => (body += chunk));
         req.on('end', async () => {
           try {
             const params = body ? JSON.parse(body) : {};
@@ -936,7 +938,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         });
       });
 
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         toolServer.listen(0, () => {
           const address = toolServer.address();
           toolServerUrl = `http://localhost:${address.port}`;
@@ -947,7 +949,7 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
 
     afterEach(async () => {
       if (toolServer) {
-        await new Promise(resolve => toolServer.close(resolve));
+        await new Promise((resolve) => toolServer.close(resolve));
       }
     });
 
@@ -956,104 +958,120 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
       switch (toolName) {
         case 'analyze_code':
           return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                language: params.language || 'javascript',
-                linesOfCode: 150,
-                complexity: 'medium',
-                issues: [],
-                metrics: {
-                  functions: 10,
-                  classes: 2,
-                  complexity: 15
-                }
-              })
-            }],
-            metadata: { tool: 'analyze_code', timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  language: params.language || 'javascript',
+                  linesOfCode: 150,
+                  complexity: 'medium',
+                  issues: [],
+                  metrics: {
+                    functions: 10,
+                    classes: 2,
+                    complexity: 15,
+                  },
+                }),
+              },
+            ],
+            metadata: { tool: 'analyze_code', timestamp: Date.now() },
           };
 
         case 'run_tests':
           return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                passed: params.expectedPass || 8,
-                failed: params.expectedFail || 0,
-                skipped: 1,
-                duration: 2345,
-                coverage: 85.5
-              })
-            }],
-            metadata: { tool: 'run_tests', timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  passed: params.expectedPass || 8,
+                  failed: params.expectedFail || 0,
+                  skipped: 1,
+                  duration: 2345,
+                  coverage: 85.5,
+                }),
+              },
+            ],
+            metadata: { tool: 'run_tests', timestamp: Date.now() },
           };
 
         case 'get_context':
           return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                workspaceRoot: params.path || '/workspace',
-                activeFiles: ['src/main.js', 'src/utils.js'],
-                recentCommits: ['abc123', 'def456'],
-                environment: {
-                  node: 'v18.0.0',
-                  npm: '8.0.0'
-                }
-              })
-            }],
-            metadata: { tool: 'get_context', timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  workspaceRoot: params.path || '/workspace',
+                  activeFiles: ['src/main.js', 'src/utils.js'],
+                  recentCommits: ['abc123', 'def456'],
+                  environment: {
+                    node: 'v18.0.0',
+                    npm: '8.0.0',
+                  },
+                }),
+              },
+            ],
+            metadata: { tool: 'get_context', timestamp: Date.now() },
           };
 
         case 'execute_command':
           return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                stdout: params.command === 'echo "test"' ? 'test\n' : '',
-                stderr: '',
-                exitCode: params.shouldFail ? 1 : 0,
-                duration: 125
-              })
-            }],
-            metadata: { tool: 'execute_command', timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  stdout: params.command === 'echo "test"' ? 'test\n' : '',
+                  stderr: '',
+                  exitCode: params.shouldFail ? 1 : 0,
+                  duration: 125,
+                }),
+              },
+            ],
+            metadata: { tool: 'execute_command', timestamp: Date.now() },
           };
 
         case 'read_file':
           return {
-            content: [{
-              type: 'text',
-              text: params.path ? `// Contents of ${params.path}\nfunction test() {\n  return true;\n}` : 'File not found'
-            }],
-            metadata: { tool: 'read_file', path: params.path, timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: params.path
+                  ? `// Contents of ${params.path}\nfunction test() {\n  return true;\n}`
+                  : 'File not found',
+              },
+            ],
+            metadata: { tool: 'read_file', path: params.path, timestamp: Date.now() },
           };
 
         case 'write_file':
           return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                success: true,
-                path: params.path,
-                bytesWritten: params.content ? params.content.length : 0
-              })
-            }],
-            metadata: { tool: 'write_file', timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  success: true,
+                  path: params.path,
+                  bytesWritten: params.content ? params.content.length : 0,
+                }),
+              },
+            ],
+            metadata: { tool: 'write_file', timestamp: Date.now() },
           };
 
         case 'detect_providers':
           return {
-            content: [{
-              type: 'text',
-              text: JSON.stringify({
-                providers: [
-                  { name: 'anthropic', available: true, version: '0.67.0' },
-                  { name: 'ollama', available: true, version: 'latest' },
-                  { name: 'openai', available: false }
-                ]
-              })
-            }],
-            metadata: { tool: 'detect_providers', timestamp: Date.now() }
+            content: [
+              {
+                type: 'text',
+                text: JSON.stringify({
+                  providers: [
+                    { name: 'anthropic', available: true, version: '0.67.0' },
+                    { name: 'ollama', available: true, version: 'latest' },
+                    { name: 'openai', available: false },
+                  ],
+                }),
+              },
+            ],
+            metadata: { tool: 'detect_providers', timestamp: Date.now() },
           };
 
         default:
@@ -1066,14 +1084,14 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'code-analysis-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['analyze_code']
+        tools: ['analyze_code'],
       });
 
       await mcpIntegration.connect('code-analysis-server');
 
       const result = await mcpIntegration.callTool('code-analysis-server', 'analyze_code', {
         language: 'javascript',
-        code: 'function test() { return true; }'
+        code: 'function test() { return true; }',
       });
 
       assert.ok(result);
@@ -1092,13 +1110,13 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'test-runner-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['run_tests']
+        tools: ['run_tests'],
       });
 
       await mcpIntegration.connect('test-runner-server');
 
       const result = await mcpIntegration.callTool('test-runner-server', 'run_tests', {
-        testPattern: '**/*.test.js'
+        testPattern: '**/*.test.js',
       });
 
       assert.ok(result);
@@ -1116,13 +1134,13 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'context-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['get_context']
+        tools: ['get_context'],
       });
 
       await mcpIntegration.connect('context-server');
 
       const result = await mcpIntegration.callTool('context-server', 'get_context', {
-        path: '/workspace/src'
+        path: '/workspace/src',
       });
 
       assert.ok(result);
@@ -1140,13 +1158,13 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'command-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['execute_command']
+        tools: ['execute_command'],
       });
 
       await mcpIntegration.connect('command-server');
 
       const result = await mcpIntegration.callTool('command-server', 'execute_command', {
-        command: 'echo "test"'
+        command: 'echo "test"',
       });
 
       assert.ok(result);
@@ -1163,13 +1181,13 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'file-reader-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['read_file']
+        tools: ['read_file'],
       });
 
       await mcpIntegration.connect('file-reader-server');
 
       const result = await mcpIntegration.callTool('file-reader-server', 'read_file', {
-        path: '/workspace/src/main.js'
+        path: '/workspace/src/main.js',
       });
 
       assert.ok(result);
@@ -1184,14 +1202,14 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'file-writer-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['write_file']
+        tools: ['write_file'],
       });
 
       await mcpIntegration.connect('file-writer-server');
 
       const result = await mcpIntegration.callTool('file-writer-server', 'write_file', {
         path: '/workspace/test.js',
-        content: 'console.log("test");'
+        content: 'console.log("test");',
       });
 
       assert.ok(result);
@@ -1208,18 +1226,22 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'provider-detector-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['detect_providers']
+        tools: ['detect_providers'],
       });
 
       await mcpIntegration.connect('provider-detector-server');
 
-      const result = await mcpIntegration.callTool('provider-detector-server', 'detect_providers', {});
+      const result = await mcpIntegration.callTool(
+        'provider-detector-server',
+        'detect_providers',
+        {}
+      );
 
       assert.ok(result);
       const providers = JSON.parse(result.content[0].text);
       assert.ok(Array.isArray(providers.providers));
       assert.ok(providers.providers.length > 0);
-      assert.ok(providers.providers.some(p => p.name === 'anthropic'));
+      assert.ok(providers.providers.some((p) => p.name === 'anthropic'));
 
       await mcpIntegration.disconnect('provider-detector-server');
       await mcpIntegration.removeServer('provider-detector-server');
@@ -1230,18 +1252,15 @@ describe('MCP Integration Tests', { timeout: TEST_TIMEOUT }, () => {
         name: 'error-tool-server',
         transport: 'http',
         url: toolServerUrl,
-        tools: ['unknown_tool']
+        tools: ['unknown_tool'],
       });
 
       await mcpIntegration.connect('error-tool-server');
 
       // Calling unknown tool should fail
-      await assert.rejects(
-        async () => {
-          await mcpIntegration.callTool('error-tool-server', 'unknown_tool', {});
-        },
-        /HTTP 500/
-      );
+      await assert.rejects(async () => {
+        await mcpIntegration.callTool('error-tool-server', 'unknown_tool', {});
+      }, /HTTP 500/);
 
       await mcpIntegration.disconnect('error-tool-server');
       await mcpIntegration.removeServer('error-tool-server');
@@ -1294,7 +1313,7 @@ rl.on('line', (line) => {
         transport: 'stdio',
         command: 'node',
         args: [stdioServerPath],
-        tools: ['test_tool']
+        tools: ['test_tool'],
       };
 
       await mcpIntegration.addServer(serverConfig);
@@ -1332,7 +1351,7 @@ rl.on('line', (line) => {
         transport: 'stdio',
         command: 'echo',
         args: ['test'],
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       assert.ok(server);
@@ -1362,12 +1381,14 @@ rl.on('line', (line) => {
             const response = {
               id: request.id,
               result: {
-                content: [{
-                  type: 'text',
-                  text: 'WebSocket response'
-                }],
-                metadata: { tool: request.tool }
-              }
+                content: [
+                  {
+                    type: 'text',
+                    text: 'WebSocket response',
+                  },
+                ],
+                metadata: { tool: request.tool },
+              },
             };
             ws.send(JSON.stringify(response));
           } catch (error) {
@@ -1387,7 +1408,7 @@ rl.on('line', (line) => {
 
     afterEach(async () => {
       if (wsServer) {
-        await new Promise(resolve => {
+        await new Promise((resolve) => {
           wsServer.close(resolve);
         });
       }
@@ -1398,7 +1419,7 @@ rl.on('line', (line) => {
         name: 'ws-test-server',
         transport: 'websocket',
         url: wsServerUrl,
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       const connection = await mcpIntegration.connect('ws-test-server');
@@ -1416,13 +1437,13 @@ rl.on('line', (line) => {
         name: 'ws-tool-server',
         transport: 'websocket',
         url: wsServerUrl,
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       await mcpIntegration.connect('ws-tool-server');
 
       const result = await mcpIntegration.callTool('ws-tool-server', 'test_tool', {
-        param: 'value'
+        param: 'value',
       });
 
       assert.ok(result);
@@ -1440,16 +1461,13 @@ rl.on('line', (line) => {
         name: 'disconnected-server',
         transport: 'http',
         url: 'http://localhost:9999',
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       // Try to call tool without connecting first
-      await assert.rejects(
-        async () => {
-          await mcpIntegration.callTool('disconnected-server', 'test_tool', {});
-        },
-        /Not connected to server/
-      );
+      await assert.rejects(async () => {
+        await mcpIntegration.callTool('disconnected-server', 'test_tool', {});
+      }, /Not connected to server/);
 
       await mcpIntegration.removeServer('disconnected-server');
     });
@@ -1460,7 +1478,7 @@ rl.on('line', (line) => {
         res.end(JSON.stringify({ content: [{ type: 'text', text: 'OK' }] }));
       });
 
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         testServer.listen(0, () => resolve());
       });
 
@@ -1471,31 +1489,25 @@ rl.on('line', (line) => {
         name: 'limited-tools-server',
         transport: 'http',
         url: serverUrl,
-        tools: ['tool_a']
+        tools: ['tool_a'],
       });
 
       await mcpIntegration.connect('limited-tools-server');
 
       // Try to call tool that's not in the tools list
-      await assert.rejects(
-        async () => {
-          await mcpIntegration.callTool('limited-tools-server', 'tool_b', {});
-        },
-        /Tool not available/
-      );
+      await assert.rejects(async () => {
+        await mcpIntegration.callTool('limited-tools-server', 'tool_b', {});
+      }, /Tool not available/);
 
       await mcpIntegration.disconnect('limited-tools-server');
       await mcpIntegration.removeServer('limited-tools-server');
-      await new Promise(r => testServer.close(r));
+      await new Promise((r) => testServer.close(r));
     });
 
     it('should handle server not found errors', async () => {
-      await assert.rejects(
-        async () => {
-          await mcpIntegration.connect('non-existent-server');
-        },
-        /MCP server not found/
-      );
+      await assert.rejects(async () => {
+        await mcpIntegration.connect('non-existent-server');
+      }, /MCP server not found/);
     });
 
     it('should handle duplicate server names', async () => {
@@ -1503,7 +1515,7 @@ rl.on('line', (line) => {
         name: 'duplicate-test',
         transport: 'http',
         url: 'http://localhost:3000',
-        tools: ['test']
+        tools: ['test'],
       });
 
       // Adding again should overwrite
@@ -1511,7 +1523,7 @@ rl.on('line', (line) => {
         name: 'duplicate-test',
         transport: 'http',
         url: 'http://localhost:3001',
-        tools: ['test']
+        tools: ['test'],
       });
 
       const server = mcpIntegration.getServer('duplicate-test');
@@ -1525,11 +1537,11 @@ rl.on('line', (line) => {
         name: 'no-tools-server',
         transport: 'http',
         url: 'http://localhost:3000',
-        tools: []
+        tools: [],
       });
 
       const tools = mcpIntegration.listTools();
-      const serverTools = tools.filter(t => t.server === 'no-tools-server');
+      const serverTools = tools.filter((t) => t.server === 'no-tools-server');
       assert.strictEqual(serverTools.length, 0);
 
       await mcpIntegration.removeServer('no-tools-server');
@@ -1549,7 +1561,7 @@ rl.on('line', (line) => {
         res.end(JSON.stringify({ error: 'Internal server error' }));
       });
 
-      await new Promise(resolve => {
+      await new Promise((resolve) => {
         errorServer.listen(0, () => resolve());
       });
 
@@ -1560,7 +1572,7 @@ rl.on('line', (line) => {
         name: 'error-event-server',
         transport: 'http',
         url: serverUrl,
-        tools: ['test_tool']
+        tools: ['test_tool'],
       });
 
       await mcpIntegration.connect('error-event-server');
@@ -1578,7 +1590,7 @@ rl.on('line', (line) => {
 
       await mcpIntegration.disconnect('error-event-server');
       await mcpIntegration.removeServer('error-event-server');
-      await new Promise(r => errorServer.close(r));
+      await new Promise((r) => errorServer.close(r));
     });
   });
 });

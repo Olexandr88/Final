@@ -20,7 +20,7 @@ async function main() {
   // 1. Initialize coordinator (this handles locking for us)
   const coordinator = new AutonomousCoordinator({
     autoStartBridge: false, // Assume bridge is already running
-    autoStartMetaFactory: false
+    autoStartMetaFactory: false,
   });
 
   await coordinator.initialize();
@@ -46,18 +46,18 @@ async function main() {
       {
         to: 'meta-agent-factory',
         intent: 'agent.create',
-        payload: { type: 'security-scanner', name: 'security-agent-1' }
+        payload: { type: 'security-scanner', name: 'security-agent-1' },
       },
       {
         to: 'meta-agent-factory',
         intent: 'agent.create',
-        payload: { type: 'test-generator', name: 'test-gen-1' }
+        payload: { type: 'test-generator', name: 'test-gen-1' },
       },
       {
         to: 'meta-agent-factory',
         intent: 'agent.create',
-        payload: { type: 'doc-generator', name: 'doc-gen-1' }
-      }
+        payload: { type: 'doc-generator', name: 'doc-gen-1' },
+      },
     ]);
 
     logger.info('Agent creation results:', agentCreationResults);
@@ -86,22 +86,18 @@ async function main() {
     logger.info('\n🔒 Demonstrating automatic file locking...');
 
     // This automatically acquires locks at both session and file level
-    await coordinator.executeFileOperation(
-      'write',
-      './examples/demo-output.txt',
-      async () => {
-        const fs = await import('fs/promises');
-        const content = `
+    await coordinator.executeFileOperation('write', './examples/demo-output.txt', async () => {
+      const fs = await import('fs/promises');
+      const content = `
 Autonomous Workflow Example Output
 ===================================
 Session: ${coordinator.sessionId}
 Timestamp: ${new Date().toISOString()}
 System Status: ${JSON.stringify(coordinator.getStatus(), null, 2)}
 `;
-        await fs.writeFile('./examples/demo-output.txt', content, 'utf-8');
-        logger.info('✅ File written with automatic locking');
-      }
-    );
+      await fs.writeFile('./examples/demo-output.txt', content, 'utf-8');
+      logger.info('✅ File written with automatic locking');
+    });
 
     // 9. List all spawned agents
     logger.info('\n📋 Listing spawned agents...');
@@ -109,11 +105,10 @@ System Status: ${JSON.stringify(coordinator.getStatus(), null, 2)}
     logger.info('Spawned agents:', agentList);
 
     logger.info('\n✨ Workflow complete!');
-
   } catch (error) {
     logger.error('Workflow failed:', {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
   } finally {
     await coordinator.shutdown();
@@ -122,7 +117,7 @@ System Status: ${JSON.stringify(coordinator.getStatus(), null, 2)}
 
 // Run if called directly
 if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
-  main().catch(error => {
+  main().catch((error) => {
     logger.error('Fatal error:', error);
     process.exit(1);
   });

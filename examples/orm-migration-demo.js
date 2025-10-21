@@ -23,7 +23,14 @@ async function example1_SimpleCRUD() {
     INSERT INTO sessions (id, pid, start_time, last_heartbeat, status, cwd)
     VALUES (?, ?, ?, ?, ?, ?)
   `);
-  const result1 = stmt.run('session-raw-1', process.pid, Date.now(), Date.now(), 'active', process.cwd());
+  const result1 = stmt.run(
+    'session-raw-1',
+    process.pid,
+    Date.now(),
+    Date.now(),
+    'active',
+    process.cwd()
+  );
   const duration1 = performance.now() - start1;
   console.log(`  Inserted row ID: ${result1.lastInsertRowid} in ${duration1.toFixed(2)}ms`);
 
@@ -37,14 +44,14 @@ async function example1_SimpleCRUD() {
       startTime: Date.now(),
       lastHeartbeat: Date.now(),
       status: 'active',
-      cwd: process.cwd()
-    }
+      cwd: process.cwd(),
+    },
   });
   const duration2 = performance.now() - start2;
   console.log(`  Inserted session: ${session.id} in ${duration2.toFixed(2)}ms`);
 
   // Performance Comparison
-  const overhead = ((duration2 - duration1) / duration1 * 100).toFixed(1);
+  const overhead = (((duration2 - duration1) / duration1) * 100).toFixed(1);
   console.log(`\n  ORM Overhead: +${overhead}%`);
 
   // Cleanup
@@ -74,10 +81,10 @@ async function example2_ComplexQueries() {
       locks: {
         create: [
           { resourcePath: '/file1.js', lockType: 'write', acquiredAt: Date.now() },
-          { resourcePath: '/file2.js', lockType: 'read', acquiredAt: Date.now() }
-        ]
-      }
-    }
+          { resourcePath: '/file2.js', lockType: 'read', acquiredAt: Date.now() },
+        ],
+      },
+    },
   });
 
   // Raw SQL (manual JOIN)
@@ -95,20 +102,22 @@ async function example2_ComplexQueries() {
   const start2 = performance.now();
   const sessionORM = await prisma.session.findUnique({
     where: { id: 'session-complex' },
-    include: { locks: true }
+    include: { locks: true },
   });
   const duration2 = performance.now() - start2;
   console.log(`  Session: ${sessionORM.id} with ${sessionORM.locks.length} locks`);
   console.log(`  Duration: ${duration2.toFixed(2)}ms`);
 
-  console.log(`\n  ORM Overhead: +${((duration2 - duration1) / duration1 * 100).toFixed(1)}%`);
+  console.log(`\n  ORM Overhead: +${(((duration2 - duration1) / duration1) * 100).toFixed(1)}%`);
 
   // Type Safety Demonstration
   console.log('\nType Safety:');
   console.log('  Raw SQL: No compile-time checks');
   console.log('  Prisma ORM: Full TypeScript IntelliSense');
   console.log(`    sessionORM.id: ${typeof sessionORM.id} (known at compile time)`);
-  console.log(`    sessionORM.locks[0].lockType: ${sessionORM.locks[0].lockType} (autocomplete available)`);
+  console.log(
+    `    sessionORM.locks[0].lockType: ${sessionORM.locks[0].lockType} (autocomplete available)`
+  );
 
   await prisma.$disconnect();
   db.close();
@@ -129,15 +138,19 @@ async function example3_Transactions() {
   const start1 = performance.now();
   db.prepare('BEGIN TRANSACTION').run();
   try {
-    db.prepare(`
+    db.prepare(
+      `
       UPDATE sessions SET status = 'stale'
       WHERE last_heartbeat < ?
-    `).run(Date.now() - 30000);
+    `
+    ).run(Date.now() - 30000);
 
-    db.prepare(`
+    db.prepare(
+      `
       DELETE FROM locks
       WHERE session_id IN (SELECT id FROM sessions WHERE status = 'stale')
-    `).run();
+    `
+    ).run();
 
     db.prepare('COMMIT').run();
     const duration1 = performance.now() - start1;
@@ -154,13 +167,13 @@ async function example3_Transactions() {
     await prisma.$transaction([
       prisma.session.updateMany({
         where: { lastHeartbeat: { lt: Date.now() - 30000 } },
-        data: { status: 'stale' }
+        data: { status: 'stale' },
       }),
       prisma.lock.deleteMany({
         where: {
-          session: { status: 'stale' }
-        }
-      })
+          session: { status: 'stale' },
+        },
+      }),
     ]);
     const duration2 = performance.now() - start2;
     console.log(`  Transaction completed in ${duration2.toFixed(2)}ms`);
@@ -187,14 +200,16 @@ async function example4_BulkOperations() {
   const db = new Database('./data/demo.db');
 
   const COUNT = 100;
-  const testData = Array(COUNT).fill(null).map((_, i) => ({
-    id: `bulk-${i}`,
-    pid: process.pid,
-    startTime: Date.now(),
-    lastHeartbeat: Date.now(),
-    status: 'active',
-    cwd: process.cwd()
-  }));
+  const testData = Array(COUNT)
+    .fill(null)
+    .map((_, i) => ({
+      id: `bulk-${i}`,
+      pid: process.pid,
+      startTime: Date.now(),
+      lastHeartbeat: Date.now(),
+      status: 'active',
+      cwd: process.cwd(),
+    }));
 
   // Raw SQL Bulk Insert
   console.log(`Raw SQL Bulk Insert (${COUNT} rows):`);
@@ -205,32 +220,43 @@ async function example4_BulkOperations() {
   `);
   const insertMany = db.transaction((sessions) => {
     for (const session of sessions) {
-      insertStmt.run(session.id, session.pid, session.startTime, session.lastHeartbeat, session.status, session.cwd);
+      insertStmt.run(
+        session.id,
+        session.pid,
+        session.startTime,
+        session.lastHeartbeat,
+        session.status,
+        session.cwd
+      );
     }
   });
   insertMany(testData);
   const duration1 = performance.now() - start1;
-  console.log(`  Duration: ${duration1.toFixed(2)}ms (${(duration1 / COUNT).toFixed(2)}ms per row)`);
+  console.log(
+    `  Duration: ${duration1.toFixed(2)}ms (${(duration1 / COUNT).toFixed(2)}ms per row)`
+  );
 
   // Prisma ORM Bulk Insert
   console.log(`\nPrisma ORM Bulk Insert (${COUNT} rows):`);
   const start2 = performance.now();
   const result = await prisma.session.createMany({
-    data: testData.map(d => ({
+    data: testData.map((d) => ({
       id: `${d.id}-orm`,
       pid: d.pid,
       startTime: d.startTime,
       lastHeartbeat: d.lastHeartbeat,
       status: d.status,
-      cwd: d.cwd
+      cwd: d.cwd,
     })),
-    skipDuplicates: true
+    skipDuplicates: true,
   });
   const duration2 = performance.now() - start2;
-  console.log(`  Duration: ${duration2.toFixed(2)}ms (${(duration2 / COUNT).toFixed(2)}ms per row)`);
+  console.log(
+    `  Duration: ${duration2.toFixed(2)}ms (${(duration2 / COUNT).toFixed(2)}ms per row)`
+  );
   console.log(`  Rows inserted: ${result.count}`);
 
-  console.log(`\n  ORM Overhead: +${((duration2 - duration1) / duration1 * 100).toFixed(1)}%`);
+  console.log(`\n  ORM Overhead: +${(((duration2 - duration1) / duration1) * 100).toFixed(1)}%`);
 
   await prisma.$disconnect();
   db.close();
@@ -245,14 +271,14 @@ async function example5_HybridApproach() {
 
   const prisma = new PrismaClient({
     datasource: { url: 'file:./data/demo.db' },
-    log: ['query'] // Show generated SQL
+    log: ['query'], // Show generated SQL
   });
 
   // Standard ORM operation
   console.log('Standard ORM Operation:');
   const session = await prisma.session.findFirst({
     where: { status: 'active' },
-    include: { locks: true }
+    include: { locks: true },
   });
   console.log(`  Found session: ${session?.id || 'none'}`);
 
@@ -315,25 +341,27 @@ async function example6_CompatibilityLayer() {
               startTime: Date.now(),
               lastHeartbeat: Date.now(),
               status: 'active',
-              cwd: process.cwd()
-            }
+              cwd: process.cwd(),
+            },
           });
           await prisma.$disconnect();
           return session.id;
-        }
+        },
       };
     } else {
       return {
         register() {
           const db = new Database('./data/demo.db');
           const id = `session-${Date.now()}`;
-          db.prepare(`
+          db.prepare(
+            `
             INSERT INTO sessions (id, pid, start_time, last_heartbeat, status, cwd)
             VALUES (?, ?, ?, ?, ?, ?)
-          `).run(id, process.pid, Date.now(), Date.now(), 'active', process.cwd());
+          `
+          ).run(id, process.pid, Date.now(), Date.now(), 'active', process.cwd());
           db.close();
           return id;
-        }
+        },
       };
     }
   }
@@ -387,5 +415,5 @@ export {
   example3_Transactions,
   example4_BulkOperations,
   example5_HybridApproach,
-  example6_CompatibilityLayer
+  example6_CompatibilityLayer,
 };

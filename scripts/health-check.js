@@ -21,7 +21,7 @@ class HealthChecker {
       status: 'healthy',
       checks: {},
       performance: {},
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -34,17 +34,17 @@ class HealthChecker {
 
       const pkg = JSON.parse(readFileSync(packagePath, 'utf8'));
       const requiredDeps = ['express', 'dotenv', 'cors', 'winston'];
-      const missingDeps = requiredDeps.filter(dep => !pkg.dependencies[dep]);
+      const missingDeps = requiredDeps.filter((dep) => !pkg.dependencies[dep]);
 
       this.results.checks.dependencies = {
         status: missingDeps.length === 0 ? 'pass' : 'warn',
         missing: missingDeps,
-        total: Object.keys(pkg.dependencies).length
+        total: Object.keys(pkg.dependencies).length,
       };
     } catch (error) {
       this.results.checks.dependencies = {
         status: 'fail',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -58,31 +58,26 @@ class HealthChecker {
       status: heapUsedMB < 100 ? 'pass' : heapUsedMB < 200 ? 'warn' : 'fail',
       heapUsedMB,
       heapTotalMB,
-      usage: `${heapUsedMB}/${heapTotalMB}MB`
+      usage: `${heapUsedMB}/${heapTotalMB}MB`,
     };
 
     this.results.performance.memory = {
       heapUsed: usage.heapUsed,
       heapTotal: usage.heapTotal,
       external: usage.external,
-      rss: usage.rss
+      rss: usage.rss,
     };
   }
 
   async checkFileSystem() {
-    const criticalPaths = [
-      'package.json',
-      'server.js',
-      'src',
-      '.github/workflows'
-    ];
+    const criticalPaths = ['package.json', 'server.js', 'src', '.github/workflows'];
 
-    const missing = criticalPaths.filter(path => !existsSync(join(rootDir, path)));
-    
+    const missing = criticalPaths.filter((path) => !existsSync(join(rootDir, path)));
+
     this.results.checks.filesystem = {
       status: missing.length === 0 ? 'pass' : 'warn',
       missing,
-      checked: criticalPaths.length
+      checked: criticalPaths.length,
     };
   }
 
@@ -96,7 +91,7 @@ class HealthChecker {
       nodeVersion,
       platform,
       arch,
-      uptime: Math.round(process.uptime())
+      uptime: Math.round(process.uptime()),
     };
   }
 
@@ -105,30 +100,30 @@ class HealthChecker {
       const optimizationFiles = [
         'scripts/performance-optimizer.js',
         'examples/bridge-demo-ultra.js',
-        '.github/workflows/ultra-performance-optimization.yml'
+        '.github/workflows/ultra-performance-optimization.yml',
       ];
 
-      const available = optimizationFiles.filter(file => existsSync(join(rootDir, file)));
-      
+      const available = optimizationFiles.filter((file) => existsSync(join(rootDir, file)));
+
       this.results.checks.optimization = {
         status: available.length >= 2 ? 'pass' : 'warn',
         available: available.length,
         total: optimizationFiles.length,
-        systems: available
+        systems: available,
       };
     } catch (error) {
       this.results.checks.optimization = {
         status: 'fail',
-        error: error.message
+        error: error.message,
       };
     }
   }
 
   calculateOverallHealth() {
     const checks = Object.values(this.results.checks);
-    const failCount = checks.filter(check => check.status === 'fail').length;
-    const warnCount = checks.filter(check => check.status === 'warn').length;
-    const passCount = checks.filter(check => check.status === 'pass').length;
+    const failCount = checks.filter((check) => check.status === 'fail').length;
+    const warnCount = checks.filter((check) => check.status === 'warn').length;
+    const passCount = checks.filter((check) => check.status === 'pass').length;
 
     if (failCount > 0) {
       this.results.status = 'unhealthy';
@@ -143,24 +138,24 @@ class HealthChecker {
       pass: passCount,
       warn: warnCount,
       fail: failCount,
-      score: Math.round(((passCount + warnCount * 0.5) / checks.length) * 100)
+      score: Math.round(((passCount + warnCount * 0.5) / checks.length) * 100),
     };
   }
 
   async run() {
     console.log('🏥 Running LLM Framework Health Check...');
-    
+
     await this.checkDependencies();
     await this.checkMemory();
     await this.checkFileSystem();
     await this.checkEnvironment();
     await this.checkOptimizationSystems();
-    
+
     this.calculateOverallHealth();
-    
+
     const endTime = performance.now();
     this.results.performance.checkDuration = Math.round(endTime - this.startTime);
-    
+
     return this.results;
   }
 
@@ -169,18 +164,20 @@ class HealthChecker {
     const statusIcon = {
       healthy: '✅',
       degraded: '⚠️',
-      unhealthy: '❌'
+      unhealthy: '❌',
     }[status];
 
     console.log(`\n${statusIcon} Overall Health: ${status.toUpperCase()}`);
-    console.log(`📊 Score: ${summary.score}% (${summary.pass}✅ ${summary.warn}⚠️ ${summary.fail}❌)`);
+    console.log(
+      `📊 Score: ${summary.score}% (${summary.pass}✅ ${summary.warn}⚠️ ${summary.fail}❌)`
+    );
     console.log(`⏱️  Check Duration: ${results.performance.checkDuration}ms`);
-    
+
     console.log('\n📋 Detailed Results:');
     Object.entries(checks).forEach(([name, check]) => {
       const icon = { pass: '✅', warn: '⚠️', fail: '❌' }[check.status];
       console.log(`  ${icon} ${name}: ${check.status}`);
-      
+
       if (check.error) {
         console.log(`    Error: ${check.error}`);
       }
@@ -204,17 +201,17 @@ class HealthChecker {
 // Run health check if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const checker = new HealthChecker();
-  
+
   try {
     const results = await checker.run();
     const exitCode = checker.formatOutput(results);
-    
+
     // Output JSON for CI/CD consumption
     if (process.argv.includes('--json')) {
       console.log('\n📄 JSON Output:');
       console.log(JSON.stringify(results, null, 2));
     }
-    
+
     process.exit(exitCode);
   } catch (error) {
     console.error('❌ Health check failed:', error.message);

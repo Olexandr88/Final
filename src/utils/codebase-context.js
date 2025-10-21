@@ -22,7 +22,7 @@ export class CodebaseContext {
       '**/.cache/**',
       '**/coverage/**',
       '**/*.log',
-      '**/package-lock.json'
+      '**/package-lock.json',
     ];
     this.fileIndex = new Map();
     this.dependencyGraph = new Map();
@@ -48,7 +48,7 @@ export class CodebaseContext {
 
     return {
       fileCount: this.fileIndex.size,
-      structure: this.projectStructure
+      structure: this.projectStructure,
     };
   }
 
@@ -62,7 +62,7 @@ export class CodebaseContext {
       const files = await glob(pattern, {
         cwd: this.rootPath,
         ignore: this.excludePatterns,
-        absolute: true
+        absolute: true,
       });
 
       for (const file of files) {
@@ -81,7 +81,7 @@ export class CodebaseContext {
             content,
             size: stats.size,
             modified: stats.mtime,
-            type: this.getFileType(file)
+            type: this.getFileType(file),
           });
         } catch (err) {
           console.warn(`Failed to index ${file}:`, err.message);
@@ -131,7 +131,7 @@ export class CodebaseContext {
     const structure = {
       name: path.basename(this.rootPath),
       type: 'directory',
-      children: new Map()
+      children: new Map(),
     };
 
     for (const relativePath of this.fileIndex.keys()) {
@@ -147,7 +147,7 @@ export class CodebaseContext {
             name: part,
             type: isFile ? 'file' : 'directory',
             path: parts.slice(0, i + 1).join(path.sep),
-            children: isFile ? null : new Map()
+            children: isFile ? null : new Map(),
           });
         }
 
@@ -168,7 +168,7 @@ export class CodebaseContext {
       return {
         name: node.name,
         type: 'file',
-        path: node.path
+        path: node.path,
       };
     }
 
@@ -176,9 +176,7 @@ export class CodebaseContext {
       name: node.name,
       type: 'directory',
       path: node.path,
-      children: Array.from(node.children.values()).map(child =>
-        this.convertMapToObject(child)
-      )
+      children: Array.from(node.children.values()).map((child) => this.convertMapToObject(child)),
     };
   }
 
@@ -219,7 +217,7 @@ export class CodebaseContext {
     const dependents = [];
 
     for (const [file, deps] of this.dependencyGraph) {
-      const hasDep = deps.some(dep => {
+      const hasDep = deps.some((dep) => {
         const resolved = this.resolveDependency(dep.module, file);
         return resolved === relativePath;
       });
@@ -267,7 +265,7 @@ export class CodebaseContext {
       '.ts': 'typescript',
       '.tsx': 'typescript',
       '.json': 'json',
-      '.md': 'markdown'
+      '.md': 'markdown',
     };
     return typeMap[ext] || 'unknown';
   }
@@ -282,8 +280,8 @@ export class CodebaseContext {
       fileTypes: this.getFileTypeSummary(),
       dependencies: {
         totalFiles: this.dependencyGraph.size,
-        avgDepsPerFile: this.getAverageDependencies()
-      }
+        avgDepsPerFile: this.getAverageDependencies(),
+      },
     };
   }
 
@@ -306,8 +304,10 @@ export class CodebaseContext {
   getAverageDependencies() {
     if (this.dependencyGraph.size === 0) return 0;
 
-    const total = Array.from(this.dependencyGraph.values())
-      .reduce((sum, deps) => sum + deps.length, 0);
+    const total = Array.from(this.dependencyGraph.values()).reduce(
+      (sum, deps) => sum + deps.length,
+      0
+    );
 
     return (total / this.dependencyGraph.size).toFixed(2);
   }
@@ -328,7 +328,7 @@ export class CodebaseContext {
         content,
         size: stats.size,
         modified: stats.mtime,
-        type: this.getFileType(filePath)
+        type: this.getFileType(filePath),
       });
 
       // Update dependencies

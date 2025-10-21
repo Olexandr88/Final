@@ -30,7 +30,7 @@ describe('Command Handlers - CQRS Architecture', () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: process.pid,
       cwd: process.cwd(),
-      userId: 'test-user'
+      userId: 'test-user',
     });
 
     assert.ok(sessionId, 'Session ID should be returned');
@@ -42,26 +42,23 @@ describe('Command Handlers - CQRS Architecture', () => {
   });
 
   it('should reject CreateSession without required fields', async () => {
-    await assert.rejects(
-      async () => {
-        await commandHandlers.handleCreateSession({
-          cwd: process.cwd()
-          // Missing pid
-        });
-      },
-      /PID is required/
-    );
+    await assert.rejects(async () => {
+      await commandHandlers.handleCreateSession({
+        cwd: process.cwd(),
+        // Missing pid
+      });
+    }, /PID is required/);
   });
 
   it('should handle UpdateSession command', async () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 123,
-      cwd: '/test'
+      cwd: '/test',
     });
 
     await commandHandlers.handleUpdateSession({
       sessionId,
-      currentTask: 'testing update'
+      currentTask: 'testing update',
     });
 
     const events = await eventStore.getEventStream('Session', sessionId);
@@ -71,27 +68,24 @@ describe('Command Handlers - CQRS Architecture', () => {
   });
 
   it('should reject UpdateSession for non-existent session', async () => {
-    await assert.rejects(
-      async () => {
-        await commandHandlers.handleUpdateSession({
-          sessionId: 'non-existent-session',
-          currentTask: 'test'
-        });
-      },
-      /not found/
-    );
+    await assert.rejects(async () => {
+      await commandHandlers.handleUpdateSession({
+        sessionId: 'non-existent-session',
+        currentTask: 'test',
+      });
+    }, /not found/);
   });
 
   it('should handle AcquireLock command', async () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 456,
-      cwd: '/test'
+      cwd: '/test',
     });
 
     const lockId = await commandHandlers.handleAcquireLock({
       sessionId,
       resourcePath: '/test/resource',
-      lockType: 'write'
+      lockType: 'write',
     });
 
     assert.ok(lockId, 'Lock ID should be returned');
@@ -104,31 +98,28 @@ describe('Command Handlers - CQRS Architecture', () => {
   });
 
   it('should reject AcquireLock without required fields', async () => {
-    await assert.rejects(
-      async () => {
-        await commandHandlers.handleAcquireLock({
-          sessionId: 'test-session'
-          // Missing resourcePath
-        });
-      },
-      /resource path are required/
-    );
+    await assert.rejects(async () => {
+      await commandHandlers.handleAcquireLock({
+        sessionId: 'test-session',
+        // Missing resourcePath
+      });
+    }, /resource path are required/);
   });
 
   it('should handle ReleaseLock command', async () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 789,
-      cwd: '/test'
+      cwd: '/test',
     });
 
     const lockId = await commandHandlers.handleAcquireLock({
       sessionId,
       resourcePath: '/test/resource2',
-      lockType: 'read'
+      lockType: 'read',
     });
 
     await commandHandlers.handleReleaseLock({
-      lockId
+      lockId,
     });
 
     const events = await eventStore.getEventStream('Lock', lockId);
@@ -138,25 +129,22 @@ describe('Command Handlers - CQRS Architecture', () => {
   });
 
   it('should reject ReleaseLock for non-existent lock', async () => {
-    await assert.rejects(
-      async () => {
-        await commandHandlers.handleReleaseLock({
-          lockId: 'non-existent-lock'
-        });
-      },
-      /not found/
-    );
+    await assert.rejects(async () => {
+      await commandHandlers.handleReleaseLock({
+        lockId: 'non-existent-lock',
+      });
+    }, /not found/);
   });
 
   it('should handle TerminateSession command', async () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 999,
-      cwd: '/test'
+      cwd: '/test',
     });
 
     await commandHandlers.handleTerminateSession({
       sessionId,
-      reason: 'test termination'
+      reason: 'test termination',
     });
 
     const events = await eventStore.getEventStream('Session', sessionId);
@@ -171,13 +159,13 @@ describe('Command Handlers - CQRS Architecture', () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 111,
       cwd: '/test',
-      correlationId
+      correlationId,
     });
 
     await commandHandlers.handleUpdateSession({
       sessionId,
       currentTask: 'correlated task',
-      correlationId
+      correlationId,
     });
 
     const events = await eventStore.getEventsByCorrelation(correlationId);
@@ -189,7 +177,7 @@ describe('Command Handlers - CQRS Architecture', () => {
   it('should handle high-throughput command processing', async () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 222,
-      cwd: '/test'
+      cwd: '/test',
     });
 
     const promises = [];
@@ -197,7 +185,7 @@ describe('Command Handlers - CQRS Architecture', () => {
       promises.push(
         commandHandlers.handleUpdateSession({
           sessionId,
-          currentTask: `task-${i}`
+          currentTask: `task-${i}`,
         })
       );
     }
@@ -210,33 +198,27 @@ describe('Command Handlers - CQRS Architecture', () => {
 
   it('should validate business rules in commands', async () => {
     // Test missing sessionId
-    await assert.rejects(
-      async () => {
-        await commandHandlers.handleUpdateSession({
-          currentTask: 'test'
-        });
-      },
-      /Session ID is required/
-    );
+    await assert.rejects(async () => {
+      await commandHandlers.handleUpdateSession({
+        currentTask: 'test',
+      });
+    }, /Session ID is required/);
 
     // Test missing lockId
-    await assert.rejects(
-      async () => {
-        await commandHandlers.handleReleaseLock({});
-      },
-      /Lock ID is required/
-    );
+    await assert.rejects(async () => {
+      await commandHandlers.handleReleaseLock({});
+    }, /Lock ID is required/);
   });
 
   it('should default lock type to write if not specified', async () => {
     const sessionId = await commandHandlers.handleCreateSession({
       pid: 333,
-      cwd: '/test'
+      cwd: '/test',
     });
 
     const lockId = await commandHandlers.handleAcquireLock({
       sessionId,
-      resourcePath: '/test/default-lock'
+      resourcePath: '/test/default-lock',
     });
 
     const events = await eventStore.getEventStream('Lock', lockId);

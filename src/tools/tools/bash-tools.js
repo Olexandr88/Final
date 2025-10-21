@@ -29,7 +29,7 @@ export async function executeCommand(params, context) {
     cwd = process.cwd(),
     timeout = 30000,
     env = {},
-    shell = true
+    shell = true,
   } = params;
 
   const maxTimeout = 60000; // 1 minute max
@@ -41,7 +41,7 @@ export async function executeCommand(params, context) {
 
     logger.info(`Executing command: ${fullCommand}`, {
       agentId: context.agentId,
-      cwd
+      cwd,
     });
 
     const { stdout, stderr } = await execAsync(fullCommand, {
@@ -49,7 +49,7 @@ export async function executeCommand(params, context) {
       timeout: actualTimeout,
       maxBuffer: 10 * 1024 * 1024, // 10MB
       env: { ...process.env, ...env },
-      shell
+      shell,
     });
 
     const duration = Date.now() - startTime;
@@ -59,7 +59,7 @@ export async function executeCommand(params, context) {
       stdout: stdout.trim(),
       stderr: stderr.trim(),
       exitCode: 0,
-      duration
+      duration,
     };
   } catch (error) {
     const duration = Date.now() - startTime;
@@ -71,7 +71,7 @@ export async function executeCommand(params, context) {
       stderr: error.stderr?.trim() || error.message,
       exitCode: error.code || 1,
       duration,
-      error: error.message
+      error: error.message,
     };
   }
 }
@@ -92,7 +92,7 @@ export async function runNpmCommand(params, context) {
       command: 'npm',
       args: command.split(' '),
       cwd,
-      timeout: 120000 // 2 minutes for npm commands
+      timeout: 120000, // 2 minutes for npm commands
     },
     context
   );
@@ -114,7 +114,7 @@ export async function executeBackground(params, context) {
     const proc = spawn(command, args, {
       cwd,
       detached: true,
-      stdio: 'ignore'
+      stdio: 'ignore',
     });
 
     proc.on('spawn', () => {
@@ -124,7 +124,7 @@ export async function executeBackground(params, context) {
         command,
         pid: proc.pid,
         detached: true,
-        success: true
+        success: true,
       });
     });
 

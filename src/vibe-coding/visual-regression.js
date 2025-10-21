@@ -43,7 +43,7 @@ export class VisualRegressionTester extends EventEmitter {
         filepath,
         url,
         timestamp,
-        metadata: options.metadata || {}
+        metadata: options.metadata || {},
       };
     } catch (error) {
       this.emit('screenshot:error', { url, error });
@@ -65,7 +65,7 @@ export class VisualRegressionTester extends EventEmitter {
   async compareScreenshots(baseline, current) {
     const differences = {
       identical: baseline === current,
-      changes: []
+      changes: [],
     };
 
     if (baseline === current) {
@@ -83,7 +83,7 @@ export class VisualRegressionTester extends EventEmitter {
           type: 'visual-diff',
           description: 'Screenshots differ',
           baseline,
-          current
+          current,
         });
       }
 
@@ -100,14 +100,14 @@ export class VisualRegressionTester extends EventEmitter {
       screenshot: screenshotPath,
       timestamp: Date.now(),
       issues: [],
-      recommendations: []
+      recommendations: [],
     };
 
     if (designSpec.expectedColors) {
       analysis.recommendations.push({
         type: 'color-check',
         description: 'Verify color values match design spec',
-        expected: designSpec.expectedColors
+        expected: designSpec.expectedColors,
       });
     }
 
@@ -115,7 +115,7 @@ export class VisualRegressionTester extends EventEmitter {
       analysis.recommendations.push({
         type: 'spacing-check',
         description: 'Verify spacing matches design spec',
-        expected: designSpec.spacing
+        expected: designSpec.spacing,
       });
     }
 
@@ -123,7 +123,7 @@ export class VisualRegressionTester extends EventEmitter {
       analysis.recommendations.push({
         type: 'typography-check',
         description: 'Verify font sizes and families',
-        expected: designSpec.typography
+        expected: designSpec.typography,
       });
     }
 
@@ -137,7 +137,7 @@ export class VisualRegressionTester extends EventEmitter {
 
     const current = await this.captureScreenshot(url, {
       ...options,
-      filename: `${baselineName}-current.png`
+      filename: `${baselineName}-current.png`,
     });
 
     if (!existsSync(baselinePath)) {
@@ -146,7 +146,7 @@ export class VisualRegressionTester extends EventEmitter {
         baseline: baselinePath,
         current: currentPath,
         firstRun: true,
-        differences: { identical: true, changes: [] }
+        differences: { identical: true, changes: [] },
       };
     }
 
@@ -156,7 +156,7 @@ export class VisualRegressionTester extends EventEmitter {
       baseline: baselinePath,
       current: currentPath,
       firstRun: false,
-      differences
+      differences,
     };
   }
 
@@ -166,7 +166,7 @@ export class VisualRegressionTester extends EventEmitter {
     for (let i = 0; i < maxIterations; i++) {
       const screenshot = await this.captureScreenshot(url, {
         filename: `iteration-${i}.png`,
-        metadata: { iteration: i }
+        metadata: { iteration: i },
       });
 
       const analysis = await this.analyzeUI(screenshot.filepath, designSpec);
@@ -174,7 +174,7 @@ export class VisualRegressionTester extends EventEmitter {
       results.push({
         iteration: i,
         screenshot: screenshot.filepath,
-        analysis
+        analysis,
       });
 
       if (analysis.issues.length === 0) {

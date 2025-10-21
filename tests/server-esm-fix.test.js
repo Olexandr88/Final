@@ -22,7 +22,7 @@ describe('Server ESM and Browser History Fixes', { skip: true }, () => {
     // Build the project first
     const buildProcess = spawn('npm', ['run', 'build'], {
       cwd: projectRoot,
-      stdio: 'pipe'
+      stdio: 'pipe',
     });
 
     await new Promise((resolve, reject) => {
@@ -39,7 +39,7 @@ describe('Server ESM and Browser History Fixes', { skip: true }, () => {
     serverProcess = spawn('node', ['server.js'], {
       cwd: projectRoot,
       env: { ...process.env, PORT: PORT.toString() },
-      stdio: 'pipe'
+      stdio: 'pipe',
     });
 
     // Wait for server to start

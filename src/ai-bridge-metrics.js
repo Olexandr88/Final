@@ -12,7 +12,7 @@ export function attachMetricsEndpoint(app, bridge) {
       status: 'healthy',
       uptime: uptime,
       uptimeHuman: formatUptime(uptime),
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   });
 
@@ -24,7 +24,7 @@ export function attachMetricsEndpoint(app, bridge) {
       role: meta.role,
       labels: meta.labels,
       connectedAt: meta.connectedAt,
-      lastSeen: meta.lastSeen
+      lastSeen: meta.lastSeen,
     }));
 
     res.json({
@@ -33,22 +33,22 @@ export function attachMetricsEndpoint(app, bridge) {
       clients: {
         total: clients.length,
         byRole: groupByRole(clients),
-        list: clients
+        list: clients,
       },
       stats: {
         messagesProcessed: bridge.stats.messagesProcessed,
         totalConnections: bridge.stats.totalConnections,
         errors: bridge.stats.errors,
-        lastError: bridge.stats.lastError
+        lastError: bridge.stats.lastError,
       },
       history: {
         count: bridge.history.length,
-        limit: bridge.historyLimit
+        limit: bridge.historyLimit,
       },
       queues: {
-        totalQueued: Array.from(bridge.messageQueue.values()).reduce((sum, q) => sum + q.length, 0)
+        totalQueued: Array.from(bridge.messageQueue.values()).reduce((sum, q) => sum + q.length, 0),
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   });
 
@@ -62,13 +62,13 @@ export function attachMetricsEndpoint(app, bridge) {
       intents: meta.intents,
       maxConcurrentTasks: meta.maxConcurrentTasks,
       connectedAt: meta.connectedAt,
-      lastSeen: meta.lastSeen
+      lastSeen: meta.lastSeen,
     }));
 
     res.json({
       count: clients.length,
       clients: clients,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   });
 
@@ -84,7 +84,7 @@ export function attachMetricsEndpoint(app, bridge) {
       limit: limit,
       offset: offset,
       messages: slice,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   });
 }

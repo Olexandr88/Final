@@ -37,7 +37,7 @@ const LOG_COMMANDS = {
       } catch (err) {
         console.log('No log files found or error:', err.message);
       }
-    }
+    },
   },
 
   'tail-follow': {
@@ -59,7 +59,7 @@ const LOG_COMMANDS = {
       } catch (err) {
         console.log('File not found or error:', err.message);
       }
-    }
+    },
   },
 
   'top-ips': {
@@ -75,7 +75,7 @@ const LOG_COMMANDS = {
         const content = await readFile(file, 'utf-8');
         const ipMap = new Map();
 
-        content.split('\n').forEach(line => {
+        content.split('\n').forEach((line) => {
           const match = line.match(/^(\d+\.\d+\.\d+\.\d+)/);
           if (match) {
             const ip = match[1];
@@ -83,9 +83,7 @@ const LOG_COMMANDS = {
           }
         });
 
-        const sorted = [...ipMap.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, count);
+        const sorted = [...ipMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, count);
 
         sorted.forEach(([ip, cnt]) => {
           const bar = '█'.repeat(Math.min(cnt / 10, 50));
@@ -94,7 +92,7 @@ const LOG_COMMANDS = {
       } catch (err) {
         console.log('File not found:', err.message);
       }
-    }
+    },
   },
 
   'filter-errors': {
@@ -109,30 +107,26 @@ const LOG_COMMANDS = {
         const content = await readFile(file, 'utf-8');
         const lines = content.split('\n');
 
-        const errors = lines.filter(line =>
-          /error|fail|exception|critical|fatal/i.test(line)
-        );
+        const errors = lines.filter((line) => /error|fail|exception|critical|fatal/i.test(line));
 
-        const warnings = lines.filter(line =>
-          /warn|warning|caution/i.test(line)
-        );
+        const warnings = lines.filter((line) => /warn|warning|caution/i.test(line));
 
         console.log(`Errors: ${errors.length}`);
         console.log(`Warnings: ${warnings.length}\n`);
 
         if (errors.length > 0) {
           console.log('Recent Errors:');
-          errors.slice(-10).forEach(err => console.log(`  ❌ ${err.substring(0, 100)}`));
+          errors.slice(-10).forEach((err) => console.log(`  ❌ ${err.substring(0, 100)}`));
         }
 
         if (warnings.length > 0) {
           console.log('\nRecent Warnings:');
-          warnings.slice(-5).forEach(warn => console.log(`  ⚠️  ${warn.substring(0, 100)}`));
+          warnings.slice(-5).forEach((warn) => console.log(`  ⚠️  ${warn.substring(0, 100)}`));
         }
       } catch (err) {
         console.log('File not found:', err.message);
       }
-    }
+    },
   },
 
   'http-status': {
@@ -147,7 +141,7 @@ const LOG_COMMANDS = {
         const content = await readFile(file, 'utf-8');
         const statusMap = new Map();
 
-        content.split('\n').forEach(line => {
+        content.split('\n').forEach((line) => {
           const match = line.match(/HTTP\/[12]\.[01]"\s+(\d{3})/);
           if (match) {
             const status = match[1];
@@ -155,21 +149,24 @@ const LOG_COMMANDS = {
           }
         });
 
-        const sorted = [...statusMap.entries()]
-          .sort((a, b) => b[1] - a[1]);
+        const sorted = [...statusMap.entries()].sort((a, b) => b[1] - a[1]);
 
         console.log('Status Code Distribution:\n');
         sorted.forEach(([status, count]) => {
-          const emoji = status.startsWith('2') ? '✅' :
-                       status.startsWith('3') ? '➡️' :
-                       status.startsWith('4') ? '⚠️' : '❌';
+          const emoji = status.startsWith('2')
+            ? '✅'
+            : status.startsWith('3')
+              ? '➡️'
+              : status.startsWith('4')
+                ? '⚠️'
+                : '❌';
           const bar = '█'.repeat(Math.min(count / 10, 40));
           console.log(`${emoji} ${status} ${String(count).padStart(6)} ${bar}`);
         });
       } catch (err) {
         console.log('File not found:', err.message);
       }
-    }
+    },
   },
 
   'remove-blank': {
@@ -188,18 +185,18 @@ const LOG_COMMANDS = {
         // Block 258 - awk 'NF > 0'
         const content = await readFile(file, 'utf-8');
         const lines = content.split('\n');
-        const nonBlank = lines.filter(line => line.trim().length > 0);
+        const nonBlank = lines.filter((line) => line.trim().length > 0);
 
         console.log(`Original lines: ${lines.length}`);
         console.log(`Non-blank lines: ${nonBlank.length}`);
         console.log(`Removed: ${lines.length - nonBlank.length}`);
 
         console.log('\nPreview (first 10 non-blank lines):');
-        nonBlank.slice(0, 10).forEach(line => console.log(`  ${line.substring(0, 80)}`));
+        nonBlank.slice(0, 10).forEach((line) => console.log(`  ${line.substring(0, 80)}`));
       } catch (err) {
         console.log('Error:', err.message);
       }
-    }
+    },
   },
 
   'find-long-lines': {
@@ -237,7 +234,7 @@ const LOG_COMMANDS = {
       } catch (err) {
         console.log('Error:', err.message);
       }
-    }
+    },
   },
 
   'time-range': {
@@ -261,7 +258,7 @@ const LOG_COMMANDS = {
         const lines = content.split('\n');
 
         const timeRegex = /(\d{2}:\d{2})/;
-        const filtered = lines.filter(line => {
+        const filtered = lines.filter((line) => {
           const match = line.match(timeRegex);
           if (match) {
             const time = match[1];
@@ -271,7 +268,7 @@ const LOG_COMMANDS = {
         });
 
         console.log(`Found ${filtered.length} lines in time range\n`);
-        filtered.slice(0, 50).forEach(line => {
+        filtered.slice(0, 50).forEach((line) => {
           console.log(`  ${line.substring(0, 120)}`);
         });
 
@@ -281,7 +278,7 @@ const LOG_COMMANDS = {
       } catch (err) {
         console.log('Error:', err.message);
       }
-    }
+    },
   },
 
   'unique-lines': {
@@ -301,7 +298,7 @@ const LOG_COMMANDS = {
         const content = await readFile(file, 'utf-8');
         const lines = content.split('\n');
         const seen = new Set();
-        const unique = lines.filter(line => {
+        const unique = lines.filter((line) => {
           if (seen.has(line)) return false;
           seen.add(line);
           return true;
@@ -313,8 +310,8 @@ const LOG_COMMANDS = {
       } catch (err) {
         console.log('Error:', err.message);
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {
@@ -348,7 +345,7 @@ async function main() {
   await cmd.run(args);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

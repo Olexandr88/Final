@@ -21,7 +21,7 @@ export class OllamaModelDetector {
     try {
       await this.detectModels();
       logger.info('Ollama Model Detector initialized', {
-        modelsFound: this.cachedModels?.length || 0
+        modelsFound: this.cachedModels?.length || 0,
       });
     } catch (error) {
       logger.warn('Initial model detection failed', { error: error.message });
@@ -44,7 +44,7 @@ export class OllamaModelDetector {
       const response = await fetch(`${this.config.ollama.endpoint}/api/tags`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        timeout: 5000
+        timeout: 5000,
       });
 
       if (!response.ok) {
@@ -56,7 +56,7 @@ export class OllamaModelDetector {
 
       // Enhance models with capability detection
       const enhancedModels = await Promise.all(
-        models.map(model => this._enhanceModelInfo(model))
+        models.map((model) => this._enhanceModelInfo(model))
       );
 
       // Update cache
@@ -65,7 +65,7 @@ export class OllamaModelDetector {
 
       logger.info('Models detected', {
         count: enhancedModels.length,
-        models: enhancedModels.map(m => m.name)
+        models: enhancedModels.map((m) => m.name),
       });
 
       return enhancedModels;
@@ -93,7 +93,7 @@ export class OllamaModelDetector {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: modelName }),
-        timeout: 5000
+        timeout: 5000,
       });
 
       if (!response.ok) {
@@ -127,7 +127,7 @@ export class OllamaModelDetector {
           format: details.details?.format,
           parameter_size: details.details?.parameter_size,
           quantization_level: details.details?.quantization_level,
-          template: details.template
+          template: details.template,
         };
       }
     } catch (error) {
@@ -149,7 +149,7 @@ export class OllamaModelDetector {
       embedding: false,
       vision: false,
       code: false,
-      instruct: false
+      instruct: false,
     };
 
     const name = model.name.toLowerCase();
@@ -186,7 +186,7 @@ export class OllamaModelDetector {
    */
   _isCacheValid() {
     if (!this.lastDetection) return false;
-    return (Date.now() - this.lastDetection) < this.cacheTTL;
+    return Date.now() - this.lastDetection < this.cacheTTL;
   }
 
   /**

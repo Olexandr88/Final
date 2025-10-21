@@ -28,7 +28,7 @@ class AntiPatternDetector {
       { name: '5. Environmental Contamination', fn: () => this.checkWorkspaceIsolation() },
       { name: '6. Tool Ignorance', fn: () => this.checkToolUsage() },
       { name: '7. Premature Vibing', fn: () => this.checkPlanning() },
-      { name: 'Security Vulnerabilities', fn: () => this.checkSecurity() }
+      { name: 'Security Vulnerabilities', fn: () => this.checkSecurity() },
     ];
 
     for (const check of checks) {
@@ -37,7 +37,7 @@ class AntiPatternDetector {
 
       if (result.violations.length > 0) {
         console.log(`  ⚠️  ${result.violations.length} issue(s) found`);
-        this.violations.push(...result.violations.map(v => ({ ...v, category: check.name })));
+        this.violations.push(...result.violations.map((v) => ({ ...v, category: check.name })));
       } else {
         console.log(`  ✓ Clean`);
       }
@@ -56,7 +56,7 @@ class AntiPatternDetector {
       const { execSync } = require('child_process');
       const recentCommits = execSync('git log -5 --pretty=format:"%s"', {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       }).split('\n');
 
       const vaguePatterns = /^(fix|update|change|misc|wip|stuff|things)/i;
@@ -66,7 +66,8 @@ class AntiPatternDetector {
           violations.push({
             severity: 'medium',
             description: `Vague commit message: "${msg}"`,
-            suggestion: 'Use descriptive messages: "feat: add user authentication" instead of "fix stuff"'
+            suggestion:
+              'Use descriptive messages: "feat: add user authentication" instead of "fix stuff"',
           });
         }
       });
@@ -74,7 +75,7 @@ class AntiPatternDetector {
 
     // Check for TODO/FIXME without details
     const files = this.findSourceFiles();
-    files.forEach(file => {
+    files.forEach((file) => {
       try {
         const content = fs.readFileSync(file, 'utf8');
         const lines = content.split('\n');
@@ -86,7 +87,7 @@ class AntiPatternDetector {
               file,
               line: i + 1,
               description: 'Vague TODO/FIXME without description',
-              suggestion: 'Add details: // TODO: Implement input validation for email field'
+              suggestion: 'Add details: // TODO: Implement input validation for email field',
             });
           }
         });
@@ -103,7 +104,7 @@ class AntiPatternDetector {
     // Check for overly large functions (>50 lines)
     const files = this.findSourceFiles();
 
-    files.forEach(file => {
+    files.forEach((file) => {
       try {
         const content = fs.readFileSync(file, 'utf8');
         const lines = content.split('\n');
@@ -132,7 +133,8 @@ class AntiPatternDetector {
                   file,
                   line: functionStart + 1,
                   description: `Function is ${functionLength} lines long (>50 threshold)`,
-                  suggestion: 'Break into smaller, focused functions. Each function should have a single responsibility.'
+                  suggestion:
+                    'Break into smaller, focused functions. Each function should have a single responsibility.',
                 });
               }
 
@@ -156,14 +158,14 @@ class AntiPatternDetector {
       violations.push({
         severity: 'medium',
         description: 'No session management directory found',
-        suggestion: 'Use session manager to save/load context between tasks'
+        suggestion: 'Use session manager to save/load context between tasks',
       });
     }
 
     // Check for overly large source files (context overload indicator)
     const files = this.findSourceFiles();
 
-    files.forEach(file => {
+    files.forEach((file) => {
       try {
         const stats = fs.statSync(file);
         const lines = fs.readFileSync(file, 'utf8').split('\n').length;
@@ -173,7 +175,7 @@ class AntiPatternDetector {
             severity: 'medium',
             file,
             description: `File is ${lines} lines (>500 threshold)`,
-            suggestion: 'Split large files into smaller modules to reduce context load'
+            suggestion: 'Split large files into smaller modules to reduce context load',
           });
         }
       } catch {}
@@ -187,32 +189,36 @@ class AntiPatternDetector {
     const violations = [];
 
     // Check for missing tests
-    const sourceFiles = this.findSourceFiles().filter(f => !f.includes('test'));
-    const testFiles = this.findSourceFiles().filter(f => f.includes('test') || f.includes('spec'));
+    const sourceFiles = this.findSourceFiles().filter((f) => !f.includes('test'));
+    const testFiles = this.findSourceFiles().filter(
+      (f) => f.includes('test') || f.includes('spec')
+    );
 
     if (sourceFiles.length > 0 && testFiles.length === 0) {
       violations.push({
         severity: 'critical',
         description: 'No test files found',
-        suggestion: 'Implement TDD workflow. Write tests before implementation.'
+        suggestion: 'Implement TDD workflow. Write tests before implementation.',
       });
     }
 
     // Check for unhandled promises
     const files = this.findSourceFiles();
 
-    files.forEach(file => {
+    files.forEach((file) => {
       try {
         const content = fs.readFileSync(file, 'utf8');
 
-        const asyncWithoutCatch = content.match(/async\s+function[^{]+{[^}]*await[^}]*}(?![^{]*catch)/g);
+        const asyncWithoutCatch = content.match(
+          /async\s+function[^{]+{[^}]*await[^}]*}(?![^{]*catch)/g
+        );
 
         if (asyncWithoutCatch) {
           violations.push({
             severity: 'high',
             file,
             description: 'Async function without try/catch',
-            suggestion: 'Always wrap async operations in try/catch for error handling'
+            suggestion: 'Always wrap async operations in try/catch for error handling',
           });
         }
       } catch {}
@@ -232,7 +238,7 @@ class AntiPatternDetector {
       violations.push({
         severity: 'critical',
         description: 'Running in root or home directory',
-        suggestion: 'Create isolated workspace: mkdir claude-workspace && cd claude-workspace'
+        suggestion: 'Create isolated workspace: mkdir claude-workspace && cd claude-workspace',
       });
     }
 
@@ -241,7 +247,7 @@ class AntiPatternDetector {
       violations.push({
         severity: 'high',
         description: 'No git repository',
-        suggestion: 'Initialize git: git init && git commit -m "Initial commit"'
+        suggestion: 'Initialize git: git init && git commit -m "Initial commit"',
       });
     }
 
@@ -257,7 +263,7 @@ class AntiPatternDetector {
       violations.push({
         severity: 'high',
         description: 'No CLAUDE.md configuration',
-        suggestion: 'Create CLAUDE.md with project context, conventions, and anti-patterns'
+        suggestion: 'Create CLAUDE.md with project context, conventions, and anti-patterns',
       });
     }
 
@@ -267,7 +273,7 @@ class AntiPatternDetector {
       violations.push({
         severity: 'medium',
         description: 'No sub-agents configured',
-        suggestion: 'Create specialized sub-agents for code review, testing, and architecture'
+        suggestion: 'Create specialized sub-agents for code review, testing, and architecture',
       });
     }
 
@@ -277,7 +283,7 @@ class AntiPatternDetector {
       violations.push({
         severity: 'medium',
         description: 'No automation hooks configured',
-        suggestion: 'Set up hooks for auto-formatting, testing, and security checks'
+        suggestion: 'Set up hooks for auto-formatting, testing, and security checks',
       });
     }
 
@@ -293,7 +299,7 @@ class AntiPatternDetector {
       violations.push({
         severity: 'low',
         description: 'No PLAN.md found',
-        suggestion: 'Use Explore → Plan → Code → Commit workflow for complex features'
+        suggestion: 'Use Explore → Plan → Code → Commit workflow for complex features',
       });
     }
 
@@ -306,7 +312,7 @@ class AntiPatternDetector {
 
     const files = this.findSourceFiles();
 
-    files.forEach(file => {
+    files.forEach((file) => {
       try {
         const content = fs.readFileSync(file, 'utf8');
 
@@ -316,7 +322,7 @@ class AntiPatternDetector {
             severity: 'critical',
             file,
             description: 'Potential SQL injection (template string in query)',
-            suggestion: 'Use parameterized queries instead of string interpolation'
+            suggestion: 'Use parameterized queries instead of string interpolation',
           });
         }
 
@@ -326,7 +332,7 @@ class AntiPatternDetector {
             severity: 'critical',
             file,
             description: 'Potential hardcoded secret',
-            suggestion: 'Use environment variables (.env file) for sensitive data'
+            suggestion: 'Use environment variables (.env file) for sensitive data',
           });
         }
 
@@ -336,7 +342,7 @@ class AntiPatternDetector {
             severity: 'high',
             file,
             description: 'Use of eval() is dangerous',
-            suggestion: 'Find alternative approach - eval() can execute arbitrary code'
+            suggestion: 'Find alternative approach - eval() can execute arbitrary code',
           });
         }
       } catch {}
@@ -353,7 +359,7 @@ class AntiPatternDetector {
 
       try {
         const items = fs.readdirSync(dir);
-        items.forEach(item => {
+        items.forEach((item) => {
           const fullPath = path.join(dir, item);
           const stat = fs.statSync(fullPath);
 
@@ -375,10 +381,10 @@ class AntiPatternDetector {
     console.log('ANTI-PATTERN DETECTION REPORT');
     console.log('='.repeat(70) + '\n');
 
-    const critical = this.violations.filter(v => v.severity === 'critical');
-    const high = this.violations.filter(v => v.severity === 'high');
-    const medium = this.violations.filter(v => v.severity === 'medium');
-    const low = this.violations.filter(v => v.severity === 'low');
+    const critical = this.violations.filter((v) => v.severity === 'critical');
+    const high = this.violations.filter((v) => v.severity === 'high');
+    const medium = this.violations.filter((v) => v.severity === 'medium');
+    const low = this.violations.filter((v) => v.severity === 'low');
 
     console.log(`Total Violations: ${this.violations.length}`);
     console.log(`  Critical: ${critical.length}`);
@@ -393,7 +399,7 @@ class AntiPatternDetector {
     }
 
     const grouped = {};
-    this.violations.forEach(v => {
+    this.violations.forEach((v) => {
       if (!grouped[v.category]) grouped[v.category] = [];
       grouped[v.category].push(v);
     });
@@ -403,7 +409,14 @@ class AntiPatternDetector {
       console.log('─'.repeat(70));
 
       violations.forEach((v, i) => {
-        const icon = v.severity === 'critical' ? '🔴' : v.severity === 'high' ? '🟠' : v.severity === 'medium' ? '🟡' : '🔵';
+        const icon =
+          v.severity === 'critical'
+            ? '🔴'
+            : v.severity === 'high'
+              ? '🟠'
+              : v.severity === 'medium'
+                ? '🟡'
+                : '🔵';
 
         console.log(`\n${i + 1}. ${icon} ${v.description}`);
         if (v.file) console.log(`   File: ${v.file}${v.line ? `:${v.line}` : ''}`);
@@ -419,8 +432,8 @@ class AntiPatternDetector {
 // CLI
 if (require.main === module) {
   const detector = new AntiPatternDetector();
-  detector.detectAll().then(violations => {
-    process.exit(violations.filter(v => v.severity === 'critical').length > 0 ? 1 : 0);
+  detector.detectAll().then((violations) => {
+    process.exit(violations.filter((v) => v.severity === 'critical').length > 0 ? 1 : 0);
   });
 }
 

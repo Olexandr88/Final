@@ -34,17 +34,19 @@ class MonitorAgent {
     });
 
     // Register as read-only monitor
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'monitor',
-      labels: ['observer', 'documentation', 'non-intrusive', 'read-only'],
-      tools: [], // NO TOOLS - observation only
-      intents: ['monitor.observe', 'monitor.report'],
-      maxConcurrentTasks: 1
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'monitor',
+        labels: ['observer', 'documentation', 'non-intrusive', 'read-only'],
+        tools: [], // NO TOOLS - observation only
+        intents: ['monitor.observe', 'monitor.report'],
+        maxConcurrentTasks: 1,
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info('✅ Monitor Agent connected (read-only mode)');
 
     this.setupHandlers();
@@ -88,7 +90,7 @@ class MonitorAgent {
       from: envelope.from,
       to: envelope.to,
       intent: envelope.intent,
-      hasPayload: !!envelope.payload
+      hasPayload: !!envelope.payload,
     };
 
     this.observations.push(obs);
@@ -111,8 +113,8 @@ class MonitorAgent {
     const summary = {
       totalObserved: this.observations.length,
       recentActivity: recent.length,
-      activeAgents: [...new Set(recent.map(o => o.from))],
-      commonIntents: this.getMostCommonIntents(recent)
+      activeAgents: [...new Set(recent.map((o) => o.from))],
+      commonIntents: this.getMostCommonIntents(recent),
     };
 
     logger.info('📋 System Activity Summary:', summary);
@@ -120,7 +122,7 @@ class MonitorAgent {
 
   getMostCommonIntents(observations) {
     const intentCounts = {};
-    observations.forEach(obs => {
+    observations.forEach((obs) => {
       intentCounts[obs.intent] = (intentCounts[obs.intent] || 0) + 1;
     });
 
@@ -133,7 +135,7 @@ class MonitorAgent {
 
 // Start monitor
 const monitor = new MonitorAgent();
-monitor.connect().catch(err => {
+monitor.connect().catch((err) => {
   logger.error('Failed to connect Monitor Agent:', err.message);
   process.exit(1);
 });

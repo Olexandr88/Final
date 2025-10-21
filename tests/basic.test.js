@@ -129,7 +129,7 @@ describe('LLM Framework Basic Tests', () => {
       const { PerformanceMonitor } = await import('../src/performance-monitor.js');
       const monitor = new PerformanceMonitor({
         enableFileLogging: false,
-        samplingInterval: 30000
+        samplingInterval: 30000,
       });
 
       assert.ok(monitor);
@@ -187,10 +187,10 @@ describe('LLM Framework Basic Tests', () => {
         'scripts/complete-system-optimization.js',
         'scripts/concurrent-optimization.js',
         'scripts/optimization-suite.js',
-        'scripts/full-optimization.js'
+        'scripts/full-optimization.js',
       ];
 
-      scriptFiles.forEach(scriptPath => {
+      scriptFiles.forEach((scriptPath) => {
         assert.strictEqual(existsSync(scriptPath), true);
       });
     });
@@ -215,7 +215,7 @@ describe('LLM Framework Basic Tests', () => {
 describe('Utility Functions', () => {
   test('should handle async operations', async () => {
     const asyncFunction = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise((resolve) => setTimeout(resolve, 1));
       return 'success';
     };
 

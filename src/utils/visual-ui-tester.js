@@ -31,20 +31,17 @@ export class VisualUITester extends EventEmitter {
       viewport = this.defaultViewport,
       selector = null,
       waitFor = null,
-      fullPage = false
+      fullPage = false,
     } = options;
 
-    const screenshotPath = path.join(
-      this.screenshotDir,
-      `screenshot-${Date.now()}.png`
-    );
+    const screenshotPath = path.join(this.screenshotDir, `screenshot-${Date.now()}.png`);
 
     // Use Playwright or Puppeteer to capture
     const script = this.generateCaptureScript(url, screenshotPath, {
       viewport,
       selector,
       waitFor,
-      fullPage
+      fullPage,
     });
 
     await this.executeScript(script);
@@ -53,7 +50,7 @@ export class VisualUITester extends EventEmitter {
       path: screenshotPath,
       url,
       timestamp: new Date(),
-      viewport
+      viewport,
     };
   }
 
@@ -76,10 +73,11 @@ const { chromium } = require('playwright');
 
   ${options.waitFor ? `await page.waitForSelector('${options.waitFor}');` : ''}
 
-  ${options.selector
+  ${
+    options.selector
       ? `await page.locator('${options.selector}').screenshot({ path: '${screenshotPath}' });`
       : `await page.screenshot({ path: '${screenshotPath}', fullPage: ${options.fullPage} });`
-    }
+  }
 
   await browser.close();
 })();
@@ -97,22 +95,22 @@ const { chromium } = require('playwright');
 
       const child = spawn('node', [tmpScript], {
         cwd: process.cwd(),
-        env: process.env
+        env: process.env,
       });
 
       let output = '';
       let error = '';
 
-      child.stdout.on('data', data => {
+      child.stdout.on('data', (data) => {
         output += data.toString();
       });
 
-      child.stderr.on('data', data => {
+      child.stderr.on('data', (data) => {
         error += data.toString();
       });
 
-      child.on('close', code => {
-        fs.remove(tmpScript).catch(() => { }); // Cleanup
+      child.on('close', (code) => {
+        fs.remove(tmpScript).catch(() => {}); // Cleanup
 
         if (code === 0) {
           resolve({ output });
@@ -169,7 +167,7 @@ console.log(JSON.stringify({
         different: comparison.diffPercentage > this.compareThreshold,
         diffPercentage: comparison.diffPercentage,
         diffPixels: comparison.diffPixels,
-        diffImagePath: comparison.diffPath
+        diffImagePath: comparison.diffPath,
       };
     } catch (err) {
       console.error('Screenshot comparison failed:', err.message);
@@ -191,7 +189,7 @@ console.log(JSON.stringify({
       elements: await this.detectElements(screenshotPath),
       colors: await this.extractColors(screenshotPath),
       layout: await this.analyzeLayout(screenshotPath),
-      accessibility: await this.checkAccessibility(screenshotPath)
+      accessibility: await this.checkAccessibility(screenshotPath),
     };
 
     // If reference spec provided, compare
@@ -211,7 +209,7 @@ console.log(JSON.stringify({
       buttons: [],
       inputs: [],
       text: [],
-      images: []
+      images: [],
     };
   }
 
@@ -223,7 +221,7 @@ console.log(JSON.stringify({
     return {
       primary: '#3B82F6',
       secondary: '#8B5CF6',
-      background: '#FFFFFF'
+      background: '#FFFFFF',
     };
   }
 
@@ -234,7 +232,7 @@ console.log(JSON.stringify({
     return {
       type: 'grid',
       columns: 12,
-      gaps: { row: '16px', column: '16px' }
+      gaps: { row: '16px', column: '16px' },
     };
   }
 
@@ -245,7 +243,7 @@ console.log(JSON.stringify({
     // Would use axe-core or similar
     return {
       issues: [],
-      score: 95
+      score: 95,
     };
   }
 
@@ -263,7 +261,7 @@ console.log(JSON.stringify({
             type: 'color',
             element: key,
             expected: expectedColor,
-            actual: analysis.colors[key]
+            actual: analysis.colors[key],
           });
         }
       }
@@ -276,14 +274,14 @@ console.log(JSON.stringify({
           type: 'layout',
           property: 'gaps',
           expected: spec.layout.gaps,
-          actual: analysis.layout.gaps
+          actual: analysis.layout.gaps,
         });
       }
     }
 
     return {
       matches: differences.length === 0,
-      differences
+      differences,
     };
   }
 
@@ -303,7 +301,7 @@ console.log(JSON.stringify({
       iterations.push({
         iteration: i + 1,
         screenshot: screenshot.path,
-        analysis
+        analysis,
       });
 
       // If matches spec, we're done
@@ -312,7 +310,7 @@ console.log(JSON.stringify({
         return {
           success: true,
           iterations,
-          finalScreenshot: screenshot.path
+          finalScreenshot: screenshot.path,
         };
       }
 
@@ -322,7 +320,7 @@ console.log(JSON.stringify({
       this.emit('ui-iteration', {
         iteration: i + 1,
         differences: analysis.comparison.differences,
-        suggestions
+        suggestions,
       });
 
       // In real implementation, Claude would apply these improvements
@@ -335,7 +333,7 @@ console.log(JSON.stringify({
     return {
       success: false,
       iterations,
-      message: 'Max iterations reached without matching spec'
+      message: 'Max iterations reached without matching spec',
     };
   }
 
@@ -343,14 +341,14 @@ console.log(JSON.stringify({
    * Generate improvement suggestions from differences
    */
   generateImprovements(differences) {
-    return differences.map(diff => {
+    return differences.map((diff) => {
       switch (diff.type) {
         case 'color':
           return {
             action: 'update-css',
             selector: `.${diff.element}`,
             property: 'color',
-            value: diff.expected
+            value: diff.expected,
           };
 
         case 'layout':
@@ -358,13 +356,13 @@ console.log(JSON.stringify({
             action: 'update-css',
             selector: '.container',
             property: diff.property,
-            value: diff.expected
+            value: diff.expected,
           };
 
         default:
           return {
             action: 'manual-review',
-            description: `Review ${diff.type} difference`
+            description: `Review ${diff.type} difference`,
           };
       }
     });
@@ -374,7 +372,7 @@ console.log(JSON.stringify({
    * Wait for UI changes to apply
    */
   async waitForChanges(ms = 2000) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -383,10 +381,10 @@ console.log(JSON.stringify({
   async getScreenshotHistory() {
     const files = await fs.readdir(this.screenshotDir);
     const screenshots = files
-      .filter(f => f.startsWith('screenshot-') && f.endsWith('.png'))
-      .map(f => ({
+      .filter((f) => f.startsWith('screenshot-') && f.endsWith('.png'))
+      .map((f) => ({
         path: path.join(this.screenshotDir, f),
-        timestamp: this.extractTimestamp(f)
+        timestamp: this.extractTimestamp(f),
       }))
       .sort((a, b) => b.timestamp - a.timestamp);
 

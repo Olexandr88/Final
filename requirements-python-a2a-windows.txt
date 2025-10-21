@@ -1,0 +1,39 @@
+# Python A2A MCP Client Dependencies (Windows Compatible)
+
+# Core async/websocket
+websockets>=12.0
+asyncio-mqtt>=0.16.1  # For MQTT integration (optional)
+
+# NOTE: uvloop is NOT supported on Windows - use default asyncio
+
+# Alternative async runtimes (Windows compatible)
+trio>=0.24.0  # Async I/O with structured concurrency
+twisted>=23.10.0  # Event-driven networking
+eventlet>=0.35.0  # Async with WSGI support
+gevent>=23.9.1  # Greenlet-based concurrency
+
+# Concurrent/parallel execution (stdlib - no install needed)
+# concurrent.futures
+# multiprocessing
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-timeout>=2.2.0
+
+# Type checking
+mypy>=1.7.0
+types-websockets
+
+# Code quality
+black>=23.11.0
+flake8>=6.1.0
+isort>=5.12.0
+
+# Development
+ipython>=8.17.0
+python-dotenv>=1.0.0
+
+# Optional: Performance monitoring
+aiomonitor>=0.6.0  # Real-time monitoring of asyncio apps

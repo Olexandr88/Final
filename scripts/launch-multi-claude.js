@@ -25,21 +25,24 @@ const config = {
       id: 'architect',
       name: 'Architect Claude',
       color: 'cyan',
-      prompt: 'You are the Architect Claude. Your role is to analyze system design, create architecture plans, and coordinate with other Claude instances. Report your findings through the coordination system.'
+      prompt:
+        'You are the Architect Claude. Your role is to analyze system design, create architecture plans, and coordinate with other Claude instances. Report your findings through the coordination system.',
     },
     {
       id: 'developer',
       name: 'Developer Claude',
       color: 'green',
-      prompt: 'You are the Developer Claude. Your role is to implement features, write code, and create tests based on architecture plans. Coordinate with the Architect Claude.'
+      prompt:
+        'You are the Developer Claude. Your role is to implement features, write code, and create tests based on architecture plans. Coordinate with the Architect Claude.',
     },
     {
       id: 'tester',
       name: 'Tester Claude',
       color: 'yellow',
-      prompt: 'You are the Tester Claude. Your role is to test code, find bugs, run integration tests, and report quality metrics. Coordinate with the Developer Claude.'
-    }
-  ]
+      prompt:
+        'You are the Tester Claude. Your role is to test code, find bugs, run integration tests, and report quality metrics. Coordinate with the Developer Claude.',
+    },
+  ],
 };
 
 // Create coordination workspace
@@ -63,7 +66,7 @@ ${role.prompt}
 ## Coordination Protocol
 
 You are part of a multi-Claude system. Other Claude instances are running in parallel:
-${config.roles.map(r => `- ${r.name} (${r.id})`).join('\n')}
+${config.roles.map((r) => `- ${r.name} (${r.id})`).join('\n')}
 
 ## Communication
 
@@ -142,10 +145,10 @@ function setupWorkspace() {
     '.multi-claude/tasks',
     '.multi-claude/shared',
     '.multi-claude/logs',
-    '.multi-claude/status'
+    '.multi-claude/status',
   ];
 
-  dirs.forEach(dir => {
+  dirs.forEach((dir) => {
     const fullPath = path.join(projectRoot, dir);
     if (!existsSync(fullPath)) {
       mkdirSync(fullPath, { recursive: true });
@@ -220,10 +223,12 @@ function createMasterLauncher() {
   console.log('🎯 Creating master launcher...\n');
 
   // Windows Terminal launcher (multiple tabs)
-  const wtCommand = config.roles.map((role, index) => {
-    const scriptPath = path.join(workspaceDir, `launch-${role.id}.ps1`).replace(/\\/g, '/');
-    return `new-tab --title "${role.name}" PowerShell -NoExit -File "${scriptPath}"`;
-  }).join(' ; ');
+  const wtCommand = config.roles
+    .map((role, index) => {
+      const scriptPath = path.join(workspaceDir, `launch-${role.id}.ps1`).replace(/\\/g, '/');
+      return `new-tab --title "${role.name}" PowerShell -NoExit -File "${scriptPath}"`;
+    })
+    .join(' ; ');
 
   const wtLauncher = `@echo off
 echo ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -235,7 +240,7 @@ echo 📍 Project: ${projectRoot}
 echo 📁 Workspace: .multi-claude/
 echo.
 echo Starting instances:
-${config.roles.map(r => `echo   - ${r.name} (${r.id})`).join('\n')}
+${config.roles.map((r) => `echo   - ${r.name} (${r.id})`).join('\n')}
 echo.
 echo ⏳ Launching Windows Terminal...
 timeout /t 2 /nobreak > nul
@@ -258,10 +263,12 @@ pause
   const separateWindowsLauncher = `@echo off
 echo Launching ${config.numClaudes} Claude instances in separate windows...
 echo.
-${config.roles.map(role => {
-  const scriptPath = path.join(workspaceDir, `launch-${role.id}.ps1`).replace(/\\/g, '/');
-  return `start "${role.name}" PowerShell -NoExit -File "${scriptPath}"`;
-}).join('\n')}
+${config.roles
+  .map((role) => {
+    const scriptPath = path.join(workspaceDir, `launch-${role.id}.ps1`).replace(/\\/g, '/');
+    return `start "${role.name}" PowerShell -NoExit -File "${scriptPath}"`;
+  })
+  .join('\n')}
 echo.
 echo ✅ All instances launched!
 pause
@@ -410,7 +417,10 @@ if (import.meta.url === \`file://\${process.argv[1]}\`) {
 }
 `;
 
-  writeFileSync(path.join(projectRoot, 'scripts', 'multi-claude-coordinator.js'), coordinatorScript);
+  writeFileSync(
+    path.join(projectRoot, 'scripts', 'multi-claude-coordinator.js'),
+    coordinatorScript
+  );
   console.log('✓ Created: scripts/multi-claude-coordinator.js\n');
 }
 
@@ -439,7 +449,9 @@ async function main() {
   console.log('2. Monitor the instances:');
   console.log('   > node scripts/multi-claude-coordinator.js monitor\n');
   console.log('3. Assign tasks:');
-  console.log('   > node scripts/multi-claude-coordinator.js assign architect "Design the system"\n');
+  console.log(
+    '   > node scripts/multi-claude-coordinator.js assign architect "Design the system"\n'
+  );
   console.log('');
   console.log('📁 Workspace: .multi-claude/');
   console.log('📊 Status files: .multi-claude/status-*.json');

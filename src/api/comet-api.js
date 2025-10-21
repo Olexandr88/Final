@@ -40,15 +40,15 @@ router.get('/status', async (req, res) => {
         isCometRunning: agent.isCometRunning,
         capabilities: agent.capabilities,
         bridgeWS: agent.config.bridgeWS,
-        debugPort: agent.config.debugPort
+        debugPort: agent.config.debugPort,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Status check failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -65,7 +65,7 @@ router.post('/navigate', async (req, res) => {
     if (!url) {
       return res.status(400).json({
         success: false,
-        error: 'URL is required'
+        error: 'URL is required',
       });
     }
 
@@ -76,15 +76,15 @@ router.post('/navigate', async (req, res) => {
       success: true,
       data: {
         url,
-        frameId: result.frameId
+        frameId: result.frameId,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Navigation failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -101,7 +101,7 @@ router.post('/execute', async (req, res) => {
     if (!script) {
       return res.status(400).json({
         success: false,
-        error: 'Script is required'
+        error: 'Script is required',
       });
     }
 
@@ -111,13 +111,13 @@ router.post('/execute', async (req, res) => {
     res.json({
       success: true,
       data: { result },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Script execution failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -134,7 +134,7 @@ router.post('/extract', async (req, res) => {
     if (!selector) {
       return res.status(400).json({
         success: false,
-        error: 'Selector is required'
+        error: 'Selector is required',
       });
     }
 
@@ -146,15 +146,15 @@ router.post('/extract', async (req, res) => {
       data: {
         selector,
         results: data,
-        count: data.length
+        count: data.length,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Data extraction failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -173,15 +173,15 @@ router.post('/screenshot', async (req, res) => {
       data: {
         screenshot,
         format: 'png',
-        encoding: 'base64'
+        encoding: 'base64',
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Screenshot failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -198,7 +198,7 @@ router.post('/search', async (req, res) => {
     if (!query) {
       return res.status(400).json({
         success: false,
-        error: 'Query is required'
+        error: 'Query is required',
       });
     }
 
@@ -210,15 +210,15 @@ router.post('/search', async (req, res) => {
       data: {
         query,
         results,
-        count: results.length
+        count: results.length,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Search failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -240,15 +240,15 @@ router.post('/restart', async (req, res) => {
       success: true,
       data: {
         message: 'Comet agent restarted successfully',
-        agentId: agent.config.agentId
+        agentId: agent.config.agentId,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   } catch (error) {
     logger.error('Restart failed', { error: error.message });
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });

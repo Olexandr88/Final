@@ -7,6 +7,7 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 ## Key Features
 
 ### 1. Comprehensive Integration Testing
+
 - **A2A Protocol Communication**: Full test coverage for agent registration, message routing, and inter-agent communication
 - **Multi-Agent Collaboration**: Validates coordination between multiple AI agents working on collaborative tasks
 - **AI Workflow Orchestration**: Tests complex workflows involving Claude, Ollama, and Jules in sequence
@@ -14,6 +15,7 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 - **Performance & Load Testing**: Validates system behavior under concurrent requests and high load
 
 ### 2. Self-Healing Automation
+
 - **Automated Diagnosis**: Intelligent scanning of all system components and dependencies
 - **Recovery Strategies**: Automatic remediation for common failure scenarios
 - **Service Restart**: Automated restart of A2A server, AI Bridge, and Ollama services
@@ -21,6 +23,7 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 - **Graceful Degradation**: Skip non-critical components that can't be recovered
 
 ### 3. CI/CD Integration
+
 - **Multi-Node Testing**: Tests across Node.js 18.x and 20.x
 - **Automated Retry**: Failed tests trigger self-healing and automatic retry
 - **Daily Validation**: Scheduled runs for continuous system health monitoring
@@ -49,6 +52,7 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 ## Components
 
 ### 1. Test Suite
+
 **Location**: `tests/integration/a2a-self-test-framework.test.js`
 
 - **A2A Protocol Tests**: Handshake, message routing, agent collaboration
@@ -59,9 +63,11 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 - **Performance Tests**: Concurrent requests, load testing, response time validation
 
 ### 2. Enhanced A2A Server
+
 **Location**: `src/enhanced-a2a-server.js`
 
 **Endpoints**:
+
 - `GET /health` - Server health check
 - `POST /register` - Agent registration
 - `POST /message` - Inter-agent message routing
@@ -73,6 +79,7 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 - `POST /e2e-workflow` - End-to-end workflow execution
 
 **Features**:
+
 - Agent registry with capability tracking
 - Workflow state management
 - Retry policies with exponential backoff
@@ -80,28 +87,34 @@ The **Agent-to-Agent (A2A) Self-Test Framework** is a comprehensive integration 
 - MCP (Model Context Protocol) support
 
 ### 3. Collaboration Demo
+
 **Location**: `examples/a2a-collaboration-demo.js`
 
 **Demo Scenarios**:
+
 1. **Basic Communication**: Simple agent-to-agent messaging
 2. **Multi-Agent Collaboration**: Coordinated task execution
 3. **Workflow Orchestration**: Multi-LLM pipeline processing
 4. **End-to-End Flow**: Complete system integration demonstration
 
 **Usage**:
+
 ```bash
 node examples/a2a-collaboration-demo.js
 ```
 
 ### 4. Self-Healing Recovery
+
 **Location**: `scripts/self-healing-recovery.js`
 
 **Recovery Phases**:
+
 1. **Diagnosis**: Scan all system components
 2. **Recovery**: Execute remediation strategies
 3. **Reporting**: Generate detailed recovery logs
 
 **Supported Recovery Actions**:
+
 - Reinstall npm dependencies
 - Restart A2A server
 - Restart AI Bridge
@@ -110,9 +123,11 @@ node examples/a2a-collaboration-demo.js
 - Pull latest code updates
 
 ### 5. CI/CD Workflow
+
 **Location**: `.github/workflows/a2a-self-test-ci.yml`
 
 **Jobs**:
+
 - **a2a-integration-test**: Main test suite with self-healing retry
 - **performance-validation**: Load and performance testing
 - **e2e-workflow-validation**: End-to-end workflow validation
@@ -123,6 +138,7 @@ node examples/a2a-collaboration-demo.js
 ## Installation & Setup
 
 ### Prerequisites
+
 ```bash
 # Node.js >= 18.0.0
 node --version
@@ -135,6 +151,7 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ```
 
 ### Installation
+
 ```bash
 # Install dependencies
 npm ci
@@ -144,7 +161,9 @@ npm install --save-dev @jest/globals ws node-fetch
 ```
 
 ### Configuration
+
 Create or update `.env`:
+
 ```env
 # A2A Server
 A2A_PORT=3001
@@ -212,6 +231,7 @@ cat self-healing-report.json
 ## Testing Scenarios
 
 ### 1. Agent Communication
+
 ```javascript
 // Register agents
 await demo.registerAgent('agent-1', ['research', 'analysis']);
@@ -220,11 +240,14 @@ await demo.registerAgent('agent-2', ['coding', 'debugging']);
 // Send message
 await demo.sendMessage('agent-1', 'agent-2', {
   request: 'code-review',
-  data: { /* ... */ }
+  data: {
+    /* ... */
+  },
 });
 ```
 
 ### 2. Multi-Agent Collaboration
+
 ```javascript
 // Initiate collaboration
 await demo.initiateCollaboration(
@@ -235,16 +258,22 @@ await demo.initiateCollaboration(
 ```
 
 ### 3. Workflow Orchestration
+
 ```javascript
 // Execute multi-LLM workflow
-await demo.executeWorkflow('workflow-1', [
-  { provider: 'ollama', action: 'analyze' },
-  { provider: 'claude', action: 'refine' },
-  { provider: 'ollama', action: 'validate' }
-], 'Input data');
+await demo.executeWorkflow(
+  'workflow-1',
+  [
+    { provider: 'ollama', action: 'analyze' },
+    { provider: 'claude', action: 'refine' },
+    { provider: 'ollama', action: 'validate' },
+  ],
+  'Input data'
+);
 ```
 
 ### 4. Health Monitoring
+
 ```javascript
 // Check system health
 const health = await demo.checkHealth();
@@ -255,14 +284,18 @@ console.log(`Active workflows: ${health.active_workflows}`);
 ## CI/CD Integration
 
 ### Automated Testing
+
 The framework automatically runs on:
-- Every push to main, feature/*, or develop branches
+
+- Every push to main, feature/\*, or develop branches
 - All pull requests to main
 - Daily at 2 AM UTC (scheduled)
 - Manual workflow dispatch
 
 ### Self-Healing in CI
+
 When tests fail:
+
 1. CI triggers `scripts/self-healing-recovery.js`
 2. System diagnoses issues
 3. Recovery strategies are executed
@@ -270,7 +303,9 @@ When tests fail:
 5. Results are reported
 
 ### Deployment Validation
+
 Before deployment to production:
+
 1. All test suites must pass
 2. Performance metrics validated
 3. Self-healing capabilities verified
@@ -279,6 +314,7 @@ Before deployment to production:
 ## Monitoring & Observability
 
 ### Health Endpoints
+
 ```bash
 # A2A Server health
 curl http://localhost:3001/health
@@ -290,25 +326,27 @@ curl -X POST http://localhost:3001/health-check \
 ```
 
 ### Logs & Reports
+
 - Test results: `coverage/` directory
 - Recovery logs: `self-healing-report.json`
 - CI artifacts: Available in GitHub Actions
 
 ## Performance Benchmarks
 
-| Metric | Target | Current |
-|--------|--------|----------|
-| Agent registration | < 100ms | ✓ |
-| Message routing | < 50ms | ✓ |
-| Workflow initiation | < 200ms | ✓ |
-| Concurrent agents | 50+ | ✓ |
-| Load test (50 requests) | < 10s | ✓ |
+| Metric                  | Target  | Current |
+| ----------------------- | ------- | ------- |
+| Agent registration      | < 100ms | ✓       |
+| Message routing         | < 50ms  | ✓       |
+| Workflow initiation     | < 200ms | ✓       |
+| Concurrent agents       | 50+     | ✓       |
+| Load test (50 requests) | < 10s   | ✓       |
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Tests failing with "Connection refused"**
+
 ```bash
 # Check if services are running
 ps aux | grep "node.*a2a\|node.*bridge"
@@ -318,6 +356,7 @@ node scripts/self-healing-recovery.js
 ```
 
 **Ollama tests failing**
+
 ```bash
 # Check Ollama status
 curl http://localhost:11434/api/tags
@@ -330,6 +369,7 @@ export SKIP_OLLAMA_TESTS=true
 ```
 
 **Self-healing not working**
+
 ```bash
 # Run in manual mode
 RECOVERY_MODE=manual node scripts/self-healing-recovery.js
@@ -341,6 +381,7 @@ cat self-healing-report.json | jq '.diagnostics'
 ## Contributing
 
 Contributions are welcome! Please:
+
 1. Add tests for new features
 2. Ensure self-healing strategies are robust
 3. Update documentation

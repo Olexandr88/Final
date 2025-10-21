@@ -51,7 +51,6 @@ class UIFeedbackLoop {
         console.log('\n⚠ Max iterations reached');
         break;
       }
-
     } while (issues.length > 0);
 
     return this.generateReport();
@@ -65,7 +64,11 @@ class UIFeedbackLoop {
     await page.goto(`file://${path.resolve(this.htmlFile)}`);
 
     // Take screenshot
-    const screenshotPath = path.join(__dirname, '../screenshots', `iteration-${this.iterations.length + 1}.png`);
+    const screenshotPath = path.join(
+      __dirname,
+      '../screenshots',
+      `iteration-${this.iterations.length + 1}.png`
+    );
     fs.mkdirSync(path.dirname(screenshotPath), { recursive: true });
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
@@ -82,7 +85,7 @@ class UIFeedbackLoop {
             element: 'button',
             index: i,
             description: `Button ${i} missing cursor:pointer`,
-            suggestion: 'Add cursor: pointer to button styles'
+            suggestion: 'Add cursor: pointer to button styles',
           });
         }
       });
@@ -91,13 +94,13 @@ class UIFeedbackLoop {
       const body = window.getComputedStyle(document.body);
       const elements = document.querySelectorAll('p, span, div, h1, h2, h3');
 
-      elements.forEach(el => {
+      elements.forEach((el) => {
         const style = window.getComputedStyle(el);
         if (style.color === style.backgroundColor) {
           issues.push({
             element: el.tagName.toLowerCase(),
             description: 'Text color same as background - invisible text',
-            suggestion: 'Fix color contrast'
+            suggestion: 'Fix color contrast',
           });
         }
       });
@@ -110,7 +113,7 @@ class UIFeedbackLoop {
             element: 'img',
             index: i,
             description: `Image ${i} missing alt text`,
-            suggestion: 'Add descriptive alt attribute for accessibility'
+            suggestion: 'Add descriptive alt attribute for accessibility',
           });
         }
       });
@@ -121,7 +124,7 @@ class UIFeedbackLoop {
         issues.push({
           element: 'fonts',
           description: 'Fonts not fully loaded',
-          suggestion: 'Ensure font-display: swap or preload fonts'
+          suggestion: 'Ensure font-display: swap or preload fonts',
         });
       }
 
@@ -130,7 +133,7 @@ class UIFeedbackLoop {
         width: document.body.scrollWidth,
         height: document.body.scrollHeight,
         backgroundColor: body.backgroundColor,
-        textColor: body.color
+        textColor: body.color,
       };
 
       return { issues, metrics };
@@ -142,7 +145,7 @@ class UIFeedbackLoop {
       screenshot: screenshotPath,
       issues: analysis.issues,
       metrics: analysis.metrics,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -151,7 +154,7 @@ class UIFeedbackLoop {
       totalIterations: this.iterations.length,
       finalState: this.iterations[this.iterations.length - 1],
       improvements: this.calculateImprovements(),
-      screenshots: this.iterations.map(i => i.screenshot)
+      screenshots: this.iterations.map((i) => i.screenshot),
     };
 
     const reportPath = path.join(__dirname, '../screenshots', 'feedback-loop-report.json');
@@ -177,7 +180,7 @@ class UIFeedbackLoop {
     return {
       resolved: first - last,
       remaining: last,
-      iterations: this.iterations.length
+      iterations: this.iterations.length,
     };
   }
 
@@ -193,10 +196,14 @@ class UIFeedbackLoop {
 Screenshot: ${latest.screenshot}
 
 ### Issues Detected:
-${latest.issues.map((issue, i) => `
+${latest.issues
+  .map(
+    (issue, i) => `
 ${i + 1}. **${issue.description}**
    ${issue.suggestion ? `Fix: ${issue.suggestion}` : ''}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ### Current Metrics:
 - Dimensions: ${latest.metrics.width}x${latest.metrics.height}px
@@ -220,13 +227,16 @@ if (require.main === module) {
   const referenceImage = process.argv[3];
   const loop = new UIFeedbackLoop(htmlFile, referenceImage);
 
-  loop.iterate().then(report => {
-    console.log('\n✓ Feedback loop complete');
-    process.exit(report.finalState.issues.length === 0 ? 0 : 1);
-  }).catch(err => {
-    console.error('Error:', err);
-    process.exit(1);
-  });
+  loop
+    .iterate()
+    .then((report) => {
+      console.log('\n✓ Feedback loop complete');
+      process.exit(report.finalState.issues.length === 0 ? 0 : 1);
+    })
+    .catch((err) => {
+      console.error('Error:', err);
+      process.exit(1);
+    });
 }
 
 module.exports = UIFeedbackLoop;

@@ -10,9 +10,9 @@ class UltraOptimizedPopup {
       totalAnalyses: 0,
       avgAnalysisTime: 0,
       cacheHitRate: 0,
-      lastAnalysis: null
+      lastAnalysis: null,
     };
-    
+
     this.initialize();
   }
 
@@ -24,7 +24,7 @@ class UltraOptimizedPopup {
       this.createAdvancedUI();
       await this.loadPerformanceMetrics();
       this.startRealTimeUpdates();
-      
+
       console.log('🚀 Ultra-Optimized Popup initialized successfully');
     } catch (error) {
       console.error('❌ Popup initialization failed:', error);
@@ -44,18 +44,20 @@ class UltraOptimizedPopup {
   async loadStoredAnalysis() {
     try {
       const result = await chrome.storage.local.get([
-        'lastAnalysis', 'analysisHistory', 'performanceMetrics'
+        'lastAnalysis',
+        'analysisHistory',
+        'performanceMetrics',
       ]);
-      
+
       if (result.lastAnalysis) {
         this.currentAnalysis = result.lastAnalysis;
         this.displayAnalysis(this.currentAnalysis);
       }
-      
+
       if (result.analysisHistory) {
         this.analysisHistory = result.analysisHistory.slice(-10);
       }
-      
+
       if (result.performanceMetrics) {
         this.performanceMetrics = { ...this.performanceMetrics, ...result.performanceMetrics };
       }
@@ -69,20 +71,20 @@ class UltraOptimizedPopup {
     this.addEventListenerSafely('analyze-selection-btn', 'click', () => this.analyzeSelection());
     this.addEventListenerSafely('analyze-page-btn', 'click', () => this.analyzePage());
     this.addEventListenerSafely('analyze-custom-btn', 'click', () => this.analyzeCustomText());
-    
+
     // Real-time toggle
     this.addEventListenerSafely('realtime-toggle', 'change', (e) => {
       this.toggleRealTimeMode(e.target.checked);
     });
-    
+
     // Analysis options
     this.addEventListenerSafely('include-summary', 'change', () => this.updateAnalysisOptions());
     this.addEventListenerSafely('keyword-limit', 'input', () => this.updateAnalysisOptions());
-    
+
     // Export and clear buttons
     this.addEventListenerSafely('export-btn', 'click', () => this.exportAnalysis());
     this.addEventListenerSafely('clear-history-btn', 'click', () => this.clearHistory());
-    
+
     // Tab navigation
     this.addEventListenerSafely('performance-tab', 'click', () => this.showPerformanceTab());
     this.addEventListenerSafely('analysis-tab', 'click', () => this.showAnalysisTab());
@@ -104,7 +106,7 @@ class UltraOptimizedPopup {
       console.error('App container not found');
       return;
     }
-    
+
     try {
       container.innerHTML = this.getUITemplate();
       this.addAdvancedStyles();
@@ -612,7 +614,7 @@ class UltraOptimizedPopup {
         margin-bottom: 16px;
       }
     `;
-    
+
     document.head.appendChild(style);
   }
 
@@ -622,28 +624,28 @@ class UltraOptimizedPopup {
       const modal = document.getElementById('custom-text-modal');
       if (modal) modal.classList.remove('hidden');
     });
-    
+
     this.addEventListenerSafely('modal-close', 'click', () => {
       const modal = document.getElementById('custom-text-modal');
       if (modal) modal.classList.add('hidden');
     });
-    
+
     this.addEventListenerSafely('modal-cancel', 'click', () => {
       const modal = document.getElementById('custom-text-modal');
       if (modal) modal.classList.add('hidden');
     });
-    
+
     this.addEventListenerSafely('modal-analyze', 'click', () => {
       const textInput = document.getElementById('custom-text-input');
       const modal = document.getElementById('custom-text-modal');
-      
+
       if (textInput && textInput.value.trim()) {
         this.analyzeCustomText(textInput.value);
         if (modal) modal.classList.add('hidden');
         textInput.value = '';
       }
     });
-    
+
     // Keyword limit slider
     this.addEventListenerSafely('keyword-limit', 'input', (e) => {
       const valueElement = document.getElementById('keyword-limit-value');
@@ -662,7 +664,7 @@ class UltraOptimizedPopup {
     try {
       const response = await chrome.tabs.sendMessage(this.currentTab.id, {
         action: 'analyzeSelectedText',
-        data: this.getAnalysisOptions()
+        data: this.getAnalysisOptions(),
       });
 
       if (response?.success) {
@@ -689,7 +691,7 @@ class UltraOptimizedPopup {
     try {
       const response = await chrome.tabs.sendMessage(this.currentTab.id, {
         action: 'analyzePageText',
-        data: this.getAnalysisOptions()
+        data: this.getAnalysisOptions(),
       });
 
       if (response?.success) {
@@ -723,8 +725,8 @@ class UltraOptimizedPopup {
         action: 'analyzeCustomText',
         data: {
           text: text,
-          options: this.getAnalysisOptions()
-        }
+          options: this.getAnalysisOptions(),
+        },
       });
 
       if (response?.success) {
@@ -743,10 +745,10 @@ class UltraOptimizedPopup {
   getAnalysisOptions() {
     const includeSummary = document.getElementById('include-summary');
     const keywordLimit = document.getElementById('keyword-limit');
-    
+
     return {
       includeSummary: includeSummary?.checked || false,
-      keywordLimit: parseInt(keywordLimit?.value) || 10
+      keywordLimit: parseInt(keywordLimit?.value) || 10,
     };
   }
 
@@ -784,7 +786,9 @@ class UltraOptimizedPopup {
           </div>
         </div>
         
-        ${readability && !readability.error ? `
+        ${
+          readability && !readability.error
+            ? `
           <div class="metric-card">
             <div class="metric-title">Readability Analysis</div>
             <div class="readability-info">
@@ -800,9 +804,13 @@ class UltraOptimizedPopup {
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
-        ${ai ? `
+        ${
+          ai
+            ? `
           <div class="metric-card">
             <div class="metric-title">AI Analysis</div>
             <div class="ai-metrics">
@@ -816,20 +824,33 @@ class UltraOptimizedPopup {
               </div>
             </div>
             
-            ${ai.keywords && ai.keywords.length > 0 ? `
+            ${
+              ai.keywords && ai.keywords.length > 0
+                ? `
               <div class="keywords-section">
                 <div class="section-title">Top Keywords</div>
                 <div class="keywords-list">
-                  ${ai.keywords.slice(0, 8).map(k => `
+                  ${ai.keywords
+                    .slice(0, 8)
+                    .map(
+                      (k) => `
                     <span class="keyword-tag">${k.word}</span>
-                  `).join('')}
+                  `
+                    )
+                    .join('')}
                 </div>
               </div>
-            ` : ''}
+            `
+                : ''
+            }
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
-        ${content ? `
+        ${
+          content
+            ? `
           <div class="metric-card">
             <div class="metric-title">Content Analysis</div>
             <div class="content-metrics">
@@ -844,9 +865,13 @@ class UltraOptimizedPopup {
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
-        ${ai?.summary ? `
+        ${
+          ai?.summary
+            ? `
           <div class="metric-card">
             <div class="metric-title">AI Summary</div>
             <div class="summary-content">
@@ -856,7 +881,9 @@ class UltraOptimizedPopup {
               </div>
             </div>
           </div>
-        ` : ''}
+        `
+            : ''
+        }
         
         <div class="metric-card">
           <div class="metric-title">Performance</div>
@@ -876,7 +903,7 @@ class UltraOptimizedPopup {
       this.analysisHistory.unshift({
         ...analysis,
         timestamp: Date.now(),
-        source: analysis.metadata?.source || 'unknown'
+        source: analysis.metadata?.source || 'unknown',
       });
 
       // Keep only last 10 analyses
@@ -890,7 +917,7 @@ class UltraOptimizedPopup {
       await chrome.storage.local.set({
         lastAnalysis: analysis,
         analysisHistory: this.analysisHistory,
-        performanceMetrics: this.performanceMetrics
+        performanceMetrics: this.performanceMetrics,
       });
     } catch (error) {
       console.error('Failed to save analysis:', error);
@@ -901,7 +928,7 @@ class UltraOptimizedPopup {
     try {
       if (this.currentTab) {
         const response = await chrome.tabs.sendMessage(this.currentTab.id, {
-          action: 'getPerformanceStats'
+          action: 'getPerformanceStats',
         });
 
         if (response?.success) {
@@ -929,14 +956,14 @@ class UltraOptimizedPopup {
 
   switchTab(tabName) {
     // Update tab buttons
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    document.querySelectorAll('.tab-btn').forEach((btn) => {
       btn.classList.remove('active');
     });
     const activeTab = document.getElementById(`${tabName}-tab`);
     if (activeTab) activeTab.classList.add('active');
 
     // Update tab content
-    document.querySelectorAll('.tab-content').forEach(content => {
+    document.querySelectorAll('.tab-content').forEach((content) => {
       content.classList.add('hidden');
     });
     const activeContent = document.getElementById(`${tabName}-content`);
@@ -981,7 +1008,9 @@ class UltraOptimizedPopup {
       return;
     }
 
-    container.innerHTML = this.analysisHistory.map((analysis, index) => `
+    container.innerHTML = this.analysisHistory
+      .map(
+        (analysis, index) => `
       <div class="history-item" onclick="window.ultraPopup.loadHistoryItem(${index})">
         <div class="history-header">
           <span class="history-source">${analysis.metadata?.source || 'Unknown'}</span>
@@ -991,7 +1020,9 @@ class UltraOptimizedPopup {
           ${analysis.basic?.words?.total || 0} words • ${analysis.basic?.readingTime?.average || '0 min'}
         </div>
       </div>
-    `).join('');
+    `
+      )
+      .join('');
   }
 
   loadHistoryItem(index) {
@@ -1059,7 +1090,7 @@ class UltraOptimizedPopup {
       version: '3.0.0',
       totalAnalyses: this.analysisHistory.length,
       performanceMetrics: this.performanceMetrics,
-      analyses: this.analysisHistory
+      analyses: this.analysisHistory,
     };
 
     try {

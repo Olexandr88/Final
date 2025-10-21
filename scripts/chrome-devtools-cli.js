@@ -22,8 +22,8 @@ async function callBridge(endpoint, method = 'GET', body = null) {
   const options = {
     method,
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   };
 
   if (body) {
@@ -54,10 +54,7 @@ async function callTool(toolName, args) {
 }
 
 // CLI Program
-program
-  .name('chrome-cli')
-  .description('Chrome DevTools CLI for Claude Code')
-  .version('1.0.0');
+program.name('chrome-cli').description('Chrome DevTools CLI for Claude Code').version('1.0.0');
 
 // Navigate command
 program

@@ -33,7 +33,8 @@ c = c.substring(0, idx) + newMethod + '\n' + c.substring(idx);
 
 let os = c.indexOf('    // Check for shell operators (command chaining)');
 let oe = c.indexOf('    }', os) + 5;
-const newCheck = '    const operatorCheck = this._detectShellOperators(command);\n    if (!operatorCheck.valid) return operatorCheck;\n';
+const newCheck =
+  '    const operatorCheck = this._detectShellOperators(command);\n    if (!operatorCheck.valid) return operatorCheck;\n';
 c = c.substring(0, os) + newCheck + c.substring(oe);
 
 fs.writeFileSync(sp, c, 'utf8');

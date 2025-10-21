@@ -2,12 +2,21 @@
 (() => {
   // Throttle helper
   const throttle = (fn, wait = 200) => {
-    let last = 0, t;
+    let last = 0,
+      t;
     return (...args) => {
       const now = Date.now();
       const rem = wait - (now - last);
-      if (rem <= 0) { last = now; fn(...args); }
-      else { clearTimeout(t); t = setTimeout(() => { last = Date.now(); fn(...args); }, rem); }
+      if (rem <= 0) {
+        last = now;
+        fn(...args);
+      } else {
+        clearTimeout(t);
+        t = setTimeout(() => {
+          last = Date.now();
+          fn(...args);
+        }, rem);
+      }
     };
   };
 
@@ -16,7 +25,9 @@
     try {
       const sel = window.getSelection?.();
       return sel ? String(sel.toString()).trim() : '';
-    } catch { return ''; }
+    } catch {
+      return '';
+    }
   };
 
   // Respond to direct extraction requests quickly
@@ -32,7 +43,9 @@
   const sendSelectionUpdate = throttle(() => {
     const text = getSelectionText();
     if (!text) return;
-    try { chrome.storage?.session?.set?.({ lastSelection: text }); } catch {}
+    try {
+      chrome.storage?.session?.set?.({ lastSelection: text });
+    } catch {}
   }, 400);
 
   document.addEventListener('selectionchange', sendSelectionUpdate, { passive: true });

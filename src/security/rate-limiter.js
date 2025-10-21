@@ -12,7 +12,7 @@ export class RateLimiter {
       maxRequestsPerHour: config.maxRequestsPerHour || 1000,
       maxConcurrentExecutions: config.maxConcurrentExecutions || 5,
       cooldownPeriod: config.cooldownPeriod || 60000, // 1 minute
-      ...config
+      ...config,
     };
 
     // Track requests per agent
@@ -35,7 +35,7 @@ export class RateLimiter {
       return {
         allowed: false,
         reason: 'Agent temporarily blocked',
-        retryAfter: this.config.cooldownPeriod
+        retryAfter: this.config.cooldownPeriod,
       };
     }
 
@@ -44,25 +44,21 @@ export class RateLimiter {
       this.agentRequests.set(agentId, {
         minuteWindow: [],
         hourWindow: [],
-        violations: 0
+        violations: 0,
       });
     }
 
     const agentData = this.agentRequests.get(agentId);
 
     // Clean old entries
-    agentData.minuteWindow = agentData.minuteWindow.filter(
-      ts => now - ts < 60000
-    );
-    agentData.hourWindow = agentData.hourWindow.filter(
-      ts => now - ts < 3600000
-    );
+    agentData.minuteWindow = agentData.minuteWindow.filter((ts) => now - ts < 60000);
+    agentData.hourWindow = agentData.hourWindow.filter((ts) => now - ts < 3600000);
 
     // Check minute limit
     if (agentData.minuteWindow.length >= this.config.maxRequestsPerMinute) {
       logger.warn('Rate limit exceeded: per-minute', {
         agentId,
-        count: agentData.minuteWindow.length
+        count: agentData.minuteWindow.length,
       });
 
       this._recordViolation(agentId);
@@ -71,7 +67,7 @@ export class RateLimiter {
         allowed: false,
         reason: 'Rate limit exceeded (per minute)',
         limit: this.config.maxRequestsPerMinute,
-        retryAfter: 60000
+        retryAfter: 60000,
       };
     }
 
@@ -79,7 +75,7 @@ export class RateLimiter {
     if (agentData.hourWindow.length >= this.config.maxRequestsPerHour) {
       logger.warn('Rate limit exceeded: per-hour', {
         agentId,
-        count: agentData.hourWindow.length
+        count: agentData.hourWindow.length,
       });
 
       this._recordViolation(agentId);
@@ -88,7 +84,7 @@ export class RateLimiter {
         allowed: false,
         reason: 'Rate limit exceeded (per hour)',
         limit: this.config.maxRequestsPerHour,
-        retryAfter: 3600000
+        retryAfter: 3600000,
       };
     }
 
@@ -97,13 +93,13 @@ export class RateLimiter {
     if (concurrent >= this.config.maxConcurrentExecutions) {
       logger.warn('Concurrent execution limit exceeded', {
         agentId,
-        concurrent
+        concurrent,
       });
 
       return {
         allowed: false,
         reason: 'Too many concurrent executions',
-        limit: this.config.maxConcurrentExecutions
+        limit: this.config.maxConcurrentExecutions,
       };
     }
 
@@ -167,7 +163,7 @@ export class RateLimiter {
         requestsLastHour: 0,
         concurrentExecutions: 0,
         violations: 0,
-        blocked: false
+        blocked: false,
       };
     }
 
@@ -176,7 +172,7 @@ export class RateLimiter {
       requestsLastHour: data.hourWindow.length,
       concurrentExecutions: this.concurrentExecutions.get(agentId) || 0,
       violations: data.violations,
-      blocked: this.blockedAgents.has(agentId)
+      blocked: this.blockedAgents.has(agentId),
     };
   }
 }

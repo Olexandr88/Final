@@ -29,7 +29,7 @@ export class ContextManager {
       content,
       metadata,
       timestamp: Date.now(),
-      tokens: this._estimateTokens(content)
+      tokens: this._estimateTokens(content),
     };
 
     this.context.push(entry);
@@ -50,10 +50,7 @@ export class ContextManager {
     if (this.context.length === 0) return;
 
     const summary = this._generateSummary();
-    const summaryPath = path.join(
-      this.summaryDir,
-      `session-${this.sessionId}-${Date.now()}.md`
-    );
+    const summaryPath = path.join(this.summaryDir, `session-${this.sessionId}-${Date.now()}.md`);
 
     // Save full context before compression (async)
     await fs.promises.writeFile(summaryPath, summary, 'utf-8');
@@ -68,13 +65,15 @@ export class ContextManager {
       content: `Previous context summary: ${summaryPath}`,
       metadata: { type: 'summary', originalCount: this.context.length },
       timestamp: Date.now(),
-      tokens: 50
+      tokens: 50,
     };
 
     this.context = [summaryEntry, ...compressed];
     this.tokenCount = this._recalculateTokens();
 
-    console.log(`✓ Context compressed: ${compressed.length} entries remaining (${this.tokenCount} tokens)`);
+    console.log(
+      `✓ Context compressed: ${compressed.length} entries remaining (${this.tokenCount} tokens)`
+    );
 
     return summaryPath;
   }
@@ -85,10 +84,7 @@ export class ContextManager {
   async clear(saveHistorical = true) {
     if (saveHistorical && this.context.length > 0) {
       const summary = this._generateSummary();
-      const archivePath = path.join(
-        this.summaryDir,
-        `archive-${this.sessionId}-${Date.now()}.md`
-      );
+      const archivePath = path.join(this.summaryDir, `archive-${this.sessionId}-${Date.now()}.md`);
 
       await fs.promises.writeFile(archivePath, summary, 'utf-8');
       console.log(`✓ Context archived: ${archivePath}`);
@@ -111,7 +107,7 @@ export class ContextManager {
       issues: [],
       nextSteps: [],
       codeChanges: [],
-      decisions: []
+      decisions: [],
     };
 
     // Categorize context entries
@@ -141,31 +137,40 @@ export class ContextManager {
 
     if (sections.keyChanges.length > 0) {
       summary += `## Key Changes\n\n`;
-      summary += sections.keyChanges.slice(-10).map(c => `- ${this._truncate(c, 200)}`).join('\n');
+      summary += sections.keyChanges
+        .slice(-10)
+        .map((c) => `- ${this._truncate(c, 200)}`)
+        .join('\n');
       summary += '\n\n';
     }
 
     if (sections.codeChanges.length > 0) {
       summary += `## Code Modifications\n\n`;
-      summary += sections.codeChanges.slice(-15).map(c => `- ${this._truncate(c, 150)}`).join('\n');
+      summary += sections.codeChanges
+        .slice(-15)
+        .map((c) => `- ${this._truncate(c, 150)}`)
+        .join('\n');
       summary += '\n\n';
     }
 
     if (sections.issues.length > 0) {
       summary += `## Issues Encountered\n\n`;
-      summary += sections.issues.slice(-10).map(i => `- ${this._truncate(i, 200)}`).join('\n');
+      summary += sections.issues
+        .slice(-10)
+        .map((i) => `- ${this._truncate(i, 200)}`)
+        .join('\n');
       summary += '\n\n';
     }
 
     if (sections.decisions.length > 0) {
       summary += `## Technical Decisions\n\n`;
-      summary += sections.decisions.map(d => `- ${this._truncate(d, 200)}`).join('\n');
+      summary += sections.decisions.map((d) => `- ${this._truncate(d, 200)}`).join('\n');
       summary += '\n\n';
     }
 
     if (sections.nextSteps.length > 0) {
       summary += `## Next Steps\n\n`;
-      summary += sections.nextSteps.map(n => `- ${n}`).join('\n');
+      summary += sections.nextSteps.map((n) => `- ${n}`).join('\n');
       summary += '\n\n';
     }
 
@@ -184,7 +189,7 @@ export class ContextManager {
         content: `Loaded context from: ${summaryPath}\n\n${summary}`,
         metadata: { type: 'loaded_summary' },
         timestamp: Date.now(),
-        tokens: this._estimateTokens(summary)
+        tokens: this._estimateTokens(summary),
       };
 
       this.context = [entry];
@@ -218,7 +223,7 @@ export class ContextManager {
       tokenCount: this.tokenCount,
       sessionDuration: Date.now() - this.sessionStart,
       compressionNeeded: this.tokenCount > this.compressionThreshold,
-      utilizationPercent: Math.round((this.tokenCount / this.maxContextSize) * 100)
+      utilizationPercent: Math.round((this.tokenCount / this.maxContextSize) * 100),
     };
   }
 

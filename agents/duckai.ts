@@ -78,16 +78,16 @@ const MAX_REQUESTS_PER_MINUTE = 15;
  */
 function checkRateLimit(): boolean {
   const now = Date.now();
-  
+
   // Clean up old requests (older than 1 minute)
   while (requestTimes.length > 0 && now - requestTimes[0]! > 60000) {
     requestTimes.shift();
   }
-  
+
   if (requestTimes.length >= MAX_REQUESTS_PER_MINUTE) {
     return false;
   }
-  
+
   requestTimes.push(now);
   return true;
 }
@@ -96,7 +96,7 @@ function checkRateLimit(): boolean {
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -106,11 +106,11 @@ function validatePrompt(prompt: string): void {
   if (!prompt || typeof prompt !== 'string') {
     throw new DuckAIError('Prompt must be a non-empty string');
   }
-  
+
   if (prompt.trim().length === 0) {
     throw new DuckAIError('Prompt cannot be empty or only whitespace');
   }
-  
+
   if (prompt.length > 32000) {
     throw new DuckAIError('Prompt exceeds maximum length of 32000 characters');
   }
@@ -119,14 +119,10 @@ function validatePrompt(prompt: string): void {
 /**
  * Fetch with timeout using proper types
  */
-async function fetchWithTimeout(
-  url: string,
-  options: any,
-  timeout: number
-): Promise<any> {
+async function fetchWithTimeout(url: string, options: any, timeout: number): Promise<any> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
+
   try {
     const response = await fetch(url, {
       ...options,
@@ -152,9 +148,9 @@ async function getVqdToken(timeout: number, maxRetries: number): Promise<string>
   if (vqdCache && Date.now() - vqdCache.timestamp < VQD_TOKEN_TTL) {
     return vqdCache.token;
   }
-  
+
   let lastError: Error | null = null;
-  
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const resp = await fetchWithTimeout(
@@ -164,7 +160,7 @@ async function getVqdToken(timeout: number, maxRetries: number): Promise<string>
         },
         timeout
       );
-      
+
       if (!resp.ok) {
         throw new DuckAIError(
           `Failed to fetch VQD token: ${resp.statusText}`,
@@ -172,39 +168,39 @@ async function getVqdToken(timeout: number, maxRetries: number): Promise<string>
           await resp.text()
         );
       }
-      
+
       // DuckDuckGo returns the token in a custom header
       const token = resp.headers.get('x-vqd-4');
       if (!token) {
         throw new DuckAIError('Missing x-vqd-4 header on status response');
       }
-      
+
       // Cache the token
       vqdCache = {
         token,
         timestamp: Date.now(),
       };
-      
+
       return token;
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       // Don't retry on authentication errors
       if (error instanceof DuckAIError && error.statusCode === 401) {
         throw error;
       }
-      
+
       // If this was the last attempt, break
       if (attempt === maxRetries) {
         break;
       }
-      
+
       // Exponential backoff
       const backoffMs = Math.min(1000 * Math.pow(2, attempt), 10000);
       await sleep(backoffMs);
     }
   }
-  
+
   throw new DuckAIError(
     `Failed to get VQD token after ${maxRetries + 1} attempts: ${lastError?.message}`
   );
@@ -215,40 +211,38 @@ async function getVqdToken(timeout: number, maxRetries: number): Promise<string>
  * Each SSE event contains a JSON payload with a `message` field.
  * The stream ends when the data line is `[DONE]`.
  */
-async function parseSse(
-  reader: any
-): Promise<string> {
+async function parseSse(reader: any): Promise<string> {
   const decoder = new TextDecoder();
   let buffer = '';
   let result = '';
-  
+
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      
+
       buffer += decoder.decode(value, { stream: true });
-      
+
       // SSE messages are separated by newlines
       let index;
       while ((index = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, index).trim();
         buffer = buffer.slice(index + 1);
-        
+
         // We only care about lines beginning with "data:"
         if (line.startsWith('data:')) {
           const data = line.slice('data:'.length).trim();
-          
+
           if (data === '[DONE]') {
             return result;
           }
-          
+
           try {
             const obj = JSON.parse(data);
             if (obj.message) {
               result += obj.message;
             }
-            
+
             // Handle error messages from the API
             if (obj.error) {
               throw new DuckAIError(`API error: ${obj.error}`);
@@ -263,7 +257,7 @@ async function parseSse(
         }
       }
     }
-    
+
     return result;
   } finally {
     // Always release the reader
@@ -289,33 +283,25 @@ async function parseSse(
  * @returns The assistant's full response text.
  * @throws DuckAIError if request fails after all retries.
  */
-export async function askDuckAI(
-  prompt: string,
-  options: DuckAIOptions = {}
-): Promise<string> {
-  const {
-    model = 'gpt-4o-mini',
-    maxRetries = 3,
-    timeout = 30000,
-    enableCache = true,
-  } = options;
-  
+export async function askDuckAI(prompt: string, options: DuckAIOptions = {}): Promise<string> {
+  const { model = 'gpt-4o-mini', maxRetries = 3, timeout = 30000, enableCache = true } = options;
+
   // Validate input
   validatePrompt(prompt);
-  
+
   // Check rate limit
   if (!checkRateLimit()) {
     throw new DuckAIError('Rate limit exceeded. Please wait before making more requests.');
   }
-  
+
   let lastError: Error | null = null;
-  
+
   // Retry logic with exponential backoff
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       // Obtain a session token (cached or fresh)
       const vqd = await getVqdToken(timeout, maxRetries);
-      
+
       const payload: ChatPayload = {
         model,
         messages: [
@@ -325,7 +311,7 @@ export async function askDuckAI(
           },
         ],
       };
-      
+
       const resp = await fetchWithTimeout(
         'https://duckduckgo.com/duckchat/v1/chat',
         {
@@ -338,7 +324,7 @@ export async function askDuckAI(
         },
         timeout
       );
-      
+
       if (!resp.ok) {
         const errorText = await resp.text();
         throw new DuckAIError(
@@ -347,23 +333,23 @@ export async function askDuckAI(
           errorText
         );
       }
-      
+
       if (!resp.body) {
         throw new DuckAIError('No response body returned');
       }
-      
+
       const reader = resp.body.getReader();
       const reply = await parseSse(reader);
-      
+
       return reply.trim();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       // Invalidate token cache on certain errors
       if (error instanceof DuckAIError && error.statusCode === 401) {
         vqdCache = null;
       }
-      
+
       // Don't retry on authentication or validation errors
       if (error instanceof DuckAIError) {
         if (error.statusCode === 401 || error.statusCode === 403) {
@@ -373,18 +359,18 @@ export async function askDuckAI(
           throw error;
         }
       }
-      
+
       // If this was the last attempt, break
       if (attempt === maxRetries) {
         break;
       }
-      
+
       // Exponential backoff: 1s, 2s, 4s, 8s...
       const backoffMs = Math.min(1000 * Math.pow(2, attempt), 10000);
       await sleep(backoffMs);
     }
   }
-  
+
   throw new DuckAIError(
     `Request failed after ${maxRetries + 1} attempts: ${lastError?.message}`,
     lastError instanceof DuckAIError ? lastError.statusCode : undefined,

@@ -13,16 +13,16 @@ export class ResourceManager {
   constructor(name = 'unnamed') {
     this.name = name;
     this.resources = {
-      timers: new Map(),      // { id: { type, name, created } }
-      listeners: new Map(),   // { key: [{ emitter, event, handler }] }
-      websockets: new Set(),  // Set of WebSocket instances
-      streams: new Set()      // Set of streams/file handles
+      timers: new Map(), // { id: { type, name, created } }
+      listeners: new Map(), // { key: [{ emitter, event, handler }] }
+      websockets: new Set(), // Set of WebSocket instances
+      streams: new Set(), // Set of streams/file handles
     };
     this.stats = {
       timersCreated: 0,
       listenersAdded: 0,
       cleanupCount: 0,
-      lastCleanup: null
+      lastCleanup: null,
     };
   }
 
@@ -36,7 +36,7 @@ export class ResourceManager {
     this.resources.timers.set(id, {
       type: 'timeout',
       name,
-      created: Date.now()
+      created: Date.now(),
     });
     this.stats.timersCreated++;
     return id;
@@ -52,7 +52,7 @@ export class ResourceManager {
     this.resources.timers.set(id, {
       type: 'interval',
       name,
-      created: Date.now()
+      created: Date.now(),
     });
     this.stats.timersCreated++;
     return id;
@@ -119,8 +119,8 @@ export class ResourceManager {
     const listeners = this.resources.listeners.get(key);
 
     if (listeners) {
-      const index = listeners.findIndex(l =>
-        l.emitter === emitter && l.event === event && l.handler === handler
+      const index = listeners.findIndex(
+        (l) => l.emitter === emitter && l.event === event && l.handler === handler
       );
 
       if (index !== -1) {
@@ -143,7 +143,7 @@ export class ResourceManager {
       timersCleared: 0,
       listenersRemoved: 0,
       websocketsClosed: 0,
-      streamsClosed: 0
+      streamsClosed: 0,
     };
 
     // Clear all timers
@@ -171,9 +171,10 @@ export class ResourceManager {
     this.resources.listeners.clear();
 
     // Close all WebSockets
-    this.resources.websockets.forEach(ws => {
+    this.resources.websockets.forEach((ws) => {
       try {
-        if (ws.readyState === 1 || ws.readyState === 0) { // OPEN or CONNECTING
+        if (ws.readyState === 1 || ws.readyState === 0) {
+          // OPEN or CONNECTING
           ws.close();
         }
         cleanupStats.websocketsClosed++;
@@ -184,7 +185,7 @@ export class ResourceManager {
     this.resources.websockets.clear();
 
     // Close all streams
-    this.resources.streams.forEach(stream => {
+    this.resources.streams.forEach((stream) => {
       try {
         if (stream.destroy) {
           stream.destroy();
@@ -212,16 +213,18 @@ export class ResourceManager {
     return {
       name: this.name,
       activeTimers: this.resources.timers.size,
-      activeListeners: Array.from(this.resources.listeners.values())
-        .reduce((sum, arr) => sum + arr.length, 0),
+      activeListeners: Array.from(this.resources.listeners.values()).reduce(
+        (sum, arr) => sum + arr.length,
+        0
+      ),
       activeWebSockets: this.resources.websockets.size,
       activeStreams: this.resources.streams.size,
       lifetime: {
         timersCreated: this.stats.timersCreated,
         listenersAdded: this.stats.listenersAdded,
         cleanupCount: this.stats.cleanupCount,
-        lastCleanup: this.stats.lastCleanup
-      }
+        lastCleanup: this.stats.lastCleanup,
+      },
     };
   }
 
@@ -242,7 +245,7 @@ export class ResourceManager {
           id,
           name: timer.name,
           age,
-          timerType: timer.type
+          timerType: timer.type,
         });
       }
     });

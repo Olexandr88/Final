@@ -16,14 +16,17 @@ class CloudSQLIntegration {
       user: process.env.CLOUD_SQL_USER || 'root',
       password: process.env.CLOUD_SQL_PASSWORD || '',
       database: process.env.CLOUD_SQL_DATABASE || 'optimization_db',
-      ssl: process.env.CLOUD_SQL_SSL === 'true' ? {
-        rejectUnauthorized: false
-      } : false
+      ssl:
+        process.env.CLOUD_SQL_SSL === 'true'
+          ? {
+              rejectUnauthorized: false,
+            }
+          : false,
     };
-    
+
     console.log('🔗 Cloud SQL Integration Initialized');
   }
-  
+
   async connect() {
     try {
       this.connection = await mysql.createConnection(this.config);
@@ -34,14 +37,14 @@ class CloudSQLIntegration {
       throw error;
     }
   }
-  
+
   async disconnect() {
     if (this.connection) {
       await this.connection.end();
       console.log('🔌 Disconnected from Cloud SQL');
     }
   }
-  
+
   async createSchema() {
     const createTableSQL = `
       CREATE TABLE IF NOT EXISTS optimization_results (
@@ -71,7 +74,7 @@ class CloudSQLIntegration {
         INDEX idx_execution_id (execution_id)
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `;
-    
+
     try {
       await this.connection.execute(createTableSQL);
       console.log('✅ optimization_results table ready');
@@ -80,7 +83,7 @@ class CloudSQLIntegration {
       throw error;
     }
   }
-  
+
   async insertOptimizationResult(resultData) {
     const insertSQL = `
       INSERT INTO optimization_results (
@@ -90,7 +93,7 @@ class CloudSQLIntegration {
         results_json, github_run_id, github_sha
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    
+
     try {
       const [result] = await this.connection.execute(insertSQL, [
         resultData.executionId,
@@ -106,9 +109,9 @@ class CloudSQLIntegration {
         resultData.memoryDeltaExternal,
         JSON.stringify(resultData.fullResults),
         resultData.githubRunId,
-        resultData.githubSha
+        resultData.githubSha,
       ]);
-      
+
       console.log(`✅ Optimization result inserted (ID: ${result.insertId})`);
       return result.insertId;
     } catch (error) {
@@ -116,7 +119,7 @@ class CloudSQLIntegration {
       throw error;
     }
   }
-  
+
   async getOptimizationHistory(limit = 10) {
     const selectSQL = `
       SELECT 
@@ -129,7 +132,7 @@ class CloudSQLIntegration {
       ORDER BY execution_time DESC 
       LIMIT ?
     `;
-    
+
     try {
       const [rows] = await this.connection.execute(selectSQL, [limit]);
       console.log(`📊 Retrieved ${rows.length} optimization records`);
@@ -139,7 +142,7 @@ class CloudSQLIntegration {
       throw error;
     }
   }
-  
+
   async getPerformanceStats() {
     const statsSQL = `
       SELECT 
@@ -154,7 +157,7 @@ class CloudSQLIntegration {
       GROUP BY optimization_type
       ORDER BY total_runs DESC
     `;
-    
+
     try {
       const [rows] = await this.connection.execute(statsSQL);
       console.log('📈 Performance statistics retrieved');
@@ -164,17 +167,19 @@ class CloudSQLIntegration {
       throw error;
     }
   }
-  
+
   async processResultsFromFile(filePath) {
     try {
       const content = await fs.readFile(filePath, 'utf8');
       const results = JSON.parse(content);
-      
+
       // Extract data for database insertion
       const resultData = {
         executionId: `exec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         optimizationType: this.detectOptimizationType(results),
-        totalDurationMs: parseFloat(results.performanceReport?.summary?.totalExecutionTime?.replace('ms', '') || '0'),
+        totalDurationMs: parseFloat(
+          results.performanceReport?.summary?.totalExecutionTime?.replace('ms', '') || '0'
+        ),
         totalOperations: results.performanceReport?.summary?.totalOperations || 0,
         totalOptimizations: results.performanceReport?.summary?.totalOptimizations || 0,
         successRatePercent: results.performanceReport?.performance?.successRate || 100,
@@ -185,19 +190,19 @@ class CloudSQLIntegration {
         memoryDeltaExternal: results.performanceReport?.summary?.memoryDelta?.external || null,
         fullResults: results,
         githubRunId: process.env.GITHUB_RUN_ID || null,
-        githubSha: process.env.GITHUB_SHA || null
+        githubSha: process.env.GITHUB_SHA || null,
       };
-      
+
       const insertId = await this.insertOptimizationResult(resultData);
       console.log(`✅ Processed results file: ${filePath} (DB ID: ${insertId})`);
-      
+
       return insertId;
     } catch (error) {
       console.error(`❌ Failed to process results file ${filePath}:`, error.message);
       throw error;
     }
   }
-  
+
   detectOptimizationType(results) {
     if (results.textAnalysis && results.tabOptimizations) return 'all';
     if (results.textAnalysis) return 'text-selection';
@@ -205,14 +210,14 @@ class CloudSQLIntegration {
     if (results.performanceReport) return 'performance-analyze';
     return 'text-selection'; // default
   }
-  
+
   async processAllResultFiles(resultsDir = 'optimization-results') {
     try {
       const files = await fs.readdir(resultsDir);
-      const jsonFiles = files.filter(file => file.endsWith('.json'));
-      
+      const jsonFiles = files.filter((file) => file.endsWith('.json'));
+
       console.log(`🔄 Processing ${jsonFiles.length} result files...`);
-      
+
       const insertIds = [];
       for (const file of jsonFiles) {
         const filePath = path.join(resultsDir, file);
@@ -223,7 +228,7 @@ class CloudSQLIntegration {
           console.error(`⚠️ Skipping file ${file}:`, error.message);
         }
       }
-      
+
       console.log(`✅ Successfully processed ${insertIds.length}/${jsonFiles.length} files`);
       return insertIds;
     } catch (error) {
@@ -236,14 +241,14 @@ class CloudSQLIntegration {
 // CLI execution
 if (import.meta.url === `file://${process.argv[1]}`) {
   const integration = new CloudSQLIntegration();
-  
+
   async function main() {
     try {
       console.log('🚀 Starting Cloud SQL Integration...');
-      
+
       await integration.connect();
       await integration.createSchema();
-      
+
       // Process results if directory exists
       const resultsDir = 'optimization-results';
       try {
@@ -252,22 +257,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       } catch {
         console.log('📁 No optimization-results directory found, skipping file processing');
       }
-      
+
       // Show recent stats
       const history = await integration.getOptimizationHistory(5);
       console.log('\n📊 Recent optimization runs:');
       history.forEach((record, index) => {
-        console.log(`${index + 1}. ${record.optimization_type} - ${record.total_duration_ms}ms (${record.success_rate_percent}% success)`);
+        console.log(
+          `${index + 1}. ${record.optimization_type} - ${record.total_duration_ms}ms (${record.success_rate_percent}% success)`
+        );
       });
-      
+
       const stats = await integration.getPerformanceStats();
       console.log('\n📈 Performance statistics by type:');
-      stats.forEach(stat => {
-        console.log(`${stat.optimization_type}: ${stat.total_runs} runs, avg ${stat.avg_duration_ms.toFixed(2)}ms`);
+      stats.forEach((stat) => {
+        console.log(
+          `${stat.optimization_type}: ${stat.total_runs} runs, avg ${stat.avg_duration_ms.toFixed(2)}ms`
+        );
       });
-      
+
       console.log('\n✅ Cloud SQL integration completed successfully');
-      
     } catch (error) {
       console.error('💥 Cloud SQL integration failed:', error.message);
       process.exit(1);
@@ -275,7 +283,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       await integration.disconnect();
     }
   }
-  
+
   main();
 }
 

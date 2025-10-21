@@ -5,6 +5,7 @@ A comprehensive collection of standalone utility tools for Node.js - **no MCP de
 ## Features
 
 ### 🔤 Text Processing
+
 - Regex matching and replacement
 - Cryptographic hashing (MD5, SHA1, SHA256, SHA512)
 - Encoding/decoding (Base64, Hex, URL, HTML)
@@ -12,12 +13,14 @@ A comprehensive collection of standalone utility tools for Node.js - **no MCP de
 - Text diffing
 
 ### 📊 Data Manipulation
+
 - JSON querying and transformation
 - CSV ↔ JSON conversion
 - JSON sorting and filtering
 - Data flattening and restructuring
 
 ### 📁 File System Operations
+
 - File search with regex patterns
 - File statistics and analysis
 - Batch file renaming
@@ -25,6 +28,7 @@ A comprehensive collection of standalone utility tools for Node.js - **no MCP de
 - Duplicate file detection
 
 ### 🔢 Math & Statistics
+
 - Safe mathematical expression evaluation
 - Statistical analysis (mean, median, mode, stddev, etc.)
 - Number base conversion
@@ -32,12 +36,14 @@ A comprehensive collection of standalone utility tools for Node.js - **no MCP de
 - Percentage calculations
 
 ### ⏰ Date & Time
+
 - Date calculations (add, subtract, diff)
 - Timezone conversion
 - Date parsing and formatting
 - Current time in multiple formats
 
 ### 🛠️ Utilities
+
 - UUID generation (v1, v4)
 - Random string generation
 - Sleep/delay utility
@@ -60,6 +66,7 @@ node tools.js <command> [arguments...]
 ### Examples
 
 #### Text Processing
+
 ```bash
 # Hash a password
 node tools.js hash "password123" sha256
@@ -75,6 +82,7 @@ node tools.js analyze-text "Your text here" words chars readingTime
 ```
 
 #### Data Manipulation
+
 ```bash
 # Query JSON
 node tools.js json-query '{"users":[{"name":"Alice"}]}' "users[0].name"
@@ -90,6 +98,7 @@ node tools.js json-sort '[{"name":"Bob","age":25},{"name":"Alice","age":30}]' ag
 ```
 
 #### File Operations
+
 ```bash
 # Search for JavaScript files
 node tools.js file-search ./src "\\.js$" 3
@@ -108,6 +117,7 @@ node tools.js file-duplicates ./downloads 3
 ```
 
 #### Math & Statistics
+
 ```bash
 # Calculate expression
 node tools.js calculate "(100 + 50) * 2 / 3" 2
@@ -126,6 +136,7 @@ node tools.js percentage 75 100 2
 ```
 
 #### Date & Time
+
 ```bash
 # Add days to date
 node tools.js date-calc add "2024-01-01T00:00:00Z" 7 days
@@ -141,6 +152,7 @@ node tools.js parse-date "2024-01-01"
 ```
 
 #### Utilities
+
 ```bash
 # Generate UUIDs
 node tools.js uuid v4 5
@@ -188,6 +200,7 @@ console.log(uuidResult.results);
 ## Tool Categories
 
 ### TextTools
+
 - `regexMatch(text, pattern, flags)`
 - `regexReplace(text, pattern, replacement, flags)`
 - `hashText(text, algorithm)`
@@ -196,6 +209,7 @@ console.log(uuidResult.results);
 - `diffText(text1, text2, format)`
 
 ### DataTools
+
 - `jsonQuery(json, query)`
 - `jsonTransform(json, operation)`
 - `csvToJson(csv, hasHeader)`
@@ -204,6 +218,7 @@ console.log(uuidResult.results);
 - `filterJson(json, filterFn)`
 
 ### FileTools
+
 - `searchFiles(directory, pattern, options)`
 - `getStats(path, options)`
 - `batchRename(directory, pattern, replacement, options)`
@@ -211,6 +226,7 @@ console.log(uuidResult.results);
 - `findDuplicates(directory, options)`
 
 ### MathTools
+
 - `calculate(expression, options)`
 - `statistics(data, measures)`
 - `convertBase(number, fromBase, toBase)`
@@ -218,12 +234,14 @@ console.log(uuidResult.results);
 - `percentage(value, total, options)`
 
 ### DateTimeTools
+
 - `dateCalc(operation, date, value, unit)`
 - `timezoneConvert(time, fromZone, toZone)`
 - `getCurrentTime(format)`
 - `parseDate(dateString)`
 
 ### UtilityTools
+
 - `generateUUID(options)`
 - `randomString(length, charset)`
 - `sleep(milliseconds)`

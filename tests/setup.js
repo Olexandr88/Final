@@ -19,10 +19,10 @@ if (!process.env.SKIP_API_MOCKS) {
       Anthropic: jest.fn().mockImplementation(() => ({
         messages: {
           create: jest.fn().mockResolvedValue({
-            content: [{ text: 'Mocked response' }]
-          })
-        }
-      }))
+            content: [{ text: 'Mocked response' }],
+          }),
+        },
+      })),
     };
   });
 
@@ -31,13 +31,13 @@ if (!process.env.SKIP_API_MOCKS) {
     return {
       WebSocketServer: jest.fn().mockImplementation(() => ({
         on: jest.fn(),
-        close: jest.fn()
+        close: jest.fn(),
       })),
       WebSocket: jest.fn().mockImplementation(() => ({
         on: jest.fn(),
         send: jest.fn(),
-        close: jest.fn()
-      }))
+        close: jest.fn(),
+      })),
     };
   });
 }

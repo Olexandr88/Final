@@ -1,7 +1,7 @@
 /**
  * Chromium Browser.cc Optimization Patterns
  * Applied to LLM Framework for Text Selection and Tab Management
- * 
+ *
  * Based on analysis of: https://source.chromium.org/chromium/chromium/src/+/main:chrome/browser/ui/browser.cc
  */
 
@@ -23,7 +23,7 @@ class TabChangeSubscriber {
   // Chromium pattern: Batch UI updates to avoid redundant processing
   scheduleUIUpdate(updateKey, updateFn) {
     this.pendingUpdates.set(updateKey, updateFn);
-    
+
     if (!this.updateScheduled) {
       this.updateScheduled = true;
       requestAnimationFrame(() => this.processPendingUIUpdates());
@@ -35,13 +35,13 @@ class TabChangeSubscriber {
     const updates = Array.from(this.pendingUpdates.values());
     this.pendingUpdates.clear();
     this.updateScheduled = false;
-    
-    updates.forEach(updateFn => updateFn());
+
+    updates.forEach((updateFn) => updateFn());
   }
 
   // Chromium pattern: OnActiveTabChanged() - notifies all subscribers
   notifyActiveTabChange(oldTab, newTab) {
-    this.activeTabCallbacks.forEach(callback => {
+    this.activeTabCallbacks.forEach((callback) => {
       try {
         callback(oldTab, newTab);
       } catch (error) {
@@ -68,17 +68,19 @@ class OptimizedSelectionManager {
 
     this.lastProcessedSelection = this.cloneSelection(newSelection);
     this.currentSelection = newSelection;
-    
+
     // Defer expensive operations
     this.scheduleSelectionProcessing();
   }
 
   isSelectionEqual(sel1, sel2) {
     if (!sel1 || !sel2) return sel1 === sel2;
-    return sel1.anchorNode === sel2.anchorNode &&
-           sel1.anchorOffset === sel2.anchorOffset &&
-           sel1.focusNode === sel2.focusNode &&
-           sel1.focusOffset === sel2.focusOffset;
+    return (
+      sel1.anchorNode === sel2.anchorNode &&
+      sel1.anchorOffset === sel2.anchorOffset &&
+      sel1.focusNode === sel2.focusNode &&
+      sel1.focusOffset === sel2.focusOffset
+    );
   }
 
   cloneSelection(selection) {
@@ -88,7 +90,7 @@ class OptimizedSelectionManager {
       anchorOffset: selection.anchorOffset,
       focusNode: selection.focusNode,
       focusOffset: selection.focusOffset,
-      text: selection.toString()
+      text: selection.toString(),
     };
   }
 
@@ -100,7 +102,7 @@ class OptimizedSelectionManager {
   }
 
   processSelection() {
-    this.selectionChangeHandlers.forEach(handler => handler(this.currentSelection));
+    this.selectionChangeHandlers.forEach((handler) => handler(this.currentSelection));
   }
 
   addSelectionHandler(handler) {
@@ -116,7 +118,7 @@ class ConditionalUIUpdater {
       SELECTION: 1 << 0,
       TAB: 1 << 1,
       CONTENT: 1 << 2,
-      LOADING: 1 << 3
+      LOADING: 1 << 3,
     };
     this.currentFlags = 0;
   }
@@ -139,14 +141,22 @@ class ConditionalUIUpdater {
     if (this.currentFlags & this.dirtyFlags.LOADING) {
       this.updateLoadingUI();
     }
-    
+
     this.currentFlags = 0; // Clear flags after update
   }
 
-  updateSelectionUI() { /* Implementation */ }
-  updateTabUI() { /* Implementation */ }
-  updateContentUI() { /* Implementation */ }
-  updateLoadingUI() { /* Implementation */ }
+  updateSelectionUI() {
+    /* Implementation */
+  }
+  updateTabUI() {
+    /* Implementation */
+  }
+  updateContentUI() {
+    /* Implementation */
+  }
+  updateLoadingUI() {
+    /* Implementation */
+  }
 }
 
 // Pattern 4: OnTabDeactivated/OnTabActivated Pattern
@@ -174,7 +184,7 @@ class TabLifecycleManager {
     return {
       selectionObserver: null,
       contentScripts: [],
-      eventListeners: []
+      eventListeners: [],
     };
   }
 
@@ -182,7 +192,7 @@ class TabLifecycleManager {
     if (resources.selectionObserver) {
       resources.selectionObserver.disconnect();
     }
-    resources.eventListeners.forEach(listener => listener.remove());
+    resources.eventListeners.forEach((listener) => listener.remove());
   }
 }
 
@@ -219,4 +229,9 @@ export class ChromiumOptimizedTabManager {
 }
 
 // Export optimization patterns
-export { TabChangeSubscriber, OptimizedSelectionManager, ConditionalUIUpdater, TabLifecycleManager };
+export {
+  TabChangeSubscriber,
+  OptimizedSelectionManager,
+  ConditionalUIUpdater,
+  TabLifecycleManager,
+};

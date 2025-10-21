@@ -13,7 +13,7 @@ export class QueryHandlers {
 
     this.pool = new DatabasePool(this.dbPath, {
       poolSize: 10,
-      enableWAL: true
+      enableWAL: true,
     });
 
     this._initReadModels();

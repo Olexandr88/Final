@@ -73,13 +73,7 @@ export interface ChatCompletionResponse {
  * parsing separately.
  */
 export async function chatCompletion(args: ChatCompletionArgs): Promise<ChatCompletionResponse> {
-  const {
-    model,
-    messages,
-    max_tokens = 512,
-    temperature = 0.7,
-    apiKey = 'unused',
-  } = args;
+  const { model, messages, max_tokens = 512, temperature = 0.7, apiKey = 'unused' } = args;
   const url = 'https://api.llm7.io/v1/chat/completions';
   const body = JSON.stringify({ model, messages, max_tokens, temperature });
   const res = await fetch(url, {

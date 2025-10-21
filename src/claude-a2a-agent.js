@@ -60,7 +60,7 @@ export class ClaudeA2AAgent {
       'code-generation',
       'analysis',
       'reasoning',
-      'conversation'
+      'conversation',
     ];
 
     await this.a2a.connect(capabilities);
@@ -74,23 +74,20 @@ export class ClaudeA2AAgent {
 
     try {
       // Process the message with Claude
-      const systemPrompt = `You are an AI agent (${this.agentId}) receiving ` +
+      const systemPrompt =
+        `You are an AI agent (${this.agentId}) receiving ` +
         `a message from another agent (${from}). Respond appropriately to their request.`;
-      const response = await this.claude.sendMessage(
-        JSON.stringify(payload),
-        systemPrompt
-      );
+      const response = await this.claude.sendMessage(JSON.stringify(payload), systemPrompt);
 
       // Send response back to the requesting agent
       this.a2a.sendTo(from, {
         status: 'success',
-        response
+        response,
       });
-
     } catch (error) {
       this.a2a.sendTo(from, {
         status: 'error',
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -113,9 +110,8 @@ export class ClaudeA2AAgent {
         type: 'collaboration_contribution',
         collaboration_id,
         agent_id: this.agentId,
-        contribution: analysis
+        contribution: analysis,
       });
-
     } catch (error) {
       console.error(`[${this.agentId}] Collaboration error:`, error.message);
     }
@@ -164,7 +160,7 @@ export class ClaudeA2AAgent {
     for (const agent of shareWith) {
       this.a2a.sendTo(agent, {
         original_message: message,
-        claude_response: response
+        claude_response: response,
       });
     }
 

@@ -33,12 +33,12 @@ export class AutonomousCoordinator {
       bridgeHttpPort: options.bridgeHttpPort || 65029,
       autoStartBridge: options.autoStartBridge !== false,
       autoStartMetaFactory: options.autoStartMetaFactory !== false,
-      ...options
+      ...options,
     };
 
     logger.info('Autonomous Coordinator initializing', {
       sessionId: this.sessionId,
-      config: this.config
+      config: this.config,
     });
   }
 
@@ -79,11 +79,10 @@ export class AutonomousCoordinator {
 
       logger.info('✅ Autonomous system initialized successfully');
       return true;
-
     } catch (error) {
       logger.error('Failed to initialize autonomous system', {
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
       throw error;
     }
@@ -93,10 +92,9 @@ export class AutonomousCoordinator {
    * Start the AI Bridge WebSocket hub
    */
   async startAIBridge() {
-    const bridgeLockAcquired = await this.sessionLockManager.acquireLock(
-      'process:ai-bridge',
-      { timeout: 5000 }
-    );
+    const bridgeLockAcquired = await this.sessionLockManager.acquireLock('process:ai-bridge', {
+      timeout: 5000,
+    });
 
     if (!bridgeLockAcquired) {
       logger.info('AI Bridge already running in another session');
@@ -111,15 +109,15 @@ export class AutonomousCoordinator {
         env: {
           ...process.env,
           PORT: this.config.bridgeHttpPort,
-          WS_PORT: this.config.bridgeUrl.split(':').pop()
+          WS_PORT: this.config.bridgeUrl.split(':').pop(),
         },
-        detached: false
+        detached: false,
       });
 
       this.processes.set('ai-bridge', {
         process: bridgeProcess,
         startedAt: Date.now(),
-        type: 'infrastructure'
+        type: 'infrastructure',
       });
 
       bridgeProcess.on('error', (error) => {
@@ -163,13 +161,13 @@ export class AutonomousCoordinator {
       const factoryProcess = spawn('node', [factoryPath], {
         stdio: 'inherit',
         env: process.env,
-        detached: false
+        detached: false,
       });
 
       this.processes.set('meta-agent-factory', {
         process: factoryProcess,
         startedAt: Date.now(),
-        type: 'infrastructure'
+        type: 'infrastructure',
       });
 
       factoryProcess.on('error', (error) => {
@@ -183,7 +181,7 @@ export class AutonomousCoordinator {
       });
 
       // Wait a bit for factory to connect to bridge
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       logger.info('✅ Meta-Agent Factory started successfully');
     } catch (error) {
@@ -199,10 +197,9 @@ export class AutonomousCoordinator {
   async spawnAutonomousAgent(config = {}) {
     const agentId = config.agentId || `ollama-agent-${randomUUID().slice(0, 8)}`;
 
-    const agentLockAcquired = await this.sessionLockManager.acquireLock(
-      `process:${agentId}`,
-      { timeout: 5000 }
-    );
+    const agentLockAcquired = await this.sessionLockManager.acquireLock(`process:${agentId}`, {
+      timeout: 5000,
+    });
 
     if (!agentLockAcquired) {
       logger.warn(`Agent ${agentId} already running`);
@@ -218,16 +215,16 @@ export class AutonomousCoordinator {
           ...process.env,
           AGENT_ID: agentId,
           OLLAMA_MODEL: config.model || 'llama3.1',
-          BRIDGE_WS: this.config.bridgeUrl
+          BRIDGE_WS: this.config.bridgeUrl,
         },
-        detached: false
+        detached: false,
       });
 
       this.processes.set(agentId, {
         process: agentProcess,
         startedAt: Date.now(),
         type: 'agent',
-        config
+        config,
       });
 
       agentProcess.on('error', (error) => {
@@ -242,7 +239,6 @@ export class AutonomousCoordinator {
 
       logger.info(`✅ Autonomous agent ${agentId} spawned`);
       return agentId;
-
     } catch (error) {
       logger.error(`Failed to spawn agent ${agentId}`, { error: error.message });
       await this.sessionLockManager.releaseLock(`process:${agentId}`);
@@ -263,10 +259,9 @@ export class AutonomousCoordinator {
 
     try {
       // Acquire session-level lock (across AI sessions)
-      const sessionLockAcquired = await this.sessionLockManager.acquireLock(
-        `file:${filePath}`,
-        { timeout: 30000 }
-      );
+      const sessionLockAcquired = await this.sessionLockManager.acquireLock(`file:${filePath}`, {
+        timeout: 30000,
+      });
 
       if (!sessionLockAcquired) {
         throw new Error(`Another AI session is working on ${filePath}`);
@@ -291,7 +286,6 @@ export class AutonomousCoordinator {
 
       logger.info(`✅ Completed ${operation} on ${filePath}`);
       return result;
-
     } finally {
       // Release locks in reverse order
       await this.fileLockManager.releaseLock(this.sessionId, filePath);
@@ -328,7 +322,7 @@ export class AutonomousCoordinator {
         return; // Bridge is ready
       } catch (error) {
         if (i < maxAttempts - 1) {
-          await new Promise(resolve => setTimeout(resolve, delayMs));
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
         }
       }
     }
@@ -347,13 +341,13 @@ export class AutonomousCoordinator {
         id,
         type: info.type,
         uptime: Date.now() - info.startedAt,
-        config: info.config
+        config: info.config,
       })),
       activeOperations: Array.from(this.activeOperations),
       locks: {
         session: this.sessionLockManager.locks.size,
-        file: this.fileLockManager.getStats()
-      }
+        file: this.fileLockManager.getStats(),
+      },
     };
   }
 
@@ -404,7 +398,8 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
   });
 
   // Start the coordinator
-  coordinator.initialize()
+  coordinator
+    .initialize()
     .then(() => {
       logger.info('\n🎯 Autonomous system ready!');
       logger.info('Status:', coordinator.getStatus());
@@ -413,14 +408,14 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
       if (process.argv.includes('--spawn-agent')) {
         return coordinator.spawnAutonomousAgent({
           model: 'llama3.1',
-          agentId: 'demo-agent'
+          agentId: 'demo-agent',
         });
       }
     })
     .then(() => {
       logger.info('\n✨ System running. Press Ctrl+C to shutdown.');
     })
-    .catch(error => {
+    .catch((error) => {
       logger.error('Failed to start autonomous system', { error: error.message });
       process.exit(1);
     });

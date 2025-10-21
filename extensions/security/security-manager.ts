@@ -11,7 +11,7 @@ export class SecurityManager {
   private config: SecurityConfig;
   private auditLogger: AuditLogger;
   private encryptionKey: Buffer;
-  
+
   constructor(config: SecurityConfig) {
     this.config = config;
     this.encryptionKey = this.generateEncryptionKey();
@@ -39,7 +39,7 @@ export class SecurityManager {
       "font-src 'self'",
       "object-src 'none'",
       "media-src 'none'",
-      "frame-src 'none'"
+      "frame-src 'none'",
     ].join('; ');
 
     this.setSecurityHeaders({
@@ -48,7 +48,7 @@ export class SecurityManager {
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
       'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
-      'Referrer-Policy': 'strict-origin-when-cross-origin'
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
     });
   }
 
@@ -61,21 +61,21 @@ export class SecurityManager {
       const cipher = createCipher('aes-256-cbc', this.encryptionKey);
       let encrypted = cipher.update(data, 'utf8', 'hex');
       encrypted += cipher.final('hex');
-      
+
       this.auditLogger.logSecurityEvent({
         type: 'DATA_ENCRYPTION',
         timestamp: new Date(),
         success: true,
-        metadata: { dataSize: data.length }
+        metadata: { dataSize: data.length },
       });
-      
+
       return iv.toString('hex') + ':' + encrypted;
     } catch (error) {
       this.auditLogger.logSecurityEvent({
         type: 'ENCRYPTION_FAILURE',
         timestamp: new Date(),
         success: false,
-        error: error.message
+        error: error.message,
       });
       throw new Error('Data encryption failed');
     }
@@ -89,23 +89,23 @@ export class SecurityManager {
       const [ivHex, encrypted] = encryptedData.split(':');
       const iv = Buffer.from(ivHex, 'hex');
       const decipher = createDecipher('aes-256-cbc', this.encryptionKey);
-      
+
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       this.auditLogger.logSecurityEvent({
         type: 'DATA_DECRYPTION',
         timestamp: new Date(),
-        success: true
+        success: true,
       });
-      
+
       return decrypted;
     } catch (error) {
       this.auditLogger.logSecurityEvent({
         type: 'DECRYPTION_FAILURE',
         timestamp: new Date(),
         success: false,
-        error: error.message
+        error: error.message,
       });
       throw new Error('Data decryption failed');
     }
@@ -125,7 +125,7 @@ export class SecurityManager {
             type: 'XSS_ATTEMPT_BLOCKED',
             timestamp: new Date(),
             success: true,
-            metadata: { input: input.substring(0, 100) }
+            metadata: { input: input.substring(0, 100) },
           });
           return false;
         }
@@ -137,7 +137,7 @@ export class SecurityManager {
             type: 'SQL_INJECTION_BLOCKED',
             timestamp: new Date(),
             success: true,
-            metadata: { input: input.substring(0, 100) }
+            metadata: { input: input.substring(0, 100) },
           });
           return false;
         }
@@ -150,7 +150,7 @@ export class SecurityManager {
         type: 'VALIDATION_ERROR',
         timestamp: new Date(),
         success: false,
-        error: error.message
+        error: error.message,
       });
       return false;
     }
@@ -171,7 +171,7 @@ export class SecurityManager {
       type: 'RATE_LIMIT_CHECK',
       timestamp: new Date(),
       success: true,
-      metadata: { clientId, action, timestamp: now }
+      metadata: { clientId, action, timestamp: now },
     });
 
     return true;
@@ -190,43 +190,43 @@ export class SecurityManager {
    */
   public generateSecurityReport(): SecurityReport {
     const events = this.auditLogger.getRecentEvents(24 * 60 * 60 * 1000); // Last 24 hours
-    
+
     return {
       timestamp: new Date(),
       totalEvents: events.length,
       securityScore: this.calculateSecurityScore(events),
-      threatsStopped: events.filter(e => e.type.includes('BLOCKED')).length,
-      encryptionEvents: events.filter(e => e.type.includes('ENCRYPTION')).length,
-      recommendations: this.generateSecurityRecommendations(events)
+      threatsStopped: events.filter((e) => e.type.includes('BLOCKED')).length,
+      encryptionEvents: events.filter((e) => e.type.includes('ENCRYPTION')).length,
+      recommendations: this.generateSecurityRecommendations(events),
     };
   }
 
   private calculateSecurityScore(events: SecurityEvent[]): number {
     const totalEvents = events.length;
-    const successfulEvents = events.filter(e => e.success).length;
-    const blockedThreats = events.filter(e => e.type.includes('BLOCKED')).length;
-    
+    const successfulEvents = events.filter((e) => e.success).length;
+    const blockedThreats = events.filter((e) => e.type.includes('BLOCKED')).length;
+
     if (totalEvents === 0) return 100;
-    
+
     const baseScore = (successfulEvents / totalEvents) * 100;
     const threatBonus = Math.min(blockedThreats * 2, 20); // Up to 20 bonus points
-    
+
     return Math.min(baseScore + threatBonus, 100);
   }
 
   private generateSecurityRecommendations(events: SecurityEvent[]): string[] {
     const recommendations = [];
-    
-    const failedEvents = events.filter(e => !e.success);
+
+    const failedEvents = events.filter((e) => !e.success);
     if (failedEvents.length > 0) {
       recommendations.push('Review and address failed security events');
     }
-    
-    const encryptionEvents = events.filter(e => e.type.includes('ENCRYPTION'));
+
+    const encryptionEvents = events.filter((e) => e.type.includes('ENCRYPTION'));
     if (encryptionEvents.length < events.length * 0.1) {
       recommendations.push('Consider encrypting more sensitive data');
     }
-    
+
     return recommendations;
   }
 }
@@ -244,7 +244,7 @@ class AuditLogger {
 
   logSecurityEvent(event: SecurityEvent): void {
     this.events.push(event);
-    
+
     // In production, this would write to secure log storage
     if (this.config.verbose) {
       console.log('Security Event:', JSON.stringify(event, null, 2));
@@ -253,7 +253,7 @@ class AuditLogger {
 
   getRecentEvents(timeRangeMs: number): SecurityEvent[] {
     const cutoff = Date.now() - timeRangeMs;
-    return this.events.filter(e => e.timestamp.getTime() > cutoff);
+    return this.events.filter((e) => e.timestamp.getTime() > cutoff);
   }
 }
 

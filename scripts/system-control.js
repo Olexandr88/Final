@@ -12,7 +12,7 @@ import { readFile } from 'fs/promises';
 const execAsync = promisify(exec);
 
 const ACTIONS = {
-  'status': {
+  status: {
     desc: 'Show complete system status',
     async run() {
       console.log('📊 LLM Framework System Status\n');
@@ -22,13 +22,13 @@ const ACTIONS = {
       try {
         const { stdout: branch } = await execAsync('git branch --show-current');
         const { stdout: status } = await execAsync('git status --short');
-        const lines = status.split('\n').filter(l => l.trim());
+        const lines = status.split('\n').filter((l) => l.trim());
 
         console.log('📂 Git:');
         console.log(`  Branch: ${branch.trim()}`);
-        console.log(`  Modified: ${lines.filter(l => l.startsWith(' M')).length}`);
-        console.log(`  Staged: ${lines.filter(l => l.startsWith('M ')).length}`);
-        console.log(`  Untracked: ${lines.filter(l => l.startsWith('??')).length}`);
+        console.log(`  Modified: ${lines.filter((l) => l.startsWith(' M')).length}`);
+        console.log(`  Staged: ${lines.filter((l) => l.startsWith('M ')).length}`);
+        console.log(`  Untracked: ${lines.filter((l) => l.startsWith('??')).length}`);
       } catch (err) {
         console.log('  ❌ Not a git repository');
       }
@@ -57,7 +57,7 @@ const ACTIONS = {
       console.log('📦 Node.js Processes:');
       try {
         const { stdout } = await execAsync('tasklist /FI "IMAGENAME eq node.exe" /NH');
-        const processes = stdout.split('\n').filter(l => l.includes('node.exe'));
+        const processes = stdout.split('\n').filter((l) => l.includes('node.exe'));
         console.log(`  Running: ${processes.length}`);
       } catch {
         console.log('  Running: 0');
@@ -75,24 +75,24 @@ const ACTIONS = {
       }
 
       console.log('\n' + '━'.repeat(60));
-    }
+    },
   },
 
-  'start': {
+  start: {
     desc: 'Start AI Bridge and agents',
     async run() {
       console.log('🚀 Starting AI Bridge System...\n');
 
       const proc = spawn('npm', ['run', 'system:start'], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
-  'stop': {
+  stop: {
     desc: 'Stop all AI Bridge processes',
     async run() {
       console.log('🛑 Stopping AI Bridge System...\n');
@@ -118,10 +118,10 @@ const ACTIONS = {
       } else {
         console.log(`\n  Stopped ${killed} process(es)`);
       }
-    }
+    },
   },
 
-  'test': {
+  test: {
     desc: 'Run quick tests',
     async run(args) {
       const pattern = args[0] || 'basic';
@@ -129,56 +129,56 @@ const ACTIONS = {
 
       const proc = spawn('npm', ['run', 'quick-test', pattern], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
-  'clean': {
+  clean: {
     desc: 'Clean workspace',
     async run() {
       console.log('🧹 Cleaning workspace...\n');
 
       const proc = spawn('npm', ['run', 'workspace:clean'], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
-  'diagnostic': {
+  diagnostic: {
     desc: 'Run full system diagnostic',
     async run() {
       console.log('🔍 Running diagnostics...\n');
 
       const proc = spawn('bash', ['scripts/ai-bridge-diagnostic.sh'], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
-  'dev': {
+  dev: {
     desc: 'Start development mode (bridge + watch)',
     async run() {
       console.log('💻 Starting development mode...\n');
 
       const proc = spawn('npm', ['run', 'dev'], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
-  'reset': {
+  reset: {
     desc: 'Complete reset (stop + clean + status)',
     async run() {
       console.log('🔄 Resetting system...\n');
@@ -188,10 +188,10 @@ const ACTIONS = {
       await ACTIONS.clean.run();
       console.log('');
       await ACTIONS.status.run();
-    }
+    },
   },
 
-  'health': {
+  health: {
     desc: 'Quick health check',
     async run() {
       console.log('❤️  Health Check\n');
@@ -221,10 +221,10 @@ const ACTIONS = {
       }
 
       console.log('\n' + '━'.repeat(60));
-    }
+    },
   },
 
-  'quick': {
+  quick: {
     desc: 'Quick workflow: stop + clean + test + start',
     async run() {
       console.log('⚡ Quick Workflow\n');
@@ -240,10 +240,10 @@ const ACTIONS = {
 
       console.log('\n4️⃣  Starting system...');
       await ACTIONS.start.run();
-    }
+    },
   },
 
-  'info': {
+  info: {
     desc: 'Show system information',
     async run() {
       console.log('ℹ️  System Information\n');
@@ -273,8 +273,8 @@ const ACTIONS = {
       }
 
       console.log('\n' + '━'.repeat(60));
-    }
-  }
+    },
+  },
 };
 
 async function main() {
@@ -309,7 +309,7 @@ async function main() {
   console.log('\n✨ Done!');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

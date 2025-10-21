@@ -162,7 +162,7 @@ test('direct envelopes queue for offline agents', async () => {
     );
 
     // Give the server a moment to queue the message
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Create a WebSocket and set up message listener BEFORE registration completes
     const ws = new WebSocket(`ws://127.0.0.1:${server.ports.ws}`);
@@ -176,11 +176,13 @@ test('direct envelopes queue for offline agents', async () => {
     );
 
     // Now register (which triggers queued message delivery)
-    ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'docs',
-      role: 'documentation',
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'docs',
+        role: 'documentation',
+      })
+    );
 
     // Wait for registration response
     await new Promise((resolve, reject) => {

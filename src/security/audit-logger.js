@@ -13,7 +13,7 @@ export class AuditLogger {
       auditLogPath: config.auditLogPath || path.join(process.cwd(), 'logs', 'audit.jsonl'),
       retentionDays: config.retentionDays || 90,
       encryptLogs: config.encryptLogs || false,
-      ...config
+      ...config,
     };
 
     this.buffer = [];
@@ -35,7 +35,7 @@ export class AuditLogger {
       result: event.result,
       details: event.details,
       ip: event.ip,
-      userAgent: event.userAgent
+      userAgent: event.userAgent,
     };
 
     this.buffer.push(auditEntry);
@@ -47,7 +47,7 @@ export class AuditLogger {
 
     logger.info('Audit event logged', {
       type: event.type,
-      severity: event.severity
+      severity: event.severity,
     });
   }
 
@@ -61,7 +61,7 @@ export class AuditLogger {
     this.buffer = [];
 
     try {
-      const data = entries.map(e => JSON.stringify(e)).join('\n') + '\n';
+      const data = entries.map((e) => JSON.stringify(e)).join('\n') + '\n';
 
       // Ensure directory exists
       const dir = path.dirname(this.config.auditLogPath);
@@ -72,7 +72,7 @@ export class AuditLogger {
       logger.debug(`Flushed ${entries.length} audit entries`);
     } catch (error) {
       logger.error('Failed to flush audit log', {
-        error: error.message
+        error: error.message,
       });
       // Put entries back in buffer
       this.buffer.unshift(...entries);
@@ -89,33 +89,33 @@ export class AuditLogger {
       const data = await fs.readFile(this.config.auditLogPath, 'utf8');
       const lines = data.split('\n').filter(Boolean);
 
-      let results = lines.map(line => JSON.parse(line));
+      let results = lines.map((line) => JSON.parse(line));
 
       // Filter by criteria
       if (criteria.agentId) {
-        results = results.filter(e => e.agentId === criteria.agentId);
+        results = results.filter((e) => e.agentId === criteria.agentId);
       }
 
       if (criteria.eventType) {
-        results = results.filter(e => e.eventType === criteria.eventType);
+        results = results.filter((e) => e.eventType === criteria.eventType);
       }
 
       if (criteria.severity) {
-        results = results.filter(e => e.severity === criteria.severity);
+        results = results.filter((e) => e.severity === criteria.severity);
       }
 
       if (criteria.startDate) {
-        results = results.filter(e => new Date(e.timestamp) >= new Date(criteria.startDate));
+        results = results.filter((e) => new Date(e.timestamp) >= new Date(criteria.startDate));
       }
 
       if (criteria.endDate) {
-        results = results.filter(e => new Date(e.timestamp) <= new Date(criteria.endDate));
+        results = results.filter((e) => new Date(e.timestamp) <= new Date(criteria.endDate));
       }
 
       return results;
     } catch (error) {
       logger.error('Failed to query audit log', {
-        error: error.message
+        error: error.message,
       });
       return [];
     }

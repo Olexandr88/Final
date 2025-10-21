@@ -2,7 +2,7 @@ name: Cloudflare DNS Health
 on:
   workflow_dispatch:
   schedule:
-    - cron: "17 * * * *"
+    - cron: '17 * * * *'
 jobs:
   dns-health:
     runs-on: ubuntu-latest
@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: '3.12'
       - name: Install deps
         run: pip install -r requirements-automation.txt
       - name: DNS Health

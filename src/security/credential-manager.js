@@ -48,7 +48,7 @@ export class CredentialManager {
     this.credentials.set(key, {
       encrypted,
       iv: iv.toString('hex'),
-      authTag: authTag.toString('hex')
+      authTag: authTag.toString('hex'),
     });
 
     logger.info('Credential stored', { key });
@@ -122,7 +122,7 @@ export class CredentialManager {
         findings.push({
           pattern: pattern.source,
           position: match.index,
-          length: match[0].length
+          length: match[0].length,
         });
       }
     }

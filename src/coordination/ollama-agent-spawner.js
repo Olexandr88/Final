@@ -8,6 +8,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
+import fetch from 'node-fetch';
 import { logger } from '../utils/logger.js';
 import { fileURLToPath } from 'url';
 
@@ -17,6 +18,12 @@ const __dirname = path.dirname(__filename);
 const PROJECT_ROOT = path.join(__dirname, '..', '..');
 const LOCK_DIR = path.join(PROJECT_ROOT, '.agent-locks');
 const AGENTS_DIR = path.join(PROJECT_ROOT, 'src', 'agents');
+const DEFAULT_OLLAMA_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+
+const fetchApi = globalThis.fetch ?? fetch;
+if (!globalThis.fetch) {
+  globalThis.fetch = fetchApi;
+}
 
 /**
  * Ollama Agent Spawner
@@ -26,6 +33,7 @@ export class OllamaAgentSpawner {
   constructor() {
     this.spawnedAgents = new Map(); // agentId -> { process, config, lockFile }
     this.initialized = false;
+    this.modelReadiness = new Map(); // model -> readiness promise
   }
 
   /**
@@ -114,6 +122,75 @@ export class OllamaAgentSpawner {
   }
 
   /**
+   * Wait for Ollama service and requested model to become available.
+   * @param {string} model - Model name to validate.
+   */
+  async ensureOllamaReady(model) {
+    if (!model) {
+      model = process.env.OLLAMA_MODEL || 'llama2';
+    }
+
+    if (!this.modelReadiness.has(model)) {
+      this.modelReadiness.set(model, this._checkOllamaReadiness(model));
+    }
+
+    return this.modelReadiness.get(model);
+  }
+
+  async _checkOllamaReadiness(model) {
+    const maxAttempts = parseInt(process.env.OLLAMA_BOOT_ATTEMPTS || '5', 10);
+    const baseDelay = parseInt(process.env.OLLAMA_BOOT_DELAY || '2000', 10);
+    const ollamaUrl = process.env.OLLAMA_BASE_URL || DEFAULT_OLLAMA_URL;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const tags = await this._fetchOllamaTags(ollamaUrl);
+      if (tags) {
+        const modelExists = (tags.models || []).some(
+          (entry) => entry.name === model || entry.name === `${model}:latest`
+        );
+        if (!modelExists) {
+          logger.error(`?? Ollama model "${model}" is not available.`);
+          logger.info('   • Install the model locally:');
+          logger.info(`     ollama pull ${model}`);
+          throw new Error(
+            `Ollama model "${model}" not found. Pull it with "ollama pull ${model}".`
+          );
+        }
+
+        logger.info(`? Ollama service ready with model "${model}"`);
+        return true;
+      }
+
+      const delay = baseDelay * attempt;
+      logger.warn(
+        `??  Ollama service not reachable (attempt ${attempt}/${maxAttempts}). Retrying in ${(delay / 1000).toFixed(1)}s...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    throw new Error(
+      `Ollama service at ${ollamaUrl} is not reachable after ${maxAttempts} attempts.`
+    );
+  }
+
+  async _fetchOllamaTags(ollamaUrl) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    try {
+      const response = await fetchApi(`${ollamaUrl}/api/tags`, { signal: controller.signal });
+      if (!response.ok) {
+        return null;
+      }
+      return await response.json();
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  /**
    * Spawn a new autonomous Ollama agent
    * @param {Object} config - Agent configuration
    * @returns {Promise<Object>} Spawned agent info
@@ -133,11 +210,17 @@ export class OllamaAgentSpawner {
         'file.read',
         'file.write',
         'command.execute',
-        'test.run'
-      ]
+        'test.run',
+      ],
     } = config;
 
+    await this.ensureOllamaReady(model);
+
     // Check if agent is already locked
+    if (this.spawnedAgents.has(agentId)) {
+      throw new Error(`Agent ${agentId} is already running`);
+    }
+
     if (await this.isAgentLocked(agentId)) {
       throw new Error(`Agent ${agentId} is already locked by another session`);
     }
@@ -152,7 +235,7 @@ export class OllamaAgentSpawner {
       logger.info(`🚀 Spawning Ollama agent: ${agentId}`, {
         model,
         bridgeUrl,
-        agentScript
+        agentScript,
       });
 
       const agentProcess = spawn('node', [agentScript], {
@@ -162,10 +245,10 @@ export class OllamaAgentSpawner {
           OLLAMA_MODEL: model,
           BRIDGE_WS: bridgeUrl,
           AGENT_INTENTS: JSON.stringify(intents),
-          SESSION_ID: sessionId
+          SESSION_ID: sessionId,
         },
         stdio: ['ignore', 'pipe', 'pipe'],
-        detached: false
+        detached: false,
       });
 
       // Track spawned agent
@@ -176,11 +259,11 @@ export class OllamaAgentSpawner {
           model,
           bridgeUrl,
           intents,
-          sessionId
+          sessionId,
         },
         lockFile,
         spawnedAt: new Date().toISOString(),
-        status: 'starting'
+        status: 'starting',
       });
 
       // Handle process output
@@ -210,7 +293,7 @@ export class OllamaAgentSpawner {
       });
 
       // Wait for agent to connect (give it 5 seconds)
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       const agentInfo = this.spawnedAgents.get(agentId);
       if (agentInfo) {
@@ -228,13 +311,46 @@ export class OllamaAgentSpawner {
         sessionId,
         lockFile,
         pid: agentProcess.pid,
-        status: 'running'
+        status: 'running',
       };
     } catch (error) {
       // Release lock on failure
       await this.releaseLock(agentId);
       throw error;
     }
+  }
+
+  /**
+   * Spawn a pool of Ollama agents that share the same configuration.
+   * @param {Object} config - Pool configuration (count, baseId, model, etc.).
+   * @returns {Promise<Array<Object>>} Pool spawn results
+   */
+  async spawnAgentPool(config = {}) {
+    const {
+      count = 1,
+      baseId = config.agentId || config.baseId,
+      staggerMs = parseInt(process.env.OLLAMA_POOL_STAGGER || '500', 10),
+      ...singleConfig
+    } = config;
+
+    if (count < 1) {
+      throw new Error('Pool size must be at least 1');
+    }
+
+    const results = [];
+    for (let index = 0; index < count; index++) {
+      if (index > 0 && staggerMs > 0) {
+        await new Promise((resolve) => setTimeout(resolve, staggerMs));
+      }
+      const derivedId = baseId ? `${baseId}-${index + 1}` : undefined;
+      const spawnResult = await this.spawnAgent({
+        ...singleConfig,
+        agentId: derivedId,
+      });
+      results.push(spawnResult);
+    }
+
+    return results;
   }
 
   /**
@@ -278,7 +394,7 @@ export class OllamaAgentSpawner {
       return {
         success: true,
         agentId,
-        message: 'Agent killed successfully'
+        message: 'Agent killed successfully',
       };
     } catch (error) {
       logger.error(`Failed to kill agent ${agentId}`, { error: error.message });
@@ -301,7 +417,7 @@ export class OllamaAgentSpawner {
         sessionId: info.config.sessionId,
         spawnedAt: info.spawnedAt,
         pid: info.process.pid,
-        lockFile: info.lockFile
+        lockFile: info.lockFile,
       });
     }
 
@@ -317,9 +433,11 @@ export class OllamaAgentSpawner {
     const killPromises = [];
 
     for (const agentId of this.spawnedAgents.keys()) {
-      killPromises.push(this.killAgent(agentId).catch(err => {
-        logger.error(`Failed to kill agent ${agentId}`, { error: err.message });
-      }));
+      killPromises.push(
+        this.killAgent(agentId).catch((err) => {
+          logger.error(`Failed to kill agent ${agentId}`, { error: err.message });
+        })
+      );
     }
 
     await Promise.all(killPromises);
@@ -375,9 +493,24 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
       case 'spawn':
         const result = await ollamaAgentSpawner.spawnAgent({
           agentId: process.argv[3] || undefined,
-          model: process.argv[4] || undefined
+          model: process.argv[4] || undefined,
         });
         console.log('Agent spawned:', result);
+        break;
+
+      case 'spawn-pool':
+        const baseId = process.argv[3] || 'ollama-agent';
+        const count = parseInt(process.argv[4] || '2', 10);
+        if (Number.isNaN(count) || count < 1) {
+          console.error('Usage: node ollama-agent-spawner.js spawn-pool <baseId> <count> [model]');
+          process.exit(1);
+        }
+        const poolResult = await ollamaAgentSpawner.spawnAgentPool({
+          baseId,
+          count,
+          model: process.argv[5] || undefined,
+        });
+        console.log('Agent pool spawned:', poolResult);
         break;
 
       case 'list':
@@ -396,6 +529,12 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
         process.exit(0);
         break;
 
+      case 'kill-all':
+        await ollamaAgentSpawner.killAll();
+        console.log('All agents killed');
+        process.exit(0);
+        break;
+
       case 'cleanup':
         await ollamaAgentSpawner.cleanupStaleLocks();
         console.log('Stale locks cleaned up');
@@ -405,12 +544,14 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
       default:
         console.log('Usage:');
         console.log('  node ollama-agent-spawner.js spawn [agentId] [model]');
+        console.log('  node ollama-agent-spawner.js spawn-pool <baseId> <count> [model]');
         console.log('  node ollama-agent-spawner.js list');
         console.log('  node ollama-agent-spawner.js kill <agentId>');
+        console.log('  node ollama-agent-spawner.js kill-all');
         console.log('  node ollama-agent-spawner.js cleanup');
         process.exit(1);
     }
-  })().catch(error => {
+  })().catch((error) => {
     console.error('Error:', error.message);
     process.exit(1);
   });

@@ -24,7 +24,7 @@ class PrismaMetrics {
       this.slowQueries.push({
         query: query.slice(0, 200),
         duration,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       // Keep only last 50 slow queries
@@ -44,7 +44,7 @@ class PrismaMetrics {
       avgDuration: this.queryCount > 0 ? (this.totalDuration / this.queryCount).toFixed(2) : 0,
       slowQueryCount: this.slowQueries.length,
       errors: this.errors,
-      recentSlowQueries: this.slowQueries.slice(-5)
+      recentSlowQueries: this.slowQueries.slice(-5),
     };
   }
 
@@ -74,16 +74,16 @@ function createPrismaClient() {
     log: [
       { level: 'warn', emit: 'event' },
       { level: 'error', emit: 'event' },
-      { level: 'query', emit: 'event' }
+      { level: 'query', emit: 'event' },
     ],
     errorFormat: 'minimal',
 
     // Connection pooling configuration
     datasources: {
       db: {
-        url: process.env.DATABASE_URL || 'file:./data/llm-framework.db'
-      }
-    }
+        url: process.env.DATABASE_URL || 'file:./data/llm-framework.db',
+      },
+    },
   });
 
   // Log warnings and errors through Winston
@@ -105,7 +105,7 @@ function createPrismaClient() {
       logger.warn('Slow Prisma query detected', {
         query: e.query.slice(0, 200),
         duration: e.duration,
-        params: e.params
+        params: e.params,
       });
     }
   });
@@ -122,7 +122,7 @@ function createPrismaClient() {
         logger.debug('Prisma operation', {
           model: params.model,
           action: params.action,
-          duration
+          duration,
         });
       }
 
@@ -132,7 +132,7 @@ function createPrismaClient() {
       logger.error('Prisma middleware error', {
         model: params.model,
         action: params.action,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -141,7 +141,7 @@ function createPrismaClient() {
   logger.info('Prisma client initialized with optimizations', {
     datasource: process.env.DATABASE_URL || 'default',
     pooling: 'enabled',
-    monitoring: 'enabled'
+    monitoring: 'enabled',
   });
 
   return client;
@@ -191,15 +191,9 @@ export async function withRetry(fn, maxRetries = 3) {
       lastError = error;
 
       // Only retry on specific transient errors
-      const retryableErrors = [
-        'SQLITE_BUSY',
-        'SQLITE_LOCKED',
-        'Connection pool timeout'
-      ];
+      const retryableErrors = ['SQLITE_BUSY', 'SQLITE_LOCKED', 'Connection pool timeout'];
 
-      const isRetryable = retryableErrors.some(msg =>
-        error.message.includes(msg)
-      );
+      const isRetryable = retryableErrors.some((msg) => error.message.includes(msg));
 
       if (!isRetryable || attempt === maxRetries) {
         throw error;
@@ -207,13 +201,13 @@ export async function withRetry(fn, maxRetries = 3) {
 
       // Exponential backoff
       const delay = Math.min(100 * Math.pow(2, attempt - 1), 1000);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      await new Promise((resolve) => setTimeout(resolve, delay));
 
       logger.debug('Retrying Prisma operation', {
         attempt,
         maxRetries,
         delay,
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -231,10 +225,10 @@ export async function batchOperations(operations) {
 
   // Use Prisma's $transaction for atomic batch execution
   return client.$transaction(
-    operations.map(op => op(client)),
+    operations.map((op) => op(client)),
     {
       maxWait: 5000, // Maximum wait time in ms
-      timeout: 10000 // Maximum execution time in ms
+      timeout: 10000, // Maximum execution time in ms
     }
   );
 }
@@ -251,7 +245,7 @@ export async function disconnectPrisma(timeout = 5000) {
         prisma.$disconnect(),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error('Disconnect timeout')), timeout)
-        )
+        ),
       ]);
 
       prisma = null;

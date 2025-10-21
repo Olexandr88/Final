@@ -29,7 +29,7 @@ export class PluginManager {
       hooks = [],
       mcpServers = [],
       slashCommands = [],
-      claudeMd
+      claudeMd,
     } = config;
 
     const pluginPath = path.join(this.pluginDir, name);
@@ -42,7 +42,7 @@ export class PluginManager {
         description,
         author,
         type: 'claude-code-plugin',
-        main: 'index.js'
+        main: 'index.js',
       },
       'index.js': this._generatePluginIndex(config),
       'agents/': agents,
@@ -50,7 +50,7 @@ export class PluginManager {
       'mcp/': mcpServers,
       'commands/': slashCommands,
       'CLAUDE.md': claudeMd || '',
-      'README.md': this._generateReadme(config)
+      'README.md': this._generateReadme(config),
     };
 
     // Write plugin files
@@ -70,9 +70,7 @@ export class PluginManager {
         }
       } else {
         // File
-        const data = typeof content === 'object'
-          ? JSON.stringify(content, null, 2)
-          : content;
+        const data = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
         await fs.promises.writeFile(filePath, data, 'utf-8');
       }
     }
@@ -96,7 +94,10 @@ export class PluginManager {
       pluginPath = await this._downloadPlugin(nameOrPath, options);
     }
 
-    const packageJsonContent = await fs.promises.readFile(path.join(pluginPath, 'package.json'), 'utf-8');
+    const packageJsonContent = await fs.promises.readFile(
+      path.join(pluginPath, 'package.json'),
+      'utf-8'
+    );
     const packageJson = JSON.parse(packageJsonContent);
 
     // Install plugin components
@@ -110,7 +111,7 @@ export class PluginManager {
       name: packageJson.name,
       version: packageJson.version,
       path: pluginPath,
-      installedAt: Date.now()
+      installedAt: Date.now(),
     });
 
     console.log(`✓ Plugin installed: ${packageJson.name}@${packageJson.version}`);
@@ -151,16 +152,22 @@ export class PluginManager {
    * Package plugin for distribution
    */
   async packagePlugin(pluginPath, outputPath) {
-    const packageJsonContent = await fs.promises.readFile(path.join(pluginPath, 'package.json'), 'utf-8');
+    const packageJsonContent = await fs.promises.readFile(
+      path.join(pluginPath, 'package.json'),
+      'utf-8'
+    );
     const packageJson = JSON.parse(packageJsonContent);
 
     const tarballName = `${packageJson.name.replace('@claude-plugin/', '')}-${packageJson.version}.tgz`;
     const tarballPath = path.join(outputPath, tarballName);
 
     // Create tarball
-    execSync(`tar -czf "${tarballPath}" -C "${path.dirname(pluginPath)}" "${path.basename(pluginPath)}"`, {
-      stdio: 'inherit'
-    });
+    execSync(
+      `tar -czf "${tarballPath}" -C "${path.dirname(pluginPath)}" "${path.basename(pluginPath)}"`,
+      {
+        stdio: 'inherit',
+      }
+    );
 
     console.log(`✓ Plugin packaged: ${tarballPath}`);
 
@@ -171,14 +178,19 @@ export class PluginManager {
    * Publish plugin to registry
    */
   async publishPlugin(pluginPath, options = {}) {
-    const packageJsonContent = await fs.promises.readFile(path.join(pluginPath, 'package.json'), 'utf-8');
+    const packageJsonContent = await fs.promises.readFile(
+      path.join(pluginPath, 'package.json'),
+      'utf-8'
+    );
     const packageJson = JSON.parse(packageJsonContent);
 
     // Package plugin
     const tarballPath = await this.packagePlugin(pluginPath, path.dirname(pluginPath));
 
     // Upload to registry (placeholder - would integrate with actual registry API)
-    console.log(`Publishing ${packageJson.name}@${packageJson.version} to ${this.pluginRegistry}...`);
+    console.log(
+      `Publishing ${packageJson.name}@${packageJson.version} to ${this.pluginRegistry}...`
+    );
 
     // In real implementation, would upload tarball to registry
     // const response = await fetch(`${this.pluginRegistry}/publish`, {
@@ -243,11 +255,11 @@ claude plugin install ${config.name}
 
 ## Features
 
-${config.agents?.length ? `### Sub-Agents\n${config.agents.map(a => `- **${a.name}**: ${a.description}`).join('\n')}` : ''}
+${config.agents?.length ? `### Sub-Agents\n${config.agents.map((a) => `- **${a.name}**: ${a.description}`).join('\n')}` : ''}
 
-${config.hooks?.length ? `\n### Hooks\n${config.hooks.map(h => `- **${h.event}**: ${h.description}`).join('\n')}` : ''}
+${config.hooks?.length ? `\n### Hooks\n${config.hooks.map((h) => `- **${h.event}**: ${h.description}`).join('\n')}` : ''}
 
-${config.mcpServers?.length ? `\n### MCP Integrations\n${config.mcpServers.map(m => `- **${m.name}**: ${m.description}`).join('\n')}` : ''}
+${config.mcpServers?.length ? `\n### MCP Integrations\n${config.mcpServers.map((m) => `- **${m.name}**: ${m.description}`).join('\n')}` : ''}
 
 ## Usage
 
@@ -384,10 +396,18 @@ ${config.author}
   /**
    * Remove plugin components (stub implementations)
    */
-  async _removeAgents(pluginPath) { /* Implementation */ }
-  async _removeHooks(pluginPath) { /* Implementation */ }
-  async _removeMcpServers(pluginPath) { /* Implementation */ }
-  async _removeCommands(pluginPath) { /* Implementation */ }
+  async _removeAgents(pluginPath) {
+    /* Implementation */
+  }
+  async _removeHooks(pluginPath) {
+    /* Implementation */
+  }
+  async _removeMcpServers(pluginPath) {
+    /* Implementation */
+  }
+  async _removeCommands(pluginPath) {
+    /* Implementation */
+  }
 
   /**
    * Ensure required directories exist

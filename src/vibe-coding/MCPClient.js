@@ -24,7 +24,7 @@ export class MCPClient extends EventEmitter {
       scope = this.defaultScope,
       tools = [],
       resources = [],
-      enabled = true
+      enabled = true,
     } = config;
 
     if (this.servers.has(name)) {
@@ -40,7 +40,7 @@ export class MCPClient extends EventEmitter {
       resources,
       enabled,
       connected: false,
-      lastConnected: null
+      lastConnected: null,
     };
 
     this.servers.set(name, server);
@@ -119,7 +119,7 @@ export class MCPClient extends EventEmitter {
       throw new Error(`Not connected to ${serverName}`);
     }
 
-    const tool = connection.tools.find(t => t.name === toolName);
+    const tool = connection.tools.find((t) => t.name === toolName);
     if (!tool) {
       throw new Error(`Tool ${toolName} not found on ${serverName}`);
     }
@@ -172,7 +172,7 @@ export class MCPClient extends EventEmitter {
           name: tool.name,
           fullName: `mcp__${serverName}__${tool.name}`,
           description: tool.description,
-          parameters: tool.parameters
+          parameters: tool.parameters,
         });
       }
     }
@@ -192,7 +192,7 @@ export class MCPClient extends EventEmitter {
           server: serverName,
           uri: resource.uri,
           type: resource.type,
-          description: resource.description
+          description: resource.description,
         });
       }
     }
@@ -206,13 +206,15 @@ export class MCPClient extends EventEmitter {
   getServerStatus(serverName = null) {
     if (serverName) {
       const server = this.servers.get(serverName);
-      return server ? {
-        name: server.name,
-        connected: server.connected,
-        url: server.url,
-        scope: server.scope,
-        toolCount: this.connections.get(serverName)?.tools.length || 0
-      } : null;
+      return server
+        ? {
+            name: server.name,
+            connected: server.connected,
+            url: server.url,
+            scope: server.scope,
+            toolCount: this.connections.get(serverName)?.tools.length || 0,
+          }
+        : null;
     }
 
     const status = {};
@@ -221,7 +223,7 @@ export class MCPClient extends EventEmitter {
         connected: server.connected,
         url: server.url,
         scope: server.scope,
-        toolCount: this.connections.get(name)?.tools.length || 0
+        toolCount: this.connections.get(name)?.tools.length || 0,
       };
     }
     return status;
@@ -274,18 +276,18 @@ export class MCPClient extends EventEmitter {
             type: 'object',
             properties: {
               endpoint: { type: 'string' },
-              params: { type: 'object' }
-            }
-          }
-        }
+              params: { type: 'object' },
+            },
+          },
+        },
       ],
       resources: [
         {
           uri: `${server.url}/docs`,
           type: 'documentation',
-          description: 'API documentation'
-        }
-      ]
+          description: 'API documentation',
+        },
+      ],
     };
   }
 
@@ -304,7 +306,7 @@ export class MCPClient extends EventEmitter {
     return {
       success: true,
       data: { message: `Tool ${tool.name} executed` },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -317,7 +319,7 @@ export class MCPClient extends EventEmitter {
       uri: resourceUri,
       content: 'Resource content',
       type: 'text/plain',
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 

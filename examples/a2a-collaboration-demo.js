@@ -18,7 +18,7 @@ const colors = {
   blue: '\x1b[34m',
   yellow: '\x1b[33m',
   cyan: '\x1b[36m',
-  magenta: '\x1b[35m'
+  magenta: '\x1b[35m',
 };
 
 const log = {
@@ -26,7 +26,7 @@ const log = {
   success: (msg) => console.log(`${colors.green}✓${colors.reset} ${msg}`),
   warning: (msg) => console.log(`${colors.yellow}⚠${colors.reset} ${msg}`),
   agent: (name, msg) => console.log(`${colors.cyan}[${name}]${colors.reset} ${msg}`),
-  workflow: (msg) => console.log(`${colors.magenta}→${colors.reset} ${msg}`)
+  workflow: (msg) => console.log(`${colors.magenta}→${colors.reset} ${msg}`),
 };
 
 class A2ACollaborationDemo {
@@ -36,7 +36,7 @@ class A2ACollaborationDemo {
 
   async registerAgent(agentId, capabilities) {
     log.info(`Registering agent: ${agentId}`);
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/register`, {
         method: 'POST',
@@ -46,9 +46,9 @@ class A2ACollaborationDemo {
           capabilities,
           metadata: {
             version: '1.0.0',
-            registered_at: new Date().toISOString()
-          }
-        })
+            registered_at: new Date().toISOString(),
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -67,7 +67,7 @@ class A2ACollaborationDemo {
 
   async sendMessage(from, to, payload) {
     log.agent(from, `Sending message to ${to}`);
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/message`, {
         method: 'POST',
@@ -76,8 +76,8 @@ class A2ACollaborationDemo {
           type: 'query',
           from,
           to,
-          payload
-        })
+          payload,
+        }),
       });
 
       if (!response.ok) {
@@ -96,7 +96,7 @@ class A2ACollaborationDemo {
   async initiateCollaboration(agents, task, data) {
     log.workflow(`Initiating collaboration: ${task}`);
     log.info(`Participating agents: ${agents.join(', ')}`);
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/collaborate`, {
         method: 'POST',
@@ -105,8 +105,8 @@ class A2ACollaborationDemo {
           type: 'collaborative-task',
           agents,
           task,
-          data
-        })
+          data,
+        }),
       });
 
       if (!response.ok) {
@@ -126,7 +126,7 @@ class A2ACollaborationDemo {
   async executeWorkflow(workflowId, steps, input) {
     log.workflow(`Executing workflow: ${workflowId}`);
     log.info(`Total steps: ${steps.length}`);
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/workflow`, {
         method: 'POST',
@@ -137,9 +137,9 @@ class A2ACollaborationDemo {
           input,
           retry_policy: {
             max_retries: 3,
-            backoff: 'exponential'
-          }
-        })
+            backoff: 'exponential',
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -148,11 +148,11 @@ class A2ACollaborationDemo {
 
       const result = await response.json();
       log.success(`Workflow ${result.workflow_id} status: ${result.status}`);
-      
+
       if (result.status === 'retrying') {
         log.warning(`Workflow is retrying (attempt ${result.retry_count})`);
       }
-      
+
       return result;
     } catch (error) {
       log.warning(`Workflow execution failed: ${error.message}`);
@@ -162,7 +162,7 @@ class A2ACollaborationDemo {
 
   async runE2EWorkflow(agentId, workflowName, query) {
     log.workflow(`Running E2E workflow: ${workflowName}`);
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/e2e-workflow`, {
         method: 'POST',
@@ -175,11 +175,11 @@ class A2ACollaborationDemo {
               { stage: 'a2a-routing', action: 'route_to_specialist' },
               { stage: 'bridge-coordination', action: 'coordinate_llms' },
               { stage: 'llm-execution', action: 'execute_query' },
-              { stage: 'response-aggregation', action: 'aggregate_results' }
-            ]
+              { stage: 'response-aggregation', action: 'aggregate_results' },
+            ],
           },
-          query
-        })
+          query,
+        }),
       });
 
       if (!response.ok) {
@@ -187,7 +187,7 @@ class A2ACollaborationDemo {
       }
 
       const result = await response.json();
-      
+
       if (result.workflow_completed) {
         log.success(`Workflow completed in ${result.final_response.execution_time}`);
         log.success(`Steps executed: ${result.steps_executed}`);
@@ -195,7 +195,7 @@ class A2ACollaborationDemo {
       } else {
         log.warning(`Workflow incomplete`);
       }
-      
+
       return result;
     } catch (error) {
       log.warning(`E2E workflow failed: ${error.message}`);
@@ -205,10 +205,10 @@ class A2ACollaborationDemo {
 
   async checkHealth() {
     log.info('Checking A2A server health...');
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/health`);
-      
+
       if (!response.ok) {
         throw new Error(`Health check failed: ${response.statusText}`);
       }
@@ -218,7 +218,7 @@ class A2ACollaborationDemo {
       log.info(`Protocol: ${health.protocol}`);
       log.info(`Active agents: ${health.active_agents}`);
       log.info(`Active workflows: ${health.active_workflows}`);
-      
+
       return health;
     } catch (error) {
       log.warning(`Health check failed: ${error.message}`);
@@ -230,46 +230,42 @@ class A2ACollaborationDemo {
 // Demo scenarios
 async function demoBasicCommunication(demo) {
   console.log(`\n${colors.bright}=== Demo 1: Basic Agent Communication ===${colors.reset}\n`);
-  
+
   await demo.registerAgent('research-agent', ['research', 'analysis', 'summarization']);
   await demo.registerAgent('coding-agent', ['code-generation', 'debugging', 'refactoring']);
-  
-  await demo.sendMessage(
-    'research-agent',
-    'coding-agent',
-    { 
-      request: 'code-review',
-      code: 'function add(a, b) { return a + b; }'
-    }
-  );
+
+  await demo.sendMessage('research-agent', 'coding-agent', {
+    request: 'code-review',
+    code: 'function add(a, b) { return a + b; }',
+  });
 }
 
 async function demoMultiAgentCollaboration(demo) {
   console.log(`\n${colors.bright}=== Demo 2: Multi-Agent Collaboration ===${colors.reset}\n`);
-  
+
   await demo.registerAgent('claude-agent', ['reasoning', 'analysis']);
   await demo.registerAgent('ollama-agent', ['local-processing', 'inference']);
   await demo.registerAgent('coordinator-agent', ['orchestration', 'routing']);
-  
+
   await demo.initiateCollaboration(
     ['claude-agent', 'ollama-agent', 'coordinator-agent'],
     'Analyze system architecture and suggest improvements',
     {
       system: 'LLM Integration Framework',
-      focus_areas: ['performance', 'scalability', 'maintainability']
+      focus_areas: ['performance', 'scalability', 'maintainability'],
     }
   );
 }
 
 async function demoWorkflowOrchestration(demo) {
   console.log(`\n${colors.bright}=== Demo 3: AI Workflow Orchestration ===${colors.reset}\n`);
-  
+
   const workflow = [
     { provider: 'ollama', action: 'initial_analysis', model: 'llama2' },
     { provider: 'claude', action: 'refinement' },
-    { provider: 'ollama', action: 'validation' }
+    { provider: 'ollama', action: 'validation' },
   ];
-  
+
   await demo.executeWorkflow(
     'multi-llm-workflow-1',
     workflow,
@@ -279,9 +275,9 @@ async function demoWorkflowOrchestration(demo) {
 
 async function demoEndToEndFlow(demo) {
   console.log(`\n${colors.bright}=== Demo 4: End-to-End Agent Flow ===${colors.reset}\n`);
-  
+
   await demo.registerAgent('orchestrator-agent', ['orchestration', 'coordination']);
-  
+
   await demo.runE2EWorkflow(
     'orchestrator-agent',
     'complete-ai-pipeline',
@@ -291,31 +287,41 @@ async function demoEndToEndFlow(demo) {
 
 // Main execution
 async function main() {
-  console.log(`\n${colors.bright}${colors.cyan}╔════════════════════════════════════════════╗${colors.reset}`);
-  console.log(`${colors.bright}${colors.cyan}║  A2A Collaboration & Orchestration Demo   ║${colors.reset}`);
-  console.log(`${colors.bright}${colors.cyan}╚════════════════════════════════════════════╝${colors.reset}\n`);
-  
+  console.log(
+    `\n${colors.bright}${colors.cyan}╔════════════════════════════════════════════╗${colors.reset}`
+  );
+  console.log(
+    `${colors.bright}${colors.cyan}║  A2A Collaboration & Orchestration Demo   ║${colors.reset}`
+  );
+  console.log(
+    `${colors.bright}${colors.cyan}╚════════════════════════════════════════════╝${colors.reset}\n`
+  );
+
   const demo = new A2ACollaborationDemo();
-  
+
   try {
     // Check server health
     await demo.checkHealth();
-    
+
     // Run demos
     await demoBasicCommunication(demo);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     await demoMultiAgentCollaboration(demo);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     await demoWorkflowOrchestration(demo);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     await demoEndToEndFlow(demo);
-    
-    console.log(`\n${colors.green}${colors.bright}✓ All demos completed successfully!${colors.reset}\n`);
+
+    console.log(
+      `\n${colors.green}${colors.bright}✓ All demos completed successfully!${colors.reset}\n`
+    );
   } catch (error) {
-    console.error(`\n${colors.yellow}${colors.bright}✗ Demo failed: ${error.message}${colors.reset}\n`);
+    console.error(
+      `\n${colors.yellow}${colors.bright}✗ Demo failed: ${error.message}${colors.reset}\n`
+    );
     console.error(error);
     process.exit(1);
   }
@@ -323,7 +329,7 @@ async function main() {
 
 // Run if executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

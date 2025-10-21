@@ -20,17 +20,17 @@ export class EventStore {
       poolSize: 5,
       enableWAL: true,
       pragmas: {
-        'synchronous': 'NORMAL',
-        'cache_size': -64000, // 64MB cache
-        'temp_store': 'MEMORY'
-      }
+        synchronous: 'NORMAL',
+        cache_size: -64000, // 64MB cache
+        temp_store: 'MEMORY',
+      },
     });
 
     this._initSchema();
   }
 
   _initSchema() {
-    this.pool.execute(conn => {
+    this.pool.execute((conn) => {
       // Events table - append-only, immutable
       conn.exec(`
         CREATE TABLE IF NOT EXISTS events (
@@ -87,11 +87,15 @@ export class EventStore {
       const timestamp = event.timestamp || Date.now();
 
       // Get next version for this aggregate
-      const currentVersion = conn.prepare(`
+      const currentVersion = conn
+        .prepare(
+          `
         SELECT COALESCE(MAX(version), 0) as version
         FROM events
         WHERE aggregate_type = ? AND aggregate_id = ?
-      `).get(event.aggregateType, event.aggregateId);
+      `
+        )
+        .get(event.aggregateType, event.aggregateId);
 
       const nextVersion = (currentVersion?.version || 0) + 1;
 
@@ -120,7 +124,7 @@ export class EventStore {
         ...event,
         eventId,
         timestamp,
-        version: nextVersion
+        version: nextVersion,
       };
     });
   }
@@ -145,7 +149,7 @@ export class EventStore {
 
       const rows = stmt.all(aggregateType, aggregateId, fromVersion);
 
-      return rows.map(row => ({
+      return rows.map((row) => ({
         eventId: row.event_id,
         aggregateType: row.aggregate_type,
         aggregateId: row.aggregate_id,
@@ -155,7 +159,7 @@ export class EventStore {
         timestamp: row.timestamp,
         version: row.version,
         causationId: row.causation_id,
-        correlationId: row.correlation_id
+        correlationId: row.correlation_id,
       }));
     });
   }
@@ -177,7 +181,7 @@ export class EventStore {
 
       const rows = stmt.all(eventType, limit);
 
-      return rows.map(row => ({
+      return rows.map((row) => ({
         eventId: row.event_id,
         aggregateType: row.aggregate_type,
         aggregateId: row.aggregate_id,
@@ -185,7 +189,7 @@ export class EventStore {
         data: JSON.parse(row.event_data),
         metadata: JSON.parse(row.metadata || '{}'),
         timestamp: row.timestamp,
-        version: row.version
+        version: row.version,
       }));
     });
   }
@@ -205,14 +209,14 @@ export class EventStore {
 
       const rows = stmt.all(correlationId);
 
-      return rows.map(row => ({
+      return rows.map((row) => ({
         eventId: row.event_id,
         aggregateType: row.aggregate_type,
         aggregateId: row.aggregate_id,
         eventType: row.event_type,
         data: JSON.parse(row.event_data),
         timestamp: row.timestamp,
-        version: row.version
+        version: row.version,
       }));
     });
   }
@@ -232,13 +236,7 @@ export class EventStore {
         ) VALUES (?, ?, ?, ?, ?)
       `);
 
-      stmt.run(
-        aggregateType,
-        aggregateId,
-        version,
-        JSON.stringify(state),
-        Date.now()
-      );
+      stmt.run(aggregateType, aggregateId, version, JSON.stringify(state), Date.now());
     });
   }
 
@@ -263,7 +261,7 @@ export class EventStore {
       return {
         version: row.version,
         state: JSON.parse(row.state),
-        timestamp: row.timestamp
+        timestamp: row.timestamp,
       };
     });
   }
@@ -277,18 +275,26 @@ export class EventStore {
       const eventCount = conn.prepare('SELECT COUNT(*) as count FROM events').get();
       const snapshotCount = conn.prepare('SELECT COUNT(*) as count FROM snapshots').get();
 
-      const aggregateCounts = conn.prepare(`
+      const aggregateCounts = conn
+        .prepare(
+          `
         SELECT aggregate_type, COUNT(*) as count
         FROM events
         GROUP BY aggregate_type
-      `).all();
+      `
+        )
+        .all();
 
-      const recentEvents = conn.prepare(`
+      const recentEvents = conn
+        .prepare(
+          `
         SELECT event_type, COUNT(*) as count
         FROM events
         WHERE timestamp > ?
         GROUP BY event_type
-      `).all(Date.now() - 3600000); // Last hour
+      `
+        )
+        .all(Date.now() - 3600000); // Last hour
 
       return {
         totalEvents: eventCount.count,
@@ -301,7 +307,7 @@ export class EventStore {
           acc[row.event_type] = row.count;
           return acc;
         }, {}),
-        poolStats: this.pool.getStats()
+        poolStats: this.pool.getStats(),
       };
     });
   }
@@ -330,7 +336,7 @@ export class EventStore {
           data: JSON.parse(row.event_data),
           metadata: JSON.parse(row.metadata || '{}'),
           timestamp: row.timestamp,
-          version: row.version
+          version: row.version,
         };
 
         await handler(event);

@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 8080;
 const perfMonitor = new PerformanceMonitor({
   enableFileLogging: process.env.NODE_ENV === 'production',
   samplingInterval: 15000, // 15 seconds for better Fly.io metrics collection
-  memoryThreshold: 0.85
+  memoryThreshold: 0.85,
 });
 
 // Start monitoring immediately
@@ -48,7 +48,7 @@ const initializeBrowserHistory = async () => {
   } catch (importError) {
     console.log('⚠️  Compiled browser history not available, using mock implementation');
     console.log('   Run `npm run build` to enable real browser history');
-    
+
     // Fallback mock implementation
     class MockBrowserHistoryTool {
       constructor(config = {}) {
@@ -62,22 +62,22 @@ const initializeBrowserHistory = async () => {
             title: 'LLM Repository - Optimized Performance System',
             visitTime: Date.now(),
             visitCount: 5,
-            browser: 'chrome'
+            browser: 'chrome',
           },
           {
             url: 'https://www.perplexity.ai',
             title: 'Perplexity AI - Advanced Search',
             visitTime: Date.now() - 3600000,
             visitCount: 3,
-            browser: 'chrome'
+            browser: 'chrome',
           },
           {
             url: 'https://fly.io/dashboard',
             title: 'Fly.io Dashboard - Deployment Management',
             visitTime: Date.now() - 7200000,
             visitCount: 2,
-            browser: 'chrome'
-          }
+            browser: 'chrome',
+          },
         ].slice(0, count);
       }
 
@@ -85,7 +85,7 @@ const initializeBrowserHistory = async () => {
         // Cleanup
       }
     }
-    
+
     BrowserHistoryTool = MockBrowserHistoryTool;
     tool = new MockBrowserHistoryTool({ autoSync: true });
   }
@@ -104,7 +104,7 @@ let metrics = {
   startupTime: Date.now(),
   responseTimes: [],
   slowRequests: 0,
-  totalDataTransferred: 0
+  totalDataTransferred: 0,
 };
 
 // Update metrics more frequently for better Fly.io monitoring
@@ -112,7 +112,7 @@ setInterval(() => {
   const memUsage = process.memoryUsage();
   metrics.memory = memUsage;
   metrics.lastUpdated = new Date().toISOString();
-  
+
   // Emit sample request for metrics collection
   if (Math.random() > 0.7) {
     metrics.requests += 1;
@@ -127,27 +127,27 @@ app.use(express.json());
 app.use((req, res, next) => {
   const startTime = Date.now();
   metrics.requests++;
-  
+
   // Track request for performance monitoring
   perfMonitor.measureOperation(`http-${req.method}-${req.path}`, () => {
     res.on('finish', () => {
       const responseTime = Date.now() - startTime;
       metrics.responseTimes.push(responseTime);
-      
+
       // Keep only last 100 response times
       if (metrics.responseTimes.length > 100) {
         metrics.responseTimes.shift();
       }
-      
+
       if (responseTime > 1000) {
         metrics.slowRequests++;
         console.log(`Slow request: ${req.method} ${req.path} took ${responseTime}ms`);
       }
-      
-      metrics.totalDataTransferred += (res.get('Content-Length') || 0);
+
+      metrics.totalDataTransferred += res.get('Content-Length') || 0;
     });
   });
-  
+
   next();
 });
 
@@ -162,41 +162,42 @@ app.get('/health', (req, res) => {
   const memUsage = process.memoryUsage();
   const memoryPressure = Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100);
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   // Calculate average response time
-  const avgResponseTime = metrics.responseTimes.length > 0 
-    ? metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length 
-    : 0;
-  
+  const avgResponseTime =
+    metrics.responseTimes.length > 0
+      ? metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length
+      : 0;
+
   const healthCheck = {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: uptime,
     browserHistory: {
       available: true,
-      type: isRealHistory ? 'real' : 'mock'
+      type: isRealHistory ? 'real' : 'mock',
     },
     memory: {
       heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
       heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
       external: Math.round(memUsage.external / 1024 / 1024),
-      pressure: memoryPressure
+      pressure: memoryPressure,
     },
     performance: {
       requests: metrics.requests,
       errors: metrics.errors,
       slowRequests: metrics.slowRequests,
       avgResponseTime: Math.round(avgResponseTime),
-      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests * 100).toFixed(2) : 0
+      errorRate: metrics.requests > 0 ? ((metrics.errors / metrics.requests) * 100).toFixed(2) : 0,
     },
     pid: process.pid,
     version: '1.3.0',
     node: process.version,
     platform: process.platform,
     esm: true,
-    monitoring: perfMonitor.getStats()
+    monitoring: perfMonitor.getStats(),
   };
-  
+
   // Return 503 if memory pressure is too high
   const status = memoryPressure > 90 ? 503 : 200;
   res.status(status).json(healthCheck);
@@ -206,7 +207,7 @@ app.get('/health', (req, res) => {
 app.get('/', (req, res) => {
   const uptime = Math.floor((Date.now() - metrics.uptime) / 1000);
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   res.json({
     status: 'ok',
     message: 'LLM AI Bridge Server - ESM COMPATIBLE - Fly.io Optimized',
@@ -215,7 +216,9 @@ app.get('/', (req, res) => {
     browserHistory: {
       enabled: true,
       type: isRealHistory ? 'SQLite Database Access' : 'Mock Implementation',
-      note: isRealHistory ? 'Real browser data access active' : 'Run npm run build for real browser history'
+      note: isRealHistory
+        ? 'Real browser data access active'
+        : 'Run npm run build for real browser history',
     },
     performance: {
       requests: metrics.requests,
@@ -225,8 +228,8 @@ app.get('/', (req, res) => {
       memory: {
         heapUsed: Math.round(metrics.memory.heapUsed / 1024 / 1024),
         heapTotal: Math.round(metrics.memory.heapTotal / 1024 / 1024),
-        external: Math.round(metrics.memory.external / 1024 / 1024)
-      }
+        external: Math.round(metrics.memory.external / 1024 / 1024),
+      },
     },
     endpoints: [
       { path: '/health', method: 'GET', description: 'Health check endpoint (Fly.io compatible)' },
@@ -247,12 +250,12 @@ app.get('/', (req, res) => {
     esm: {
       status: 'ACTIVE',
       imports: 'Dynamic ES6 imports working',
-      compatibility: 'Full ESM compliance'
+      compatibility: 'Full ESM compliance',
     },
     monitoring: {
       enabled: true,
-      performanceMonitor: perfMonitor.getStats()
-    }
+      performanceMonitor: perfMonitor.getStats(),
+    },
   });
 });
 
@@ -262,7 +265,7 @@ app.get('/api/status', (req, res) => {
   const memUsage = process.memoryUsage();
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
   const perfStats = perfMonitor.getStats();
-  
+
   res.json({
     service: 'LLM AI Bridge Server',
     status: 'healthy',
@@ -273,35 +276,38 @@ app.get('/api/status', (req, res) => {
     deployment: {
       platform: 'Fly.io',
       region: process.env.FLY_REGION || 'unknown',
-      instance: process.env.FLY_MACHINE_ID || 'local'
+      instance: process.env.FLY_MACHINE_ID || 'local',
     },
     esm: {
       enabled: true,
       moduleType: 'ES6',
-      dynamicImports: 'supported'
+      dynamicImports: 'supported',
     },
     browserHistory: {
       status: 'active',
       implementation: isRealHistory ? 'SQLite with better-sqlite3' : 'Mock fallback',
       multibrower: isRealHistory,
-      databases: isRealHistory ? ['Chrome', 'Firefox', 'Edge', 'Brave', 'Safari'] : ['Mock']
+      databases: isRealHistory ? ['Chrome', 'Firefox', 'Edge', 'Brave', 'Safari'] : ['Mock'],
     },
     performance: {
       totalRequests: metrics.requests,
       totalErrors: metrics.errors,
       slowRequests: metrics.slowRequests,
       requestsPerSecond: (metrics.requests / uptime || 0).toFixed(2),
-      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests * 100).toFixed(2) : 0,
-      avgResponseTime: metrics.responseTimes.length > 0 
-        ? Math.round(metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length)
-        : 0,
+      errorRate: metrics.requests > 0 ? ((metrics.errors / metrics.requests) * 100).toFixed(2) : 0,
+      avgResponseTime:
+        metrics.responseTimes.length > 0
+          ? Math.round(
+              metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length
+            )
+          : 0,
       dataTransferred: Math.round(metrics.totalDataTransferred / 1024),
       memory: {
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
         external: Math.round(memUsage.external / 1024 / 1024),
-        rss: Math.round(memUsage.rss / 1024 / 1024)
-      }
+        rss: Math.round(memUsage.rss / 1024 / 1024),
+      },
     },
     monitoring: perfStats,
     features: {
@@ -310,8 +316,8 @@ app.get('/api/status', (req, res) => {
       healthChecks: 'enabled',
       esmCompatibility: 'enabled',
       dynamicImports: 'enabled',
-      flyioOptimized: 'enabled'
-    }
+      flyioOptimized: 'enabled',
+    },
   });
 });
 
@@ -321,14 +327,15 @@ app.get('/metrics', (req, res) => {
   const memUsage = process.memoryUsage();
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
   const perfStats = perfMonitor.getStats();
-  
+
   // Calculate rates and averages
   const requestRate = metrics.requests / uptime || 0;
-  const errorRate = metrics.requests > 0 ? (metrics.errors / metrics.requests) : 0;
-  const avgResponseTime = metrics.responseTimes.length > 0 
-    ? metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length 
-    : 0;
-  
+  const errorRate = metrics.requests > 0 ? metrics.errors / metrics.requests : 0;
+  const avgResponseTime =
+    metrics.responseTimes.length > 0
+      ? metrics.responseTimes.reduce((a, b) => a + b, 0) / metrics.responseTimes.length
+      : 0;
+
   res.set('Content-Type', 'text/plain');
   res.send(`# HELP http_requests_total Total number of HTTP requests
 # TYPE http_requests_total counter
@@ -411,13 +418,15 @@ app.get('/history', async (req, res) => {
     const count = parseInt(req.query.count) || 50;
     const history = await tool.getRecentHistory(count);
     const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-    
+
     res.json({
       success: true,
       count: history.length,
       data: history,
       implementation: isRealHistory ? 'real' : 'mock',
-      note: isRealHistory ? 'Real browser history from SQLite databases' : 'Mock data - run npm run build for real browser history'
+      note: isRealHistory
+        ? 'Real browser history from SQLite databases'
+        : 'Mock data - run npm run build for real browser history',
     });
   } catch (error) {
     metrics.errors++;
@@ -434,13 +443,15 @@ app.get('/history/:count', async (req, res) => {
     const count = parseInt(req.params.count) || 50;
     const history = await tool.getRecentHistory(count);
     const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-    
+
     res.json({
       success: true,
       count: history.length,
       data: history,
       implementation: isRealHistory ? 'real' : 'mock',
-      note: isRealHistory ? 'Real browser history from SQLite databases' : 'Mock data - run npm run build for real browser history'
+      note: isRealHistory
+        ? 'Real browser history from SQLite databases'
+        : 'Mock data - run npm run build for real browser history',
     });
   } catch (error) {
     metrics.errors++;
@@ -479,7 +490,9 @@ app.get('/search', async (req, res) => {
       count: results.length,
       data: results,
       implementation: isRealHistory ? 'real' : 'mock',
-      note: isRealHistory ? 'Real browser history search' : 'Mock data search - run npm run build for real browser history'
+      note: isRealHistory
+        ? 'Real browser history search'
+        : 'Mock data search - run npm run build for real browser history',
     });
   } catch (error) {
     metrics.errors++;
@@ -496,8 +509,8 @@ app.get('/performance', (req, res) => {
     monitoring: perfMonitor.getStats(),
     metrics: {
       ...metrics,
-      responseTimes: metrics.responseTimes.slice(-10) // Last 10 response times
-    }
+      responseTimes: metrics.responseTimes.slice(-10), // Last 10 response times
+    },
   });
 });
 
@@ -508,7 +521,7 @@ app.use((error, req, res, next) => {
   res.status(500).json({
     success: false,
     error: 'Internal server error',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -519,7 +532,15 @@ app.use((req, res) => {
     error: 'Endpoint not found',
     path: req.path,
     method: req.method,
-    availableEndpoints: ['/', '/health', '/metrics', '/api/status', '/history', '/search', '/performance']
+    availableEndpoints: [
+      '/',
+      '/health',
+      '/metrics',
+      '/api/status',
+      '/history',
+      '/search',
+      '/performance',
+    ],
   });
 });
 
@@ -537,7 +558,7 @@ process.on('SIGINT', gracefulShutdown);
 // Start the server
 const server = app.listen(PORT, '0.0.0.0', () => {
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   console.log(`LLM AI Bridge server listening at http://0.0.0.0:${PORT}`);
   console.log('✅ ESM COMPATIBLE - Server running with proper ES6 modules');
   console.log('🚀 FLY.IO OPTIMIZED - Enhanced metrics and monitoring');

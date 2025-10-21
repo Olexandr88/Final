@@ -2,8 +2,8 @@ name: Auto Dependency Upgrades
 
 on:
   schedule:
-    - cron: '0 0 * * 0'  # Weekly on Sunday
-  workflow_dispatch:  # Manual trigger
+    - cron: '0 0 * * 0' # Weekly on Sunday
+  workflow_dispatch: # Manual trigger
 
 jobs:
   upgrade:

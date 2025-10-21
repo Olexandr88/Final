@@ -12,9 +12,9 @@ export class A2APerformanceOptimizer {
       cacheHits: 0,
       cacheMisses: 0,
       poolUtilization: 0,
-      memoryUsage: 0
+      memoryUsage: 0,
     };
-    
+
     this.messageCache = new Map();
     this.connectionPool = new Set();
     this.performanceObserver = null;
@@ -50,7 +50,7 @@ export class A2APerformanceOptimizer {
     this.messageCache.set(key, {
       data,
       timestamp: Date.now(),
-      hits: 0
+      hits: 0,
     });
   }
 
@@ -110,8 +110,11 @@ export class A2APerformanceOptimizer {
   startMonitoring() {
     // Monitor cache performance
     setInterval(() => {
-      const hitRate = this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses) * 100;
-      console.log(`[A2A Optimizer] Cache Hit Rate: ${hitRate.toFixed(1)}%, Pool: ${this.metrics.poolUtilization.toFixed(1)}%, Memory: ${this.metrics.memoryUsage}MB`);
+      const hitRate =
+        (this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses)) * 100;
+      console.log(
+        `[A2A Optimizer] Cache Hit Rate: ${hitRate.toFixed(1)}%, Pool: ${this.metrics.poolUtilization.toFixed(1)}%, Memory: ${this.metrics.memoryUsage}MB`
+      );
     }, 30000);
 
     // Memory optimization every 5 minutes
@@ -119,25 +122,26 @@ export class A2APerformanceOptimizer {
   }
 
   getMetrics() {
-    const hitRate = this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses) * 100 || 0;
-    
+    const hitRate =
+      (this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses)) * 100 || 0;
+
     return {
       cache: {
         hits: this.metrics.cacheHits,
         misses: this.metrics.cacheMisses,
         hitRate: hitRate.toFixed(2) + '%',
         size: this.messageCache.size,
-        maxSize: this.cacheSize
+        maxSize: this.cacheSize,
       },
       pool: {
         active: this.connectionPool.size,
         maxSize: this.poolSize,
-        utilization: this.metrics.poolUtilization.toFixed(1) + '%'
+        utilization: this.metrics.poolUtilization.toFixed(1) + '%',
       },
       memory: {
         heapUsed: this.metrics.memoryUsage + 'MB',
-        cacheEntries: this.messageCache.size
-      }
+        cacheEntries: this.messageCache.size,
+      },
     };
   }
 }
@@ -159,15 +163,15 @@ export class CircularBuffer {
 
   toArray() {
     if (this.size === 0) return [];
-    
+
     const result = new Array(this.size);
     let idx = (this.head - this.size + this.maxSize) % this.maxSize;
-    
+
     for (let i = 0; i < this.size; i++) {
       result[i] = this.buffer[idx];
       idx = (idx + 1) % this.maxSize;
     }
-    
+
     return result;
   }
 

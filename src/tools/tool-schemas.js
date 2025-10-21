@@ -11,10 +11,10 @@ export const fileToolSchemas = {
       type: 'object',
       properties: {
         file_path: { type: 'string', description: 'Path to the file to read' },
-        encoding: { type: 'string', description: 'File encoding', default: 'utf-8' }
+        encoding: { type: 'string', description: 'File encoding', default: 'utf-8' },
       },
-      required: ['file_path']
-    }
+      required: ['file_path'],
+    },
   },
   write: {
     name: 'write',
@@ -24,10 +24,10 @@ export const fileToolSchemas = {
       properties: {
         file_path: { type: 'string' },
         content: { type: 'string' },
-        encoding: { type: 'string', default: 'utf-8' }
+        encoding: { type: 'string', default: 'utf-8' },
       },
-      required: ['file_path', 'content']
-    }
+      required: ['file_path', 'content'],
+    },
   },
   edit: {
     name: 'edit',
@@ -43,14 +43,14 @@ export const fileToolSchemas = {
             properties: {
               line: { type: 'integer', minimum: 1 },
               operation: { type: 'string', enum: ['replace', 'insert', 'delete'] },
-              content: { type: 'string' }
+              content: { type: 'string' },
             },
-            required: ['line', 'operation']
-          }
-        }
+            required: ['line', 'operation'],
+          },
+        },
       },
-      required: ['file_path', 'edits']
-    }
+      required: ['file_path', 'edits'],
+    },
   },
   glob: {
     name: 'glob',
@@ -60,10 +60,10 @@ export const fileToolSchemas = {
       properties: {
         pattern: { type: 'string' },
         cwd: { type: 'string' },
-        ignore: { type: 'array', items: { type: 'string' } }
+        ignore: { type: 'array', items: { type: 'string' } },
       },
-      required: ['pattern']
-    }
+      required: ['pattern'],
+    },
   },
   grep: {
     name: 'grep',
@@ -73,11 +73,11 @@ export const fileToolSchemas = {
       properties: {
         pattern: { type: 'string' },
         path: { type: 'string', default: '.' },
-        case_sensitive: { type: 'boolean', default: false }
+        case_sensitive: { type: 'boolean', default: false },
       },
-      required: ['pattern']
-    }
-  }
+      required: ['pattern'],
+    },
+  },
 };
 
 export const bashToolSchemas = {
@@ -91,10 +91,10 @@ export const bashToolSchemas = {
         args: { type: 'array', items: { type: 'string' }, default: [] },
         cwd: { type: 'string' },
         timeout: { type: 'integer', default: 30000, minimum: 1000, maximum: 60000 },
-        env: { type: 'object' }
+        env: { type: 'object' },
       },
-      required: ['command']
-    }
+      required: ['command'],
+    },
   },
   npm: {
     name: 'npm',
@@ -103,11 +103,11 @@ export const bashToolSchemas = {
       type: 'object',
       properties: {
         command: { type: 'string' },
-        cwd: { type: 'string' }
+        cwd: { type: 'string' },
       },
-      required: ['command']
-    }
-  }
+      required: ['command'],
+    },
+  },
 };
 
 export const gitToolSchemas = {
@@ -118,9 +118,9 @@ export const gitToolSchemas = {
       type: 'object',
       properties: {
         cwd: { type: 'string' },
-        porcelain: { type: 'boolean', default: true }
-      }
-    }
+        porcelain: { type: 'boolean', default: true },
+      },
+    },
   },
   git_diff: {
     name: 'git_diff',
@@ -132,9 +132,9 @@ export const gitToolSchemas = {
         file: { type: 'string' },
         staged: { type: 'boolean', default: false },
         nameOnly: { type: 'boolean', default: false },
-        ref: { type: 'string' }
-      }
-    }
+        ref: { type: 'string' },
+      },
+    },
   },
   git_commit: {
     name: 'git_commit',
@@ -147,11 +147,11 @@ export const gitToolSchemas = {
         files: { type: 'array', items: { type: 'string' } },
         all: { type: 'boolean', default: false },
         amend: { type: 'boolean', default: false },
-        author: { type: 'string' }
+        author: { type: 'string' },
       },
-      required: ['message']
-    }
-  }
+      required: ['message'],
+    },
+  },
 };
 
 export const codeToolSchemas = {
@@ -162,14 +162,18 @@ export const codeToolSchemas = {
       type: 'object',
       properties: {
         code: { type: 'string' },
-        language: { type: 'string', default: 'js', enum: ['js', 'javascript', 'ts', 'typescript', 'jsx', 'tsx'] },
+        language: {
+          type: 'string',
+          default: 'js',
+          enum: ['js', 'javascript', 'ts', 'typescript', 'jsx', 'tsx'],
+        },
         file_path: { type: 'string' },
         eslint_config: { type: 'object' },
-        include_metrics: { type: 'boolean', default: true }
+        include_metrics: { type: 'boolean', default: true },
       },
-      required: ['code']
-    }
-  }
+      required: ['code'],
+    },
+  },
 };
 
 export const testToolSchemas = {
@@ -180,14 +184,18 @@ export const testToolSchemas = {
       type: 'object',
       properties: {
         test_pattern: { type: 'string' },
-        framework: { type: 'string', default: 'node:test', enum: ['node:test', 'node', 'jest', 'mocha', 'vitest'] },
+        framework: {
+          type: 'string',
+          default: 'node:test',
+          enum: ['node:test', 'node', 'jest', 'mocha', 'vitest'],
+        },
         cwd: { type: 'string' },
         coverage: { type: 'boolean', default: false },
         timeout: { type: 'integer', default: 120000, minimum: 10000, maximum: 600000 },
-        args: { type: 'array', items: { type: 'string' } }
-      }
-    }
-  }
+        args: { type: 'array', items: { type: 'string' } },
+      },
+    },
+  },
 };
 
 export const allToolSchemas = {
@@ -195,7 +203,7 @@ export const allToolSchemas = {
   ...bashToolSchemas,
   ...gitToolSchemas,
   ...codeToolSchemas,
-  ...testToolSchemas
+  ...testToolSchemas,
 };
 
 export function getToolSchema(toolName) {
@@ -207,8 +215,16 @@ export function getAllToolSchemas() {
 }
 
 export function getToolSchemasByCategory(category) {
-  const categoryMap = { file: fileToolSchemas, bash: bashToolSchemas, git: gitToolSchemas, code: codeToolSchemas, test: testToolSchemas };
-  return categoryMap[category.toLowerCase()] ? Object.values(categoryMap[category.toLowerCase()]) : [];
+  const categoryMap = {
+    file: fileToolSchemas,
+    bash: bashToolSchemas,
+    git: gitToolSchemas,
+    code: codeToolSchemas,
+    test: testToolSchemas,
+  };
+  return categoryMap[category.toLowerCase()]
+    ? Object.values(categoryMap[category.toLowerCase()])
+    : [];
 }
 
 export function validateToolParams(toolName, params) {
@@ -221,7 +237,10 @@ export function validateToolParams(toolName, params) {
   }
   for (const [name, value] of Object.entries(params)) {
     const prop = properties[name];
-    if (!prop) { errors.push(`Unknown: ${name}`); continue; }
+    if (!prop) {
+      errors.push(`Unknown: ${name}`);
+      continue;
+    }
     const actualType = Array.isArray(value) ? 'array' : typeof value;
     if (actualType !== prop.type && value !== undefined) errors.push(`${name} type mismatch`);
   }

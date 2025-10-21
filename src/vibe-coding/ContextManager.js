@@ -43,7 +43,7 @@ export class ContextManager {
       issues = [],
       nextSteps = [],
       decisions = [],
-      timestamp = Date.now()
+      timestamp = Date.now(),
     } = sessionData;
 
     const summary = {
@@ -51,30 +51,30 @@ export class ContextManager {
       timestamp,
       duration: this._calculateDuration(sessionData),
       summary: {
-        changes: changes.map(c => ({
+        changes: changes.map((c) => ({
           file: c.file,
           type: c.type,
-          description: c.description
+          description: c.description,
         })),
-        issues: issues.map(i => ({
+        issues: issues.map((i) => ({
           type: i.type,
           description: i.description,
-          resolution: i.resolution
+          resolution: i.resolution,
         })),
-        decisions: decisions.map(d => ({
+        decisions: decisions.map((d) => ({
           decision: d.decision,
-          rationale: d.rationale
+          rationale: d.rationale,
         })),
-        nextSteps: nextSteps.map(s => ({
+        nextSteps: nextSteps.map((s) => ({
           task: s.task,
-          priority: s.priority
-        }))
+          priority: s.priority,
+        })),
       },
       metadata: {
-        filesModified: [...new Set(changes.map(c => c.file))].length,
-        issuesResolved: issues.filter(i => i.resolution).length,
-        tokensSaved: sessionData.tokenCount || 0
-      }
+        filesModified: [...new Set(changes.map((c) => c.file))].length,
+        issuesResolved: issues.filter((i) => i.resolution).length,
+        tokensSaved: sessionData.tokenCount || 0,
+      },
     };
 
     // Save summary to markdown
@@ -88,7 +88,7 @@ export class ContextManager {
     return {
       summary,
       filepath,
-      markdown
+      markdown,
     };
   }
 
@@ -98,7 +98,7 @@ export class ContextManager {
   async loadSummary(taskName) {
     const files = await fs.readdir(this.summaryDir);
     const summaryFiles = files
-      .filter(f => f.startsWith(`summary-${taskName}-`))
+      .filter((f) => f.startsWith(`summary-${taskName}-`))
       .sort()
       .reverse();
 
@@ -112,7 +112,7 @@ export class ContextManager {
     return {
       file: latestFile,
       content,
-      taskName
+      taskName,
     };
   }
 
@@ -130,7 +130,9 @@ export class ContextManager {
     const compressed = this._truncateContext(prioritized);
 
     const compressionRatio = (context.length - compressed.length) / context.length;
-    this.logger.info(`Context compressed: ${context.length} → ${compressed.length} (${(compressionRatio * 100).toFixed(1)}% reduction)`);
+    this.logger.info(
+      `Context compressed: ${context.length} → ${compressed.length} (${(compressionRatio * 100).toFixed(1)}% reduction)`
+    );
 
     return compressed;
   }
@@ -145,7 +147,7 @@ export class ContextManager {
       taskName,
       context: [],
       timestamp: Date.now(),
-      fresh: true
+      fresh: true,
     };
   }
 
@@ -210,7 +212,7 @@ export class ContextManager {
    */
   _deduplicateContext(context) {
     const seen = new Set();
-    return context.filter(entry => {
+    return context.filter((entry) => {
       const key = JSON.stringify(entry);
       if (seen.has(key)) return false;
       seen.add(key);
@@ -223,9 +225,9 @@ export class ContextManager {
    */
   _prioritizeContext(context) {
     return context
-      .map(entry => ({
+      .map((entry) => ({
         ...entry,
-        score: this._calculatePriority(entry)
+        score: this._calculatePriority(entry),
       }))
       .sort((a, b) => b.score - a.score);
   }

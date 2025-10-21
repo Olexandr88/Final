@@ -23,12 +23,12 @@ async function exampleOptimizedCache() {
   // Create a custom cache
   const apiCache = new OptimizedCache({
     name: 'api-cache',
-    maxSize: 100,          // Max 100 entries
-    maxMemory: 5000,       // 5MB max memory
-    ttl: 60000,            // 1 minute TTL
+    maxSize: 100, // Max 100 entries
+    maxMemory: 5000, // 5MB max memory
+    ttl: 60000, // 1 minute TTL
     onEvict: (key, value) => {
       console.log(`  Evicted: ${key}`);
-    }
+    },
   });
 
   // Store data
@@ -42,7 +42,7 @@ async function exampleOptimizedCache() {
   // Get or compute pattern
   const computed = await apiCache.getOrCompute('expensive:calculation', async () => {
     console.log('  Computing expensive value...');
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     return { result: Math.random() * 1000 };
   });
   console.log('  Computed value:', computed);
@@ -105,19 +105,19 @@ async function examplePerformanceMonitor() {
   // Create custom monitor
   const monitor = new PerformanceMonitor({
     name: 'api-monitor',
-    slowThreshold: 50 // Warn if operation takes >50ms
+    slowThreshold: 50, // Warn if operation takes >50ms
   });
 
   // Time async operations
   console.log('  Timing async operations...');
 
   await monitor.timeAsync('database-query', async () => {
-    await new Promise(resolve => setTimeout(resolve, 30));
+    await new Promise((resolve) => setTimeout(resolve, 30));
     console.log('    ✓ Fast query completed');
   });
 
   await monitor.timeAsync('slow-operation', async () => {
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
     console.log('    ⚠ Slow operation completed (will warn)');
   });
 
@@ -142,7 +142,7 @@ async function examplePerformanceMonitor() {
   // Using global monitor
   console.log('\n  Global monitor example:');
   await globalPerformanceMonitor.timeAsync('global-operation', async () => {
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     console.log('    ✓ Tracked via global monitor');
   });
 }
@@ -156,7 +156,7 @@ async function exampleWorkerPool() {
 
   const workerPath = path.join(__dirname, '../src/workers/code-analysis-worker.js');
   const pool = new WorkerPool(workerPath, {
-    poolSize: 4 // Use 4 workers
+    poolSize: 4, // Use 4 workers
   });
 
   console.log('  Worker pool created with 4 workers');
@@ -167,7 +167,7 @@ async function exampleWorkerPool() {
     `function add(a, b) { return a + b; }`,
     `class Calculator { multiply(x, y) { return x * y; } }`,
     `const data = [1,2,3]; const doubled = data.map(x => x * 2);`,
-    `async function fetchData() { const res = await fetch('/api'); return res.json(); }`
+    `async function fetchData() { const res = await fetch('/api'); return res.json(); }`,
   ];
 
   console.log('\n  Processing 4 code samples in parallel...');
@@ -178,7 +178,7 @@ async function exampleWorkerPool() {
       pool.execute({
         code,
         language: 'javascript',
-        filePath: `sample${i}.js`
+        filePath: `sample${i}.js`,
       })
     )
   );
@@ -192,7 +192,7 @@ async function exampleWorkerPool() {
       classes: result.analysis?.metrics?.classes,
       complexity: result.analysis?.metrics?.complexity,
       duration: `${result.duration}ms`,
-      worker: result.workerId
+      worker: result.workerId,
     });
   });
 
@@ -214,7 +214,7 @@ async function exampleIntegratedAnalyzer() {
   const analyzer = new CodebaseAnalyzer({
     rootDir: path.join(__dirname, '../src'),
     useWorkerPool: true,
-    workerPoolSize: 4
+    workerPoolSize: 4,
   });
 
   console.log('  CodebaseAnalyzer initialized with:');
@@ -230,9 +230,9 @@ async function exampleIntegratedAnalyzer() {
   // Deep analysis using worker pool
   if (indexResult.metrics.totalFiles > 0) {
     const files = Array.from(analyzer.fileIndex.values())
-      .filter(f => f.extension === '.js')
+      .filter((f) => f.extension === '.js')
       .slice(0, 3)
-      .map(f => f.path);
+      .map((f) => f.path);
 
     if (files.length > 0) {
       console.log(`\n  Deep analyzing ${files.length} files in parallel...`);
@@ -242,7 +242,7 @@ async function exampleIntegratedAnalyzer() {
         console.log(`\n  ${files[i]}:`, {
           complexity: analysis.analysis?.metrics?.complexity,
           issues: analysis.analysis?.issues?.length || 0,
-          patterns: analysis.analysis?.patterns?.length || 0
+          patterns: analysis.analysis?.patterns?.length || 0,
         });
       });
     }
@@ -286,7 +286,6 @@ async function main() {
     const finalReport = globalPerformanceMonitor.generateReport();
     console.log('Final Global Performance Report:');
     console.log(JSON.stringify(finalReport, null, 2));
-
   } catch (error) {
     console.error('\n❌ Error running examples:', error);
     process.exit(1);
@@ -303,5 +302,5 @@ export {
   exampleLazyLoader,
   examplePerformanceMonitor,
   exampleWorkerPool,
-  exampleIntegratedAnalyzer
+  exampleIntegratedAnalyzer,
 };

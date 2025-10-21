@@ -33,14 +33,14 @@ export class AutonomousOllamaAgent extends BaseAgent {
       command_exec: true,
       git_operations: true,
       code_analysis: true,
-      test_execution: true
+      test_execution: true,
     });
 
     // Track tool usage
     this.toolUsageStats = {
       totalCalls: 0,
       successfulCalls: 0,
-      failedCalls: 0
+      failedCalls: 0,
     };
 
     // Listen to tool execution events
@@ -55,7 +55,7 @@ export class AutonomousOllamaAgent extends BaseAgent {
       logger.info(`Tool executed: ${event.tool}`, {
         agent: this.config.clientId,
         success: event.success,
-        duration: event.duration
+        duration: event.duration,
       });
     });
 
@@ -65,7 +65,7 @@ export class AutonomousOllamaAgent extends BaseAgent {
     logger.info('Autonomous Ollama Agent initializing...', {
       clientId: this.config.clientId,
       model: this.model,
-      ollamaUrl: this.ollamaUrl
+      ollamaUrl: this.ollamaUrl,
     });
   }
 
@@ -78,11 +78,11 @@ export class AutonomousOllamaAgent extends BaseAgent {
       await this.toolExecutor.waitForReady();
       logger.info('Autonomous Ollama Agent initialized', {
         clientId: this.config.clientId,
-        availableTools: this.toolExecutor.getAvailableTools().length
+        availableTools: this.toolExecutor.getAvailableTools().length,
       });
     } catch (error) {
       logger.error('Failed to initialize autonomous Ollama agent', {
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -118,7 +118,7 @@ export class AutonomousOllamaAgent extends BaseAgent {
         from,
         intent,
         taskId,
-        hasPayload: !!payload
+        hasPayload: !!payload,
       });
 
       // Extract message
@@ -127,7 +127,7 @@ export class AutonomousOllamaAgent extends BaseAgent {
       if (!userMessage) {
         this.sendResponse(envelope, {
           error: 'No message content provided',
-          status: 'error'
+          status: 'error',
         });
         return;
       }
@@ -142,7 +142,7 @@ export class AutonomousOllamaAgent extends BaseAgent {
       // Add user message to history
       history.push({
         role: 'user',
-        content: userMessage
+        content: userMessage,
       });
 
       // Call Ollama with tool support
@@ -152,18 +152,17 @@ export class AutonomousOllamaAgent extends BaseAgent {
       this.sendResponse(envelope, {
         response: response.text,
         tool_calls: response.toolCalls,
-        status: 'success'
+        status: 'success',
       });
-
     } catch (error) {
       logger.error('Failed to handle envelope', {
         error: error.message,
-        envelope
+        envelope,
       });
 
       this.sendResponse(envelope, {
         error: error.message,
-        status: 'error'
+        status: 'error',
       });
     }
   }
@@ -184,18 +183,18 @@ export class AutonomousOllamaAgent extends BaseAgent {
       iterationCount++;
 
       logger.info(`Ollama iteration ${iterationCount}`, {
-        historyLength: history.length
+        historyLength: history.length,
       });
 
       // Prepare API call with tools
       const requestBody = {
         model: this.model,
-        messages: history.map(msg => ({
+        messages: history.map((msg) => ({
           role: msg.role,
-          content: msg.content
+          content: msg.content,
         })),
         tools: this.getToolDefinitions(),
-        stream: false
+        stream: false,
       };
 
       // Call Ollama
@@ -206,29 +205,31 @@ export class AutonomousOllamaAgent extends BaseAgent {
 
       if (message.tool_calls && message.tool_calls.length > 0) {
         logger.info(`Ollama requesting ${message.tool_calls.length} tool(s)`, {
-          tools: message.tool_calls.map(t => t.function.name)
+          tools: message.tool_calls.map((t) => t.function.name),
         });
 
         // Add assistant message to history
         history.push({
           role: 'assistant',
           content: message.content || '',
-          tool_calls: message.tool_calls
+          tool_calls: message.tool_calls,
         });
 
         // Execute tools
         const toolResults = await this.executeTools(message.tool_calls, envelope);
-        allToolCalls.push(...message.tool_calls.map((tc, idx) => ({
-          name: tc.function.name,
-          input: tc.function.arguments,
-          result: toolResults[idx]
-        })));
+        allToolCalls.push(
+          ...message.tool_calls.map((tc, idx) => ({
+            name: tc.function.name,
+            input: tc.function.arguments,
+            result: toolResults[idx],
+          }))
+        );
 
         // Add tool results to history
         for (let i = 0; i < toolResults.length; i++) {
           history.push({
             role: 'tool',
-            content: JSON.stringify(toolResults[i])
+            content: JSON.stringify(toolResults[i]),
           });
         }
 
@@ -238,26 +239,26 @@ export class AutonomousOllamaAgent extends BaseAgent {
         // No tool use, this is the final response
         history.push({
           role: 'assistant',
-          content: message.content
+          content: message.content,
         });
 
         return {
           text: message.content || '',
           toolCalls: allToolCalls,
-          iterations: iterationCount
+          iterations: iterationCount,
         };
       }
     }
 
     // Max iterations reached
     logger.warn('Max iterations reached in tool use loop', {
-      iterations: iterationCount
+      iterations: iterationCount,
     });
 
     return {
       text: 'Maximum tool use iterations reached',
       toolCalls: allToolCalls,
-      iterations: iterationCount
+      iterations: iterationCount,
     };
   }
 
@@ -281,22 +282,21 @@ export class AutonomousOllamaAgent extends BaseAgent {
         const args = typeof argsStr === 'string' ? JSON.parse(argsStr) : argsStr;
 
         // Execute tool via ToolExecutor
-        const result = await this.toolExecutor.executeTool(
-          name,
-          args,
-          { taskId: envelope.taskId, from: envelope.from }
-        );
+        const result = await this.toolExecutor.executeTool(name, args, {
+          taskId: envelope.taskId,
+          from: envelope.from,
+        });
 
         results.push(result.result);
 
         logger.info(`Tool execution successful: ${name}`);
       } catch (error) {
         logger.error(`Tool execution failed: ${name}`, {
-          error: error.message
+          error: error.message,
         });
 
         results.push({
-          error: `Tool execution failed: ${error.message}`
+          error: `Tool execution failed: ${error.message}`,
         });
       }
     }
@@ -320,42 +320,42 @@ export class AutonomousOllamaAgent extends BaseAgent {
             properties: {
               file_path: {
                 type: 'string',
-                description: 'Path to the file to read'
+                description: 'Path to the file to read',
               },
               encoding: {
                 type: 'string',
                 description: 'File encoding (default: utf-8)',
-                enum: ['utf-8', 'ascii', 'base64']
-              }
+                enum: ['utf-8', 'ascii', 'base64'],
+              },
             },
-            required: ['file_path']
-          }
-        }
+            required: ['file_path'],
+          },
+        },
       },
       {
         type: 'function',
         function: {
           name: 'write',
-          description: 'Write content to a file, creating it if it doesn\'t exist',
+          description: "Write content to a file, creating it if it doesn't exist",
           parameters: {
             type: 'object',
             properties: {
               file_path: {
                 type: 'string',
-                description: 'Path to the file to write'
+                description: 'Path to the file to write',
               },
               content: {
                 type: 'string',
-                description: 'Content to write to the file'
+                description: 'Content to write to the file',
               },
               encoding: {
                 type: 'string',
-                description: 'File encoding (default: utf-8)'
-              }
+                description: 'File encoding (default: utf-8)',
+              },
             },
-            required: ['file_path', 'content']
-          }
-        }
+            required: ['file_path', 'content'],
+          },
+        },
       },
       {
         type: 'function',
@@ -367,16 +367,16 @@ export class AutonomousOllamaAgent extends BaseAgent {
             properties: {
               pattern: {
                 type: 'string',
-                description: 'Glob pattern (e.g., "**/*.js", "src/**/*.ts")'
+                description: 'Glob pattern (e.g., "**/*.js", "src/**/*.ts")',
               },
               cwd: {
                 type: 'string',
-                description: 'Working directory for search'
-              }
+                description: 'Working directory for search',
+              },
             },
-            required: ['pattern']
-          }
-        }
+            required: ['pattern'],
+          },
+        },
       },
       {
         type: 'function',
@@ -388,21 +388,21 @@ export class AutonomousOllamaAgent extends BaseAgent {
             properties: {
               command: {
                 type: 'string',
-                description: 'Shell command to execute'
+                description: 'Shell command to execute',
               },
               args: {
                 type: 'array',
                 items: { type: 'string' },
-                description: 'Command arguments'
+                description: 'Command arguments',
               },
               cwd: {
                 type: 'string',
-                description: 'Working directory'
-              }
+                description: 'Working directory',
+              },
             },
-            required: ['command']
-          }
-        }
+            required: ['command'],
+          },
+        },
       },
       {
         type: 'function',
@@ -414,12 +414,12 @@ export class AutonomousOllamaAgent extends BaseAgent {
             properties: {
               cwd: {
                 type: 'string',
-                description: 'Repository directory'
-              }
-            }
-          }
-        }
-      }
+                description: 'Repository directory',
+              },
+            },
+          },
+        },
+      },
     ];
   }
 
@@ -438,9 +438,9 @@ export class AutonomousOllamaAgent extends BaseAgent {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
+          'Content-Length': Buffer.byteLength(postData),
         },
-        timeout: 120000 // 2 minutes for model inference
+        timeout: 120000, // 2 minutes for model inference
       };
 
       const req = http.request(url, options, (res) => {
@@ -481,10 +481,13 @@ export class AutonomousOllamaAgent extends BaseAgent {
   getToolStats() {
     return {
       ...this.toolUsageStats,
-      successRate: this.toolUsageStats.totalCalls > 0
-        ? ((this.toolUsageStats.successfulCalls / this.toolUsageStats.totalCalls) * 100).toFixed(2) + '%'
-        : '0%',
-      executorMetrics: this.toolExecutor.getMetrics()
+      successRate:
+        this.toolUsageStats.totalCalls > 0
+          ? ((this.toolUsageStats.successfulCalls / this.toolUsageStats.totalCalls) * 100).toFixed(
+              2
+            ) + '%'
+          : '0%',
+      executorMetrics: this.toolExecutor.getMetrics(),
     };
   }
 }
@@ -502,19 +505,22 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
       'file.read',
       'file.write',
       'command.execute',
-      'test.run'
+      'test.run',
     ],
-    model: process.env.OLLAMA_MODEL || 'llama3.1'
+    model: process.env.OLLAMA_MODEL || 'llama3.1',
   });
 
-  agent.connect().then(() => {
-    logger.info('✅ Autonomous Ollama Agent connected and ready');
-    logger.info(`Available tools: ${agent.toolExecutor.getAvailableTools().join(', ')}`);
-    logger.info(`Model: ${agent.model}`);
-  }).catch(error => {
-    logger.error('Failed to connect Autonomous Ollama Agent', { error: error.message });
-    process.exit(1);
-  });
+  agent
+    .connect()
+    .then(() => {
+      logger.info('✅ Autonomous Ollama Agent connected and ready');
+      logger.info(`Available tools: ${agent.toolExecutor.getAvailableTools().join(', ')}`);
+      logger.info(`Model: ${agent.model}`);
+    })
+    .catch((error) => {
+      logger.error('Failed to connect Autonomous Ollama Agent', { error: error.message });
+      process.exit(1);
+    });
 }
 
 export default AutonomousOllamaAgent;

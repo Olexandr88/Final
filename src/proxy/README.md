@@ -15,9 +15,11 @@ Inspired by [XX-Net](https://github.com/XX-net/XX-Net), this module provides rob
 ## 📋 Files Overview
 
 ### `obfuscation-proxy.js`
+
 Core proxy implementation with traffic obfuscation and header manipulation.
 
 **Key Features:**
+
 - HTTP request/response proxying
 - HTTPS CONNECT tunneling
 - Traffic obfuscation using XOR cipher
@@ -25,18 +27,22 @@ Core proxy implementation with traffic obfuscation and header manipulation.
 - Connection tracking and statistics
 
 ### `proxy-config.js`
+
 Configuration management for platform-specific settings.
 
 **Key Features:**
+
 - Platform-specific configuration (Windows/macOS/Linux/Android/iOS)
 - Configuration presets (stealth, performance, development)
 - Configuration validation and merging
 - Default Chrome headers for realistic simulation
 
 ### `proxy-server.js`
+
 Command-line server runner with CLI interface.
 
 **Key Features:**
+
 - CLI argument parsing
 - Server lifecycle management
 - Statistics monitoring
@@ -130,18 +136,21 @@ node src/proxy/proxy-server.js --config ./my-config.json
 ### Configuration Presets
 
 #### Stealth (Maximum Obfuscation)
+
 - Enabled obfuscation with random padding
 - Chrome simulation enabled
 - Traffic shaping with randomized timings
 - Minimal logging
 
 #### Performance (Speed Optimized)
+
 - Basic obfuscation without padding
 - Chrome simulation enabled
 - No traffic shaping
 - Increased connection limits
 
 #### Development (Testing)
+
 - No obfuscation
 - No Chrome simulation
 - Verbose logging
@@ -152,12 +161,14 @@ node src/proxy/proxy-server.js --config ./my-config.json
 ### Browser Configuration
 
 #### Chrome/Edge
+
 1. Settings → System → Open proxy settings
 2. Manual proxy setup
 3. HTTP proxy: `localhost:8080`
 4. HTTPS proxy: `localhost:8080`
 
 #### Firefox
+
 1. Settings → Network Settings → Settings
 2. Manual proxy configuration
 3. HTTP Proxy: `localhost` Port: `8080`
@@ -166,6 +177,7 @@ node src/proxy/proxy-server.js --config ./my-config.json
 ### System-Wide Proxy
 
 #### Windows
+
 ```powershell
 # Settings → Network & Internet → Proxy
 # Enable "Use a proxy server"
@@ -174,6 +186,7 @@ node src/proxy/proxy-server.js --config ./my-config.json
 ```
 
 #### macOS
+
 ```bash
 # System Preferences → Network → Advanced → Proxies
 # Enable "Web Proxy (HTTP)" and "Secure Web Proxy (HTTPS)"
@@ -182,6 +195,7 @@ node src/proxy/proxy-server.js --config ./my-config.json
 ```
 
 #### Linux
+
 ```bash
 export http_proxy=http://localhost:8080
 export https_proxy=http://localhost:8080
@@ -199,7 +213,7 @@ const proxy = new ObfuscationProxy({
   host: '0.0.0.0',
   simulateChrome: true,
   obfuscationKey: ObfuscationProxy.generateKey(),
-  enableLogging: true
+  enableLogging: true,
 });
 
 // Start the proxy
@@ -218,17 +232,20 @@ await proxy.stop();
 ## 🔒 Security Features
 
 ### Traffic Obfuscation
+
 - **XOR Cipher**: Data is XORed with a rotating key
 - **Key Rotation**: Key rotates every N bytes for better security
 - **Random Padding**: Adds random padding to break traffic patterns
 - **Protocol Mimicry**: Makes traffic appear as normal HTTPS
 
 ### Header Obfuscation
+
 - **Chrome Simulation**: Realistic Chrome browser headers
-- **Security Headers**: Modern security headers (sec-ch-ua, sec-fetch-*)
+- **Security Headers**: Modern security headers (sec-ch-ua, sec-fetch-\*)
 - **Proxy Header Removal**: Strips proxy-specific headers
 
 ### Privacy
+
 - **No Logging Mode**: Can disable all logging
 - **Local Operation**: All processing happens locally
 - **No Data Storage**: No persistent data storage
@@ -292,7 +309,7 @@ const options = {
   hostname: 'api.openai.com',
   path: '/v1/chat/completions',
   method: 'POST',
-  agent: agent
+  agent: agent,
 };
 
 const req = https.request(options, (res) => {
@@ -303,47 +320,56 @@ const req = https.request(options, (res) => {
 ## 🌍 Cross-Platform Notes
 
 ### Windows
+
 - Runs as a console application
 - Can be run as a Windows service (requires additional setup)
 - Firewall rules may need to be configured
 
 ### macOS
+
 - Requires Node.js installation
 - May need to allow network connections in security settings
 
 ### Linux
+
 - Supports systemd service configuration
 - Can run as a daemon
 - Supports both iptables and nftables
 
 ### Android
+
 - Requires Termux or similar terminal emulator
 - Install Node.js in Termux
 - Configure Wi-Fi proxy to point to device IP
 
 ### iOS
+
 - Requires jailbreak or similar terminal access
 - Or run on a separate device and configure iOS proxy
 
 ## 🔍 Troubleshooting
 
 ### Port Already in Use
+
 ```bash
 # Use a different port
 node src/proxy/proxy-server.js --port 9090
 ```
 
 ### Connection Refused
+
 - Check firewall settings
 - Ensure proxy is running
 - Verify port is correct
 
 ### SSL/TLS Errors
+
 - The proxy uses CONNECT tunneling for HTTPS
 - No SSL certificate installation needed
 - SSL errors may indicate blocked connections
 
 ### Performance Issues
+
 - Use performance preset: `--preset performance`
 - Disable traffic shaping in config
 - Increase connection limits
@@ -353,11 +379,13 @@ node src/proxy/proxy-server.js --port 9090
 ### ObfuscationProxy
 
 #### Constructor
+
 ```javascript
-new ObfuscationProxy(config)
+new ObfuscationProxy(config);
 ```
 
 #### Methods
+
 - `start()` - Start the proxy server (async)
 - `stop()` - Stop the proxy server (async)
 - `getStats()` - Get current statistics
@@ -366,6 +394,7 @@ new ObfuscationProxy(config)
 ### ProxyConfig
 
 #### Methods
+
 - `getDefaultConfig()` - Get default configuration
 - `getPlatformConfig()` - Get platform-specific config
 - `validateConfig(config)` - Validate configuration
@@ -375,6 +404,7 @@ new ObfuscationProxy(config)
 ## 🤝 Contributing
 
 Contributions are welcome! Please:
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
@@ -394,6 +424,7 @@ This module is part of the LLM project. See the main repository for license info
 ## 📞 Support
 
 For issues, questions, or contributions:
+
 - Open an issue on GitHub
 - Check the main LLM repository README
 - Review the test suite for usage examples

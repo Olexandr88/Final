@@ -7,7 +7,7 @@ import {
   withRetry,
   batchOperations,
   healthCheck,
-  disconnectPrisma
+  disconnectPrisma,
 } from '../../src/database/prisma-client.js';
 
 describe('Prisma Client - ORM Integration', () => {
@@ -79,17 +79,14 @@ describe('Prisma Client - ORM Integration', () => {
     let attempts = 0;
 
     try {
-      await withRetry(
-        async () => {
-          attempts++;
-          if (attempts < 2) {
-            const error = new Error('SQLITE_BUSY: database is locked');
-            throw error;
-          }
-          return 'recovered';
-        },
-        3
-      );
+      await withRetry(async () => {
+        attempts++;
+        if (attempts < 2) {
+          const error = new Error('SQLITE_BUSY: database is locked');
+          throw error;
+        }
+        return 'recovered';
+      }, 3);
     } catch (err) {
       // May fail if retry logic doesn't work
     }
@@ -100,18 +97,12 @@ describe('Prisma Client - ORM Integration', () => {
   it('should give up after max retries', async () => {
     let attempts = 0;
 
-    await assert.rejects(
-      async () => {
-        await withRetry(
-          async () => {
-            attempts++;
-            throw new Error('SQLITE_BUSY: persistent error');
-          },
-          3
-        );
-      },
-      /persistent error/
-    );
+    await assert.rejects(async () => {
+      await withRetry(async () => {
+        attempts++;
+        throw new Error('SQLITE_BUSY: persistent error');
+      }, 3);
+    }, /persistent error/);
 
     assert.strictEqual(attempts, 3, 'Should attempt max retries');
   });
@@ -119,15 +110,12 @@ describe('Prisma Client - ORM Integration', () => {
   it('should not retry non-retryable errors', async () => {
     let attempts = 0;
 
-    await assert.rejects(
-      async () => {
-        await withRetry(async () => {
-          attempts++;
-          throw new Error('Invalid syntax');
-        }, 3);
-      },
-      /Invalid syntax/
-    );
+    await assert.rejects(async () => {
+      await withRetry(async () => {
+        attempts++;
+        throw new Error('Invalid syntax');
+      }, 3);
+    }, /Invalid syntax/);
 
     assert.strictEqual(attempts, 1, 'Should not retry non-retryable errors');
   });
@@ -136,7 +124,7 @@ describe('Prisma Client - ORM Integration', () => {
     const operations = [
       async (client) => ({ result: 'op1' }),
       async (client) => ({ result: 'op2' }),
-      async (client) => ({ result: 'op3' })
+      async (client) => ({ result: 'op3' }),
     ];
 
     const results = await batchOperations(operations);
@@ -153,15 +141,12 @@ describe('Prisma Client - ORM Integration', () => {
       async (client) => {
         throw new Error('Batch error');
       },
-      async (client) => ({ result: 'op3' })
+      async (client) => ({ result: 'op3' }),
     ];
 
-    await assert.rejects(
-      async () => {
-        await batchOperations(operations);
-      },
-      /Batch error/
-    );
+    await assert.rejects(async () => {
+      await batchOperations(operations);
+    }, /Batch error/);
   });
 
   it('should handle connection pooling', async () => {
@@ -174,7 +159,10 @@ describe('Prisma Client - ORM Integration', () => {
 
     const results = await Promise.all(promises);
 
-    assert.ok(results.every(r => r === true), 'All queries should succeed');
+    assert.ok(
+      results.every((r) => r === true),
+      'All queries should succeed'
+    );
   });
 
   it('should track slow queries', async () => {
@@ -214,19 +202,13 @@ describe('Prisma Client - ORM Integration', () => {
   });
 
   it('should handle concurrent batch operations', async () => {
-    const batch1 = [
-      async (client) => ({ id: 1 }),
-      async (client) => ({ id: 2 })
-    ];
+    const batch1 = [async (client) => ({ id: 1 }), async (client) => ({ id: 2 })];
 
-    const batch2 = [
-      async (client) => ({ id: 3 }),
-      async (client) => ({ id: 4 })
-    ];
+    const batch2 = [async (client) => ({ id: 3 }), async (client) => ({ id: 4 })];
 
     const [results1, results2] = await Promise.all([
       batchOperations(batch1),
-      batchOperations(batch2)
+      batchOperations(batch2),
     ]);
 
     assert.strictEqual(results1.length, 2);
@@ -236,17 +218,14 @@ describe('Prisma Client - ORM Integration', () => {
   it('should enforce transaction timeout', async () => {
     const slowOperations = [
       async (client) => {
-        await new Promise(resolve => setTimeout(resolve, 11000)); // 11 seconds
+        await new Promise((resolve) => setTimeout(resolve, 11000)); // 11 seconds
         return 'done';
-      }
+      },
     ];
 
-    await assert.rejects(
-      async () => {
-        await batchOperations(slowOperations);
-      },
-      /timeout/i
-    );
+    await assert.rejects(async () => {
+      await batchOperations(slowOperations);
+    }, /timeout/i);
   });
 
   it('should handle empty batch operations', async () => {
@@ -274,20 +253,17 @@ describe('Prisma Client - ORM Integration', () => {
     let attempts = 0;
 
     try {
-      await withRetry(
-        async () => {
-          attempts++;
-          const start = Date.now();
+      await withRetry(async () => {
+        attempts++;
+        const start = Date.now();
 
-          if (attempts < 3) {
-            throw new Error('SQLITE_LOCKED: retry me');
-          }
+        if (attempts < 3) {
+          throw new Error('SQLITE_LOCKED: retry me');
+        }
 
-          delays.push(Date.now() - start);
-          return 'success';
-        },
-        3
-      );
+        delays.push(Date.now() - start);
+        return 'success';
+      }, 3);
     } catch (err) {
       // May fail
     }

@@ -6,10 +6,7 @@ import readline from 'readline';
 const BRIDGE_WS = process.env.BRIDGE_WS || 'ws://localhost:4567';
 const BRIDGE_HTTP = process.env.BRIDGE_HTTP || 'http://localhost:4568';
 
-program
-  .name('ai-bridge-cli')
-  .description('CLI for interacting with AI Bridge')
-  .version('1.0.0');
+program.name('ai-bridge-cli').description('CLI for interacting with AI Bridge').version('1.0.0');
 
 program
   .command('status')
@@ -39,7 +36,7 @@ program
         console.log('No agents connected');
       } else {
         console.log(`\n📋 Connected Agents (${data.agents.length}):\n`);
-        data.agents.forEach(agent => {
+        data.agents.forEach((agent) => {
           console.log(`  • ${agent.id}`);
           console.log(`    Role: ${agent.role}`);
           console.log(`    Skills: ${agent.skills?.join(', ') || 'none'}`);
@@ -65,8 +62,8 @@ program
           to,
           intent: options.intent,
           from: 'cli',
-          payload: { text: message }
-        })
+          payload: { text: message },
+        }),
       });
       const data = await res.json();
       console.log('✅ Message queued:', data.envelope.id);
@@ -84,7 +81,7 @@ program
     const ws = new WebSocket(BRIDGE_WS);
     const rl = readline.createInterface({
       input: process.stdin,
-      output: process.stdout
+      output: process.stdout,
     });
 
     await new Promise((resolve, reject) => {
@@ -95,14 +92,16 @@ program
     console.log(`🤖 Connected to bridge. Chatting with role: ${options.role}\n`);
 
     // Register as CLI user
-    ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'cli-user',
-      role: 'user',
-      intents: ['agent.response', 'user.message']
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'cli-user',
+        role: 'user',
+        intents: ['agent.response', 'user.message'],
+      })
+    );
 
-    await new Promise(r => ws.once('message', r));
+    await new Promise((r) => ws.once('message', r));
 
     // Listen for responses
     ws.on('message', (data) => {
@@ -132,15 +131,17 @@ program
         process.exit(0);
       }
 
-      ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'user.message',
-          from: 'cli-user',
-          role: options.role,
-          payload: { text }
-        }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            intent: 'user.message',
+            from: 'cli-user',
+            role: options.role,
+            payload: { text },
+          },
+        })
+      );
       rl.prompt();
     });
 
@@ -159,7 +160,7 @@ program
       const res = await fetch(`${BRIDGE_HTTP}/history?limit=${options.limit}`);
       const data = await res.json();
       console.log(`\n📜 Recent History (${data.history.length}):\n`);
-      data.history.forEach(msg => {
+      data.history.forEach((msg) => {
         console.log(`  ${msg.timestamp}`);
         console.log(`  ${msg.from} → ${msg.to || 'broadcast'}`);
         console.log(`  Intent: ${msg.intent}`);

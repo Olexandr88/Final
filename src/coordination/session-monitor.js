@@ -15,7 +15,7 @@ const SESSIONS = [
   'session-4-testing',
   'session-5-development',
   'session-6-optimization',
-  'session-7-security'
+  'session-7-security',
 ];
 
 const STATE_DIR = '.agent-locks/SESSION-STATE';
@@ -39,7 +39,7 @@ class SessionMonitor {
       warning: [],
       critical: [],
       stale: [],
-      missing: []
+      missing: [],
     };
 
     for (const sessionId of SESSIONS) {
@@ -66,11 +66,14 @@ class SessionMonitor {
         if (timeSinceUpdate > STALE_THRESHOLD) {
           report.stale.push({
             sessionId,
-            minutesSinceUpdate: Math.floor(timeSinceUpdate / 60000)
+            minutesSinceUpdate: Math.floor(timeSinceUpdate / 60000),
           });
-          this.logAlert('STALE', sessionId, `No update for ${Math.floor(timeSinceUpdate / 60000)} minutes`);
+          this.logAlert(
+            'STALE',
+            sessionId,
+            `No update for ${Math.floor(timeSinceUpdate / 60000)} minutes`
+          );
         }
-
       } catch (error) {
         report.missing.push(sessionId);
         // Don't log missing sessions as alerts - they may not be started yet
@@ -88,7 +91,7 @@ class SessionMonitor {
       timestamp: new Date().toISOString(),
       level,
       sessionId,
-      message
+      message,
     };
 
     this.alerts.push(alert);
@@ -100,10 +103,10 @@ class SessionMonitor {
 
     // Console output with emoji
     const emoji = {
-      'CRITICAL': '🔴',
-      'WARNING': '⚠️',
-      'STALE': '⏰',
-      'INFO': 'ℹ️'
+      CRITICAL: '🔴',
+      WARNING: '⚠️',
+      STALE: '⏰',
+      INFO: 'ℹ️',
     };
 
     console.log(`${emoji[level]} [${level}] ${sessionId}: ${message}`);
@@ -193,7 +196,7 @@ class SessionMonitor {
 
     if (report.missing.length > 0) {
       console.log(`❓ Not Started (${report.missing.length}):`);
-      report.missing.forEach(sessionId => {
+      report.missing.forEach((sessionId) => {
         console.log(`   ${sessionId}`);
       });
       console.log();
@@ -226,13 +229,12 @@ class SessionMonitor {
         await this.saveReport(report);
 
         // Wait for next check
-        await new Promise(resolve => setTimeout(resolve, CHECK_INTERVAL));
-
+        await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL));
       } catch (error) {
         logger.error('Monitor loop error:', error);
         console.error('❌ Monitor error:', error.message);
         // Continue monitoring despite errors
-        await new Promise(resolve => setTimeout(resolve, CHECK_INTERVAL));
+        await new Promise((resolve) => setTimeout(resolve, CHECK_INTERVAL));
       }
     }
   }
@@ -240,7 +242,7 @@ class SessionMonitor {
 
 // Start monitoring
 const monitor = new SessionMonitor();
-monitor.start().catch(error => {
+monitor.start().catch((error) => {
   console.error('💥 Monitor crashed:', error);
   process.exit(1);
 });

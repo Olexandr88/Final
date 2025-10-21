@@ -127,7 +127,7 @@ export class PerformanceMonitor {
         total: 0,
         min: Infinity,
         max: -Infinity,
-        values: []
+        values: [],
       });
     }
 
@@ -165,7 +165,7 @@ export class PerformanceMonitor {
       max: metric.max.toFixed(2),
       p50: p50.toFixed(2),
       p95: p95.toFixed(2),
-      p99: p99.toFixed(2)
+      p99: p99.toFixed(2),
     };
   }
 
@@ -201,8 +201,8 @@ export class PerformanceMonitor {
       summary: {
         totalOperations: 0,
         slowOperations: 0,
-        averageDuration: 0
-      }
+        averageDuration: 0,
+      },
     };
 
     let totalDuration = 0;
@@ -237,7 +237,7 @@ export class PerformanceMonitor {
  */
 export const globalPerformanceMonitor = new PerformanceMonitor({
   name: 'global',
-  slowThreshold: 100
+  slowThreshold: 100,
 });
 
 export default PerformanceMonitor;

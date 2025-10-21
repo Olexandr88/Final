@@ -21,7 +21,7 @@ describe('MCP Server', () => {
       name: 'test-mcp-server',
       version: '1.0.0-test',
       workingDir: testDir,
-      debug: true
+      debug: true,
     });
   });
 
@@ -34,7 +34,7 @@ describe('MCP Server', () => {
   describe('Tool Definitions', () => {
     it('should define all required tools', () => {
       const tools = server.tools;
-      const toolNames = tools.map(t => t.name);
+      const toolNames = tools.map((t) => t.name);
 
       assert.ok(toolNames.includes('analyze_code'));
       assert.ok(toolNames.includes('run_tests'));
@@ -67,7 +67,7 @@ console.log(result);
 
       const result = await server._handleAnalyzeCode({
         code,
-        filepath: 'test.js'
+        filepath: 'test.js',
       });
 
       assert.ok(result.success);
@@ -87,7 +87,7 @@ function buggyFunction() {
 
       const result = await server._handleAnalyzeCode({
         code,
-        filepath: 'buggy.js'
+        filepath: 'buggy.js',
       });
 
       assert.ok(result.success);
@@ -95,12 +95,9 @@ function buggyFunction() {
     });
 
     it('should require code parameter', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleAnalyzeCode({});
-        },
-        /Code parameter is required/
-      );
+      await assert.rejects(async () => {
+        await server._handleAnalyzeCode({});
+      }, /Code parameter is required/);
     });
   });
 
@@ -112,7 +109,7 @@ function buggyFunction() {
       await fs.writeFile(testFile, content, 'utf-8');
 
       const result = await server._handleReadFile({
-        filepath: testFile
+        filepath: testFile,
       });
 
       assert.ok(result.success);
@@ -122,23 +119,17 @@ function buggyFunction() {
     });
 
     it('should handle non-existent file', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleReadFile({
-            filepath: path.join(testDir, 'non-existent.txt')
-          });
-        },
-        /Failed to read file/
-      );
+      await assert.rejects(async () => {
+        await server._handleReadFile({
+          filepath: path.join(testDir, 'non-existent.txt'),
+        });
+      }, /Failed to read file/);
     });
 
     it('should require filepath parameter', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleReadFile({});
-        },
-        /Filepath parameter is required/
-      );
+      await assert.rejects(async () => {
+        await server._handleReadFile({});
+      }, /Filepath parameter is required/);
     });
   });
 
@@ -149,7 +140,7 @@ function buggyFunction() {
 
       const result = await server._handleWriteFile({
         filepath: testFile,
-        content
+        content,
       });
 
       assert.ok(result.success);
@@ -172,7 +163,7 @@ function buggyFunction() {
       await server._handleWriteFile({
         filepath: testFile,
         content: newContent,
-        createBackup: true
+        createBackup: true,
       });
 
       // Check backup exists
@@ -186,26 +177,20 @@ function buggyFunction() {
     });
 
     it('should require filepath and content parameters', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleWriteFile({ filepath: 'test.txt' });
-        },
-        /Filepath and content parameters are required/
-      );
+      await assert.rejects(async () => {
+        await server._handleWriteFile({ filepath: 'test.txt' });
+      }, /Filepath and content parameters are required/);
 
-      await assert.rejects(
-        async () => {
-          await server._handleWriteFile({ content: 'test' });
-        },
-        /Filepath and content parameters are required/
-      );
+      await assert.rejects(async () => {
+        await server._handleWriteFile({ content: 'test' });
+      }, /Filepath and content parameters are required/);
     });
   });
 
   describe('execute_command tool', () => {
     it('should execute simple command', async () => {
       const result = await server._handleExecuteCommand({
-        command: 'node --version'
+        command: 'node --version',
       });
 
       assert.ok(result.success);
@@ -216,7 +201,7 @@ function buggyFunction() {
     it('should handle command failure', async () => {
       const result = await server._handleExecuteCommand({
         command: 'node non-existent-script.js',
-        timeout: 5000
+        timeout: 5000,
       });
 
       assert.ok(!result.success);
@@ -224,23 +209,17 @@ function buggyFunction() {
     });
 
     it('should block dangerous commands', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleExecuteCommand({
-            command: 'rm -rf /'
-          });
-        },
-        /dangerous operations/
-      );
+      await assert.rejects(async () => {
+        await server._handleExecuteCommand({
+          command: 'rm -rf /',
+        });
+      }, /dangerous operations/);
     });
 
     it('should require command parameter', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleExecuteCommand({});
-        },
-        /Command parameter is required/
-      );
+      await assert.rejects(async () => {
+        await server._handleExecuteCommand({});
+      }, /Command parameter is required/);
     });
   });
 
@@ -256,7 +235,7 @@ function buggyFunction() {
 
     it('should include log history when requested', async () => {
       const result = await server._handleGetContext({
-        includeHistory: true
+        includeHistory: true,
       });
 
       assert.ok(result.session);
@@ -264,14 +243,11 @@ function buggyFunction() {
     });
 
     it('should handle invalid session ID', async () => {
-      await assert.rejects(
-        async () => {
-          await server._handleGetContext({
-            sessionId: 'invalid-session-id'
-          });
-        },
-        /Session not found/
-      );
+      await assert.rejects(async () => {
+        await server._handleGetContext({
+          sessionId: 'invalid-session-id',
+        });
+      }, /Session not found/);
     });
   });
 
@@ -294,7 +270,7 @@ describe('Sample Test', () => {
 
       const result = await server._handleRunTests({
         pattern: testFile,
-        timeout: 10000
+        timeout: 10000,
       });
 
       // Test may fail due to environment, check structure
@@ -318,7 +294,7 @@ describe('Sample Test', () => {
       const customServer = new MCPServer({
         name: 'custom-mcp',
         version: '2.0.0',
-        debug: true
+        debug: true,
       });
 
       assert.strictEqual(customServer.options.name, 'custom-mcp');

@@ -13,7 +13,7 @@ const PERFORMANCE_THRESHOLDS = {
   messageRouting: 50, // ms
   workflowInitiation: 200, // ms
   concurrentRequests: 10000, // ms for 50 requests
-  responseTime95th: 500 // ms
+  responseTime95th: 500, // ms
 };
 
 class PerformanceAnalyzer {
@@ -21,7 +21,7 @@ class PerformanceAnalyzer {
     this.metrics = {
       passed: [],
       failed: [],
-      warnings: []
+      warnings: [],
     };
   }
 
@@ -43,7 +43,7 @@ class PerformanceAnalyzer {
       messageRouting: { avg: 23, p95: 45, p99: 67 },
       workflowInitiation: { avg: 134, p95: 189, p99: 234 },
       concurrentRequests: { total: 8934, throughput: 67 },
-      responseTime: { avg: 234, p95: 456, p99: 678 }
+      responseTime: { avg: 234, p95: 456, p99: 678 },
     };
   }
 
@@ -54,7 +54,7 @@ class PerformanceAnalyzer {
       value,
       threshold,
       status,
-      ratio: ((value / threshold) * 100).toFixed(1) + '%'
+      ratio: ((value / threshold) * 100).toFixed(1) + '%',
     };
 
     if (status === 'PASS') {
@@ -119,7 +119,7 @@ class PerformanceAnalyzer {
 
     if (this.metrics.warnings.length > 0) {
       console.log('\nWarnings:');
-      this.metrics.warnings.forEach(warning => console.log(`  ⚠ ${warning}`));
+      this.metrics.warnings.forEach((warning) => console.log(`  ⚠ ${warning}`));
     }
 
     // Save analysis report
@@ -128,16 +128,13 @@ class PerformanceAnalyzer {
       summary: {
         passed: this.metrics.passed.length,
         failed: this.metrics.failed.length,
-        warnings: this.metrics.warnings.length
+        warnings: this.metrics.warnings.length,
       },
       details: this.metrics,
-      thresholds: PERFORMANCE_THRESHOLDS
+      thresholds: PERFORMANCE_THRESHOLDS,
     };
 
-    await fs.writeFile(
-      'performance-analysis.json',
-      JSON.stringify(report, null, 2)
-    );
+    await fs.writeFile('performance-analysis.json', JSON.stringify(report, null, 2));
 
     console.log('\n✓ Analysis report saved to performance-analysis.json\n');
 
@@ -149,7 +146,7 @@ class PerformanceAnalyzer {
 // Run if executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const analyzer = new PerformanceAnalyzer();
-  analyzer.analyze().catch(error => {
+  analyzer.analyze().catch((error) => {
     console.error('Analysis failed:', error);
     process.exit(1);
   });

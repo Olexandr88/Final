@@ -19,6 +19,7 @@ This document outlines a comprehensive strategy to integrate an Object-Relationa
 **Database System**: SQLite 3 (better-sqlite3 driver)
 **Connection Pattern**: Custom DatabasePool with 10-15 connections
 **Current Features**:
+
 - WAL mode for concurrency
 - Connection pooling with acquire/release pattern
 - Prepared statements for performance
@@ -26,31 +27,33 @@ This document outlines a comprehensive strategy to integrate an Object-Relationa
 - Synchronous operations mixed with async
 
 **Tables**:
+
 1. `sessions` - Active session tracking (7 columns)
 2. `locks` - Resource lock management (5 columns + FK)
 3. `selections` - Browser text selection storage (6 columns)
 
 ### ORM Comparison Matrix
 
-| Feature | Prisma | Sequelize | TypeORM |
-|---------|--------|-----------|---------|
-| **SQLite Support** | ✅ Excellent | ✅ Good | ✅ Good |
-| **Connection Pooling** | ⚠️ Limited (better-sqlite3 driver) | ✅ Built-in | ✅ Built-in |
-| **Type Safety** | ✅✅ Best-in-class | ⚠️ Runtime only | ✅ Good (TS decorators) |
-| **Migration System** | ✅ Automatic + Manual | ✅ Manual | ✅ Manual |
-| **Query Performance** | ✅ Optimized queries | ⚠️ Can be slow | ⚠️ Can generate inefficient queries |
-| **Learning Curve** | ⚠️ Medium (new concepts) | ✅ Easy (familiar patterns) | ⚠️ Medium (decorators) |
-| **Bundle Size** | ⚠️ Large (includes CLI) | ✅ Moderate | ✅ Moderate |
-| **better-sqlite3 Integration** | ⚠️ Custom driver needed | ✅ Via dialect | ✅ Via driver |
-| **Active Record Pattern** | ❌ No (Data Mapper only) | ✅ Yes | ✅ Yes (ActiveRecord + DataMapper) |
-| **Raw SQL Escape Hatch** | ✅ $queryRaw | ✅ sequelize.query() | ✅ manager.query() |
-| **Validation** | ⚠️ External (zod) | ✅ Built-in | ✅ class-validator integration |
-| **Transaction Support** | ✅ Excellent | ✅ Good | ✅ Good |
-| **Community** | 🔥 Rapidly growing | ✅ Mature/stable | ✅ Large |
+| Feature                        | Prisma                             | Sequelize                   | TypeORM                             |
+| ------------------------------ | ---------------------------------- | --------------------------- | ----------------------------------- |
+| **SQLite Support**             | ✅ Excellent                       | ✅ Good                     | ✅ Good                             |
+| **Connection Pooling**         | ⚠️ Limited (better-sqlite3 driver) | ✅ Built-in                 | ✅ Built-in                         |
+| **Type Safety**                | ✅✅ Best-in-class                 | ⚠️ Runtime only             | ✅ Good (TS decorators)             |
+| **Migration System**           | ✅ Automatic + Manual              | ✅ Manual                   | ✅ Manual                           |
+| **Query Performance**          | ✅ Optimized queries               | ⚠️ Can be slow              | ⚠️ Can generate inefficient queries |
+| **Learning Curve**             | ⚠️ Medium (new concepts)           | ✅ Easy (familiar patterns) | ⚠️ Medium (decorators)              |
+| **Bundle Size**                | ⚠️ Large (includes CLI)            | ✅ Moderate                 | ✅ Moderate                         |
+| **better-sqlite3 Integration** | ⚠️ Custom driver needed            | ✅ Via dialect              | ✅ Via driver                       |
+| **Active Record Pattern**      | ❌ No (Data Mapper only)           | ✅ Yes                      | ✅ Yes (ActiveRecord + DataMapper)  |
+| **Raw SQL Escape Hatch**       | ✅ $queryRaw                       | ✅ sequelize.query()        | ✅ manager.query()                  |
+| **Validation**                 | ⚠️ External (zod)                  | ✅ Built-in                 | ✅ class-validator integration      |
+| **Transaction Support**        | ✅ Excellent                       | ✅ Good                     | ✅ Good                             |
+| **Community**                  | 🔥 Rapidly growing                 | ✅ Mature/stable            | ✅ Large                            |
 
 ### Recommendation: **Prisma** (Primary) + **TypeORM** (Fallback)
 
 **Why Prisma**:
+
 1. **Type Safety**: Auto-generated TypeScript types from schema
 2. **Developer Experience**: Intuitive schema language, excellent VSCode support
 3. **Migration Safety**: Automatic migration generation with review step
@@ -58,16 +61,19 @@ This document outlines a comprehensive strategy to integrate an Object-Relationa
 5. **Future-Proof**: Modern architecture, growing ecosystem
 
 **Why NOT Sequelize**:
+
 - Older codebase with legacy patterns
 - Weaker type safety (runtime types only)
 - Migration system less robust than Prisma
 
 **Why NOT TypeORM (as primary)**:
+
 - Decorator-based approach may conflict with existing code structure
 - Can generate inefficient queries for complex joins
 - Less intuitive for team members unfamiliar with decorators
 
 **TypeORM Use Case** (Specialized):
+
 - If custom connection pooling proves incompatible with Prisma
 - For advanced features like multi-database support (PostgreSQL migration)
 - When ActiveRecord pattern is preferred for specific modules
@@ -171,7 +177,7 @@ export class Session {
   @Column('text', { nullable: true })
   cwd: string | null;
 
-  @OneToMany(() => Lock, lock => lock.session, { cascade: true })
+  @OneToMany(() => Lock, (lock) => lock.session, { cascade: true })
   locks: Lock[];
 }
 ```
@@ -201,7 +207,7 @@ export class Lock {
   @Column('text', { name: 'lock_type' })
   lockType: string;
 
-  @ManyToOne(() => Session, session => session.locks, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Session, (session) => session.locks, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'session_id' })
   session: Session;
 }
@@ -216,13 +222,16 @@ export class Lock {
 **Goal**: Install ORM without breaking existing code
 
 **Tasks**:
+
 1. Install Prisma dependencies
+
    ```bash
    npm install prisma @prisma/client
    npm install -D prisma
    ```
 
 2. Initialize Prisma
+
    ```bash
    npx prisma init --datasource-provider sqlite
    ```
@@ -232,16 +241,19 @@ export class Lock {
    - Verify column mappings
 
 4. Generate Prisma Client
+
    ```bash
    npx prisma generate
    ```
 
 5. Create introspection script to verify schema matches existing DB
+
    ```bash
    npx prisma db pull --schema=./prisma/schema-temp.prisma
    ```
 
 6. Create adapter layer for DatabasePool + Prisma coexistence
+
    ```javascript
    // src/database/prisma-pool-adapter.js
    import { PrismaClient } from '@prisma/client';
@@ -279,11 +291,13 @@ export class Lock {
 **Migration Order** (from lowest to highest risk):
 
 #### 2.1 SelectionStore (Low Risk)
+
 - Standalone module
 - No complex relations
 - High read/write volume (good for benchmarking)
 
 **Before** (`src/selection-store.js`):
+
 ```javascript
 export async function saveSelection({ url, title, selected_text, source = 'browser' }) {
   return pool.execute((db) => {
@@ -298,6 +312,7 @@ export async function saveSelection({ url, title, selected_text, source = 'brows
 ```
 
 **After** (`src/selection-store-orm.js`):
+
 ```javascript
 import { prisma } from './database/prisma-client.js';
 
@@ -307,8 +322,8 @@ export async function saveSelection({ url, title, selected_text, source = 'brows
       url: url.slice(0, 2048),
       title: title ? title.slice(0, 512) : null,
       selectedText: selected_text.slice(0, 100000),
-      source: source.slice(0, 64)
-    }
+      source: source.slice(0, 64),
+    },
   });
   return selection.id;
 }
@@ -316,7 +331,7 @@ export async function saveSelection({ url, title, selected_text, source = 'brows
 export async function getLatestSelections(limit = 10) {
   return prisma.selection.findMany({
     take: Math.min(limit, 1000),
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
   });
 }
 
@@ -326,16 +341,17 @@ export async function searchSelections(query, limit = 50) {
       OR: [
         { selectedText: { contains: query } },
         { title: { contains: query } },
-        { url: { contains: query } }
-      ]
+        { url: { contains: query } },
+      ],
     },
     take: Math.min(limit, 1000),
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
   });
 }
 ```
 
 **Performance Comparison**:
+
 ```javascript
 // benchmark/selection-store-benchmark.js
 import Benchmark from 'benchmark';
@@ -350,7 +366,7 @@ suite
       url: 'https://example.com',
       title: 'Test',
       selected_text: 'Sample text'.repeat(100),
-      source: 'benchmark'
+      source: 'benchmark',
     });
   })
   .add('Prisma ORM Insert', async () => {
@@ -358,7 +374,7 @@ suite
       url: 'https://example.com',
       title: 'Test',
       selected_text: 'Sample text'.repeat(100),
-      source: 'benchmark'
+      source: 'benchmark',
     });
   })
   .add('Raw SQL Search', async () => {
@@ -367,14 +383,15 @@ suite
   .add('Prisma ORM Search', async () => {
     await ormSQL.searchSelections('example', 50);
   })
-  .on('cycle', event => console.log(String(event.target)))
-  .on('complete', function() {
+  .on('cycle', (event) => console.log(String(event.target)))
+  .on('complete', function () {
     console.log('Fastest is ' + this.filter('fastest').map('name'));
   })
   .run({ async: true });
 ```
 
 **Acceptance Criteria**:
+
 - ORM performance within 20% of raw SQL
 - All existing tests pass
 - No functional regressions
@@ -382,11 +399,13 @@ suite
 ---
 
 #### 2.2 Session Manager (Medium Risk)
+
 - Core coordination component
 - Foreign key relationships with locks
 - Requires transaction support
 
 **Before** (`src/session-manager.js`):
+
 ```javascript
 register() {
   this.sessionId = uuidv4();
@@ -404,6 +423,7 @@ register() {
 ```
 
 **After** (`src/session-manager-orm.js`):
+
 ```javascript
 import { prisma } from './database/prisma-client.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -459,6 +479,7 @@ async heartbeat() {
 ```
 
 **Transaction Pattern**:
+
 ```javascript
 // Complex multi-step operation
 async killSession(sessionId) {
@@ -496,6 +517,7 @@ async killSession(sessionId) {
 ---
 
 #### 2.3 Lock Manager (High Risk)
+
 - Critical for concurrency control
 - Performance-sensitive (sub-100ms latency required)
 - Complex query patterns
@@ -539,7 +561,7 @@ class LockManager {
           // Fetch the created lock with ORM for type safety
           const lock = await prisma.lock.findFirst({
             where: { resourcePath, sessionId },
-            orderBy: { acquiredAt: 'desc' }
+            orderBy: { acquiredAt: 'desc' },
           });
 
           this.locks.set(resourcePath, lock);
@@ -551,19 +573,19 @@ class LockManager {
         }
       }
 
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     // Timeout - use ORM for diagnostics
     const lockHolder = await prisma.lock.findFirst({
       where: { resourcePath },
       include: { session: true },
-      orderBy: { acquiredAt: 'desc' }
+      orderBy: { acquiredAt: 'desc' },
     });
 
     throw new Error(
       `Timeout acquiring lock for ${resourcePath}. ` +
-      `Lock held by session: ${lockHolder?.session.id} (PID: ${lockHolder?.session.pid})`
+        `Lock held by session: ${lockHolder?.session.id} (PID: ${lockHolder?.session.pid})`
     );
   }
 
@@ -573,8 +595,8 @@ class LockManager {
     await prisma.lock.deleteMany({
       where: {
         resourcePath,
-        sessionId
-      }
+        sessionId,
+      },
     });
 
     this.locks.delete(resourcePath);
@@ -585,10 +607,10 @@ class LockManager {
       where: { resourcePath },
       include: {
         session: {
-          select: { id: true, pid: true, status: true }
-        }
+          select: { id: true, pid: true, status: true },
+        },
       },
-      orderBy: { acquiredAt: 'desc' }
+      orderBy: { acquiredAt: 'desc' },
     });
   }
 }
@@ -601,6 +623,7 @@ class LockManager {
 **Test Strategy**:
 
 1. **Functional Parity Tests**
+
    ```javascript
    // tests/orm-migration/session-manager-parity.test.js
    import { describe, it, before, after } from 'node:test';
@@ -635,6 +658,7 @@ class LockManager {
    ```
 
 2. **Performance Benchmarks**
+
    ```javascript
    // benchmark/orm-performance-suite.js
    import { performance } from 'perf_hooks';
@@ -681,6 +705,7 @@ class LockManager {
    ```
 
 3. **Load Testing**
+
    ```javascript
    // tests/load/orm-concurrent-load.test.js
    import { describe, it } from 'node:test';
@@ -688,12 +713,12 @@ class LockManager {
 
    describe('ORM Concurrent Load Test', () => {
      it('should handle 100 concurrent session registrations', async () => {
-       const managers = Array(100).fill(null).map(() => new SessionManagerORM());
+       const managers = Array(100)
+         .fill(null)
+         .map(() => new SessionManagerORM());
 
        const startTime = Date.now();
-       const sessionIds = await Promise.all(
-         managers.map(m => m.register())
-       );
+       const sessionIds = await Promise.all(managers.map((m) => m.register()));
        const duration = Date.now() - startTime;
 
        assert.equal(sessionIds.length, 100);
@@ -701,12 +726,13 @@ class LockManager {
        assert.ok(duration < 5000, `Took too long: ${duration}ms`);
 
        // Cleanup
-       await Promise.all(managers.map(m => m.cleanup()));
+       await Promise.all(managers.map((m) => m.cleanup()));
      });
    });
    ```
 
 **Performance Targets** (must meet all):
+
 - Single insert: <5ms (raw SQL: ~2ms)
 - Simple query: <3ms (raw SQL: ~1ms)
 - Search query: <15ms (raw SQL: ~8ms)
@@ -725,7 +751,7 @@ export const FEATURE_FLAGS = {
   USE_ORM: process.env.ENABLE_ORM === 'true' || false,
   ORM_MODULE_SELECTION_STORE: process.env.ORM_SELECTION_STORE === 'true',
   ORM_MODULE_SESSION_MANAGER: process.env.ORM_SESSION_MANAGER === 'true',
-  ORM_MODULE_LOCK_MANAGER: process.env.ORM_LOCK_MANAGER === 'true'
+  ORM_MODULE_LOCK_MANAGER: process.env.ORM_LOCK_MANAGER === 'true',
 };
 ```
 
@@ -757,15 +783,18 @@ await SelectionStore.saveSelection({ ... });
 **Gradual Rollout Plan**:
 
 Week 5:
+
 - Day 1-2: Enable ORM for SelectionStore only (10% traffic)
 - Day 3-4: Monitor metrics, increase to 50% traffic
 - Day 5: Full rollout for SelectionStore if metrics green
 
 Week 6:
+
 - Day 1-3: Enable SessionManager ORM (25% → 100%)
 - Day 4-7: Enable LockManager ORM (25% → 100%)
 
 **Rollback Plan**:
+
 ```bash
 # Emergency rollback
 export ENABLE_ORM=false
@@ -780,23 +809,25 @@ npm restart
 
 Based on industry benchmarks and Prisma performance data:
 
-| Operation | Raw SQL (better-sqlite3) | Prisma ORM | Overhead |
-|-----------|-------------------------|------------|----------|
-| **Simple Insert** | 2ms | 3-4ms | +50-100% |
-| **Prepared Statement Insert** | 0.5ms | 1.5ms | +200% |
-| **Single Row Select** | 1ms | 2ms | +100% |
-| **Indexed Search (10 rows)** | 5ms | 7-10ms | +40-100% |
-| **Complex Join (3 tables)** | 8ms | 12-15ms | +50-87% |
-| **Bulk Insert (100 rows)** | 20ms | 25-35ms | +25-75% |
-| **Transaction (5 operations)** | 10ms | 15-20ms | +50-100% |
-| **Connection Acquisition** | <1ms (pooled) | <1ms (pooled) | ~0% |
+| Operation                      | Raw SQL (better-sqlite3) | Prisma ORM    | Overhead |
+| ------------------------------ | ------------------------ | ------------- | -------- |
+| **Simple Insert**              | 2ms                      | 3-4ms         | +50-100% |
+| **Prepared Statement Insert**  | 0.5ms                    | 1.5ms         | +200%    |
+| **Single Row Select**          | 1ms                      | 2ms           | +100%    |
+| **Indexed Search (10 rows)**   | 5ms                      | 7-10ms        | +40-100% |
+| **Complex Join (3 tables)**    | 8ms                      | 12-15ms       | +50-87%  |
+| **Bulk Insert (100 rows)**     | 20ms                     | 25-35ms       | +25-75%  |
+| **Transaction (5 operations)** | 10ms                     | 15-20ms       | +50-100% |
+| **Connection Acquisition**     | <1ms (pooled)            | <1ms (pooled) | ~0%      |
 
 **Why the overhead?**:
+
 1. **Abstraction Layer**: ORM adds validation, type checking, query building
 2. **Object Hydration**: Converting DB rows to JS objects
 3. **Relation Resolution**: Lazy/eager loading of associations
 
 **Mitigation Strategies**:
+
 1. Use `prisma.$executeRaw` for hot paths (retains 90% of raw speed)
 2. Enable Prisma query caching for repeated queries
 3. Use `select` to fetch only needed fields
@@ -844,6 +875,7 @@ npm run benchmark:orm
 ### Example 1: Complex Query with Relations
 
 **Before (Raw SQL)**:
+
 ```javascript
 getSessionInfo(sessionId) {
   const session = this.db.prepare(`
@@ -863,6 +895,7 @@ getSessionInfo(sessionId) {
 ```
 
 **After (Prisma ORM)**:
+
 ```javascript
 async getSessionInfo(sessionId) {
   const session = await prisma.session.findUnique({
@@ -883,6 +916,7 @@ async getSessionInfo(sessionId) {
 ```
 
 **Benefits**:
+
 - Automatic JOIN handling
 - Type-safe result (TypeScript knows structure)
 - No manual object merging
@@ -893,6 +927,7 @@ async getSessionInfo(sessionId) {
 ### Example 2: Bulk Operations
 
 **Before**:
+
 ```javascript
 async cleanupStaleSessions() {
   const staleThreshold = Date.now() - 30000;
@@ -910,6 +945,7 @@ async cleanupStaleSessions() {
 ```
 
 **After**:
+
 ```javascript
 async cleanupStaleSessions() {
   const staleThreshold = Date.now() - 30000;
@@ -937,6 +973,7 @@ async cleanupStaleSessions() {
 ```
 
 **Benefits**:
+
 - Single transaction (atomic)
 - No N+1 queries (updateMany is a single SQL statement)
 - Clearer intent
@@ -946,6 +983,7 @@ async cleanupStaleSessions() {
 ### Example 3: Migration to PostgreSQL (Future)
 
 **Current Schema** (SQLite):
+
 ```prisma
 datasource db {
   provider = "sqlite"
@@ -954,6 +992,7 @@ datasource db {
 ```
 
 **Future Schema** (PostgreSQL):
+
 ```prisma
 datasource db {
   provider = "postgresql"
@@ -976,6 +1015,7 @@ model Session {
 ```
 
 **Migration Command**:
+
 ```bash
 # 1. Update .env
 DATABASE_URL="postgresql://user:pass@localhost:5432/llm_framework"
@@ -1059,7 +1099,7 @@ async function verifyDataConsistency() {
   const sqlSessions = sqlManager.db.prepare('SELECT * FROM sessions').all();
 
   for (const ormSession of ormSessions) {
-    const sqlSession = sqlSessions.find(s => s.id === ormSession.id);
+    const sqlSession = sqlSessions.find((s) => s.id === ormSession.id);
     if (!sqlSession) {
       throw new Error(`Session ${ormSession.id} exists in ORM but not SQL`);
     }
@@ -1086,6 +1126,7 @@ verifyDataConsistency().catch(console.error);
    - Check data consistency every 5 minutes
 
 2. **Execute Rollback**:
+
    ```bash
    # Stop services
    npm run system:stop
@@ -1102,6 +1143,7 @@ verifyDataConsistency().catch(console.error);
    ```
 
 3. **Post-Rollback Analysis**:
+
    ```javascript
    // scripts/analyze-orm-failure.js
    import { logger } from './src/utils/logger.js';
@@ -1113,7 +1155,7 @@ verifyDataConsistency().catch(console.error);
        from: new Date(Date.now() - 3600000), // Last hour
        until: new Date(),
        fields: ['message', 'meta'],
-       limit: 1000
+       limit: 1000,
      });
 
      // Group by error type
@@ -1126,9 +1168,7 @@ verifyDataConsistency().catch(console.error);
      console.log('Error Distribution:', errorTypes);
 
      // Identify root cause
-     const ormErrors = errors.filter(e =>
-       e.message.includes('Prisma') || e.meta?.orm === true
-     );
+     const ormErrors = errors.filter((e) => e.message.includes('Prisma') || e.meta?.orm === true);
 
      console.log(`ORM-specific errors: ${ormErrors.length}`);
      console.log('Sample errors:', ormErrors.slice(0, 5));
@@ -1142,6 +1182,7 @@ verifyDataConsistency().catch(console.error);
 ## 7. Implementation Checklist
 
 ### Pre-Implementation
+
 - [ ] Review and approve this design document
 - [ ] Set up dedicated test environment (isolated SQLite DB)
 - [ ] Create feature branch: `feat/orm-integration`
@@ -1149,6 +1190,7 @@ verifyDataConsistency().catch(console.error);
 - [ ] Initialize Prisma: `npx prisma init`
 
 ### Week 1-2: Setup
+
 - [ ] Define Prisma schema matching existing tables
 - [ ] Generate Prisma Client: `npx prisma generate`
 - [ ] Introspect existing database: `npx prisma db pull`
@@ -1157,6 +1199,7 @@ verifyDataConsistency().catch(console.error);
 - [ ] Create benchmark harness (`benchmark/orm-performance-suite.js`)
 
 ### Week 2-3: SelectionStore Migration
+
 - [ ] Implement `src/selection-store-orm.js` with Prisma
 - [ ] Create parity tests (functional equivalence)
 - [ ] Run performance benchmarks
@@ -1165,6 +1208,7 @@ verifyDataConsistency().catch(console.error);
 - [ ] Full rollout if metrics green
 
 ### Week 3-4: SessionManager Migration
+
 - [ ] Implement `src/session-manager-orm.js`
 - [ ] Handle transactions for complex operations
 - [ ] Test concurrent session registration (load test)
@@ -1172,6 +1216,7 @@ verifyDataConsistency().catch(console.error);
 - [ ] Gradual rollout (25% → 50% → 100%)
 
 ### Week 4-5: LockManager Migration
+
 - [ ] Implement `src/lock-manager-orm.js`
 - [ ] Use hybrid approach (ORM + raw SQL for critical paths)
 - [ ] Test lock acquisition under contention
@@ -1180,6 +1225,7 @@ verifyDataConsistency().catch(console.error);
 - [ ] Gradual rollout
 
 ### Week 5-6: Validation & Cleanup
+
 - [ ] Run full integration test suite
 - [ ] Performance regression tests (all modules)
 - [ ] Data consistency verification script
@@ -1189,6 +1235,7 @@ verifyDataConsistency().catch(console.error);
 - [ ] Update documentation
 
 ### Post-Implementation
+
 - [ ] Monitor production metrics for 2 weeks
 - [ ] Create runbook for ORM troubleshooting
 - [ ] Train team on Prisma best practices
@@ -1199,9 +1246,11 @@ verifyDataConsistency().catch(console.error);
 ## 8. Risk Mitigation
 
 ### Risk 1: Performance Degradation
+
 **Likelihood**: Medium
 **Impact**: High
 **Mitigation**:
+
 - Comprehensive benchmarking before rollout
 - Performance budgets (max +20% overhead)
 - Hybrid approach (raw SQL for hot paths)
@@ -1209,27 +1258,33 @@ verifyDataConsistency().catch(console.error);
 - Monitor P95/P99 latencies in production
 
 ### Risk 2: Data Inconsistency
+
 **Likelihood**: Low
 **Impact**: Critical
 **Mitigation**:
+
 - Dual-mode operation during transition
 - Automated consistency checks every 5 minutes
 - Transaction support for multi-step operations
 - Rollback plan tested in staging
 
 ### Risk 3: Learning Curve
+
 **Likelihood**: Medium
 **Impact**: Medium
 **Mitigation**:
+
 - Prisma is more intuitive than raw SQL
 - Excellent documentation and VSCode integration
 - Code examples in this document
 - Pair programming during implementation
 
 ### Risk 4: Library Lock-in
+
 **Likelihood**: Low
 **Impact**: Medium
 **Mitigation**:
+
 - Prisma has strong community (37k+ stars)
 - Database abstraction layer enables swap
 - TypeORM as fallback option
@@ -1240,6 +1295,7 @@ verifyDataConsistency().catch(console.error);
 ## 9. Success Metrics
 
 **Technical Metrics**:
+
 - Code reduction: -30% lines of code (less SQL strings)
 - Type safety: 100% of database operations type-checked
 - Test coverage: Maintain >90% coverage
@@ -1247,11 +1303,13 @@ verifyDataConsistency().catch(console.error);
 - Bugs: <5 ORM-related bugs in first 3 months
 
 **Developer Experience**:
+
 - Onboarding time: -50% for new developers (Prisma Studio + docs)
 - Query debugging: -40% time (Prisma query logs)
 - Schema changes: 5 minutes (vs 30 minutes manual SQL)
 
 **Operational Metrics**:
+
 - Zero downtime during migration
 - No data loss or corruption
 - Rollback capability maintained throughout
@@ -1261,6 +1319,7 @@ verifyDataConsistency().catch(console.error);
 ## 10. Future Enhancements
 
 ### Phase 2 (3-6 months post-ORM)
+
 1. **PostgreSQL Migration**
    - Use Prisma's multi-provider support
    - Migrate high-volume tables first (selections)
@@ -1277,6 +1336,7 @@ verifyDataConsistency().catch(console.error);
    - Edge deployments (Prisma Accelerate)
 
 ### Phase 3 (6-12 months)
+
 1. **GraphQL API Layer**
    - Auto-generate GraphQL schema from Prisma models
    - Use Nexus or Pothos for type-safe resolvers
@@ -1380,6 +1440,7 @@ npx prisma db seed
 **Recommendation**: Proceed with Prisma ORM integration using incremental rollout strategy.
 
 **Key Advantages**:
+
 1. Type-safe database operations (prevent runtime errors)
 2. Automatic migrations (reduce manual SQL)
 3. Better developer experience (Prisma Studio, VSCode integration)

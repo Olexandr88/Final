@@ -54,7 +54,7 @@ const sessionManager = new SessionManager();
 sessionManager.register();
 
 const lockManager = new LockManager(sessionManager, {
-  useDistributed: true
+  useDistributed: true,
 });
 
 // Acquire lock
@@ -156,11 +156,11 @@ npm run redis:restart
 
 ## Performance Targets
 
-| Metric | Target | Typical |
-|--------|--------|---------|
-| Lock Latency (P95) | < 120ms | 50-80ms |
-| Throughput | > 50 ops/sec | 80-150 ops/sec |
-| Success Rate | > 90% | 95%+ |
+| Metric             | Target       | Typical        |
+| ------------------ | ------------ | -------------- |
+| Lock Latency (P95) | < 120ms      | 50-80ms        |
+| Throughput         | > 50 ops/sec | 80-150 ops/sec |
+| Success Rate       | > 90%        | 95%+           |
 
 ---
 

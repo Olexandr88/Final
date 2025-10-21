@@ -17,18 +17,17 @@ function preCommitHook(event) {
     // Run tests
     execSync('npm test', {
       stdio: 'inherit',
-      cwd: __dirname + '/..'
+      cwd: __dirname + '/..',
     });
 
     console.log('[Hook] ✓ Tests passed - commit allowed');
     return { allow: true };
-
   } catch (error) {
     console.error('[Hook] ✗ Tests failed - commit blocked');
     console.error('Fix the tests before committing.');
     return {
       allow: false,
-      reason: 'Tests must pass before committing'
+      reason: 'Tests must pass before committing',
     };
   }
 }

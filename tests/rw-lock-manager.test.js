@@ -142,13 +142,25 @@ describe('RWLockManager', () => {
   });
 
   it('should check if resource is locked', async () => {
-    assert.strictEqual(rwLockManager.isLocked(testResource), false, 'Should not be locked initially');
+    assert.strictEqual(
+      rwLockManager.isLocked(testResource),
+      false,
+      'Should not be locked initially'
+    );
 
     await rwLockManager.acquireRead(testResource);
-    assert.strictEqual(rwLockManager.isLocked(testResource), true, 'Should be locked after acquire');
+    assert.strictEqual(
+      rwLockManager.isLocked(testResource),
+      true,
+      'Should be locked after acquire'
+    );
 
     await rwLockManager.releaseRead(testResource);
-    assert.strictEqual(rwLockManager.isLocked(testResource), false, 'Should not be locked after release');
+    assert.strictEqual(
+      rwLockManager.isLocked(testResource),
+      false,
+      'Should not be locked after release'
+    );
   });
 
   it('should release all locks', async () => {
@@ -169,7 +181,7 @@ describe('RWLockManager', () => {
       rwLockManager.withReadLock(testResource, async () => {
         results.push(i);
         // Simulate some work
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise((resolve) => setTimeout(resolve, 10));
         return i;
       })
     );

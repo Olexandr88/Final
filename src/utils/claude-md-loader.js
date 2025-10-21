@@ -9,7 +9,9 @@ export class ClaudeMdLoader {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
     this.claudeMdPath = path.join(this.projectRoot, 'CLAUDE.md');
-    this.globalClaudeMdPath = options.globalPath || path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'CLAUDE.md');
+    this.globalClaudeMdPath =
+      options.globalPath ||
+      path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'CLAUDE.md');
     this.config = null;
   }
 
@@ -50,7 +52,7 @@ export class ClaudeMdLoader {
       rules: this.extractRules(content),
       context: this.extractContext(content),
       techStack: this.extractTechStack(content),
-      testingInstructions: this.extractTestingInstructions(content)
+      testingInstructions: this.extractTestingInstructions(content),
     };
 
     return config;
@@ -100,7 +102,7 @@ export class ClaudeMdLoader {
     let match;
     while ((match = commandPattern.exec(content)) !== null) {
       const cmdBlock = match[1].trim();
-      const cmdLines = cmdBlock.split('\n').filter(line => !line.startsWith('#'));
+      const cmdLines = cmdBlock.split('\n').filter((line) => !line.startsWith('#'));
 
       commands.push(...cmdLines);
     }
@@ -115,7 +117,8 @@ export class ClaudeMdLoader {
     const rules = [];
 
     // Look for rules section
-    const rulesSection = this.parseMarkdownSections(content)['coding-rules'] ||
+    const rulesSection =
+      this.parseMarkdownSections(content)['coding-rules'] ||
       this.parseMarkdownSections(content)['rules'] ||
       this.parseMarkdownSections(content)['guidelines'];
 
@@ -142,7 +145,7 @@ export class ClaudeMdLoader {
     return {
       description: sections['description'] || sections['about'] || '',
       architecture: sections['architecture'] || sections['structure'] || '',
-      conventions: sections['conventions'] || ''
+      conventions: sections['conventions'] || '',
     };
   }
 
@@ -156,7 +159,7 @@ export class ClaudeMdLoader {
     const stack = {
       languages: [],
       frameworks: [],
-      tools: []
+      tools: [],
     };
 
     // Simple extraction - look for common patterns
@@ -187,13 +190,13 @@ export class ClaudeMdLoader {
     if (configs.length === 1) return configs[0];
 
     const merged = {
-      sources: configs.map(c => c.source),
+      sources: configs.map((c) => c.source),
       sections: {},
       commands: [],
       rules: [],
       context: {},
       techStack: { languages: [], frameworks: [], tools: [] },
-      testingInstructions: ''
+      testingInstructions: '',
     };
 
     for (const config of configs) {
@@ -374,7 +377,7 @@ npm run lint:fix
     if (totalLength > 10000) {
       issues.push({
         severity: 'warning',
-        message: `CLAUDE.md is ${totalLength} characters. Consider condensing for better performance.`
+        message: `CLAUDE.md is ${totalLength} characters. Consider condensing for better performance.`,
       });
     }
 
@@ -384,14 +387,14 @@ npm run lint:fix
       if (!this.config?.sections?.[section]) {
         issues.push({
           severity: 'info',
-          message: `Consider adding a "${section}" section`
+          message: `Consider adding a "${section}" section`,
         });
       }
     }
 
     return {
-      valid: issues.filter(i => i.severity === 'error').length === 0,
-      issues
+      valid: issues.filter((i) => i.severity === 'error').length === 0,
+      issues,
     };
   }
 }

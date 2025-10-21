@@ -17,13 +17,7 @@ export class WorkflowTemplates {
    * Explore-Plan-Code-Commit workflow
    */
   async explorePlanCodeCommit(spec) {
-    const {
-      feature,
-      exploration = {},
-      planning = {},
-      implementation = {},
-      commit = {}
-    } = spec;
+    const { feature, exploration = {}, planning = {}, implementation = {}, commit = {} } = spec;
 
     console.log(`\n╔═══════════════════════════════════════╗`);
     console.log(`║  Explore → Plan → Code → Commit      ║`);
@@ -33,35 +27,35 @@ export class WorkflowTemplates {
     const workflow = {
       feature,
       phases: {},
-      startTime: Date.now()
+      startTime: Date.now(),
     };
 
     try {
       // Phase 1: EXPLORE
       workflow.phases.explore = await this.explore({
         feature,
-        ...exploration
+        ...exploration,
       });
 
       // Phase 2: PLAN
       workflow.phases.plan = await this.plan({
         feature,
         context: workflow.phases.explore,
-        ...planning
+        ...planning,
       });
 
       // Phase 3: CODE
       workflow.phases.code = await this.code({
         feature,
         plan: workflow.phases.plan,
-        ...implementation
+        ...implementation,
       });
 
       // Phase 4: COMMIT
       workflow.phases.commit = await this.commit({
         feature,
         changes: workflow.phases.code,
-        ...commit
+        ...commit,
       });
 
       workflow.endTime = Date.now();
@@ -96,7 +90,7 @@ export class WorkflowTemplates {
       files: {},
       structure: {},
       dependencies: [],
-      patterns: []
+      patterns: [],
     };
 
     // Read specified files
@@ -120,11 +114,11 @@ export class WorkflowTemplates {
       try {
         const results = execSync(`git grep -n "${keyword}"`, {
           cwd: process.cwd(),
-          encoding: 'utf-8'
+          encoding: 'utf-8',
         });
         context.patterns.push({
           keyword,
-          matches: results.split('\n').filter(Boolean)
+          matches: results.split('\n').filter(Boolean),
         });
       } catch (error) {
         // No matches found
@@ -153,11 +147,11 @@ export class WorkflowTemplates {
       files: {
         toCreate: [],
         toModify: [],
-        toDelete: []
+        toDelete: [],
       },
       risks: [],
       dependencies: [],
-      estimatedTime: null
+      estimatedTime: null,
     };
 
     // Generate plan structure
@@ -170,7 +164,7 @@ export class WorkflowTemplates {
       'Implement core functionality',
       'Add error handling',
       'Write tests',
-      'Update documentation'
+      'Update documentation',
     ];
 
     // Save plan to file
@@ -184,7 +178,7 @@ export class WorkflowTemplates {
 
     return {
       ...plan,
-      planPath
+      planPath,
     };
   }
 
@@ -200,7 +194,7 @@ export class WorkflowTemplates {
       filesCreated: [],
       filesModified: [],
       linesAdded: 0,
-      linesRemoved: 0
+      linesRemoved: 0,
     };
 
     // Execute implementation (placeholder - would integrate with actual code generation)
@@ -214,7 +208,9 @@ export class WorkflowTemplates {
         implementation.filesCreated.push(filePath);
         implementation.linesAdded += content.split('\n').length;
       } else if (action === 'modify') {
-        const original = fs.existsSync(fullPath) ? await fs.promises.readFile(fullPath, 'utf-8') : '';
+        const original = fs.existsSync(fullPath)
+          ? await fs.promises.readFile(fullPath, 'utf-8')
+          : '';
         await fs.promises.writeFile(fullPath, content, 'utf-8');
         implementation.filesModified.push(filePath);
         implementation.linesAdded += content.split('\n').length;
@@ -247,13 +243,13 @@ export class WorkflowTemplates {
       // Create commit
       execSync(`git commit -m "${commitMessage.replace(/"/g, '\\"')}"`, {
         cwd: process.cwd(),
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
 
       // Get commit hash
       const hash = execSync('git rev-parse HEAD', {
         cwd: process.cwd(),
-        encoding: 'utf-8'
+        encoding: 'utf-8',
       }).trim();
 
       console.log(`✓ Committed: ${hash.substring(0, 7)}\n`);
@@ -261,7 +257,7 @@ export class WorkflowTemplates {
       return {
         hash,
         message: commitMessage,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     } catch (error) {
       console.error(`Failed to commit: ${error.message}`);
@@ -284,7 +280,7 @@ export class WorkflowTemplates {
 
     if (plan.files.toCreate.length > 0) {
       content += `## Files to Create\n\n`;
-      plan.files.toCreate.forEach(file => {
+      plan.files.toCreate.forEach((file) => {
         content += `- ${file}\n`;
       });
       content += '\n';
@@ -292,7 +288,7 @@ export class WorkflowTemplates {
 
     if (plan.files.toModify.length > 0) {
       content += `## Files to Modify\n\n`;
-      plan.files.toModify.forEach(file => {
+      plan.files.toModify.forEach((file) => {
         content += `- ${file}\n`;
       });
       content += '\n';
@@ -300,7 +296,7 @@ export class WorkflowTemplates {
 
     if (plan.risks.length > 0) {
       content += `## Risks\n\n`;
-      plan.risks.forEach(risk => {
+      plan.risks.forEach((risk) => {
         content += `- ${risk}\n`;
       });
       content += '\n';
@@ -336,14 +332,14 @@ export class WorkflowTemplates {
     const files = fs.readdirSync(dirPath);
 
     return {
-      files: files.filter(f => {
+      files: files.filter((f) => {
         const stat = fs.statSync(path.join(dirPath, f));
         return stat.isFile();
       }),
-      directories: files.filter(f => {
+      directories: files.filter((f) => {
         const stat = fs.statSync(path.join(dirPath, f));
         return stat.isDirectory();
-      })
+      }),
     };
   }
 

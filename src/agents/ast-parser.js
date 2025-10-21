@@ -16,7 +16,7 @@ class ASTParser {
       ranges: true,
       allowHashBang: true,
       allowImportExportEverywhere: true,
-      allowReservedWordsAsIdentifiers: true
+      allowReservedWordsAsIdentifiers: true,
     };
   }
 
@@ -33,19 +33,21 @@ class ASTParser {
         success: true,
         ast,
         filePath,
-        errors: []
+        errors: [],
       };
     } catch (error) {
       return {
         success: false,
         ast: null,
         filePath,
-        errors: [{
-          message: error.message,
-          line: error.loc?.line,
-          column: error.loc?.column,
-          position: error.pos
-        }]
+        errors: [
+          {
+            message: error.message,
+            line: error.loc?.line,
+            column: error.loc?.column,
+            position: error.pos,
+          },
+        ],
       };
     }
   }
@@ -64,7 +66,7 @@ class ASTParser {
         filePath,
         parseErrors: parseResult.errors,
         issues: [],
-        metrics: null
+        metrics: null,
       };
     }
 
@@ -77,7 +79,7 @@ class ASTParser {
       variables: 0,
       complexity: 1,
       maxDepth: 0,
-      todoComments: 0
+      todoComments: 0,
     };
 
     let currentDepth = 0;
@@ -126,23 +128,25 @@ class ASTParser {
             message: 'Use const/let instead of var',
             line: node.loc.start.line,
             column: node.loc.start.column,
-            fix: { kind: 'let' }
+            fix: { kind: 'let' },
           });
         }
       },
 
       CallExpression: (node) => {
         // Detect console.log
-        if (node.callee.type === 'MemberExpression' &&
-            node.callee.object.name === 'console' &&
-            node.callee.property.name === 'log') {
+        if (
+          node.callee.type === 'MemberExpression' &&
+          node.callee.object.name === 'console' &&
+          node.callee.property.name === 'log'
+        ) {
           issues.push({
             type: 'console-log',
             severity: 'warning',
             message: 'console.log found - remove before production',
             line: node.loc.start.line,
             column: node.loc.start.column,
-            fix: { action: 'remove' }
+            fix: { action: 'remove' },
           });
         }
       },
@@ -156,7 +160,7 @@ class ASTParser {
             message: `Use ${node.operator}= instead of ${node.operator}`,
             line: node.loc.start.line,
             column: node.loc.start.column,
-            fix: { operator: node.operator + '=' }
+            fix: { operator: node.operator + '=' },
           });
         }
       },
@@ -195,7 +199,7 @@ class ASTParser {
 
       CatchClause: (node) => {
         metrics.complexity++;
-      }
+      },
     });
 
     // Analyze TODO comments in source
@@ -208,14 +212,14 @@ class ASTParser {
           severity: 'info',
           message: 'TODO/FIXME comment found',
           line: idx + 1,
-          column: line.indexOf('TODO') !== -1 ? line.indexOf('TODO') : line.indexOf('FIXME')
+          column: line.indexOf('TODO') !== -1 ? line.indexOf('TODO') : line.indexOf('FIXME'),
         });
       }
     });
 
-    const errorCount = issues.filter(i => i.severity === 'error').length;
-    const warningCount = issues.filter(i => i.severity === 'warning').length;
-    const infoCount = issues.filter(i => i.severity === 'info').length;
+    const errorCount = issues.filter((i) => i.severity === 'error').length;
+    const warningCount = issues.filter((i) => i.severity === 'warning').length;
+    const infoCount = issues.filter((i) => i.severity === 'info').length;
 
     return {
       filePath,
@@ -227,8 +231,8 @@ class ASTParser {
         errorCount,
         warningCount,
         infoCount,
-        qualityScore: Math.max(0, 10 - (errorCount * 2 + warningCount * 0.5))
-      }
+        qualityScore: Math.max(0, 10 - (errorCount * 2 + warningCount * 0.5)),
+      },
     };
   }
 
@@ -243,10 +247,12 @@ class ASTParser {
       IfStatement: () => functionComplexity++,
       WhileStatement: () => functionComplexity++,
       ForStatement: () => functionComplexity++,
-      SwitchCase: (n) => { if (n.test) functionComplexity++; },
+      SwitchCase: (n) => {
+        if (n.test) functionComplexity++;
+      },
       LogicalExpression: () => functionComplexity++,
       ConditionalExpression: () => functionComplexity++,
-      CatchClause: () => functionComplexity++
+      CatchClause: () => functionComplexity++,
     });
 
     if (functionComplexity > 10) {
@@ -256,7 +262,7 @@ class ASTParser {
         message: `Function has cyclomatic complexity of ${functionComplexity} (threshold: 10)`,
         line: node.loc.start.line,
         column: node.loc.start.column,
-        complexity: functionComplexity
+        complexity: functionComplexity,
       });
     }
 
@@ -269,7 +275,7 @@ class ASTParser {
         message: `Function is ${functionLength} lines (threshold: 50)`,
         line: node.loc.start.line,
         column: node.loc.start.column,
-        length: functionLength
+        length: functionLength,
       });
     }
   }
@@ -293,10 +299,10 @@ class ASTParser {
         if (node.id) {
           functions.push({
             name: node.id.name,
-            params: node.params.map(p => p.name || p.type),
+            params: node.params.map((p) => p.name || p.type),
             line: node.loc.start.line,
             async: node.async,
-            generator: node.generator
+            generator: node.generator,
           });
         }
       },
@@ -306,11 +312,13 @@ class ASTParser {
           classes.push({
             name: node.id.name,
             line: node.loc.start.line,
-            methods: node.body.body.filter(m => m.type === 'MethodDefinition').map(m => ({
-              name: m.key.name,
-              kind: m.kind,
-              static: m.static
-            }))
+            methods: node.body.body
+              .filter((m) => m.type === 'MethodDefinition')
+              .map((m) => ({
+                name: m.key.name,
+                kind: m.kind,
+                static: m.static,
+              })),
           });
         }
       },
@@ -321,7 +329,7 @@ class ASTParser {
             exports.push({
               name: node.declaration.id.name,
               type: node.declaration.type,
-              line: node.loc.start.line
+              line: node.loc.start.line,
             });
           }
         }
@@ -331,9 +339,9 @@ class ASTParser {
         exports.push({
           name: 'default',
           type: node.declaration.type,
-          line: node.loc.start.line
+          line: node.loc.start.line,
         });
-      }
+      },
     });
 
     return { functions, classes, exports };

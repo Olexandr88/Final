@@ -73,9 +73,9 @@ class AutonomousCodestralPipeline {
         filesAnalyzed: analysis.files.length,
         issuesFound: analysis.totalIssues,
         optimizationsApplied: report.summary.optimizationsApplied,
-        performanceGain: report.summary.estimatedPerformanceGain
+        performanceGain: report.summary.estimatedPerformanceGain,
       },
-      performance
+      performance,
     };
 
     await fs.writeFile(

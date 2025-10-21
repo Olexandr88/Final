@@ -17,11 +17,7 @@ export class HooksSystem extends EventEmitter {
    * Register a hook
    */
   register(hookName, handler, options = {}) {
-    const {
-      priority = 10,
-      async = false,
-      enabled = true
-    } = options;
+    const { priority = 10, async = false, enabled = true } = options;
 
     if (!this.hooks.has(hookName)) {
       this.hooks.set(hookName, []);
@@ -32,7 +28,7 @@ export class HooksSystem extends EventEmitter {
       priority,
       async,
       enabled,
-      invocationCount: 0
+      invocationCount: 0,
     });
 
     // Sort by priority (higher first)
@@ -65,14 +61,12 @@ export class HooksSystem extends EventEmitter {
         hook.invocationCount++;
         this.emit('hook:before', { hookName, context });
 
-        const result = hook.async
-          ? await hook.handler(context)
-          : hook.handler(context);
+        const result = hook.async ? await hook.handler(context) : hook.handler(context);
 
         results.push({
           handler: hook.handler.name || 'anonymous',
           result,
-          success: true
+          success: true,
         });
 
         this.emit('hook:after', { hookName, context, result });
@@ -84,7 +78,7 @@ export class HooksSystem extends EventEmitter {
       } catch (error) {
         errors.push({
           handler: hook.handler.name || 'anonymous',
-          error: error.message
+          error: error.message,
         });
         this.emit('hook:error', { hookName, context, error });
       }
@@ -97,7 +91,7 @@ export class HooksSystem extends EventEmitter {
       errors,
       totalHandlers: handlers.length,
       successCount: results.length,
-      errorCount: errors.length
+      errorCount: errors.length,
     };
   }
 
@@ -107,7 +101,7 @@ export class HooksSystem extends EventEmitter {
   setEnabled(hookName, enabled) {
     const handlers = this.hooks.get(hookName);
     if (handlers) {
-      handlers.forEach(h => h.enabled = enabled);
+      handlers.forEach((h) => (h.enabled = enabled));
       this.logger.info(`Hook ${hookName} ${enabled ? 'enabled' : 'disabled'}`);
     }
   }
@@ -131,7 +125,7 @@ export class HooksSystem extends EventEmitter {
       stats[name] = {
         handlerCount: handlers.length,
         totalInvocations: handlers.reduce((sum, h) => sum + h.invocationCount, 0),
-        enabledCount: handlers.filter(h => h.enabled).length
+        enabledCount: handlers.filter((h) => h.enabled).length,
       };
     }
     return stats;
@@ -145,62 +139,83 @@ export class HooksSystem extends EventEmitter {
 
     // PostToolUse: Auto-formatting after file edits
     if (autoFormat) {
-      hooksSystem.register('PostToolUse', async (context) => {
-        if (context.tool === 'edit-file' && context.file) {
-          const ext = context.file.split('.').pop();
-          if (['js', 'ts', 'jsx', 'tsx'].includes(ext)) {
-            // Simulate Prettier formatting
-            return { formatted: true, file: context.file };
+      hooksSystem.register(
+        'PostToolUse',
+        async (context) => {
+          if (context.tool === 'edit-file' && context.file) {
+            const ext = context.file.split('.').pop();
+            if (['js', 'ts', 'jsx', 'tsx'].includes(ext)) {
+              // Simulate Prettier formatting
+              return { formatted: true, file: context.file };
+            }
           }
-        }
-        return { formatted: false };
-      }, { priority: 20, async: true });
+          return { formatted: false };
+        },
+        { priority: 20, async: true }
+      );
     }
 
     // PreToolUse: Block unsafe actions
-    hooksSystem.register('PreToolUse', (context) => {
-      if (context.tool === 'delete-file' && context.file) {
-        const dangerousPatterns = ['.env', 'node_modules/', 'package.json'];
-        if (dangerousPatterns.some(pattern => context.file.includes(pattern))) {
-          return {
-            preventDefault: true,
-            reason: `Blocked deletion of critical file: ${context.file}`
-          };
+    hooksSystem.register(
+      'PreToolUse',
+      (context) => {
+        if (context.tool === 'delete-file' && context.file) {
+          const dangerousPatterns = ['.env', 'node_modules/', 'package.json'];
+          if (dangerousPatterns.some((pattern) => context.file.includes(pattern))) {
+            return {
+              preventDefault: true,
+              reason: `Blocked deletion of critical file: ${context.file}`,
+            };
+          }
         }
-      }
-      return { allowed: true };
-    }, { priority: 100 });
+        return { allowed: true };
+      },
+      { priority: 100 }
+    );
 
     // PostCommit: Auto-test after commits
     if (autoTest) {
-      hooksSystem.register('PostCommit', async (context) => {
-        // Run tests after commit
-        return {
-          testRun: true,
-          message: 'Tests executed after commit'
-        };
-      }, { priority: 10, async: true });
+      hooksSystem.register(
+        'PostCommit',
+        async (context) => {
+          // Run tests after commit
+          return {
+            testRun: true,
+            message: 'Tests executed after commit',
+          };
+        },
+        { priority: 10, async: true }
+      );
     }
 
     // Logging hook
     if (logging) {
-      hooksSystem.register('*', (context) => {
-        const logger = Logger.getInstance();
-        logger.debug(`Hook executed: ${context.hookName}`, context);
-        return { logged: true };
-      }, { priority: 1 });
+      hooksSystem.register(
+        '*',
+        (context) => {
+          const logger = Logger.getInstance();
+          logger.debug(`Hook executed: ${context.hookName}`, context);
+          return { logged: true };
+        },
+        { priority: 1 }
+      );
     }
 
     // Notification hook for long tasks
-    hooksSystem.register('TaskComplete', (context) => {
-      if (context.duration && context.duration > 60000) { // > 1 minute
-        return {
-          notification: true,
-          message: `Task completed: ${context.taskName} (${Math.floor(context.duration / 1000)}s)`
-        };
-      }
-      return { notification: false };
-    }, { priority: 5 });
+    hooksSystem.register(
+      'TaskComplete',
+      (context) => {
+        if (context.duration && context.duration > 60000) {
+          // > 1 minute
+          return {
+            notification: true,
+            message: `Task completed: ${context.taskName} (${Math.floor(context.duration / 1000)}s)`,
+          };
+        }
+        return { notification: false };
+      },
+      { priority: 5 }
+    );
 
     return hooksSystem;
   }
@@ -212,7 +227,7 @@ export class HooksSystem extends EventEmitter {
     return {
       name: 'PreToolUse',
       handler,
-      ...options
+      ...options,
     };
   }
 
@@ -223,7 +238,7 @@ export class HooksSystem extends EventEmitter {
     return {
       name: 'PostToolUse',
       handler,
-      ...options
+      ...options,
     };
   }
 }

@@ -2,11 +2,11 @@ name: Security Tests
 
 on:
   push:
-    branches: [ main, develop, 'feat/*' ]
+    branches: [main, develop, 'feat/*']
   pull_request:
-    branches: [ main, develop ]
+    branches: [main, develop]
   schedule:
-    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+    - cron: '0 2 * * *' # Daily at 2 AM UTC
 
 jobs:
   security-scan:
@@ -15,72 +15,72 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11']
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        pip install bandit safety flake8 black pylint
-        pip install -r requirements.txt
-    
-    - name: Run Bandit security scan
-      run: bandit -r *.py -f json -o bandit-report.json || true
-    
-    - name: Run Safety dependency check
-      run: safety check --json || true
-    
-    - name: Validate security fixes
-      run: |
-        echo "Checking eval() removed..."
-        ! grep -n "eval(" data_tools.py math_tools.py | grep -v "safe_eval"
-        echo "Checking SHA-256 used..."
-        grep "sha256" file_tools.py
-        echo "Security validation passed!"
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          pip install bandit safety flake8 black pylint
+          pip install -r requirements.txt
+
+      - name: Run Bandit security scan
+        run: bandit -r *.py -f json -o bandit-report.json || true
+
+      - name: Run Safety dependency check
+        run: safety check --json || true
+
+      - name: Validate security fixes
+        run: |
+          echo "Checking eval() removed..."
+          ! grep -n "eval(" data_tools.py math_tools.py | grep -v "safe_eval"
+          echo "Checking SHA-256 used..."
+          grep "sha256" file_tools.py
+          echo "Security validation passed!"
 
   test-suite:
     name: Test Suite
     runs-on: ubuntu-latest
     needs: security-scan
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install test dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install -r tests/requirements.txt
-    
-    - name: Run pytest with coverage
-      run: |
-        pytest tests/ -v --cov=. --cov-report=term --cov-report=xml
-    
-    - name: Check coverage threshold
-      run: |
-        coverage report --fail-under=80
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install test dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r tests/requirements.txt
+
+      - name: Run pytest with coverage
+        run: |
+          pytest tests/ -v --cov=. --cov-report=term --cov-report=xml
+
+      - name: Check coverage threshold
+        run: |
+          coverage report --fail-under=80
 
   health-check:
     name: Health Check
     runs-on: ubuntu-latest
     needs: test-suite
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Run health monitoring
-      run: python monitor.py --once
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run health monitoring
+        run: python monitor.py --once

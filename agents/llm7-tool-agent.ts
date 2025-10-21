@@ -24,12 +24,15 @@ export async function agent(env: any): Promise<any> {
 
   // Begin a new conversation with a system prompt and user message
   const messages: ChatMessage[] = [
-    { role: 'system', content: 'You are a helpful assistant. If you do not know the answer, say so clearly.' },
+    {
+      role: 'system',
+      content: 'You are a helpful assistant. If you do not know the answer, say so clearly.',
+    },
     { role: 'user', content: userText },
   ];
 
   // Build tool/function definitions for the API from our local tools
-  const toolSpecs = tools.map(tool => ({
+  const toolSpecs = tools.map((tool) => ({
     name: tool.name,
     description: tool.description,
     parameters: tool.parameters,
@@ -55,7 +58,7 @@ export async function agent(env: any): Promise<any> {
     const toolCalls = extendedMessage.tool_calls || [];
     for (const call of toolCalls) {
       const { name, arguments: argsStr, id } = call;
-      const toolDef = tools.find(t => t.name === name);
+      const toolDef = tools.find((t) => t.name === name);
       if (!toolDef) {
         // Unknown tool – skip and continue
         continue;

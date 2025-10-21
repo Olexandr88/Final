@@ -2,7 +2,11 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { SessionManagerCQRS } from '../../src/architecture/session-manager-cqrs.js';
 import RedisRedlockManager from '../../src/utils/redis-redlock-manager.js';
-import { getPrismaClient, healthCheck as prismaHealthCheck, disconnectPrisma } from '../../src/database/prisma-client.js';
+import {
+  getPrismaClient,
+  healthCheck as prismaHealthCheck,
+  disconnectPrisma,
+} from '../../src/database/prisma-client.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -17,11 +21,20 @@ describe('Deployment Validation - Full Integration', () => {
     // Initialize distributed lock manager (will fallback to local if Redis unavailable)
     lockManager = new RedisRedlockManager({
       redisNodes: [
-        { host: process.env.REDIS_HOST_1 || 'localhost', port: parseInt(process.env.REDIS_PORT_1 || '6379') },
-        { host: process.env.REDIS_HOST_2 || 'localhost', port: parseInt(process.env.REDIS_PORT_2 || '6380') },
-        { host: process.env.REDIS_HOST_3 || 'localhost', port: parseInt(process.env.REDIS_PORT_3 || '6381') }
+        {
+          host: process.env.REDIS_HOST_1 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_1 || '6379'),
+        },
+        {
+          host: process.env.REDIS_HOST_2 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_2 || '6380'),
+        },
+        {
+          host: process.env.REDIS_HOST_3 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_3 || '6381'),
+        },
       ],
-      lockTTL: 5000
+      lockTTL: 5000,
     });
 
     try {
@@ -47,7 +60,7 @@ describe('Deployment Validation - Full Integration', () => {
     try {
       if (fs.existsSync(archDir)) {
         const files = fs.readdirSync(archDir);
-        files.forEach(file => {
+        files.forEach((file) => {
           const filePath = path.join(archDir, file);
           try {
             if (fs.statSync(filePath).isFile()) {
@@ -181,7 +194,7 @@ describe('Deployment Validation - Full Integration', () => {
     assert.strictEqual(lockManager.isLocked(resource), true);
 
     // Wait for lock to expire
-    await new Promise(resolve => setTimeout(resolve, 2500));
+    await new Promise((resolve) => setTimeout(resolve, 2500));
 
     // Should be able to acquire again (expired)
     const newLock = await lockManager.acquireLock(resource, 2000);
@@ -259,9 +272,7 @@ describe('Deployment Validation - Full Integration', () => {
     assert.ok(activeSessions.length >= 5);
 
     // Each session updates independently
-    await Promise.all(
-      managers.map((mgr, i) => mgr.updateTask(`concurrent-${i}`))
-    );
+    await Promise.all(managers.map((mgr, i) => mgr.updateTask(`concurrent-${i}`)));
 
     // Verify each session has correct task
     for (let i = 0; i < managers.length; i++) {
@@ -270,7 +281,7 @@ describe('Deployment Validation - Full Integration', () => {
     }
 
     // Cleanup all
-    await Promise.all(managers.map(mgr => mgr.cleanup()));
+    await Promise.all(managers.map((mgr) => mgr.cleanup()));
   });
 
   it('should validate health monitoring', async () => {
@@ -335,7 +346,7 @@ describe('Deployment Validation - Full Integration', () => {
     const metrics = {
       cqrs: null,
       redis: null,
-      prisma: null
+      prisma: null,
     };
 
     // CQRS metrics

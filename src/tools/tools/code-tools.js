@@ -34,7 +34,7 @@ export async function analyzeCode(params, context = {}) {
     executionId: context.executionId,
     language,
     codeLength: code?.length || 0,
-    filePath: file_path
+    filePath: file_path,
   });
 
   try {
@@ -55,7 +55,7 @@ export async function analyzeCode(params, context = {}) {
         message: `Analysis for ${language} not fully supported. Basic parsing only.`,
         issues: [],
         suggestions: [],
-        metrics: include_metrics ? await calculateBasicMetrics(code) : null
+        metrics: include_metrics ? await calculateBasicMetrics(code) : null,
       };
     }
 
@@ -63,27 +63,19 @@ export async function analyzeCode(params, context = {}) {
     const eslintResults = await performESLintAnalysis(code, {
       language: normalizedLanguage,
       file_path,
-      eslint_config
+      eslint_config,
     });
 
     // Perform AST-based structural analysis
     const astResults = await performASTAnalysis(code, normalizedLanguage);
 
     // Combine results
-    const issues = [
-      ...eslintResults.issues,
-      ...astResults.issues
-    ];
+    const issues = [...eslintResults.issues, ...astResults.issues];
 
-    const suggestions = [
-      ...eslintResults.suggestions,
-      ...astResults.suggestions
-    ];
+    const suggestions = [...eslintResults.suggestions, ...astResults.suggestions];
 
     // Calculate code metrics if requested
-    const metrics = include_metrics
-      ? await calculateCodeMetrics(code, astResults.ast)
-      : null;
+    const metrics = include_metrics ? await calculateCodeMetrics(code, astResults.ast) : null;
 
     const duration = Date.now() - startTime;
 
@@ -92,7 +84,7 @@ export async function analyzeCode(params, context = {}) {
       executionId: context.executionId,
       duration,
       issueCount: issues.length,
-      suggestionCount: suggestions.length
+      suggestionCount: suggestions.length,
     });
 
     return {
@@ -104,14 +96,13 @@ export async function analyzeCode(params, context = {}) {
       metrics,
       summary: {
         totalIssues: issues.length,
-        errors: issues.filter(i => i.severity === 'error').length,
-        warnings: issues.filter(i => i.severity === 'warning').length,
-        info: issues.filter(i => i.severity === 'info').length,
-        totalSuggestions: suggestions.length
+        errors: issues.filter((i) => i.severity === 'error').length,
+        warnings: issues.filter((i) => i.severity === 'warning').length,
+        info: issues.filter((i) => i.severity === 'info').length,
+        totalSuggestions: suggestions.length,
       },
-      duration
+      duration,
     };
-
   } catch (error) {
     const duration = Date.now() - startTime;
 
@@ -120,7 +111,7 @@ export async function analyzeCode(params, context = {}) {
       executionId: context.executionId,
       error: error.message,
       stack: error.stack,
-      duration
+      duration,
     });
 
     return {
@@ -131,7 +122,7 @@ export async function analyzeCode(params, context = {}) {
       issues: [],
       suggestions: [],
       metrics: null,
-      duration
+      duration,
     };
   }
 }
@@ -151,7 +142,7 @@ async function performESLintAnalysis(code, options) {
         ESLint = eslintModule.ESLint;
       } catch (importError) {
         logger.warn('ESLint not available, skipping ESLint analysis', {
-          error: importError.message
+          error: importError.message,
         });
         return { issues: [], suggestions: [] };
       }
@@ -165,12 +156,12 @@ async function performESLintAnalysis(code, options) {
     const eslint = new ESLint({
       useEslintrc: false,
       overrideConfig: eslint_config || getDefaultESLintConfig(language),
-      fix: false
+      fix: false,
     });
 
     // Lint the code
     const results = await eslint.lintText(code, {
-      filePath: filename
+      filePath: filename,
     });
 
     const issues = [];
@@ -180,7 +171,7 @@ async function performESLintAnalysis(code, options) {
     if (results && results.length > 0) {
       const result = results[0];
 
-      result.messages.forEach(msg => {
+      result.messages.forEach((msg) => {
         const issue = {
           type: 'eslint',
           severity: msg.severity === 2 ? 'error' : msg.severity === 1 ? 'warning' : 'info',
@@ -190,7 +181,7 @@ async function performESLintAnalysis(code, options) {
           column: msg.column,
           endLine: msg.endLine,
           endColumn: msg.endColumn,
-          fixable: msg.fix ? true : false
+          fixable: msg.fix ? true : false,
         };
 
         issues.push(issue);
@@ -202,25 +193,26 @@ async function performESLintAnalysis(code, options) {
             message: `Auto-fix available for: ${msg.message}`,
             rule: msg.ruleId,
             line: msg.line,
-            fix: msg.fix
+            fix: msg.fix,
           });
         }
       });
     }
 
     return { issues, suggestions };
-
   } catch (error) {
     logger.error('ESLint analysis failed', { error: error.message });
     return {
-      issues: [{
-        type: 'eslint-error',
-        severity: 'error',
-        message: `ESLint analysis error: ${error.message}`,
-        line: 0,
-        column: 0
-      }],
-      suggestions: []
+      issues: [
+        {
+          type: 'eslint-error',
+          severity: 'error',
+          message: `ESLint analysis error: ${error.message}`,
+          line: 0,
+          column: 0,
+        },
+      ],
+      suggestions: [],
     };
   }
 }
@@ -234,21 +226,21 @@ function getDefaultESLintConfig(language) {
     env: {
       es2022: true,
       node: true,
-      browser: true
+      browser: true,
     },
     parserOptions: {
       ecmaVersion: 2022,
       sourceType: 'module',
       ecmaFeatures: {
-        jsx: language.includes('jsx') || language.includes('tsx')
-      }
+        jsx: language.includes('jsx') || language.includes('tsx'),
+      },
     },
     rules: {
       'no-unused-vars': 'warn',
       'no-undef': 'error',
       'no-console': 'off',
-      'semi': ['warn', 'always'],
-      'quotes': ['warn', 'single'],
+      semi: ['warn', 'always'],
+      quotes: ['warn', 'single'],
       'no-debugger': 'warn',
       'no-unreachable': 'error',
       'no-const-assign': 'error',
@@ -261,11 +253,11 @@ function getDefaultESLintConfig(language) {
       'no-sparse-arrays': 'warn',
       'use-isnan': 'error',
       'valid-typeof': 'error',
-      'eqeqeq': ['warn', 'always'],
+      eqeqeq: ['warn', 'always'],
       'no-eval': 'error',
       'no-implied-eval': 'error',
-      'no-with': 'error'
-    }
+      'no-with': 'error',
+    },
   };
 
   // Add TypeScript parser if needed
@@ -289,7 +281,7 @@ async function performASTAnalysis(code, language) {
       ecmaVersion: 2022,
       sourceType: 'module',
       locations: true,
-      ranges: true
+      ranges: true,
     });
 
     const issues = [];
@@ -302,7 +294,7 @@ async function performASTAnalysis(code, language) {
       deepNesting: [],
       complexExpressions: [],
       unusedParameters: [],
-      todoComments: []
+      todoComments: [],
     };
 
     // Walk the AST
@@ -324,24 +316,25 @@ async function performASTAnalysis(code, language) {
       },
       CallExpression(node) {
         checkCallExpression(node, issues, suggestions);
-      }
+      },
     });
 
     return { ast, issues, suggestions, analysisState };
-
   } catch (error) {
     logger.warn('AST parsing failed, code may have syntax errors', { error: error.message });
     return {
       ast: null,
-      issues: [{
-        type: 'syntax-error',
-        severity: 'error',
-        message: `Syntax error: ${error.message}`,
-        line: error.loc?.line || 0,
-        column: error.loc?.column || 0
-      }],
+      issues: [
+        {
+          type: 'syntax-error',
+          severity: 'error',
+          message: `Syntax error: ${error.message}`,
+          line: error.loc?.line || 0,
+          column: error.loc?.column || 0,
+        },
+      ],
       suggestions: [],
-      analysisState: {}
+      analysisState: {},
     };
   }
 }
@@ -363,14 +356,14 @@ function checkFunctionComplexity(node, state, issues, suggestions) {
         message: `Function is too long (${length} lines). Consider breaking it down.`,
         line: node.loc.start.line,
         column: node.loc.start.column,
-        category: 'complexity'
+        category: 'complexity',
       });
 
       suggestions.push({
         type: 'refactor',
         message: 'Extract smaller functions for better readability and maintainability',
         line: node.loc.start.line,
-        category: 'complexity'
+        category: 'complexity',
       });
     }
   }
@@ -383,7 +376,7 @@ function checkFunctionComplexity(node, state, issues, suggestions) {
       message: `Function has too many parameters (${node.params.length}). Consider using an options object.`,
       line: node.loc?.start.line || 0,
       column: node.loc?.start.column || 0,
-      category: 'complexity'
+      category: 'complexity',
     });
   }
 }
@@ -401,13 +394,13 @@ function checkNestingDepth(node, depth, state, issues) {
       message: `Deep nesting detected (depth: ${depth}). Consider refactoring.`,
       line: node.loc?.start.line || 0,
       column: node.loc?.start.column || 0,
-      category: 'complexity'
+      category: 'complexity',
     });
   }
 
   // Recursively check nested blocks
   if (node.body && Array.isArray(node.body)) {
-    node.body.forEach(child => {
+    node.body.forEach((child) => {
       if (child.type === 'BlockStatement' || child.type === 'IfStatement') {
         checkNestingDepth(child, depth + 1, state, issues);
       }
@@ -421,14 +414,16 @@ function checkNestingDepth(node, depth, state, issues) {
  */
 function checkCallExpression(node, issues, suggestions) {
   // Check for console.log usage
-  if (node.callee.type === 'MemberExpression' &&
-      node.callee.object.name === 'console' &&
-      node.callee.property.name === 'log') {
+  if (
+    node.callee.type === 'MemberExpression' &&
+    node.callee.object.name === 'console' &&
+    node.callee.property.name === 'log'
+  ) {
     suggestions.push({
       type: 'best-practice',
       message: 'Consider using a proper logger instead of console.log',
       line: node.loc?.start.line || 0,
-      category: 'logging'
+      category: 'logging',
     });
   }
 
@@ -440,7 +435,7 @@ function checkCallExpression(node, issues, suggestions) {
       message: 'Use of eval() is dangerous and should be avoided',
       line: node.loc?.start.line || 0,
       column: node.loc?.start.column || 0,
-      category: 'security'
+      category: 'security',
     });
   }
 }
@@ -459,11 +454,11 @@ async function calculateCodeMetrics(code, ast) {
     functions: 0,
     classes: 0,
     complexity: 0,
-    maintainabilityIndex: 0
+    maintainabilityIndex: 0,
   };
 
   // Count code, comment, and blank lines
-  lines.forEach(line => {
+  lines.forEach((line) => {
     const trimmed = line.trim();
     if (trimmed === '') {
       metrics.blankLines++;
@@ -477,15 +472,33 @@ async function calculateCodeMetrics(code, ast) {
   // If AST is available, extract more detailed metrics
   if (ast) {
     walk.simple(ast, {
-      FunctionDeclaration() { metrics.functions++; },
-      FunctionExpression() { metrics.functions++; },
-      ArrowFunctionExpression() { metrics.functions++; },
-      ClassDeclaration() { metrics.classes++; },
-      IfStatement() { metrics.complexity++; },
-      WhileStatement() { metrics.complexity++; },
-      ForStatement() { metrics.complexity++; },
-      SwitchCase() { metrics.complexity++; },
-      ConditionalExpression() { metrics.complexity++; }
+      FunctionDeclaration() {
+        metrics.functions++;
+      },
+      FunctionExpression() {
+        metrics.functions++;
+      },
+      ArrowFunctionExpression() {
+        metrics.functions++;
+      },
+      ClassDeclaration() {
+        metrics.classes++;
+      },
+      IfStatement() {
+        metrics.complexity++;
+      },
+      WhileStatement() {
+        metrics.complexity++;
+      },
+      ForStatement() {
+        metrics.complexity++;
+      },
+      SwitchCase() {
+        metrics.complexity++;
+      },
+      ConditionalExpression() {
+        metrics.complexity++;
+      },
     });
   }
 
@@ -507,9 +520,9 @@ async function calculateBasicMetrics(code) {
   const lines = code.split('\n');
   return {
     totalLines: lines.length,
-    codeLines: lines.filter(l => l.trim() !== '').length,
-    blankLines: lines.filter(l => l.trim() === '').length,
-    estimatedComplexity: 'N/A (language not supported)'
+    codeLines: lines.filter((l) => l.trim() !== '').length,
+    blankLines: lines.filter((l) => l.trim() === '').length,
+    estimatedComplexity: 'N/A (language not supported)',
   };
 }
 
@@ -531,21 +544,21 @@ export async function formatCode(params, context) {
       parser: language === 'ts' ? 'typescript' : 'babel',
       semi: true,
       singleQuote: true,
-      tabWidth: 2
+      tabWidth: 2,
     });
 
     return {
       formatted: true,
-      code: formatted
+      code: formatted,
     };
   } catch (error) {
     logger.warn('Prettier not available, returning original code', {
-      error: error.message
+      error: error.message,
     });
 
     return {
       formatted: false,
-      code
+      code,
     };
   }
 }
@@ -555,33 +568,34 @@ export async function formatCode(params, context) {
  */
 export const analyzeCodeSchema = {
   name: 'analyze_code',
-  description: 'Analyze code for issues, bugs, code smells, and calculate metrics using ESLint and AST parsing',
+  description:
+    'Analyze code for issues, bugs, code smells, and calculate metrics using ESLint and AST parsing',
   input_schema: {
     type: 'object',
     properties: {
       code: {
         type: 'string',
-        description: 'The code to analyze'
+        description: 'The code to analyze',
       },
       language: {
         type: 'string',
         description: 'Programming language (js, ts, jsx, tsx)',
-        default: 'js'
+        default: 'js',
       },
       file_path: {
         type: 'string',
-        description: 'Optional file path for context'
+        description: 'Optional file path for context',
       },
       eslint_config: {
         type: 'object',
-        description: 'Custom ESLint configuration'
+        description: 'Custom ESLint configuration',
       },
       include_metrics: {
         type: 'boolean',
         description: 'Include code metrics in results',
-        default: true
-      }
+        default: true,
+      },
     },
-    required: ['code']
-  }
+    required: ['code'],
+  },
 };

@@ -47,8 +47,12 @@ class ParallelWorkflowRunner {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
     console.log(`⏱️  Total Time: ${elapsedSeconds}s`);
-    console.log(`📊 Success: ${results.filter(r => r.status === 'fulfilled').length}/${results.length}`);
-    console.log(`❌ Failed: ${results.filter(r => r.status === 'rejected').length}/${results.length}`);
+    console.log(
+      `📊 Success: ${results.filter((r) => r.status === 'fulfilled').length}/${results.length}`
+    );
+    console.log(
+      `❌ Failed: ${results.filter((r) => r.status === 'rejected').length}/${results.length}`
+    );
     console.log('');
 
     // Summary table
@@ -79,7 +83,7 @@ class ParallelWorkflowRunner {
 
     return new Promise((resolve, reject) => {
       const process = spawn(workflow.command, workflow.args, {
-        stdio: ['ignore', 'pipe', 'pipe']
+        stdio: ['ignore', 'pipe', 'pipe'],
       });
 
       process.stdout.on('data', async (data) => {
@@ -100,14 +104,18 @@ class ParallelWorkflowRunner {
           console.log(`  [${idx + 1}/${this.workflows.length}] ✅ ${workflow.name} (${duration}s)`);
           resolve({ name: workflow.name, duration, code });
         } else {
-          console.log(`  [${idx + 1}/${this.workflows.length}] ❌ ${workflow.name} failed (${duration}s)`);
+          console.log(
+            `  [${idx + 1}/${this.workflows.length}] ❌ ${workflow.name} failed (${duration}s)`
+          );
           reject(new Error(`${workflow.name} failed with code ${code}`));
         }
       });
 
       process.on('error', async (error) => {
         await logStream.close();
-        console.log(`  [${idx + 1}/${this.workflows.length}] ❌ ${workflow.name} error: ${error.message}`);
+        console.log(
+          `  [${idx + 1}/${this.workflows.length}] ❌ ${workflow.name} error: ${error.message}`
+        );
         reject(error);
       });
     });
@@ -120,36 +128,84 @@ const batches = {
   // Backend Stack
   async backend() {
     const runner = new ParallelWorkflowRunner();
-    runner.addWorkflow('API Gateway', 'node', ['scripts/workflow-templates.js', 'microservice', 'API Gateway']);
-    runner.addWorkflow('Auth Service', 'node', ['scripts/workflow-templates.js', 'authService', 'Auth Service']);
-    runner.addWorkflow('Background Workers', 'node', ['scripts/workflow-templates.js', 'workerSystem', 'Job Queue']);
+    runner.addWorkflow('API Gateway', 'node', [
+      'scripts/workflow-templates.js',
+      'microservice',
+      'API Gateway',
+    ]);
+    runner.addWorkflow('Auth Service', 'node', [
+      'scripts/workflow-templates.js',
+      'authService',
+      'Auth Service',
+    ]);
+    runner.addWorkflow('Background Workers', 'node', [
+      'scripts/workflow-templates.js',
+      'workerSystem',
+      'Job Queue',
+    ]);
     await runner.run();
   },
 
   // Frontend Stack
   async frontend() {
     const runner = new ParallelWorkflowRunner();
-    runner.addWorkflow('Admin Dashboard', 'node', ['scripts/workflow-templates.js', 'dashboard', 'Admin Dashboard']);
-    runner.addWorkflow('User Dashboard', 'node', ['scripts/workflow-templates.js', 'dashboard', 'User Dashboard']);
-    runner.addWorkflow('Analytics Dashboard', 'node', ['scripts/workflow-templates.js', 'dashboard', 'Analytics Dashboard']);
+    runner.addWorkflow('Admin Dashboard', 'node', [
+      'scripts/workflow-templates.js',
+      'dashboard',
+      'Admin Dashboard',
+    ]);
+    runner.addWorkflow('User Dashboard', 'node', [
+      'scripts/workflow-templates.js',
+      'dashboard',
+      'User Dashboard',
+    ]);
+    runner.addWorkflow('Analytics Dashboard', 'node', [
+      'scripts/workflow-templates.js',
+      'dashboard',
+      'Analytics Dashboard',
+    ]);
     await runner.run();
   },
 
   // Data Stack
   async data() {
     const runner = new ParallelWorkflowRunner();
-    runner.addWorkflow('Search Engine', 'node', ['scripts/workflow-templates.js', 'searchEngine', 'Product Search']);
-    runner.addWorkflow('Cache Layer', 'node', ['scripts/workflow-templates.js', 'cacheLayer', 'Redis Cache']);
-    runner.addWorkflow('Data Sync', 'node', ['scripts/workflow-templates.js', 'dataSyncService', 'Data Sync']);
+    runner.addWorkflow('Search Engine', 'node', [
+      'scripts/workflow-templates.js',
+      'searchEngine',
+      'Product Search',
+    ]);
+    runner.addWorkflow('Cache Layer', 'node', [
+      'scripts/workflow-templates.js',
+      'cacheLayer',
+      'Redis Cache',
+    ]);
+    runner.addWorkflow('Data Sync', 'node', [
+      'scripts/workflow-templates.js',
+      'dataSyncService',
+      'Data Sync',
+    ]);
     await runner.run();
   },
 
   // Infrastructure Stack
   async infra() {
     const runner = new ParallelWorkflowRunner();
-    runner.addWorkflow('File Pipeline', 'node', ['scripts/workflow-templates.js', 'filePipeline', 'Upload Pipeline']);
-    runner.addWorkflow('Event Bus', 'node', ['scripts/workflow-templates.js', 'eventDriven', 'Event System']);
-    runner.addWorkflow('CLI Tools', 'node', ['scripts/workflow-templates.js', 'cliTool', 'Deploy CLI']);
+    runner.addWorkflow('File Pipeline', 'node', [
+      'scripts/workflow-templates.js',
+      'filePipeline',
+      'Upload Pipeline',
+    ]);
+    runner.addWorkflow('Event Bus', 'node', [
+      'scripts/workflow-templates.js',
+      'eventDriven',
+      'Event System',
+    ]);
+    runner.addWorkflow('CLI Tools', 'node', [
+      'scripts/workflow-templates.js',
+      'cliTool',
+      'Deploy CLI',
+    ]);
     await runner.run();
   },
 
@@ -158,21 +214,57 @@ const batches = {
     const runner = new ParallelWorkflowRunner();
 
     // Backend
-    runner.addWorkflow('API Gateway', 'node', ['scripts/workflow-templates.js', 'microservice', 'API Gateway']);
-    runner.addWorkflow('Auth Service', 'node', ['scripts/workflow-templates.js', 'authService', 'Auth Service']);
-    runner.addWorkflow('Background Workers', 'node', ['scripts/workflow-templates.js', 'workerSystem', 'Job Queue']);
+    runner.addWorkflow('API Gateway', 'node', [
+      'scripts/workflow-templates.js',
+      'microservice',
+      'API Gateway',
+    ]);
+    runner.addWorkflow('Auth Service', 'node', [
+      'scripts/workflow-templates.js',
+      'authService',
+      'Auth Service',
+    ]);
+    runner.addWorkflow('Background Workers', 'node', [
+      'scripts/workflow-templates.js',
+      'workerSystem',
+      'Job Queue',
+    ]);
 
     // Frontend
-    runner.addWorkflow('Admin Dashboard', 'node', ['scripts/workflow-templates.js', 'dashboard', 'Admin Dashboard']);
-    runner.addWorkflow('User Dashboard', 'node', ['scripts/workflow-templates.js', 'dashboard', 'User Dashboard']);
+    runner.addWorkflow('Admin Dashboard', 'node', [
+      'scripts/workflow-templates.js',
+      'dashboard',
+      'Admin Dashboard',
+    ]);
+    runner.addWorkflow('User Dashboard', 'node', [
+      'scripts/workflow-templates.js',
+      'dashboard',
+      'User Dashboard',
+    ]);
 
     // Data
-    runner.addWorkflow('Search Engine', 'node', ['scripts/workflow-templates.js', 'searchEngine', 'Product Search']);
-    runner.addWorkflow('Cache Layer', 'node', ['scripts/workflow-templates.js', 'cacheLayer', 'Redis Cache']);
+    runner.addWorkflow('Search Engine', 'node', [
+      'scripts/workflow-templates.js',
+      'searchEngine',
+      'Product Search',
+    ]);
+    runner.addWorkflow('Cache Layer', 'node', [
+      'scripts/workflow-templates.js',
+      'cacheLayer',
+      'Redis Cache',
+    ]);
 
     // Infrastructure
-    runner.addWorkflow('File Pipeline', 'node', ['scripts/workflow-templates.js', 'filePipeline', 'Upload Pipeline']);
-    runner.addWorkflow('Event Bus', 'node', ['scripts/workflow-templates.js', 'eventDriven', 'Event System']);
+    runner.addWorkflow('File Pipeline', 'node', [
+      'scripts/workflow-templates.js',
+      'filePipeline',
+      'Upload Pipeline',
+    ]);
+    runner.addWorkflow('Event Bus', 'node', [
+      'scripts/workflow-templates.js',
+      'eventDriven',
+      'Event System',
+    ]);
 
     await runner.run();
   },
@@ -184,17 +276,17 @@ const batches = {
     // Parse command line args: name:template:customName
     const workflows = process.argv.slice(3);
 
-    workflows.forEach(spec => {
+    workflows.forEach((spec) => {
       const [name, template, customName] = spec.split(':');
-      runner.addWorkflow(
-        name,
-        'node',
-        ['scripts/workflow-templates.js', template, customName || name]
-      );
+      runner.addWorkflow(name, 'node', [
+        'scripts/workflow-templates.js',
+        template,
+        customName || name,
+      ]);
     });
 
     await runner.run();
-  }
+  },
 };
 
 // ========== CLI EXECUTION ==========
@@ -223,7 +315,9 @@ if (!batchName || !batches[batchName]) {
   console.log('  npm run multi-agent:parallel fullstack');
   console.log('');
   console.log('Custom workflows:');
-  console.log('  npm run multi-agent:parallel custom "Payment:microservice:Payment Service" "Billing:microservice:Billing Service"');
+  console.log(
+    '  npm run multi-agent:parallel custom "Payment:microservice:Payment Service" "Billing:microservice:Billing Service"'
+  );
   console.log('');
   process.exit(1);
 }

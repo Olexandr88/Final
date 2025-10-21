@@ -12,7 +12,7 @@ const execAsync = promisify(exec);
 const isWindows = process.platform === 'win32';
 
 const DIFF_COMMANDS = {
-  'files': {
+  files: {
     desc: 'Compare two files',
     async run(args) {
       const [file1, file2] = args;
@@ -46,10 +46,10 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical');
         }
       }
-    }
+    },
   },
 
-  'dirs': {
+  dirs: {
     desc: 'Compare two directories',
     async run(args) {
       const [dir1, dir2] = args;
@@ -67,8 +67,18 @@ const DIFF_COMMANDS = {
           const { stdout: list1 } = await execAsync(`dir /B /S "${dir1}"`);
           const { stdout: list2 } = await execAsync(`dir /B /S "${dir2}"`);
 
-          const files1 = new Set(list1.split('\n').map(f => f.trim()).filter(Boolean));
-          const files2 = new Set(list2.split('\n').map(f => f.trim()).filter(Boolean));
+          const files1 = new Set(
+            list1
+              .split('\n')
+              .map((f) => f.trim())
+              .filter(Boolean)
+          );
+          const files2 = new Set(
+            list2
+              .split('\n')
+              .map((f) => f.trim())
+              .filter(Boolean)
+          );
 
           console.log(`Dir1 has ${files1.size} files`);
           console.log(`Dir2 has ${files2.size} files`);
@@ -85,10 +95,10 @@ const DIFF_COMMANDS = {
           console.log('✅ Directories are identical');
         }
       }
-    }
+    },
   },
 
-  'json': {
+  json: {
     desc: 'Compare two JSON files (sorted)',
     async run(args) {
       const [file1, file2] = args;
@@ -103,7 +113,7 @@ const DIFF_COMMANDS = {
       try {
         // Block 77 - JSON comparison with jq
         const cmd = isWindows
-          ? `diff "${file1}" "${file2}"`  // Basic diff on Windows
+          ? `diff "${file1}" "${file2}"` // Basic diff on Windows
           : `diff <(jq -S . "${file1}") <(jq -S . "${file2}")`;
 
         const { stdout } = await execAsync(cmd, { shell: '/bin/bash' });
@@ -123,10 +133,10 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical');
         }
       }
-    }
+    },
   },
 
-  'unified': {
+  unified: {
     desc: 'Unified diff format (easier to read)',
     async run(args) {
       const [file1, file2] = args;
@@ -148,7 +158,7 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical');
         }
       }
-    }
+    },
   },
 
   'side-by-side': {
@@ -173,10 +183,10 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical');
         }
       }
-    }
+    },
   },
 
-  'context': {
+  context: {
     desc: 'Context diff with 3 lines of context',
     async run(args) {
       const [file1, file2] = args;
@@ -198,10 +208,10 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical');
         }
       }
-    }
+    },
   },
 
-  'stats': {
+  stats: {
     desc: 'Show diff statistics only',
     async run(args) {
       const [file1, file2] = args;
@@ -232,10 +242,10 @@ const DIFF_COMMANDS = {
           console.log(`Lines different: ${lines}`);
         }
       }
-    }
+    },
   },
 
-  'binary': {
+  binary: {
     desc: 'Compare binary files (hexdump)',
     async run(args) {
       const [file1, file2] = args;
@@ -265,7 +275,7 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical');
         }
       }
-    }
+    },
   },
 
   'ignore-whitespace': {
@@ -290,7 +300,7 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical (ignoring whitespace)');
         }
       }
-    }
+    },
   },
 
   'ignore-case': {
@@ -315,8 +325,8 @@ const DIFF_COMMANDS = {
           console.log('✅ Files are identical (ignoring case)');
         }
       }
-    }
-  }
+    },
+  },
 };
 
 // CLI Interface
@@ -347,7 +357,7 @@ if (!cmd) {
   process.exit(1);
 }
 
-cmd.run(args).catch(err => {
+cmd.run(args).catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

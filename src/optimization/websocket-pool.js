@@ -21,7 +21,7 @@ export class WebSocketPool extends EventEmitter {
       reused: 0,
       closed: 0,
       errors: 0,
-      reconnections: 0
+      reconnections: 0,
     };
   }
 
@@ -66,7 +66,7 @@ export class WebSocketPool extends EventEmitter {
           url,
           created: Date.now(),
           lastUsed: Date.now(),
-          messageCount: 0
+          messageCount: 0,
         };
 
         this.connections.set(url, connection);
@@ -167,12 +167,12 @@ export class WebSocketPool extends EventEmitter {
    * Get pool metrics
    */
   getMetrics() {
-    const connections = Array.from(this.connections.values()).map(conn => ({
+    const connections = Array.from(this.connections.values()).map((conn) => ({
       url: conn.url,
       age: Date.now() - conn.created,
       idleTime: Date.now() - conn.lastUsed,
       messageCount: conn.messageCount,
-      readyState: conn.ws.readyState
+      readyState: conn.ws.readyState,
     }));
 
     return {
@@ -180,10 +180,13 @@ export class WebSocketPool extends EventEmitter {
       activeConnections: this.activeConnections,
       maxConnections: this.maxConnections,
       utilizationRate: ((this.activeConnections / this.maxConnections) * 100).toFixed(2) + '%',
-      reuseRate: this.metrics.created > 0
-        ? ((this.metrics.reused / (this.metrics.created + this.metrics.reused)) * 100).toFixed(2) + '%'
-        : '0%',
-      connections
+      reuseRate:
+        this.metrics.created > 0
+          ? ((this.metrics.reused / (this.metrics.created + this.metrics.reused)) * 100).toFixed(
+              2
+            ) + '%'
+          : '0%',
+      connections,
     };
   }
 
@@ -197,7 +200,7 @@ export class WebSocketPool extends EventEmitter {
       const result = {
         url,
         healthy: false,
-        latency: null
+        latency: null,
       };
 
       if (conn.ws.readyState === 1) {

@@ -11,7 +11,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
     baseWindowMs = SECURITY.RATE_LIMIT_WINDOW_MS,
     baseMaxRequests = SECURITY.RATE_LIMIT_MAX_REQUESTS,
     adaptiveEnabled = true,
-    circuitBreakerThreshold = 10
+    circuitBreakerThreshold = 10,
   } = {}) {
     super();
     this.baseWindowMs = baseWindowMs;
@@ -27,7 +27,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
       cpuUsage: 0,
       memoryUsage: 0,
       requestsPerSecond: 0,
-      avgResponseTime: 0
+      avgResponseTime: 0,
     };
 
     // Circuit breaker state
@@ -58,7 +58,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
         allowed: false,
         retryAfter: breakerState.retryAfter,
         reason: 'circuit_breaker_open',
-        state: breakerState.state
+        state: breakerState.state,
       };
     }
 
@@ -75,7 +75,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
 
     // Remove requests outside current window
     const windowStart = now - currentWindowMs;
-    const recentRequests = requests.filter(timestamp => timestamp > windowStart);
+    const recentRequests = requests.filter((timestamp) => timestamp > windowStart);
 
     // Update client request history
     this.clientRequests.set(clientId, recentRequests);
@@ -89,7 +89,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
         clientId,
         requests: recentRequests.length,
         limit: currentMaxRequests,
-        retryAfter
+        retryAfter,
       });
 
       // Record failure for circuit breaker
@@ -100,7 +100,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
         retryAfter,
         reason: 'rate_limit_exceeded',
         current: recentRequests.length,
-        limit: currentMaxRequests
+        limit: currentMaxRequests,
       };
     }
 
@@ -117,7 +117,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
       allowed: true,
       remaining: currentMaxRequests - recentRequests.length,
       limit: currentMaxRequests,
-      resetAt: windowStart + currentWindowMs
+      resetAt: windowStart + currentWindowMs,
     };
   }
 
@@ -150,7 +150,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
 
     this.emit('rateLimitAdjusted', {
       multiplier: this.rateLimitMultiplier,
-      loadFactor: avgLoadFactor
+      loadFactor: avgLoadFactor,
     });
   }
 
@@ -194,7 +194,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
     const breaker = this.circuitBreaker.get(clientId) || {
       failures: 0,
       lastFailure: now,
-      state: 'closed'
+      state: 'closed',
     };
 
     breaker.failures++;
@@ -227,7 +227,7 @@ export class AdaptiveRateLimiter extends EventEmitter {
 
     // Cleanup request history
     for (const [clientId, requests] of this.clientRequests.entries()) {
-      const recentRequests = requests.filter(timestamp => now - timestamp < maxAge);
+      const recentRequests = requests.filter((timestamp) => now - timestamp < maxAge);
       if (recentRequests.length === 0) {
         this.clientRequests.delete(clientId);
       } else {
@@ -252,12 +252,13 @@ export class AdaptiveRateLimiter extends EventEmitter {
       trackedClients: this.clientRequests.size,
       circuitBreakers: {
         total: this.circuitBreaker.size,
-        open: Array.from(this.circuitBreaker.values()).filter(b => b.state === 'open').length,
-        halfOpen: Array.from(this.circuitBreaker.values()).filter(b => b.state === 'half-open').length
+        open: Array.from(this.circuitBreaker.values()).filter((b) => b.state === 'open').length,
+        halfOpen: Array.from(this.circuitBreaker.values()).filter((b) => b.state === 'half-open')
+          .length,
       },
       rateLimitMultiplier: this.rateLimitMultiplier.toFixed(2),
       currentMaxRequests: Math.floor(this.baseMaxRequests * this.rateLimitMultiplier),
-      systemLoad: this.systemLoad
+      systemLoad: this.systemLoad,
     };
   }
 

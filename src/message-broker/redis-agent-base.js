@@ -36,7 +36,7 @@ export class RedisAgentBase extends EventEmitter {
       messagesReceived: 0,
       errors: 0,
       connectedAt: null,
-      lastSeen: null
+      lastSeen: null,
     };
 
     // Connection state
@@ -48,7 +48,7 @@ export class RedisAgentBase extends EventEmitter {
     logger.info(`[${this.agentId}] Agent initialized`, {
       role: this.role,
       intents: this.intents,
-      labels: this.labels
+      labels: this.labels,
     });
   }
 
@@ -88,10 +88,7 @@ export class RedisAgentBase extends EventEmitter {
       });
 
       // Connect
-      await Promise.all([
-        this.subscriber.connect(),
-        this.publisher.connect()
-      ]);
+      await Promise.all([this.subscriber.connect(), this.publisher.connect()]);
 
       this.stats.connectedAt = new Date().toISOString();
       this.connected = true;
@@ -118,7 +115,9 @@ export class RedisAgentBase extends EventEmitter {
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         this.reconnectAttempts++;
         const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-        logger.info(`[${this.agentId}] Retrying connection in ${delay}ms (attempt ${this.reconnectAttempts})`);
+        logger.info(
+          `[${this.agentId}] Retrying connection in ${delay}ms (attempt ${this.reconnectAttempts})`
+        );
         setTimeout(() => this.connect(), delay);
       } else {
         logger.error(`[${this.agentId}] Max reconnection attempts reached`);
@@ -135,25 +134,16 @@ export class RedisAgentBase extends EventEmitter {
   async subscribeToChannels() {
     try {
       // Subscribe to personal channel
-      await this.subscriber.subscribe(
-        `agent:${this.agentId}`,
-        this.handleMessage.bind(this)
-      );
+      await this.subscriber.subscribe(`agent:${this.agentId}`, this.handleMessage.bind(this));
       logger.info(`[${this.agentId}] Subscribed to personal channel`);
 
       // Subscribe to broadcast channel
-      await this.subscriber.subscribe(
-        'agent:broadcast',
-        this.handleMessage.bind(this)
-      );
+      await this.subscriber.subscribe('agent:broadcast', this.handleMessage.bind(this));
       logger.info(`[${this.agentId}] Subscribed to broadcast`);
 
       // Subscribe to intent channels
       for (const intent of this.intents) {
-        await this.subscriber.subscribe(
-          `agent:intent:${intent}`,
-          this.handleMessage.bind(this)
-        );
+        await this.subscriber.subscribe(`agent:intent:${intent}`, this.handleMessage.bind(this));
         logger.info(`[${this.agentId}] Subscribed to intent: ${intent}`);
       }
 
@@ -194,7 +184,7 @@ export class RedisAgentBase extends EventEmitter {
       logger.debug(`[${this.agentId}] Received message`, {
         id: envelope.id,
         from: envelope.from,
-        intent: envelope.intent
+        intent: envelope.intent,
       });
 
       this.emit('message', envelope);
@@ -212,7 +202,6 @@ export class RedisAgentBase extends EventEmitter {
 
       // Call onMessage hook
       await this.onMessage(envelope);
-
     } catch (error) {
       logger.error(`[${this.agentId}] Message handling error:`, error);
       this.stats.errors++;
@@ -242,7 +231,7 @@ export class RedisAgentBase extends EventEmitter {
         payload: options.payload || {},
         context: options.context || {},
         replyTo: options.replyTo || null,
-        trace: options.trace || {}
+        trace: options.trace || {},
       };
 
       const message = JSON.stringify(envelope);
@@ -322,7 +311,7 @@ export class RedisAgentBase extends EventEmitter {
       try {
         await this.sendMessage({
           ...options,
-          replyTo: replyChannel
+          replyTo: replyChannel,
         });
       } catch (error) {
         clearTimeout(timeoutId);
@@ -345,8 +334,8 @@ export class RedisAgentBase extends EventEmitter {
       payload,
       context: {
         ...originalEnvelope.context,
-        inReplyTo: originalEnvelope.id
-      }
+        inReplyTo: originalEnvelope.id,
+      },
     };
 
     return await this.sendMessage(replyOptions);
@@ -395,8 +384,8 @@ export class RedisAgentBase extends EventEmitter {
           labels: this.labels,
           tools: this.tools,
           channels: this.channels,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       });
 
       logger.info(`[${this.agentId}] Registration sent`);
@@ -418,8 +407,8 @@ export class RedisAgentBase extends EventEmitter {
             payload: {
               agentId: this.agentId,
               timestamp: new Date().toISOString(),
-              stats: this.getStats()
-            }
+              stats: this.getStats(),
+            },
           });
 
           logger.debug(`[${this.agentId}] Heartbeat sent`);
@@ -449,9 +438,7 @@ export class RedisAgentBase extends EventEmitter {
   getStats() {
     return {
       ...this.stats,
-      uptime: this.stats.connectedAt
-        ? Date.now() - new Date(this.stats.connectedAt).getTime()
-        : 0
+      uptime: this.stats.connectedAt ? Date.now() - new Date(this.stats.connectedAt).getTime() : 0,
     };
   }
 
@@ -468,8 +455,8 @@ export class RedisAgentBase extends EventEmitter {
         intent: 'agent.unregister',
         payload: {
           agentId: this.agentId,
-          timestamp: new Date().toISOString()
-        }
+          timestamp: new Date().toISOString(),
+        },
       });
 
       // Close connections
@@ -480,7 +467,6 @@ export class RedisAgentBase extends EventEmitter {
 
       logger.info(`[${this.agentId}] Disconnected from Redis`);
       this.emit('disconnected');
-
     } catch (error) {
       logger.error(`[${this.agentId}] Disconnect error:`, error);
       throw error;

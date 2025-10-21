@@ -9,7 +9,7 @@ global:
     environment: 'production'
 
 rule_files:
-  - "rules/*.yml"
+  - 'rules/*.yml'
 
 scrape_configs:
   # Prometheus self-monitoring
@@ -37,13 +37,14 @@ scrape_configs:
         refresh_interval: 30s
         filters:
           - name: label
-            values: ["traefik.http.services.llm.loadbalancer.server.port"]
+            values: ['traefik.http.services.llm.loadbalancer.server.port']
     relabel_configs:
       # Only scrape containers with the LLM service label
       - source_labels: [__meta_docker_container_label_traefik_enable]
         regex: 'true'
         action: keep
-      - source_labels: [__meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port]
+      - source_labels:
+          [__meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port]
         regex: '(.+)'
         action: keep
       # Use container name as instance label
@@ -52,7 +53,11 @@ scrape_configs:
         regex: '/?(.+)'
         replacement: '${1}'
       # Use container port
-      - source_labels: [__address__, __meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port]
+      - source_labels:
+          [
+            __address__,
+            __meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port,
+          ]
         target_label: __address__
         regex: '([^:]+)(?::\d+)?;(\d+)'
         replacement: '${1}:${2}'
@@ -73,19 +78,24 @@ scrape_configs:
         refresh_interval: 30s
         filters:
           - name: label
-            values: ["traefik.http.services.llm.loadbalancer.server.port"]
+            values: ['traefik.http.services.llm.loadbalancer.server.port']
     relabel_configs:
       - source_labels: [__meta_docker_container_label_traefik_enable]
         regex: 'true'
         action: keep
-      - source_labels: [__meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port]
+      - source_labels:
+          [__meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port]
         regex: '(.+)'
         action: keep
       - source_labels: [__meta_docker_container_name]
         target_label: instance
         regex: '/?(.+)'
         replacement: '${1}'
-      - source_labels: [__address__, __meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port]
+      - source_labels:
+          [
+            __address__,
+            __meta_docker_container_label_traefik_http_services_llm_loadbalancer_server_port,
+          ]
         target_label: __address__
         regex: '([^:]+)(?::\d+)?;(\d+)'
         replacement: '${1}:${2}'
@@ -146,10 +156,9 @@ alerting:
 storage:
   tsdb:
     path: /prometheus
-    retention.time: 168h  # 7 days
+    retention.time: 168h # 7 days
     retention.size: 10GB
     wal-compression: true
-
 # Remote write (optional - for long-term storage)
 # remote_write:
 #   - url: "https://your-remote-storage/api/v1/write"

@@ -12,10 +12,12 @@ export class OptimizedCache {
     this.cache = new LRUCache({
       max: options.maxSize || 500,
       maxSize: options.maxMemory || 10000, // KB
-      sizeCalculation: options.sizeCalculation || ((value) => {
-        const size = JSON.stringify(value).length / 1024;
-        return Math.max(1, Math.ceil(size)); // Ensure at least 1 KB and an integer
-      }),
+      sizeCalculation:
+        options.sizeCalculation ||
+        ((value) => {
+          const size = JSON.stringify(value).length / 1024;
+          return Math.max(1, Math.ceil(size)); // Ensure at least 1 KB and an integer
+        }),
       ttl: options.ttl || 60000, // 1 minute default
       ttlAutopurge: true,
       updateAgeOnGet: true,
@@ -24,7 +26,7 @@ export class OptimizedCache {
         if (options.onEvict) {
           options.onEvict(key, value);
         }
-      }
+      },
     });
 
     // Statistics
@@ -33,7 +35,7 @@ export class OptimizedCache {
       misses: 0,
       sets: 0,
       evictions: 0,
-      errors: 0
+      errors: 0,
     };
   }
 
@@ -130,7 +132,7 @@ export class OptimizedCache {
       misses: this.stats.misses,
       sets: this.stats.sets,
       evictions: this.stats.evictions,
-      errors: this.stats.errors
+      errors: this.stats.errors,
     };
   }
 
@@ -143,7 +145,7 @@ export class OptimizedCache {
       size: this.cache.size,
       calculatedSize: this.cache.calculatedSize,
       max: this.cache.max,
-      maxSize: this.cache.maxSize
+      maxSize: this.cache.maxSize,
     };
   }
 
@@ -173,7 +175,7 @@ export class FileContentCache extends OptimizedCache {
       maxSize: options.maxSize || 500,
       maxMemory: options.maxMemory || 50000, // 50MB
       ttl: options.ttl || 300000, // 5 minutes
-      ...options
+      ...options,
     });
   }
 
@@ -196,7 +198,7 @@ export class ResponseCache extends OptimizedCache {
       maxSize: options.maxSize || 1000,
       maxMemory: options.maxMemory || 10000, // 10MB
       ttl: options.ttl || 60000, // 1 minute
-      ...options
+      ...options,
     });
   }
 
@@ -208,7 +210,7 @@ export class ResponseCache extends OptimizedCache {
       request.method || 'GET',
       request.url || request.path,
       JSON.stringify(request.query || {}),
-      JSON.stringify(request.body || {})
+      JSON.stringify(request.body || {}),
     ];
     return parts.join('::');
   }

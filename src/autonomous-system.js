@@ -22,7 +22,7 @@ export class AutonomousSystem {
     this.config = {
       bridgeUrl: process.env.BRIDGE_WS || 'ws://localhost:65028',
       ollamaModel: process.env.OLLAMA_MODEL || 'llama3.1',
-      ...config
+      ...config,
     };
   }
 
@@ -31,7 +31,7 @@ export class AutonomousSystem {
    */
   async initialize() {
     logger.info('🚀 Initializing Autonomous System', {
-      sessionId: this.sessionId
+      sessionId: this.sessionId,
     });
 
     try {
@@ -39,23 +39,22 @@ export class AutonomousSystem {
       await this.lockManager.initialize();
 
       // Acquire system-level lock
-      const systemLockAcquired = await this.lockManager.acquireLock(
-        'autonomous-system',
-        { timeout: 60000 }
-      );
+      const systemLockAcquired = await this.lockManager.acquireLock('autonomous-system', {
+        timeout: 60000,
+      });
 
       if (!systemLockAcquired) {
         throw new Error('Another autonomous system is already running');
       }
 
       logger.info('✅ Autonomous System initialized', {
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
 
       return true;
     } catch (error) {
       logger.error('Failed to initialize autonomous system', {
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -68,11 +67,9 @@ export class AutonomousSystem {
     return this.lockManager.withLock('ai-bridge', async () => {
       logger.info('🌉 Starting AI Bridge...');
 
-      const bridgeProcess = spawn('node', [
-        path.join(__dirname, 'ai-bridge.js')
-      ], {
+      const bridgeProcess = spawn('node', [path.join(__dirname, 'ai-bridge.js')], {
         env: { ...process.env },
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
 
       this.processes.set('ai-bridge', bridgeProcess);
@@ -93,12 +90,14 @@ export class AutonomousSystem {
     return this.lockManager.withLock('meta-agent-factory', async () => {
       logger.info('🏭 Starting Meta-Agent Factory...');
 
-      const factoryProcess = spawn('node', [
-        path.join(__dirname, 'agents', 'meta-agent-factory.js')
-      ], {
-        env: { ...process.env, BRIDGE_WS: this.config.bridgeUrl },
-        stdio: 'inherit'
-      });
+      const factoryProcess = spawn(
+        'node',
+        [path.join(__dirname, 'agents', 'meta-agent-factory.js')],
+        {
+          env: { ...process.env, BRIDGE_WS: this.config.bridgeUrl },
+          stdio: 'inherit',
+        }
+      );
 
       this.processes.set('meta-agent-factory', factoryProcess);
 
@@ -118,16 +117,18 @@ export class AutonomousSystem {
     return this.lockManager.withLock('ollama-agent', async () => {
       logger.info('🤖 Starting Autonomous Ollama Agent...');
 
-      const ollamaProcess = spawn('node', [
-        path.join(__dirname, 'agents', 'autonomous-ollama-agent.js')
-      ], {
-        env: {
-          ...process.env,
-          BRIDGE_WS: this.config.bridgeUrl,
-          OLLAMA_MODEL: this.config.ollamaModel
-        },
-        stdio: 'inherit'
-      });
+      const ollamaProcess = spawn(
+        'node',
+        [path.join(__dirname, 'agents', 'autonomous-ollama-agent.js')],
+        {
+          env: {
+            ...process.env,
+            BRIDGE_WS: this.config.bridgeUrl,
+            OLLAMA_MODEL: this.config.ollamaModel,
+          },
+          stdio: 'inherit',
+        }
+      );
 
       this.processes.set('ollama-agent', ollamaProcess);
 
@@ -135,7 +136,7 @@ export class AutonomousSystem {
       await this._sleep(2000);
 
       logger.info('✅ Autonomous Ollama Agent started', {
-        model: this.config.ollamaModel
+        model: this.config.ollamaModel,
       });
 
       return ollamaProcess;
@@ -154,14 +155,14 @@ export class AutonomousSystem {
       name,
       description,
       fileCount: files.length,
-      operationCount: operations.length
+      operationCount: operations.length,
     });
 
     // Acquire locks for all files
     const fileLocks = [];
     for (const file of files) {
       const locked = await this.lockManager.acquireLock(`file:${file}`, {
-        timeout: 30000
+        timeout: 30000,
       });
 
       if (!locked) {
@@ -181,7 +182,7 @@ export class AutonomousSystem {
 
       logger.info('✅ Autonomous task completed', {
         name,
-        success: result.success
+        success: result.success,
       });
 
       return result;
@@ -202,14 +203,14 @@ export class AutonomousSystem {
     // or WebSocket client to send the task to the Ollama agent
 
     logger.info('📨 Sending task to Ollama agent', {
-      task: task.name
+      task: task.name,
     });
 
     // Placeholder - would use actual HTTP/WS client
     return {
       success: true,
       task: task.name,
-      message: 'Task sent to Ollama agent (implement HTTP client)'
+      message: 'Task sent to Ollama agent (implement HTTP client)',
     };
   }
 
@@ -230,7 +231,7 @@ export class AutonomousSystem {
       return true;
     } catch (error) {
       logger.error('Failed to start all components', {
-        error: error.message
+        error: error.message,
       });
 
       await this.shutdown();
@@ -272,7 +273,7 @@ export class AutonomousSystem {
    * @private
    */
   _sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -284,7 +285,7 @@ export class AutonomousSystem {
       processes: Array.from(this.processes.keys()),
       activeLocks: this.lockManager.locks.size,
       bridgeUrl: this.config.bridgeUrl,
-      ollamaModel: this.config.ollamaModel
+      ollamaModel: this.config.ollamaModel,
     };
   }
 }
@@ -318,11 +319,10 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
         await system.shutdown();
         process.exit(0);
       });
-
     } catch (error) {
       logger.error('Autonomous system startup failed', {
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
       process.exit(1);
     }

@@ -143,7 +143,7 @@ for (let i = 0; i < lines.length; i++) {
   }
   if (inOldCheckBlock && lines[i].trim() === '}') {
     // Check if this is the closing brace of the for loop
-    if (lines[i-1].includes('severity:') || lines[i-1].includes('};')) {
+    if (lines[i - 1].includes('severity:') || lines[i - 1].includes('};')) {
       blockEndLine = i + 1; // Include the closing brace
       break;
     }
@@ -158,9 +158,9 @@ if (blockStartLine !== -1 && blockEndLine !== -1) {
     '    if (!operatorCheck.valid) {',
     '      return operatorCheck;',
     '    }',
-    ''
+    '',
   ];
-  
+
   lines.splice(blockStartLine, blockEndLine - blockStartLine, ...newCheckLines);
 }
 

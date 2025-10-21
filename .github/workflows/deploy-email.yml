@@ -18,9 +18,9 @@ jobs:
           server_port: ${{ secrets.SMTP_PORT }}
           username: ${{ secrets.SMTP_USER }}
           password: ${{ secrets.SMTP_PASS }}
-          subject: "Deployment triggered: ${{ github.event.client_payload.name }}"
+          subject: 'Deployment triggered: ${{ github.event.client_payload.name }}'
           to: ${{ secrets.NOTIFY_EMAIL }}
-          from: "LLM Platform <${{ secrets.SMTP_FROM }}>"
+          from: 'LLM Platform <${{ secrets.SMTP_FROM }}>'
           content_type: text/html
           body: |
             <h3>Deployment triggered</h3>

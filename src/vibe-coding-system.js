@@ -26,7 +26,7 @@ export { VibeCodingSystem } from './vibe-coding-integrator.js';
  */
 export async function initializeVibeCodingEnvironment(options = {}) {
   const { VibeCodingSystem } = await import('./vibe-coding-integrator.js');
-  
+
   console.log('🚀 Initializing Vibe Coding Environment...\n');
 
   const system = new VibeCodingSystem(options);

@@ -21,7 +21,7 @@ const colors = {
   blue: '\x1b[34m',
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
-  white: '\x1b[37m'
+  white: '\x1b[37m',
 };
 
 class WorkflowMonitor {
@@ -32,7 +32,7 @@ class WorkflowMonitor {
     this.phases = {
       architect: { status: 'pending', startTime: null, endTime: null, charCount: 0 },
       developer: { status: 'pending', startTime: null, endTime: null, charCount: 0 },
-      tester: { status: 'pending', startTime: null, endTime: null, charCount: 0 }
+      tester: { status: 'pending', startTime: null, endTime: null, charCount: 0 },
     };
   }
 
@@ -71,7 +71,7 @@ class WorkflowMonitor {
             name: file,
             size: stat.size,
             charCount: content.length,
-            modified: stat.mtime
+            modified: stat.mtime,
           };
         })
       );
@@ -85,9 +85,9 @@ class WorkflowMonitor {
     const recentMessages = history.slice(-20);
 
     // Check for architect responses
-    const archResponses = recentMessages.filter(msg =>
-      msg.intent === 'ai.response' &&
-      msg.payload?.response?.toLowerCase().includes('architect')
+    const archResponses = recentMessages.filter(
+      (msg) =>
+        msg.intent === 'ai.response' && msg.payload?.response?.toLowerCase().includes('architect')
     );
     if (archResponses.length > 0 && this.phases.architect.status === 'pending') {
       this.phases.architect.status = 'complete';
@@ -96,10 +96,11 @@ class WorkflowMonitor {
     }
 
     // Check for developer responses
-    const devResponses = recentMessages.filter(msg =>
-      msg.intent === 'ai.response' &&
-      (msg.payload?.response?.toLowerCase().includes('implement') ||
-       msg.payload?.response?.toLowerCase().includes('code'))
+    const devResponses = recentMessages.filter(
+      (msg) =>
+        msg.intent === 'ai.response' &&
+        (msg.payload?.response?.toLowerCase().includes('implement') ||
+          msg.payload?.response?.toLowerCase().includes('code'))
     );
     if (devResponses.length > 0 && this.phases.developer.status === 'pending') {
       this.phases.developer.status = 'complete';
@@ -108,10 +109,11 @@ class WorkflowMonitor {
     }
 
     // Check for tester responses
-    const testResponses = recentMessages.filter(msg =>
-      msg.intent === 'ai.response' &&
-      (msg.payload?.response?.toLowerCase().includes('test') ||
-       msg.payload?.response?.toLowerCase().includes('qa'))
+    const testResponses = recentMessages.filter(
+      (msg) =>
+        msg.intent === 'ai.response' &&
+        (msg.payload?.response?.toLowerCase().includes('test') ||
+          msg.payload?.response?.toLowerCase().includes('qa'))
     );
     if (testResponses.length > 0 && this.phases.tester.status === 'pending') {
       this.phases.tester.status = 'complete';
@@ -120,19 +122,24 @@ class WorkflowMonitor {
     }
 
     // Check for in-progress
-    const recentQueries = recentMessages.filter(msg =>
-      msg.intent === 'ai.query' &&
-      Date.now() - new Date(msg.timestamp).getTime() < 10000
+    const recentQueries = recentMessages.filter(
+      (msg) => msg.intent === 'ai.query' && Date.now() - new Date(msg.timestamp).getTime() < 10000
     );
 
     if (recentQueries.length > 0) {
       if (this.phases.architect.status === 'pending') {
         this.phases.architect.status = 'in-progress';
         this.phases.architect.startTime = new Date(recentQueries[0].timestamp).getTime();
-      } else if (this.phases.developer.status === 'pending' && this.phases.architect.status === 'complete') {
+      } else if (
+        this.phases.developer.status === 'pending' &&
+        this.phases.architect.status === 'complete'
+      ) {
         this.phases.developer.status = 'in-progress';
         this.phases.developer.startTime = new Date(recentQueries[0].timestamp).getTime();
-      } else if (this.phases.tester.status === 'pending' && this.phases.developer.status === 'complete') {
+      } else if (
+        this.phases.tester.status === 'pending' &&
+        this.phases.developer.status === 'complete'
+      ) {
         this.phases.tester.status = 'in-progress';
         this.phases.tester.startTime = new Date(recentQueries[0].timestamp).getTime();
       }
@@ -147,19 +154,27 @@ class WorkflowMonitor {
 
   getStatusIcon(status) {
     switch (status) {
-      case 'complete': return `${colors.green}✓${colors.reset}`;
-      case 'in-progress': return `${colors.yellow}⟳${colors.reset}`;
-      case 'pending': return `${colors.dim}○${colors.reset}`;
-      default: return '?';
+      case 'complete':
+        return `${colors.green}✓${colors.reset}`;
+      case 'in-progress':
+        return `${colors.yellow}⟳${colors.reset}`;
+      case 'pending':
+        return `${colors.dim}○${colors.reset}`;
+      default:
+        return '?';
     }
   }
 
   getStatusColor(status) {
     switch (status) {
-      case 'complete': return colors.green;
-      case 'in-progress': return colors.yellow;
-      case 'pending': return colors.dim;
-      default: return colors.reset;
+      case 'complete':
+        return colors.green;
+      case 'in-progress':
+        return colors.yellow;
+      case 'pending':
+        return colors.dim;
+      default:
+        return colors.reset;
     }
   }
 
@@ -176,14 +191,22 @@ class WorkflowMonitor {
     const elapsedSeconds = Math.floor(elapsed / 1000);
 
     // Header
-    console.log(`${colors.bright}${colors.cyan}╔═══════════════════════════════════════════════════════════════╗${colors.reset}`);
-    console.log(`${colors.bright}${colors.cyan}║         MULTI-AGENT WORKFLOW MONITOR                          ║${colors.reset}`);
-    console.log(`${colors.bright}${colors.cyan}╚═══════════════════════════════════════════════════════════════╝${colors.reset}`);
+    console.log(
+      `${colors.bright}${colors.cyan}╔═══════════════════════════════════════════════════════════════╗${colors.reset}`
+    );
+    console.log(
+      `${colors.bright}${colors.cyan}║         MULTI-AGENT WORKFLOW MONITOR                          ║${colors.reset}`
+    );
+    console.log(
+      `${colors.bright}${colors.cyan}╚═══════════════════════════════════════════════════════════════╝${colors.reset}`
+    );
     console.log('');
 
     // System Status
     console.log(`${colors.bright}📊 SYSTEM STATUS${colors.reset}`);
-    console.log(`   Bridge: ${status.status === 'healthy' ? colors.green + '●' + colors.reset : colors.red + '●' + colors.reset} ${status.status || 'unknown'}`);
+    console.log(
+      `   Bridge: ${status.status === 'healthy' ? colors.green + '●' + colors.reset : colors.red + '●' + colors.reset} ${status.status || 'unknown'}`
+    );
     console.log(`   Messages: ${history.length}`);
     console.log(`   Uptime: ${elapsedSeconds}s`);
     console.log('');
@@ -199,11 +222,14 @@ class WorkflowMonitor {
       const p = this.phases[phase];
       const icon = this.getStatusIcon(p.status);
       const color = this.getStatusColor(p.status);
-      const duration = p.endTime && p.startTime ? this.formatDuration(p.endTime - p.startTime) : '--';
+      const duration =
+        p.endTime && p.startTime ? this.formatDuration(p.endTime - p.startTime) : '--';
       const chars = p.charCount > 0 ? `${p.charCount} chars` : '--';
 
       console.log(`   ${icon} ${color}${labels[idx]}${colors.reset}`);
-      console.log(`      Status: ${color}${p.status}${colors.reset} | Duration: ${duration} | Output: ${chars}`);
+      console.log(
+        `      Status: ${color}${p.status}${colors.reset} | Duration: ${duration} | Output: ${chars}`
+      );
 
       if (idx < phases.length - 1) {
         console.log(`      ${colors.dim}↓${colors.reset}`);
@@ -215,7 +241,7 @@ class WorkflowMonitor {
     // Deliverables
     console.log(`${colors.bright}📦 DELIVERABLES${colors.reset}`);
     if (deliverables.length > 0) {
-      deliverables.slice(0, 5).forEach(file => {
+      deliverables.slice(0, 5).forEach((file) => {
         const age = Math.floor((Date.now() - file.modified.getTime()) / 1000);
         console.log(`   ${colors.green}●${colors.reset} ${file.name}`);
         console.log(`      ${colors.dim}${file.charCount} chars | ${age}s ago${colors.reset}`);

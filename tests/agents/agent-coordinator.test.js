@@ -6,7 +6,7 @@ import { startAgentCoordinator } from '../../src/agents/agent-coordinator.js';
   const { server, registry } = await startAgentCoordinator({
     wsPort: 0,
     httpPort: 0,
-    logger: { log: () => {}, error: () => {}, warn: () => {} }
+    logger: { log: () => {}, error: () => {}, warn: () => {} },
   });
   const { bridge } = server;
 
@@ -16,8 +16,18 @@ import { startAgentCoordinator } from '../../src/agents/agent-coordinator.js';
     const bId = 'agent-critic';
 
     // Fake register via internal registry (since we're not opening websockets here)
-    registry.register({ id: aId, role: 'summarizer', skills: ['summarize'], intents: ['agent.prompt','agent.response'] });
-    registry.register({ id: bId, role: 'critic', skills: ['review'], intents: ['agent.review','agent.response'] });
+    registry.register({
+      id: aId,
+      role: 'summarizer',
+      skills: ['summarize'],
+      intents: ['agent.prompt', 'agent.response'],
+    });
+    registry.register({
+      id: bId,
+      role: 'critic',
+      skills: ['review'],
+      intents: ['agent.review', 'agent.response'],
+    });
 
     // Listen for routed messages - bridge emits events after processing
     let routedPrompt = null;
@@ -35,7 +45,7 @@ import { startAgentCoordinator } from '../../src/agents/agent-coordinator.js';
     });
 
     // Wait briefly for routing
-    await new Promise(r => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, 100));
 
     assert.ok(routedPrompt);
 

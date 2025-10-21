@@ -29,7 +29,7 @@ export default async function handler(req, res) {
       status: 'healthy',
       platform: 'vercel',
       ai: 'cloudflare-workers-ai',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -44,12 +44,12 @@ export default async function handler(req, res) {
         owner: 'scarmonit',
         repo: 'Final',
         state: 'open',
-        per_page: 5
+        per_page: 5,
       });
 
       const results = [];
 
-      for (const issue of issues.filter(i => !i.pull_request)) {
+      for (const issue of issues.filter((i) => !i.pull_request)) {
         try {
           const result = await solveIssue(issue.number);
           results.push({ issue: issue.number, success: true, result });
@@ -59,7 +59,6 @@ export default async function handler(req, res) {
       }
 
       return res.json({ success: true, processed: results.length, results });
-
     } catch (error) {
       console.error('Cron error:', error);
       return res.status(500).json({ success: false, error: error.message });
@@ -87,8 +86,8 @@ export default async function handler(req, res) {
     endpoints: {
       health: 'GET /api/health',
       solve: 'POST /api/solve { issueNumber: 123 }',
-      cron: 'GET /api/cron (automated)'
-    }
+      cron: 'GET /api/cron (automated)',
+    },
   });
 }
 
@@ -102,7 +101,7 @@ async function solveIssue(issueNumber) {
   const { data: issue } = await octokit.issues.get({
     owner: 'scarmonit',
     repo: 'Final',
-    issue_number: issueNumber
+    issue_number: issueNumber,
   });
 
   console.log(`Solving issue #${issueNumber}: ${issue.title}`);
@@ -138,7 +137,7 @@ Generate code only:`,
   const { data: ref } = await octokit.git.getRef({
     owner: 'scarmonit',
     repo: 'Final',
-    ref: 'heads/Scarmonit'
+    ref: 'heads/Scarmonit',
   });
 
   // Create branch
@@ -147,7 +146,7 @@ Generate code only:`,
       owner: 'scarmonit',
       repo: 'Final',
       ref: `refs/heads/${branchName}`,
-      sha: ref.object.sha
+      sha: ref.object.sha,
     });
   } catch (error) {
     // Branch exists, continue
@@ -160,7 +159,7 @@ Generate code only:`,
     path: 'solution.js',
     message: `🚀 Vercel AI: Solve issue #${issueNumber}`,
     content: Buffer.from(solution).toString('base64'),
-    branch: branchName
+    branch: branchName,
   });
 
   // Create PR
@@ -177,7 +176,7 @@ Generate code only:`,
 **Analysis:** ${analysis}
 
 ---
-*Generated with Vercel + Cloudflare Workers AI*`
+*Generated with Vercel + Cloudflare Workers AI*`,
   });
 
   // Comment on issue
@@ -185,7 +184,7 @@ Generate code only:`,
     owner: 'scarmonit',
     repo: 'Final',
     issue_number: issueNumber,
-    body: `🚀 **Vercel Autonomous Agent** has created PR #${pr.number} to resolve this issue.\n\nReview: ${pr.html_url}`
+    body: `🚀 **Vercel Autonomous Agent** has created PR #${pr.number} to resolve this issue.\n\nReview: ${pr.html_url}`,
   });
 
   return { prNumber: pr.number, prUrl: pr.html_url, analysis };
@@ -195,23 +194,24 @@ Generate code only:`,
  * Call Cloudflare Workers AI API
  */
 async function callCloudflareAI(prompt, options = {}) {
-  const model = options.model === 'codellama-7b'
-    ? '@cf/meta/codellama-7b-instruct'
-    : '@cf/meta/llama-2-7b-chat-int8';
+  const model =
+    options.model === 'codellama-7b'
+      ? '@cf/meta/codellama-7b-instruct'
+      : '@cf/meta/llama-2-7b-chat-int8';
 
   const response = await fetch(
     `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}/ai/run/${model}`,
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${process.env.CLOUDFLARE_API_TOKEN}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         prompt,
         max_tokens: options.maxTokens || 512,
-        temperature: options.temperature || 0.7
-      })
+        temperature: options.temperature || 0.7,
+      }),
     }
   );
 

@@ -36,15 +36,18 @@ export interface ApiFreeLLMResponse {
  * @param message A plain‑text message to send to the LLM.
  * @param opts    Optional parameters. Currently unused.
  */
-export async function chat(message: string, opts: ApiFreeLLMOptions = {}): Promise<ApiFreeLLMResponse> {
+export async function chat(
+  message: string,
+  opts: ApiFreeLLMOptions = {}
+): Promise<ApiFreeLLMResponse> {
   const url = 'https://apifreellm.com/api/chat';
   const body = { message };
   const res = await fetch(url, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
   });
   // The API always returns HTTP 200, success or error info is contained in
   // the JSON body. We handle both here.

@@ -19,6 +19,7 @@ The MCP server is already configured in your Continue.dev settings:
 **Location:** `C:\Users\scarm\.continue\config.json`
 
 **Configuration:**
+
 ```json
 {
   "experimental": {
@@ -28,12 +29,7 @@ The MCP server is already configured in your Continue.dev settings:
         "description": "LLM Framework MCP Server",
         "command": "node",
         "args": ["C:\\Users\\scarm\\src\\mcp\\server.js"],
-        "tools": [
-          "analyze_code",
-          "manage_context",
-          "coordinate_session",
-          "monitor_performance"
-        ]
+        "tools": ["analyze_code", "manage_context", "coordinate_session", "monitor_performance"]
       }
     ]
   }
@@ -65,6 +61,7 @@ For Continue.dev to load the new MCP configuration:
 Open Continue.dev chat panel and try these prompts:
 
 **Test 1: Code Analysis**
+
 ```
 Analyze this code for performance issues:
 
@@ -75,11 +72,13 @@ async function fetchData() {
 ```
 
 **Test 2: Context Management**
+
 ```
 Save the current conversation context with key "session-123"
 ```
 
 **Test 3: Performance Monitoring**
+
 ```
 Monitor memory usage for 5 seconds
 ```
@@ -91,12 +90,14 @@ Monitor memory usage for 5 seconds
 Analyze code for patterns, anti-patterns, and quality metrics.
 
 **Use cases:**
+
 - Security vulnerability detection
 - Performance optimization suggestions
 - Code quality assessment
 - Pattern detection
 
 **Example prompt:**
+
 > "Analyze this function for security issues: [paste code]"
 
 ### 2. manage_context
@@ -104,12 +105,14 @@ Analyze code for patterns, anti-patterns, and quality metrics.
 Manage conversation context and memory.
 
 **Use cases:**
+
 - Save conversation state
 - Load previous context
 - Clear memory
 - Compress large contexts
 
 **Example prompt:**
+
 > "Save this conversation context as 'feature-auth'"
 
 ### 3. coordinate_session
@@ -117,11 +120,13 @@ Manage conversation context and memory.
 Coordinate multi-agent sessions.
 
 **Use cases:**
+
 - Create collaborative coding sessions
 - Track agent participation
 - Monitor session status
 
 **Example prompt:**
+
 > "Create a new coding session called 'refactor-api'"
 
 ### 4. monitor_performance
@@ -129,12 +134,14 @@ Coordinate multi-agent sessions.
 Monitor system performance metrics.
 
 **Use cases:**
+
 - Track memory usage
 - Monitor CPU utilization
 - Measure operation latency
 - System health checks
 
 **Example prompt:**
+
 > "Show current memory and CPU usage"
 
 ## Common Usage Patterns
@@ -142,12 +149,14 @@ Monitor system performance metrics.
 ### Code Review Workflow
 
 1. **Analyze Code:**
+
    ```
    Analyze this pull request for quality and security:
    [paste code diff]
    ```
 
 2. **Save Context:**
+
    ```
    Save this review as "pr-1234-review"
    ```
@@ -160,11 +169,13 @@ Monitor system performance metrics.
 ### Development Session
 
 1. **Start Session:**
+
    ```
    Create a new development session "feature-login"
    ```
 
 2. **Iterative Development:**
+
    ```
    Analyze this implementation for improvements:
    [paste code]
@@ -178,12 +189,14 @@ Monitor system performance metrics.
 ### Performance Optimization
 
 1. **Initial Analysis:**
+
    ```
    Analyze this function for performance issues:
    [paste code]
    ```
 
 2. **Monitor Baseline:**
+
    ```
    Monitor memory and CPU for 10 seconds
    ```
@@ -201,6 +214,7 @@ Monitor system performance metrics.
 **Symptoms:** Continue.dev can't access MCP tools
 
 **Solutions:**
+
 1. Test server manually: `npm run mcp:test`
 2. Check Node version: `node --version` (must be >=18.0.0)
 3. Verify file paths in Continue config
@@ -212,6 +226,7 @@ Monitor system performance metrics.
 **Symptoms:** MCP tools don't appear in Continue suggestions
 
 **Solutions:**
+
 1. Verify `experimental.modelContextProtocolServers` exists in config
 2. Check server.js is executable
 3. Review Continue.dev experimental features settings
@@ -222,6 +237,7 @@ Monitor system performance metrics.
 **Symptoms:** Tool calls time out
 
 **Solutions:**
+
 1. Check system resources (memory, CPU)
 2. Increase timeout in `src/mcp/server.js` (default 30s)
 3. Simplify input parameters
@@ -232,6 +248,7 @@ Monitor system performance metrics.
 **Symptoms:** MCP server stops unexpectedly
 
 **Solutions:**
+
 1. Check stderr output for errors
 2. Run with debug mode: `npm run mcp:debug`
 3. Review server logs
@@ -318,7 +335,7 @@ Share context between Continue.dev and other agents:
 
 ```javascript
 // In Continue.dev prompt
-"Save context to 'shared-session'"
+"Save context to 'shared-session'";
 
 // In other agent
 const context = await contextManager.load('shared-session');
@@ -330,7 +347,7 @@ MCP server can monitor AI Bridge and agent performance:
 
 ```javascript
 // Monitor complete system
-"Monitor performance for all active agents"
+'Monitor performance for all active agents';
 ```
 
 ## Best Practices

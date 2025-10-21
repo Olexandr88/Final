@@ -14,10 +14,12 @@ function validateParams(toolName, params, toolDefinition) {
   }
 
   const requiredParams = toolDefinition.parameters.required || [];
-  const missingParams = requiredParams.filter(param => !(param in params));
+  const missingParams = requiredParams.filter((param) => !(param in params));
 
   if (missingParams.length > 0) {
-    throw new Error(`Validation Error for tool '${toolName}': Missing required parameters: ${missingParams.join(', ')}`);
+    throw new Error(
+      `Validation Error for tool '${toolName}': Missing required parameters: ${missingParams.join(', ')}`
+    );
   }
   return true;
 }
@@ -54,7 +56,11 @@ function findTool(intent, preferredServer = null) {
     if (serverName === 'built-in') continue;
     for (const toolName in discoveredToolDefinitions[serverName]) {
       if (toolName.toLowerCase() === intent.toLowerCase()) {
-        return { serverName, toolName, toolDefinition: discoveredToolDefinitions[serverName][toolName] };
+        return {
+          serverName,
+          toolName,
+          toolDefinition: discoveredToolDefinitions[serverName][toolName],
+        };
       }
     }
   }
@@ -65,7 +71,8 @@ function findTool(intent, preferredServer = null) {
 async function getSystemInfoStep(mcpIntegration) {
   console.log('\n--- Step 1: Get System Info ---');
   const toolName = 'get_system_info';
-  const toolDef = discoveredToolDefinitions['built-in'] && discoveredToolDefinitions['built-in'][toolName];
+  const toolDef =
+    discoveredToolDefinitions['built-in'] && discoveredToolDefinitions['built-in'][toolName];
   validateParams(toolName, {}, toolDef);
   const systemInfo = await mcpIntegration.executeBuiltInTool(toolName);
   console.log('System Info:', systemInfo);
@@ -80,11 +87,7 @@ async function codeAnalysisStep(mcpIntegration) {
   const branch = 'main';
   const params = { repositoryUrl, branch };
   validateParams(toolName, params, toolDefinition);
-  const analysisResult = await mcpIntegration.callTool(
-    serverName,
-    toolName,
-    params
-  );
+  const analysisResult = await mcpIntegration.callTool(serverName, toolName, params);
   console.log('Code Analysis Result:', analysisResult);
   return analysisResult;
 }
@@ -98,42 +101,46 @@ async function deploymentWorkflowStep(mcpIntegration, repositoryUrl) {
   // List files in a temporary directory before writing
   const tempDir = os.tmpdir();
   console.log(`Listing files in temporary directory: ${tempDir}`);
-  let { serverName: serverNameFile, toolName: toolNameList, toolDefinition: toolDefList } = findTool('list files', 'FileOperationServer');
+  let {
+    serverName: serverNameFile,
+    toolName: toolNameList,
+    toolDefinition: toolDefList,
+  } = findTool('list files', 'FileOperationServer');
   let paramsList = { directoryPath: tempDir };
   validateParams(toolNameList, paramsList, toolDefList);
-  const listFilesResult = await mcpIntegration.callTool(
-    serverNameFile,
-    toolNameList,
-    paramsList
-  );
+  const listFilesResult = await mcpIntegration.callTool(serverNameFile, toolNameList, paramsList);
   console.log('List Files Result:', listFilesResult);
 
   const tempFilePath = path.join(tempDir, `mcp_deployment_artifact_${Date.now()}.txt`);
   const artifactContent = `Deployment artifact for ${repositoryUrl} v1.0.0`;
 
-  let { serverName: serverNameWrite, toolName: toolNameWrite, toolDefinition: toolDefWrite } = findTool('write content to file', 'FileOperationServer');
+  let {
+    serverName: serverNameWrite,
+    toolName: toolNameWrite,
+    toolDefinition: toolDefWrite,
+  } = findTool('write content to file', 'FileOperationServer');
   let paramsWrite = { filepath: tempFilePath, content: artifactContent };
   validateParams(toolNameWrite, paramsWrite, toolDefWrite);
-  const writeResult = await mcpIntegration.callTool(
-    serverNameWrite,
-    toolNameWrite,
-    paramsWrite
-  );
+  const writeResult = await mcpIntegration.callTool(serverNameWrite, toolNameWrite, paramsWrite);
   console.log('Artifact Write Result:', writeResult);
 
-  let { serverName: serverNameRead, toolName: toolNameRead, toolDefinition: toolDefRead } = findTool('read file contents', 'FileOperationServer');
+  let {
+    serverName: serverNameRead,
+    toolName: toolNameRead,
+    toolDefinition: toolDefRead,
+  } = findTool('read file contents', 'FileOperationServer');
   let paramsRead = { filepath: tempFilePath };
   validateParams(toolNameRead, paramsRead, toolDefRead);
-  const readResult = await mcpIntegration.callTool(
-    serverNameRead,
-    toolNameRead,
-    paramsRead
-  );
+  const readResult = await mcpIntegration.callTool(serverNameRead, toolNameRead, paramsRead);
   console.log('Artifact Read Result:', readResult);
 
   // Execute Command (e.g., build or package)
   console.log('\n--- Step 3b: Execute Build Command ---');
-  let { serverName: serverNameCommand, toolName: toolNameCommand, toolDefinition: toolDefCommand } = findTool('execute shell command', 'CommandExecutionServer');
+  let {
+    serverName: serverNameCommand,
+    toolName: toolNameCommand,
+    toolDefinition: toolDefCommand,
+  } = findTool('execute shell command', 'CommandExecutionServer');
   let paramsCommand = { command: 'echo Building application...' };
   validateParams(toolNameCommand, paramsCommand, toolDefCommand);
   const buildCommandResult = await mcpIntegration.callTool(
@@ -145,7 +152,11 @@ async function deploymentWorkflowStep(mcpIntegration, repositoryUrl) {
 
   // Deployment
   console.log('\n--- Step 3c: Application Deployment ---');
-  let { serverName: serverNameDeploy, toolName: toolNameDeploy, toolDefinition: toolDefDeploy } = findTool('deploy application', 'DeploymentServer');
+  let {
+    serverName: serverNameDeploy,
+    toolName: toolNameDeploy,
+    toolDefinition: toolDefDeploy,
+  } = findTool('deploy application', 'DeploymentServer');
   const appName = 'MyWebApp';
   const version = '1.0.0';
   const environment = 'production';
@@ -161,7 +172,11 @@ async function deploymentWorkflowStep(mcpIntegration, repositoryUrl) {
 
   // Post-Deployment Verification
   console.log('\n--- Step 3d: Post-Deployment Verification (Health Checks) ---');
-  let { serverName: serverNameMonitor, toolName: toolNameMonitor, toolDefinition: toolDefMonitor } = findTool('run health checks', 'MonitoringServer');
+  let {
+    serverName: serverNameMonitor,
+    toolName: toolNameMonitor,
+    toolDefinition: toolDefMonitor,
+  } = findTool('run health checks', 'MonitoringServer');
   let paramsMonitor = { appName, environment };
   validateParams(toolNameMonitor, paramsMonitor, toolDefMonitor);
   const healthCheckResult = await mcpIntegration.callTool(
@@ -175,7 +190,11 @@ async function deploymentWorkflowStep(mcpIntegration, repositoryUrl) {
     console.log('Application is healthy after deployment!');
   } else {
     console.log('WARNING: Application is unhealthy after deployment. Initiating rollback...');
-    let { serverName: serverNameRollback, toolName: toolNameRollback, toolDefinition: toolDefRollback } = findTool('rollback application', 'DeploymentServer');
+    let {
+      serverName: serverNameRollback,
+      toolName: toolNameRollback,
+      toolDefinition: toolDefRollback,
+    } = findTool('rollback application', 'DeploymentServer');
     let paramsRollback = { appName, previousVersion: version, environment };
     validateParams(toolNameRollback, paramsRollback, toolDefRollback);
     const rollbackResult = await mcpIntegration.callTool(
@@ -192,14 +211,14 @@ async function deploymentWorkflowStep(mcpIntegration, repositoryUrl) {
   }
 
   // Clean up artifact
-  let { serverName: serverNameDelete, toolName: toolNameDelete, toolDefinition: toolDefDelete } = findTool('delete a specified file', 'FileOperationServer');
+  let {
+    serverName: serverNameDelete,
+    toolName: toolNameDelete,
+    toolDefinition: toolDefDelete,
+  } = findTool('delete a specified file', 'FileOperationServer');
   let paramsDelete = { filepath: tempFilePath };
   validateParams(toolNameDelete, paramsDelete, toolDefDelete);
-  await mcpIntegration.callTool(
-    serverNameDelete,
-    toolNameDelete,
-    paramsDelete
-  );
+  await mcpIntegration.callTool(serverNameDelete, toolNameDelete, paramsDelete);
   console.log('Artifact Cleaned Up.');
 
   return deploymentResult;
@@ -217,7 +236,9 @@ async function orchestrateFullPipeline() {
     serverConfigs = JSON.parse(configFileContent);
     console.log(`Loaded ${serverConfigs.length} server configurations from mcp-config.json.`);
   } catch (error) {
-    console.error(`Failed to load mcp-config.json: ${error.message}. Please ensure the file exists and is valid JSON.`);
+    console.error(
+      `Failed to load mcp-config.json: ${error.message}. Please ensure the file exists and is valid JSON.`
+    );
     process.exit(1);
   }
 
@@ -230,11 +251,13 @@ async function orchestrateFullPipeline() {
       console.log(`✓ Connected to ${config.name}. Discovering tools...`);
       const discovered = await mcpIntegration.listServerTools(config.name);
       discoveredToolDefinitions[config.name] = {};
-      discovered.forEach(tool => {
+      discovered.forEach((tool) => {
         discoveredToolDefinitions[config.name][tool.name] = tool;
       });
     } catch (error) {
-      console.error(`Failed to connect to ${config.name}: ${error.message}. Please ensure the server is running.`);
+      console.error(
+        `Failed to connect to ${config.name}: ${error.message}. Please ensure the server is running.`
+      );
       // Depending on criticality, you might want to exit here or mark server as unavailable
     }
   }
@@ -251,12 +274,17 @@ async function orchestrateFullPipeline() {
     const analysisResult = await codeAnalysisStep(mcpIntegration);
 
     // Conditional Deployment based on Analysis
-    if (analysisResult.status === 'success' && analysisResult.qualityScore >= 70 && analysisResult.criticalIssues === 0) {
+    if (
+      analysisResult.status === 'success' &&
+      analysisResult.qualityScore >= 70 &&
+      analysisResult.criticalIssues === 0
+    ) {
       await deploymentWorkflowStep(mcpIntegration, 'https://github.com/my-org/my-app.git');
     } else {
-      console.log('\n--- Step 3: Code Analysis Failed or did not meet quality gates. Halting deployment. ---');
+      console.log(
+        '\n--- Step 3: Code Analysis Failed or did not meet quality gates. Halting deployment. ---'
+      );
     }
-
   } catch (error) {
     console.error('\n--- Orchestration Error: ---', error);
   } finally {
@@ -265,8 +293,7 @@ async function orchestrateFullPipeline() {
     for (const config of serverConfigs) {
       try {
         await mcpIntegration.disconnect(config.name);
-      }
-      catch (error) {
+      } catch (error) {
         console.error(`Failed to disconnect from ${config.name}: ${error.message}`);
       }
     }

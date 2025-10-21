@@ -8,7 +8,7 @@ permissions:
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
     paths:
       - 'website/**'
       - 'docs/**'
@@ -26,7 +26,7 @@ on:
 # OPTIMIZED: Allow only one concurrent deployment with intelligent queuing
 # Do NOT cancel in-progress runs to ensure production deployments complete
 concurrency:
-  group: "pages-${{ github.ref }}"
+  group: 'pages-${{ github.ref }}'
   cancel-in-progress: false
 
 env:
@@ -54,7 +54,7 @@ jobs:
         id: analyze
         run: |
           echo "🔍 Analyzing repository structure for optimization opportunities..."
-          
+
           # Check for website directory
           if [ -d "website" ]; then
             echo "has-website=true" >> $GITHUB_OUTPUT
@@ -62,7 +62,7 @@ jobs:
           else
             echo "has-website=false" >> $GITHUB_OUTPUT
           fi
-          
+
           # Check for docs directory
           if [ -d "docs" ]; then
             echo "has-docs=true" >> $GITHUB_OUTPUT
@@ -70,7 +70,7 @@ jobs:
           else
             echo "has-docs=false" >> $GITHUB_OUTPUT
           fi
-          
+
           # Check for assets
           if [ -d "assets" ] || [ -d "static" ] || find . -name "*.css" -o -name "*.js" -o -name "*.png" -o -name "*.jpg" -o -name "*.svg" | grep -q .; then
             echo "has-assets=true" >> $GITHUB_OUTPUT
@@ -78,7 +78,7 @@ jobs:
           else
             echo "has-assets=false" >> $GITHUB_OUTPUT
           fi
-          
+
           # Determine optimization level based on content
           if [ -d "website" ] && [ $(find website -type f | wc -l) -gt 50 ]; then
             echo "optimization-level=aggressive" >> $GITHUB_OUTPUT
@@ -98,7 +98,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -115,31 +115,31 @@ jobs:
       - name: Optimize static content
         run: |
           echo "🚀 Starting optimized static content preparation..."
-          
+
           # Create optimized deployment directory
           mkdir -p optimized-static
-          
+
           # Copy website content if it exists
           if [ -d "website" ]; then
             echo "📁 Copying website content..."
             cp -r website/* optimized-static/ 2>/dev/null || true
             echo "✅ Website content copied successfully"
           fi
-          
+
           # Copy docs content if it exists
           if [ -d "docs" ]; then
             echo "📁 Copying docs content..."
             cp -r docs/* optimized-static/ 2>/dev/null || true
             echo "✅ Docs content copied successfully"
           fi
-          
+
           # Copy root level static files
           for file in *.html *.css *.js *.md *.json; do
             if [ -f "$file" ]; then
               cp "$file" optimized-static/ 2>/dev/null || true
             fi
           done
-          
+
           # Copy assets directories
           for dir in assets static images; do
             if [ -d "$dir" ]; then
@@ -147,7 +147,7 @@ jobs:
               cp -r "$dir" optimized-static/ 2>/dev/null || true
             fi
           done
-          
+
           # Ensure we have an index.html
           if [ ! -f "optimized-static/index.html" ]; then
             echo "📝 Creating fallback index.html..."
@@ -175,7 +175,7 @@ jobs:
           </html>
           HTMLEOF
           fi
-          
+
           # Performance optimization based on site size
           case "${{ needs.preflight.outputs.optimization-level }}" in
             "aggressive")
@@ -193,12 +193,12 @@ jobs:
               # Minimal optimizations
               ;;
           esac
-          
+
           # Verify content
           echo "📊 Deployment Summary:"
           echo "Files: $(find optimized-static -type f | wc -l)"
           echo "Size: $(du -sh optimized-static | cut -f1)"
-          
+
           # List all files for debugging
           echo "📋 Content inventory:"
           find optimized-static -type f | sort
@@ -212,7 +212,7 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-        
+
       - name: Performance validation
         run: |
           echo "🎯 Deployment completed successfully!"

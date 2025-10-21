@@ -38,15 +38,11 @@ const { StdioServerTransport } = await importWithFallback(
   '@modelcontextprotocol/sdk/dist/esm/server/stdio.js'
 );
 
-const {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  ErrorCode,
-  McpError
-} = await importWithFallback(
-  '@modelcontextprotocol/sdk/types.js',
-  '@modelcontextprotocol/sdk/dist/esm/types.js'
-);
+const { CallToolRequestSchema, ListToolsRequestSchema, ErrorCode, McpError } =
+  await importWithFallback(
+    '@modelcontextprotocol/sdk/types.js',
+    '@modelcontextprotocol/sdk/dist/esm/types.js'
+  );
 
 /**
  * MCP Server for LLM Framework
@@ -59,18 +55,18 @@ export class MCPServer {
       version: options.version || '1.0.0',
       debug: options.debug || false,
       workingDir: options.workingDir || process.cwd(),
-      ...options
+      ...options,
     };
 
     this.server = new Server(
       {
         name: this.options.name,
-        version: this.options.version
+        version: this.options.version,
       },
       {
         capabilities: {
-          tools: {}
-        }
+          tools: {},
+        },
       }
     );
 
@@ -89,7 +85,7 @@ export class MCPServer {
     logger.info('MCP Server initialized', {
       name: this.options.name,
       version: this.options.version,
-      sessionId: this.sessionId.slice(0, 8)
+      sessionId: this.sessionId.slice(0, 8),
     });
   }
 
@@ -106,19 +102,19 @@ export class MCPServer {
           properties: {
             code: {
               type: 'string',
-              description: 'Source code to analyze'
+              description: 'Source code to analyze',
             },
             filepath: {
               type: 'string',
-              description: 'File path (optional, for context)'
+              description: 'File path (optional, for context)',
             },
             language: {
               type: 'string',
-              description: 'Programming language (auto-detected if not provided)'
-            }
+              description: 'Programming language (auto-detected if not provided)',
+            },
           },
-          required: ['code']
-        }
+          required: ['code'],
+        },
       },
       {
         name: 'run_tests',
@@ -128,18 +124,18 @@ export class MCPServer {
           properties: {
             pattern: {
               type: 'string',
-              description: 'Test file pattern (e.g., "tests/**/*.test.js")'
+              description: 'Test file pattern (e.g., "tests/**/*.test.js")',
             },
             timeout: {
               type: 'number',
-              description: 'Timeout in milliseconds (default: 30000)'
+              description: 'Timeout in milliseconds (default: 30000)',
             },
             parallel: {
               type: 'boolean',
-              description: 'Run tests in parallel (default: true)'
-            }
-          }
-        }
+              description: 'Run tests in parallel (default: true)',
+            },
+          },
+        },
       },
       {
         name: 'get_context',
@@ -149,14 +145,14 @@ export class MCPServer {
           properties: {
             sessionId: {
               type: 'string',
-              description: 'Session ID (uses current session if not provided)'
+              description: 'Session ID (uses current session if not provided)',
             },
             includeHistory: {
               type: 'boolean',
-              description: 'Include log history (default: false)'
-            }
-          }
-        }
+              description: 'Include log history (default: false)',
+            },
+          },
+        },
       },
       {
         name: 'execute_command',
@@ -166,23 +162,23 @@ export class MCPServer {
           properties: {
             command: {
               type: 'string',
-              description: 'Shell command to execute'
+              description: 'Shell command to execute',
             },
             cwd: {
               type: 'string',
-              description: 'Working directory (default: project root)'
+              description: 'Working directory (default: project root)',
             },
             timeout: {
               type: 'number',
-              description: 'Timeout in milliseconds (default: 10000)'
+              description: 'Timeout in milliseconds (default: 10000)',
             },
             env: {
               type: 'object',
-              description: 'Environment variables'
-            }
+              description: 'Environment variables',
+            },
           },
-          required: ['command']
-        }
+          required: ['command'],
+        },
       },
       {
         name: 'read_file',
@@ -192,19 +188,19 @@ export class MCPServer {
           properties: {
             filepath: {
               type: 'string',
-              description: 'Absolute or relative file path'
+              description: 'Absolute or relative file path',
             },
             encoding: {
               type: 'string',
-              description: 'File encoding (default: utf-8)'
+              description: 'File encoding (default: utf-8)',
             },
             maxSize: {
               type: 'number',
-              description: 'Maximum file size in bytes (default: 1MB)'
-            }
+              description: 'Maximum file size in bytes (default: 1MB)',
+            },
           },
-          required: ['filepath']
-        }
+          required: ['filepath'],
+        },
       },
       {
         name: 'write_file',
@@ -214,23 +210,23 @@ export class MCPServer {
           properties: {
             filepath: {
               type: 'string',
-              description: 'Absolute or relative file path'
+              description: 'Absolute or relative file path',
             },
             content: {
               type: 'string',
-              description: 'File content to write'
+              description: 'File content to write',
             },
             encoding: {
               type: 'string',
-              description: 'File encoding (default: utf-8)'
+              description: 'File encoding (default: utf-8)',
             },
             createBackup: {
               type: 'boolean',
-              description: 'Create backup before overwriting (default: true)'
-            }
+              description: 'Create backup before overwriting (default: true)',
+            },
           },
-          required: ['filepath', 'content']
-        }
+          required: ['filepath', 'content'],
+        },
       },
       {
         name: 'jules_list_sessions',
@@ -241,14 +237,14 @@ export class MCPServer {
             page_size: {
               type: 'number',
               description: 'Number of sessions per page (default 10)',
-              default: 10
+              default: 10,
             },
             page_token: {
               type: 'string',
-              description: 'Pagination token from a previous list call'
-            }
-          }
-        }
+              description: 'Pagination token from a previous list call',
+            },
+          },
+        },
       },
       {
         name: 'jules_get_session',
@@ -258,11 +254,11 @@ export class MCPServer {
           properties: {
             session_id: {
               type: 'string',
-              description: 'Session identifier (numeric ID or resource name)'
-            }
+              description: 'Session identifier (numeric ID or resource name)',
+            },
           },
-          required: ['session_id']
-        }
+          required: ['session_id'],
+        },
       },
       {
         name: 'jules_create_session',
@@ -272,24 +268,24 @@ export class MCPServer {
           properties: {
             prompt: {
               type: 'string',
-              description: 'Task prompt for Jules'
+              description: 'Task prompt for Jules',
             },
             source_id: {
               type: 'string',
-              description: 'Source identifier (e.g., sources/github/owner/repo)'
+              description: 'Source identifier (e.g., sources/github/owner/repo)',
             },
             title: {
               type: 'string',
-              description: 'Optional session title'
+              description: 'Optional session title',
             },
             starting_branch: {
               type: 'string',
               description: 'Repository branch to analyze (default: main)',
-              default: 'main'
-            }
+              default: 'main',
+            },
           },
-          required: ['prompt', 'source_id']
-        }
+          required: ['prompt', 'source_id'],
+        },
       },
       {
         name: 'jules_send_message',
@@ -299,15 +295,15 @@ export class MCPServer {
           properties: {
             session_id: {
               type: 'string',
-              description: 'Target session identifier'
+              description: 'Target session identifier',
             },
             message: {
               type: 'string',
-              description: 'Message content to send'
-            }
+              description: 'Message content to send',
+            },
           },
-          required: ['session_id', 'message']
-        }
+          required: ['session_id', 'message'],
+        },
       },
       {
         name: 'list_tools',
@@ -316,7 +312,7 @@ export class MCPServer {
           type: 'object',
           properties: {},
         },
-      }
+      },
     ];
   }
 
@@ -328,11 +324,12 @@ export class MCPServer {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       logger.debug('MCP: List tools request');
       return {
-        tools: this.tools.map(tool => ({ // Return a copy of tools with only definition properties
+        tools: this.tools.map((tool) => ({
+          // Return a copy of tools with only definition properties
           name: tool.name,
           description: tool.description,
           parameters: tool.inputSchema, // Map inputSchema to parameters for consistency
-        }))
+        })),
       };
     });
 
@@ -344,13 +341,10 @@ export class MCPServer {
 
       try {
         // Find the executor for the tool
-        const toolExecutor = this.tools.find(tool => tool.name === name)?.executor;
+        const toolExecutor = this.tools.find((tool) => tool.name === name)?.executor;
 
         if (!toolExecutor) {
-          throw new McpError(
-            ErrorCode.MethodNotFound,
-            `Unknown tool: ${name}`
-          );
+          throw new McpError(ErrorCode.MethodNotFound, `Unknown tool: ${name}`);
         }
 
         const result = await toolExecutor(args);
@@ -361,24 +355,21 @@ export class MCPServer {
           content: [
             {
               type: 'text',
-              text: JSON.stringify(result, null, 2)
-            }
-          ]
+              text: JSON.stringify(result, null, 2),
+            },
+          ],
         };
       } catch (error) {
         logger.error('MCP: Tool call failed', {
           tool: name,
-          error: error.message
+          error: error.message,
         });
 
         if (error instanceof McpError) {
           throw error;
         }
 
-        throw new McpError(
-          ErrorCode.InternalError,
-          `Tool execution failed: ${error.message}`
-        );
+        throw new McpError(ErrorCode.InternalError, `Tool execution failed: ${error.message}`);
       }
     });
 
@@ -406,15 +397,12 @@ export class MCPServer {
     const { code, filepath = 'unknown', language } = args;
 
     if (!code) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'Code parameter is required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'Code parameter is required');
     }
 
     const analysis = this.analyzer.analyzeWithContext(code, filepath, {
       language,
-      source: 'mcp-server'
+      source: 'mcp-server',
     });
 
     return {
@@ -423,21 +411,22 @@ export class MCPServer {
       metrics: {
         qualityScore: analysis.metrics?.qualityScore || 0,
         complexity: analysis.metrics?.complexity || 0,
-        maintainability: analysis.metrics?.maintainability || 0
+        maintainability: analysis.metrics?.maintainability || 0,
       },
       issues: {
         total: analysis.issues?.length || 0,
-        errors: analysis.issues?.filter(i => i.severity === 'error').length || 0,
-        warnings: analysis.issues?.filter(i => i.severity === 'warning').length || 0,
-        info: analysis.issues?.filter(i => i.severity === 'info').length || 0
+        errors: analysis.issues?.filter((i) => i.severity === 'error').length || 0,
+        warnings: analysis.issues?.filter((i) => i.severity === 'warning').length || 0,
+        info: analysis.issues?.filter((i) => i.severity === 'info').length || 0,
       },
-      details: analysis.issues?.map(issue => ({
-        line: issue.line,
-        severity: issue.severity,
-        message: issue.message,
-        category: issue.category
-      })) || [],
-      recommendations: analysis.recommendations || []
+      details:
+        analysis.issues?.map((issue) => ({
+          line: issue.line,
+          severity: issue.severity,
+          message: issue.message,
+          category: issue.category,
+        })) || [],
+      recommendations: analysis.recommendations || [],
     };
   }
 
@@ -445,11 +434,7 @@ export class MCPServer {
    * Handle run_tests tool
    */
   async _handleRunTests(args) {
-    const {
-      pattern = 'tests',
-      timeout = 30000,
-      parallel = true
-    } = args;
+    const { pattern = 'tests', timeout = 30000, parallel = true } = args;
 
     try {
       const concurrency = parallel ? 4 : 1;
@@ -459,7 +444,7 @@ export class MCPServer {
         cwd: this.options.workingDir,
         timeout,
         encoding: 'utf-8',
-        env: { ...process.env, NODE_ENV: 'test' }
+        env: { ...process.env, NODE_ENV: 'test' },
       });
 
       // Parse test output
@@ -470,7 +455,7 @@ export class MCPServer {
         failed: 0,
         skipped: 0,
         duration: 0,
-        output: output
+        output: output,
       };
 
       // Extract test results (basic parsing)
@@ -491,7 +476,7 @@ export class MCPServer {
         success: false,
         error: error.message,
         stderr: error.stderr?.toString() || '',
-        stdout: error.stdout?.toString() || ''
+        stdout: error.stdout?.toString() || '',
       };
     }
   }
@@ -500,18 +485,12 @@ export class MCPServer {
    * Handle get_context tool
    */
   async _handleGetContext(args) {
-    const {
-      sessionId = this.sessionId,
-      includeHistory = false
-    } = args;
+    const { sessionId = this.sessionId, includeHistory = false } = args;
 
     const sessionInfo = this.sessionManager.getSessionInfo(sessionId);
 
     if (!sessionInfo) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        `Session not found: ${sessionId}`
-      );
+      throw new McpError(ErrorCode.InvalidParams, `Session not found: ${sessionId}`);
     }
 
     const context = {
@@ -523,10 +502,10 @@ export class MCPServer {
         status: sessionInfo.status,
         currentTask: sessionInfo.current_task,
         cwd: sessionInfo.cwd,
-        uptime: Date.now() - sessionInfo.start_time
+        uptime: Date.now() - sessionInfo.start_time,
       },
       locks: sessionInfo.locks || [],
-      workingDirectory: this.options.workingDir
+      workingDirectory: this.options.workingDir,
     };
 
     if (includeHistory) {
@@ -540,34 +519,18 @@ export class MCPServer {
    * Handle execute_command tool
    */
   async _handleExecuteCommand(args) {
-    const {
-      command,
-      cwd = this.options.workingDir,
-      timeout = 10000,
-      env = {}
-    } = args;
+    const { command, cwd = this.options.workingDir, timeout = 10000, env = {} } = args;
 
     if (!command) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'Command parameter is required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'Command parameter is required');
     }
 
     // Basic command validation (prevent dangerous commands)
-    const dangerousPatterns = [
-      /rm\s+-rf\s+\//,
-      /format\s+c:/i,
-      /del\s+\/[sq]/i,
-      /dd\s+if=/
-    ];
+    const dangerousPatterns = [/rm\s+-rf\s+\//, /format\s+c:/i, /del\s+\/[sq]/i, /dd\s+if=/];
 
     for (const pattern of dangerousPatterns) {
       if (pattern.test(command)) {
-        throw new McpError(
-          ErrorCode.InvalidParams,
-          'Command contains dangerous operations'
-        );
+        throw new McpError(ErrorCode.InvalidParams, 'Command contains dangerous operations');
       }
     }
 
@@ -576,21 +539,21 @@ export class MCPServer {
         cwd,
         timeout,
         encoding: 'utf-8',
-        env: { ...process.env, ...env }
+        env: { ...process.env, ...env },
       });
 
       return {
         success: true,
         exitCode: 0,
         stdout: output,
-        stderr: ''
+        stderr: '',
       };
     } catch (error) {
       return {
         success: false,
         exitCode: error.status || 1,
         stdout: error.stdout?.toString() || '',
-        stderr: error.stderr?.toString() || error.message
+        stderr: error.stderr?.toString() || error.message,
       };
     }
   }
@@ -602,14 +565,11 @@ export class MCPServer {
     const {
       filepath,
       encoding = 'utf-8',
-      maxSize = 1024 * 1024 // 1MB
+      maxSize = 1024 * 1024, // 1MB
     } = args;
 
     if (!filepath) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'Filepath parameter is required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'Filepath parameter is required');
     }
 
     // Resolve path
@@ -632,13 +592,10 @@ export class MCPServer {
         filepath: absolutePath,
         content,
         size: stats.size,
-        modified: stats.mtime.toISOString()
+        modified: stats.mtime.toISOString(),
       };
     } catch (error) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to read file: ${error.message}`
-      );
+      throw new McpError(ErrorCode.InternalError, `Failed to read file: ${error.message}`);
     }
   }
 
@@ -646,18 +603,10 @@ export class MCPServer {
    * Handle write_file tool
    */
   async _handleWriteFile(args) {
-    const {
-      filepath,
-      content,
-      encoding = 'utf-8',
-      createBackup = true
-    } = args;
+    const { filepath, content, encoding = 'utf-8', createBackup = true } = args;
 
     if (!filepath || content === undefined) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'Filepath and content parameters are required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'Filepath and content parameters are required');
     }
 
     // Resolve path
@@ -691,13 +640,10 @@ export class MCPServer {
         success: true,
         filepath: absolutePath,
         size: stats.size,
-        modified: stats.mtime.toISOString()
+        modified: stats.mtime.toISOString(),
       };
     } catch (error) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        `Failed to write file: ${error.message}`
-      );
+      throw new McpError(ErrorCode.InternalError, `Failed to write file: ${error.message}`);
     }
   }
 
@@ -723,20 +669,17 @@ export class MCPServer {
 
     const result = await this.julesClient.listSessions({
       pageSize,
-      pageToken
+      pageToken,
     });
 
     if (!result.success) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        result.error || 'Failed to list Jules sessions.'
-      );
+      throw new McpError(ErrorCode.InternalError, result.error || 'Failed to list Jules sessions.');
     }
 
     return {
       success: true,
       sessions: result.data?.sessions || [],
-      nextPageToken: result.data?.nextPageToken || null
+      nextPageToken: result.data?.nextPageToken || null,
     };
   }
 
@@ -749,10 +692,7 @@ export class MCPServer {
     const rawSessionId = args.session_id;
 
     if (!rawSessionId) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'session_id parameter is required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'session_id parameter is required');
     }
 
     const sessionId = rawSessionId.startsWith('sessions/')
@@ -762,16 +702,13 @@ export class MCPServer {
     const result = await this.julesClient.getSession(sessionId);
 
     if (!result.success) {
-      throw new McpError(
-        ErrorCode.InternalError,
-        result.error || 'Failed to fetch Jules session.'
-      );
+      throw new McpError(ErrorCode.InternalError, result.error || 'Failed to fetch Jules session.');
     }
 
     return {
       success: true,
       sessionId: rawSessionId,
-      session: result.data
+      session: result.data,
     };
   }
 
@@ -781,25 +718,17 @@ export class MCPServer {
   async _handleJulesCreateSession(args = {}) {
     this._ensureJulesConfigured();
 
-    const {
-      prompt,
-      source_id: sourceId,
-      title,
-      starting_branch: startingBranch = 'main'
-    } = args;
+    const { prompt, source_id: sourceId, title, starting_branch: startingBranch = 'main' } = args;
 
     if (!prompt || !sourceId) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'prompt and source_id parameters are required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'prompt and source_id parameters are required');
     }
 
     const result = await this.julesClient.createSession({
       prompt,
       sourceId,
       title,
-      startingBranch
+      startingBranch,
     });
 
     if (!result.success) {
@@ -812,7 +741,7 @@ export class MCPServer {
     return {
       success: true,
       sessionId: result.sessionId,
-      data: result.data
+      data: result.data,
     };
   }
 
@@ -826,10 +755,7 @@ export class MCPServer {
     const message = args.message;
 
     if (!rawSessionId || !message) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'session_id and message parameters are required'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'session_id and message parameters are required');
     }
 
     const sessionId = rawSessionId.startsWith('sessions/')
@@ -848,7 +774,7 @@ export class MCPServer {
     return {
       success: true,
       sessionId: rawSessionId,
-      data: result.data
+      data: result.data,
     };
   }
 
@@ -868,7 +794,7 @@ export class MCPServer {
   async start() {
     logger.info('Starting MCP Server', {
       name: this.options.name,
-      version: this.options.version
+      version: this.options.version,
     });
 
     const transport = new StdioServerTransport();

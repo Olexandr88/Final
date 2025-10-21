@@ -14,11 +14,7 @@ export class FileTools {
    */
   static async searchFiles(directory, pattern, options = {}) {
     try {
-      const {
-        maxDepth = 3,
-        matchContent = false,
-        includeHidden = false
-      } = options;
+      const { maxDepth = 3, matchContent = false, includeHidden = false } = options;
 
       const regex = new RegExp(pattern);
       const results = [];
@@ -42,7 +38,7 @@ export class FileTools {
                 path: fullPath,
                 name: entry.name,
                 size: stats.size,
-                modified: stats.mtime
+                modified: stats.mtime,
               });
             } else if (matchContent) {
               try {
@@ -51,7 +47,7 @@ export class FileTools {
                   results.push({
                     path: fullPath,
                     name: entry.name,
-                    matchType: 'content'
+                    matchType: 'content',
                   });
                 }
               } catch {
@@ -69,12 +65,12 @@ export class FileTools {
         pattern,
         directory,
         count: results.length,
-        results
+        results,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -95,7 +91,7 @@ export class FileTools {
         size: stats.size,
         created: stats.birthtime,
         modified: stats.mtime,
-        accessed: stats.atime
+        accessed: stats.atime,
       };
 
       if (isDirectory && recursive) {
@@ -121,7 +117,7 @@ export class FileTools {
           files: fileCount,
           directories: dirCount,
           totalSize,
-          totalSizeReadable: this._formatBytes(totalSize)
+          totalSizeReadable: this._formatBytes(totalSize),
         };
       }
 
@@ -129,12 +125,12 @@ export class FileTools {
 
       return {
         success: true,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -166,7 +162,7 @@ export class FileTools {
               old: oldPath,
               new: newPath,
               oldName: entry.name,
-              newName
+              newName,
             });
 
             if (!dryRun) {
@@ -182,12 +178,12 @@ export class FileTools {
         success: true,
         dryRun,
         count: renames.length,
-        renames
+        renames,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -215,7 +211,7 @@ export class FileTools {
           size: stats.size,
           sizeReadable: this._formatBytes(stats.size),
           modified: stats.mtime,
-          extension: path.extname(entry.name)
+          extension: path.extname(entry.name),
         });
       }
 
@@ -230,12 +226,12 @@ export class FileTools {
         success: true,
         directory,
         count: results.length,
-        results
+        results,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -268,7 +264,7 @@ export class FileTools {
               const existing = hashes.get(hash);
               duplicates.push({
                 hash,
-                files: [existing, fullPath]
+                files: [existing, fullPath],
               });
             } else {
               hashes.set(hash, fullPath);
@@ -283,12 +279,12 @@ export class FileTools {
         success: true,
         directory,
         duplicateGroups: duplicates.length,
-        duplicates
+        duplicates,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -299,46 +295,46 @@ export class FileTools {
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
   }
 }
 
 // CLI Interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [,, command, ...args] = process.argv;
+  const [, , command, ...args] = process.argv;
 
   const commands = {
-    'search': async () => {
+    search: async () => {
       const [directory, pattern, maxDepth] = args;
       const result = await FileTools.searchFiles(directory, pattern, {
-        maxDepth: maxDepth ? parseInt(maxDepth) : 3
+        maxDepth: maxDepth ? parseInt(maxDepth) : 3,
       });
       console.log(JSON.stringify(result, null, 2));
     },
-    'stats': async () => {
+    stats: async () => {
       const [targetPath] = args;
       const result = await FileTools.getStats(targetPath);
       console.log(JSON.stringify(result, null, 2));
     },
-    'rename': async () => {
+    rename: async () => {
       const [directory, pattern, replacement, dryRun] = args;
       const result = await FileTools.batchRename(directory, pattern, replacement, {
-        dryRun: dryRun !== 'false'
+        dryRun: dryRun !== 'false',
       });
       console.log(JSON.stringify(result, null, 2));
     },
-    'list': async () => {
+    list: async () => {
       const [directory, sortBy] = args;
       const result = await FileTools.listDirectory(directory, { sortBy });
       console.log(JSON.stringify(result, null, 2));
     },
-    'duplicates': async () => {
+    duplicates: async () => {
       const [directory, maxDepth] = args;
       const result = await FileTools.findDuplicates(directory, {
-        maxDepth: maxDepth ? parseInt(maxDepth) : 3
+        maxDepth: maxDepth ? parseInt(maxDepth) : 3,
       });
       console.log(JSON.stringify(result, null, 2));
-    }
+    },
   };
 
   if (commands[command]) {

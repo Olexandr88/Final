@@ -10,7 +10,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
   ErrorCode,
-  McpError
+  McpError,
 } from '@modelcontextprotocol/sdk/types.js';
 import { pathToFileURL } from 'url';
 import { JulesClient } from '../jules-client.js';
@@ -26,24 +26,24 @@ const TOOL_DEFINITIONS = [
       properties: {
         prompt: {
           type: 'string',
-          description: 'Task prompt that Jules should execute.'
+          description: 'Task prompt that Jules should execute.',
         },
         source_id: {
           type: 'string',
-          description: 'Jules source identifier like sources/github/owner/repo.'
+          description: 'Jules source identifier like sources/github/owner/repo.',
         },
         title: {
           type: 'string',
-          description: 'Optional session title.'
+          description: 'Optional session title.',
         },
         starting_branch: {
           type: 'string',
           description: 'Git branch to use when creating the session.',
-          default: 'main'
-        }
+          default: 'main',
+        },
       },
-      required: ['prompt', 'source_id']
-    }
+      required: ['prompt', 'source_id'],
+    },
   },
   {
     name: 'jules_list_sessions',
@@ -54,14 +54,14 @@ const TOOL_DEFINITIONS = [
         page_size: {
           type: 'number',
           description: 'Number of sessions to return (default 10).',
-          default: 10
+          default: 10,
         },
         page_token: {
           type: 'string',
-          description: 'Pagination token from a previous list call.'
-        }
-      }
-    }
+          description: 'Pagination token from a previous list call.',
+        },
+      },
+    },
   },
   {
     name: 'jules_get_session',
@@ -71,11 +71,11 @@ const TOOL_DEFINITIONS = [
       properties: {
         session_id: {
           type: 'string',
-          description: 'Fully qualified Jules session identifier.'
-        }
+          description: 'Fully qualified Jules session identifier.',
+        },
       },
-      required: ['session_id']
-    }
+      required: ['session_id'],
+    },
   },
   {
     name: 'jules_send_message',
@@ -85,24 +85,24 @@ const TOOL_DEFINITIONS = [
       properties: {
         session_id: {
           type: 'string',
-          description: 'Target session identifier.'
+          description: 'Target session identifier.',
         },
         message: {
           type: 'string',
-          description: 'Message content to send.'
-        }
+          description: 'Message content to send.',
+        },
       },
-      required: ['session_id', 'message']
-    }
-  }
+      required: ['session_id', 'message'],
+    },
+  },
 ];
 
 function toTextContent(payload) {
   return [
     {
       type: 'text',
-      text: typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2)
-    }
+      text: typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2),
+    },
   ];
 }
 
@@ -111,7 +111,7 @@ export class JulesMCPServer {
     this.options = {
       name: options.name || 'jules-mcp-server',
       version: options.version || '1.0.0',
-      apiKey: options.apiKey || process.env.JULES_API_KEY || null
+      apiKey: options.apiKey || process.env.JULES_API_KEY || null,
     };
 
     this.jules = new JulesClient(this.options.apiKey);
@@ -119,30 +119,27 @@ export class JulesMCPServer {
     this.server = new Server(
       {
         name: this.options.name,
-        version: this.options.version
+        version: this.options.version,
       },
       {
         capabilities: {
-          tools: {}
-        }
+          tools: {},
+        },
       }
     );
 
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
-      tools: TOOL_DEFINITIONS
+      tools: TOOL_DEFINITIONS,
     }));
 
-    this.server.setRequestHandler(
-      CallToolRequestSchema,
-      async request => this.#handleCall(request)
+    this.server.setRequestHandler(CallToolRequestSchema, async (request) =>
+      this.#handleCall(request)
     );
   }
 
   async start() {
     if (!this.options.apiKey) {
-      console.warn(
-        '[Jules MCP] JULES_API_KEY is not configured; tool calls will likely fail.'
-      );
+      console.warn('[Jules MCP] JULES_API_KEY is not configured; tool calls will likely fail.');
     }
 
     const transport = new StdioServerTransport();
@@ -160,7 +157,9 @@ export class JulesMCPServer {
       process.stdin.resume();
     }
 
-    console.log(`[Jules MCP] Server ready with tools: ${TOOL_DEFINITIONS.map(t => t.name).join(', ')}`);
+    console.log(
+      `[Jules MCP] Server ready with tools: ${TOOL_DEFINITIONS.map((t) => t.name).join(', ')}`
+    );
   }
 
   async stop() {
@@ -199,7 +198,7 @@ export class JulesMCPServer {
       prompt,
       sourceId,
       title,
-      startingBranch
+      startingBranch,
     });
 
     if (!result.success) {
@@ -214,11 +213,11 @@ export class JulesMCPServer {
       content: toTextContent({
         success: true,
         sessionId: result.sessionId,
-        data: result.data
+        data: result.data,
       }),
       metadata: {
-        sessionId: result.sessionId ?? null
-      }
+        sessionId: result.sessionId ?? null,
+      },
     };
   }
 
@@ -227,7 +226,7 @@ export class JulesMCPServer {
 
     const result = await this.jules.listSessions({
       pageSize,
-      pageToken
+      pageToken,
     });
 
     if (!result.success) {
@@ -242,8 +241,8 @@ export class JulesMCPServer {
       content: toTextContent(result.data),
       metadata: {
         count: Array.isArray(result.data?.sessions) ? result.data.sessions.length : undefined,
-        nextPageToken: result.data?.nextPageToken
-      }
+        nextPageToken: result.data?.nextPageToken,
+      },
     };
   }
 
@@ -251,10 +250,7 @@ export class JulesMCPServer {
     const rawSessionId = args.session_id;
 
     if (!rawSessionId) {
-      throw new McpError(
-        ErrorCode.InvalidParams,
-        'session_id parameter is required.'
-      );
+      throw new McpError(ErrorCode.InvalidParams, 'session_id parameter is required.');
     }
 
     // Jules REST endpoints expect just the numeric identifier; strip resource prefixes if provided.
@@ -275,8 +271,8 @@ export class JulesMCPServer {
     return {
       content: toTextContent(result.data),
       metadata: {
-        sessionId: rawSessionId
-      }
+        sessionId: rawSessionId,
+      },
     };
   }
 
@@ -303,8 +299,8 @@ export class JulesMCPServer {
     return {
       content: toTextContent(result.data),
       metadata: {
-        sessionId
-      }
+        sessionId,
+      },
     };
   }
 }
@@ -332,11 +328,10 @@ async function main() {
   });
 }
 
-const invokedDirectly =
-  process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url;
+const invokedDirectly = process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url;
 
 if (invokedDirectly) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('[Jules MCP] Fatal error:', error);
     process.exit(1);
   });

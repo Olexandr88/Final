@@ -10,13 +10,13 @@ function preBashHook(event) {
 
   // Dangerous command patterns
   const dangerousPatterns = [
-    /rm\s+-rf\s+\//,           // Recursive delete from root
-    /rm\s+-rf\s+~\//,          // Delete from home
-    /dd\s+if=/,                 // Disk operations
-    /mkfs/,                     // Format filesystem
-    /:\(\)\{\s*:\|:&\s*\};:/,  // Fork bomb
-    />.*\/etc\//,               // Overwrite system files
-    /chmod\s+777/,              // Insecure permissions
+    /rm\s+-rf\s+\//, // Recursive delete from root
+    /rm\s+-rf\s+~\//, // Delete from home
+    /dd\s+if=/, // Disk operations
+    /mkfs/, // Format filesystem
+    /:\(\)\{\s*:\|:&\s*\};:/, // Fork bomb
+    />.*\/etc\//, // Overwrite system files
+    /chmod\s+777/, // Insecure permissions
   ];
 
   for (const pattern of dangerousPatterns) {
@@ -25,7 +25,7 @@ function preBashHook(event) {
       console.error(`[Hook] Pattern matched: ${pattern}`);
       return {
         allow: false,
-        reason: `Dangerous command blocked by security hook: ${command}`
+        reason: `Dangerous command blocked by security hook: ${command}`,
       };
     }
   }

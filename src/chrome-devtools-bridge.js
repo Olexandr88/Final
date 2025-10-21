@@ -29,7 +29,7 @@ export class ChromeDevToolsBridge {
       headless: options.headless !== undefined ? options.headless : false,
       channel: options.channel || 'stable',
       viewport: options.viewport || null,
-      ...options
+      ...options,
     };
 
     this.mcpProcess = null;
@@ -40,7 +40,13 @@ export class ChromeDevToolsBridge {
 
     // Express app for HTTP API
     this.app = express();
+
+    // Middleware
     this.app.use(express.json());
+    this.app.use((req, res, next) => {
+      res.setHeader('Content-Type', 'application/json');
+      next();
+    });
 
     // WebSocket server
     this.wss = null;
@@ -54,7 +60,7 @@ export class ChromeDevToolsBridge {
   async start() {
     logger.info('Starting Chrome DevTools Bridge', {
       httpPort: this.options.httpPort,
-      wsPort: this.options.wsPort
+      wsPort: this.options.wsPort,
     });
 
     // Start MCP process
@@ -63,21 +69,20 @@ export class ChromeDevToolsBridge {
     // Initialize MCP connection
     await this._initializeMcp();
 
-    // Start HTTP server
-    this.httpServer = this.app.listen(this.options.httpPort, () => {
-      logger.info(`HTTP API listening on http://localhost:${this.options.httpPort}`);
-    });
-
     // Start WebSocket server
     this.wss = new WebSocketServer({ port: this.options.wsPort });
     this.wss.on('connection', (ws) => this._handleWebSocketConnection(ws));
     logger.info(`WebSocket server listening on ws://localhost:${this.options.wsPort}`);
 
+    // Start HTTP server (after routes are setup)
+    this.httpServer = this.app.listen(this.options.httpPort, () => {
+      logger.info(`HTTP API listening on http://localhost:${this.options.httpPort}`);
+      logger.info('Chrome DevTools Bridge ready');
+    });
+
     // Cleanup handlers
     process.on('SIGINT', () => this.stop());
     process.on('SIGTERM', () => this.stop());
-
-    logger.info('Chrome DevTools Bridge ready');
   }
 
   /**
@@ -126,9 +131,13 @@ export class ChromeDevToolsBridge {
 
       logger.info('Spawning chrome-devtools-mcp', { args });
 
-      this.mcpProcess = spawn('npx', args, {
+      // Use npx.cmd on Windows
+      const npxCommand = process.platform === 'win32' ? 'npx.cmd' : 'npx';
+
+      this.mcpProcess = spawn(npxCommand, args, {
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: process.env
+        env: process.env,
+        shell: process.platform === 'win32',
       });
 
       this.mcpProcess.on('error', (error) => {
@@ -180,12 +189,12 @@ export class ChromeDevToolsBridge {
     const initResult = await this._sendMcpRequest('initialize', {
       protocolVersion: '2024-11-05',
       capabilities: {
-        tools: {}
+        tools: {},
       },
       clientInfo: {
         name: 'chrome-devtools-bridge',
-        version: '1.0.0'
-      }
+        version: '1.0.0',
+      },
     });
 
     logger.info('MCP initialized', { result: initResult });
@@ -198,7 +207,7 @@ export class ChromeDevToolsBridge {
     this.mcpTools = toolsResult.tools || [];
 
     logger.info(`Discovered ${this.mcpTools.length} Chrome DevTools tools`, {
-      tools: this.mcpTools.map(t => t.name)
+      tools: this.mcpTools.map((t) => t.name),
     });
 
     this.initialized = true;
@@ -214,7 +223,7 @@ export class ChromeDevToolsBridge {
         jsonrpc: '2.0',
         id,
         method,
-        params
+        params,
       };
 
       this.pendingRequests.set(id, { resolve, reject });
@@ -241,7 +250,7 @@ export class ChromeDevToolsBridge {
     const notification = {
       jsonrpc: '2.0',
       method,
-      params
+      params,
     };
 
     const message = JSON.stringify(notification) + '\n';
@@ -282,7 +291,7 @@ export class ChromeDevToolsBridge {
       throw new Error('Bridge not initialized');
     }
 
-    const tool = this.mcpTools.find(t => t.name === toolName);
+    const tool = this.mcpTools.find((t) => t.name === toolName);
     if (!tool) {
       throw new Error(`Tool not found: ${toolName}`);
     }
@@ -291,7 +300,7 @@ export class ChromeDevToolsBridge {
 
     const result = await this._sendMcpRequest('tools/call', {
       name: toolName,
-      arguments: args
+      arguments: args,
     });
 
     return result;
@@ -306,14 +315,14 @@ export class ChromeDevToolsBridge {
       res.json({
         status: 'ok',
         initialized: this.initialized,
-        tools: this.mcpTools.length
+        tools: this.mcpTools.length,
       });
     });
 
     // List tools
     this.app.get('/tools', (req, res) => {
       res.json({
-        tools: this.mcpTools
+        tools: this.mcpTools,
       });
     });
 
@@ -327,13 +336,13 @@ export class ChromeDevToolsBridge {
 
         res.json({
           success: true,
-          result
+          result,
         });
       } catch (error) {
         logger.error('Tool call failed', { error: error.message });
         res.status(500).json({
           success: false,
-          error: error.message
+          error: error.message,
         });
       }
     });
@@ -391,16 +400,20 @@ export class ChromeDevToolsBridge {
 
         const result = await this.callTool(tool, args);
 
-        ws.send(JSON.stringify({
-          success: true,
-          tool,
-          result
-        }));
+        ws.send(
+          JSON.stringify({
+            success: true,
+            tool,
+            result,
+          })
+        );
       } catch (error) {
-        ws.send(JSON.stringify({
-          success: false,
-          error: error.message
-        }));
+        ws.send(
+          JSON.stringify({
+            success: false,
+            error: error.message,
+          })
+        );
       }
     });
 
@@ -411,13 +424,15 @@ export class ChromeDevToolsBridge {
 }
 
 // CLI entry point
-if (import.meta.url === `file://${process.argv[1]}`) {
+const isMainModule = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isMainModule) {
   const bridge = new ChromeDevToolsBridge({
     httpPort: process.env.CHROME_BRIDGE_HTTP_PORT || 65030,
     wsPort: process.env.CHROME_BRIDGE_WS_PORT || 65031,
     browserUrl: process.env.CHROME_BROWSER_URL,
     headless: process.env.CHROME_HEADLESS === 'true',
-    channel: process.env.CHROME_CHANNEL || 'stable'
+    channel: process.env.CHROME_CHANNEL || 'stable',
   });
 
   bridge.start().catch((error) => {

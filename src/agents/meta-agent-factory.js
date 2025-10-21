@@ -29,43 +29,43 @@ class MetaAgentFactory {
       'data-processor': {
         description: 'Processes and transforms data',
         capabilities: ['json_transform', 'csv_parse', 'data_validation'],
-        intents: ['data.process', 'data.transform', 'data.validate']
+        intents: ['data.process', 'data.transform', 'data.validate'],
       },
       'security-scanner': {
         description: 'Scans for security vulnerabilities',
         capabilities: ['sql_injection_check', 'xss_detection', 'dependency_audit'],
-        intents: ['security.scan', 'security.audit', 'security.report']
+        intents: ['security.scan', 'security.audit', 'security.report'],
       },
       'performance-monitor': {
         description: 'Monitors system and code performance',
         capabilities: ['profile_code', 'memory_analysis', 'benchmark'],
-        intents: ['perf.monitor', 'perf.analyze', 'perf.report']
+        intents: ['perf.monitor', 'perf.analyze', 'perf.report'],
       },
       'test-generator': {
         description: 'Generates automated tests',
         capabilities: ['unit_test_gen', 'integration_test_gen', 'e2e_test_gen'],
-        intents: ['test.generate', 'test.run', 'test.report']
+        intents: ['test.generate', 'test.run', 'test.report'],
       },
       'doc-generator': {
         description: 'Generates documentation',
         capabilities: ['api_docs', 'readme_gen', 'code_comments'],
-        intents: ['doc.generate', 'doc.update', 'doc.publish']
+        intents: ['doc.generate', 'doc.update', 'doc.publish'],
       },
       'deployment-agent': {
         description: 'Handles deployment tasks',
         capabilities: ['docker_build', 'k8s_deploy', 'ci_cd_trigger'],
-        intents: ['deploy.start', 'deploy.rollback', 'deploy.status']
+        intents: ['deploy.start', 'deploy.rollback', 'deploy.status'],
       },
       'refactoring-agent': {
         description: 'Refactors code for better quality',
         capabilities: ['extract_method', 'rename_variable', 'optimize_imports'],
-        intents: ['refactor.suggest', 'refactor.apply', 'refactor.verify']
+        intents: ['refactor.suggest', 'refactor.apply', 'refactor.verify'],
       },
       'api-tester': {
         description: 'Tests API endpoints',
         capabilities: ['rest_test', 'graphql_test', 'load_test'],
-        intents: ['api.test', 'api.validate', 'api.report']
-      }
+        intents: ['api.test', 'api.validate', 'api.report'],
+      },
     };
   }
 
@@ -78,17 +78,19 @@ class MetaAgentFactory {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'meta-agent',
-      labels: ['factory', 'self-evolving', 'agent-creator'],
-      tools: ['generate_agent', 'spawn_agent', 'manage_lifecycle'],
-      intents: ['agent.create', 'agent.spawn', 'agent.list', 'agent.kill'],
-      maxConcurrentTasks: 10
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'meta-agent',
+        labels: ['factory', 'self-evolving', 'agent-creator'],
+        tools: ['generate_agent', 'spawn_agent', 'manage_lifecycle'],
+        intents: ['agent.create', 'agent.spawn', 'agent.list', 'agent.kill'],
+        maxConcurrentTasks: 10,
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info('✅ Meta-Agent Factory ready');
     logger.info(`📋 Available agent templates: ${Object.keys(this.agentTemplates).join(', ')}\n`);
 
@@ -142,33 +144,39 @@ class MetaAgentFactory {
           result = await this.killAgent(payload);
           break;
         default:
-          result = { error: 'Unknown intent', supportedIntents: ['agent.create', 'agent.spawn', 'agent.list', 'agent.kill'] };
+          result = {
+            error: 'Unknown intent',
+            supportedIntents: ['agent.create', 'agent.spawn', 'agent.list', 'agent.kill'],
+          };
       }
 
       // Send response
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: `${intent}.result`,
-          replyTo: id,
-          payload: result
-        }
-      }));
-
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: `${intent}.result`,
+            replyTo: id,
+            payload: result,
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Error handling request:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: 'agent.error',
-          replyTo: id,
-          payload: { error: error.message }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: 'agent.error',
+            replyTo: id,
+            payload: { error: error.message },
+          },
+        })
+      );
     }
   }
 
@@ -178,7 +186,9 @@ class MetaAgentFactory {
     logger.info(`🔨 Creating new agent: ${name || type}`);
 
     if (!this.agentTemplates[type]) {
-      throw new Error(`Unknown agent type: ${type}. Available: ${Object.keys(this.agentTemplates).join(', ')}`);
+      throw new Error(
+        `Unknown agent type: ${type}. Available: ${Object.keys(this.agentTemplates).join(', ')}`
+      );
     }
 
     const template = this.agentTemplates[type];
@@ -197,7 +207,7 @@ class MetaAgentFactory {
       agentType: type,
       filePath: agentFilePath,
       capabilities: template.capabilities,
-      intents: template.intents
+      intents: template.intents,
     };
   }
 
@@ -221,7 +231,10 @@ dotenv.config();
 const BRIDGE_WS = process.env.BRIDGE_WS || 'ws://localhost:65028';
 const AGENT_ID = '${agentName}';
 
-class ${agentName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}Agent {
+class ${agentName
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join('')}Agent {
   constructor() {
     this.agentId = AGENT_ID;
     this.ws = null;
@@ -332,7 +345,10 @@ class ${agentName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).jo
 }
 
 // Start agent
-const agent = new ${agentName.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join('')}Agent();
+const agent = new ${agentName
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join('')}Agent();
 agent.connect().catch(err => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
@@ -354,7 +370,10 @@ process.on('SIGINT', () => {
     let agentFile;
     if (agentName) {
       agentFile = path.join(AGENTS_DIR, `${agentName}.js`);
-      const exists = await fs.access(agentFile).then(() => true).catch(() => false);
+      const exists = await fs
+        .access(agentFile)
+        .then(() => true)
+        .catch(() => false);
       if (!exists) {
         await this.createAgent({ type, name: agentName });
       }
@@ -367,7 +386,7 @@ process.on('SIGINT', () => {
     const agentProcess = spawn('node', [agentFile], {
       env: { ...process.env, BRIDGE_WS },
       stdio: 'pipe',
-      shell: true
+      shell: true,
     });
 
     const agentId = path.basename(agentFile, '.js');
@@ -375,7 +394,7 @@ process.on('SIGINT', () => {
       process: agentProcess,
       file: agentFile,
       spawnedAt: new Date().toISOString(),
-      pid: agentProcess.pid
+      pid: agentProcess.pid,
     });
 
     logger.info(`✅ Agent spawned: ${agentId} (PID: ${agentProcess.pid})`);
@@ -399,7 +418,7 @@ process.on('SIGINT', () => {
       agentId,
       pid: agentProcess.pid,
       file: agentFile,
-      spawnedAt: this.spawnedAgents.get(agentId).spawnedAt
+      spawnedAt: this.spawnedAgents.get(agentId).spawnedAt,
     };
   }
 
@@ -409,7 +428,7 @@ process.on('SIGINT', () => {
       pid: info.pid,
       file: info.file,
       spawnedAt: info.spawnedAt,
-      uptime: Math.floor((Date.now() - new Date(info.spawnedAt).getTime()) / 1000)
+      uptime: Math.floor((Date.now() - new Date(info.spawnedAt).getTime()) / 1000),
     }));
 
     logger.info(`📋 Currently running ${agents.length} spawned agents`);
@@ -417,7 +436,7 @@ process.on('SIGINT', () => {
     return {
       count: agents.length,
       agents,
-      availableTemplates: Object.keys(this.agentTemplates)
+      availableTemplates: Object.keys(this.agentTemplates),
     };
   }
 
@@ -437,14 +456,14 @@ process.on('SIGINT', () => {
     return {
       success: true,
       agentId,
-      message: `Agent ${agentId} terminated`
+      message: `Agent ${agentId} terminated`,
     };
   }
 }
 
 // Start Meta-Agent Factory
 const factory = new MetaAgentFactory();
-factory.connect().catch(err => {
+factory.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

@@ -3,16 +3,8 @@
   "name": "Selected Text Analyzer",
   "version": "3.0.1",
   "description": "Fast, privacy-conscious analysis of selected text and current page with optional on-device AI.",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "contextMenus",
-    "storage",
-    "notifications"
-  ],
-  "host_permissions": [
-    "<all_urls>"
-  ],
+  "permissions": ["activeTab", "scripting", "contextMenus", "storage", "notifications"],
+  "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
   },

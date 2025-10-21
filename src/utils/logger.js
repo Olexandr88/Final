@@ -27,15 +27,11 @@ const isBridge = process.argv[1]?.includes('ai-bridge');
 // Create logger instance - console only (file logging disabled)
 const transports = [
   new winston.transports.Console({
-    format: combine(
-      colorize(),
-      timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      logFormat
-    ),
+    format: combine(colorize(), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
     handleExceptions: true,
     handleRejections: true,
-    silent: false
-  })
+    silent: false,
+  }),
 ];
 
 // FILE LOGGING DISABLED - Winston file transport causes crashes
@@ -55,14 +51,14 @@ if (false && !isAgent) {
         maxsize: 5242880, // 5MB
         maxFiles: 5,
         handleExceptions: false,
-        handleRejections: false
+        handleRejections: false,
       }),
       new winston.transports.File({
         filename: path.join(logsDir, 'combined.log'),
         maxsize: 5242880, // 5MB
         maxFiles: 5,
         handleExceptions: false,
-        handleRejections: false
+        handleRejections: false,
       })
     );
   } catch (error) {
@@ -73,13 +69,9 @@ if (false && !isAgent) {
 // Create logger instance
 export const logger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
-  format: combine(
-    errors({ stack: true }),
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    logFormat
-  ),
+  format: combine(errors({ stack: true }), timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), logFormat),
   transports,
-  exitOnError: false
+  exitOnError: false,
 });
 
 // Suppress all logger errors to prevent crashes

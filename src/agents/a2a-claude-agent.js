@@ -67,7 +67,7 @@ class A2AClaudeAgent {
       labels: ['claude', 'llm', 'ai'],
       tools: ['conversation', 'analysis', 'reasoning'],
       intents: ['ai.query', 'ai.analyze', 'ai.converse'],
-      maxConcurrentTasks: 3
+      maxConcurrentTasks: 3,
     };
 
     this.ws.send(JSON.stringify(registration));
@@ -105,11 +105,12 @@ class A2AClaudeAgent {
       let history = this.conversationHistory.get(conversationKey) || [];
 
       // Build prompt
-      const userMessage = payload.message || payload.query ||
-        payload.question || JSON.stringify(payload);
-      const systemPrompt = payload.system ||
+      const userMessage =
+        payload.message || payload.query || payload.question || JSON.stringify(payload);
+      const systemPrompt =
+        payload.system ||
         'You are a helpful AI assistant in a multi-agent system. ' +
-        'Provide concise, accurate responses.';
+          'Provide concise, accurate responses.';
 
       logger.info(`🤔 Processing with Claude...`);
 
@@ -136,14 +137,13 @@ class A2AClaudeAgent {
             response,
             model: this.claude.model,
             agent: this.agentId,
-            processed_at: new Date().toISOString()
-          }
-        }
+            processed_at: new Date().toISOString(),
+          },
+        },
       };
 
       this.ws.send(JSON.stringify(responseEnvelope));
       logger.info(`📤 Sent response back to ${from}\n`);
-
     } catch (error) {
       logger.error(`❌ Error processing message:`, error.message);
 
@@ -157,9 +157,9 @@ class A2AClaudeAgent {
           replyTo: id,
           payload: {
             error: error.message,
-            agent: this.agentId
-          }
-        }
+            agent: this.agentId,
+          },
+        },
       };
       this.ws.send(JSON.stringify(errorEnvelope));
     }

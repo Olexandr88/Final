@@ -25,7 +25,7 @@ class VibeCodingSystem {
       { name: 'CLAUDE.md constitution', fn: () => this.generateClaudeMd() },
       { name: 'Sub-agent team creation', fn: () => this.createSubAgents() },
       { name: 'Hook automation setup', fn: () => this.setupHooks() },
-      { name: 'Permissions configuration', fn: () => this.configurePermissions() }
+      { name: 'Permissions configuration', fn: () => this.configurePermissions() },
     ];
 
     const results = [];
@@ -61,7 +61,7 @@ class VibeCodingSystem {
       isolated: true,
       hasProject: hasPackageJson,
       hasDependencies: hasNodeModules,
-      path: this.root
+      path: this.root,
     };
   }
 
@@ -73,7 +73,10 @@ class VibeCodingSystem {
       console.log('   Initializing Git repository...');
       execSync('git init', { cwd: this.root, stdio: 'pipe' });
       execSync('git add .', { cwd: this.root, stdio: 'pipe' });
-      execSync('git commit -m "Initial commit - Vibe Coding System setup"', { cwd: this.root, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit - Vibe Coding System setup"', {
+        cwd: this.root,
+        stdio: 'pipe',
+      });
       return { exists: true, message: 'Git repository initialized' };
     }
   }
@@ -86,10 +89,10 @@ class VibeCodingSystem {
       '.claude/workflows',
       'src',
       'tests',
-      'docs'
+      'docs',
     ];
 
-    dirs.forEach(dir => {
+    dirs.forEach((dir) => {
       const fullPath = path.join(this.root, dir);
       if (!fs.existsSync(fullPath)) {
         fs.mkdirSync(fullPath, { recursive: true });
@@ -274,7 +277,8 @@ Always delegate to specialists for their domain. Use explicit delegation:
   }
 
   detectLanguage() {
-    if (fs.existsSync(path.join(this.root, 'package.json'))) return 'JavaScript/TypeScript (Node.js)';
+    if (fs.existsSync(path.join(this.root, 'package.json')))
+      return 'JavaScript/TypeScript (Node.js)';
     if (fs.existsSync(path.join(this.root, 'requirements.txt'))) return 'Python';
     if (fs.existsSync(path.join(this.root, 'Cargo.toml'))) return 'Rust';
     if (fs.existsSync(path.join(this.root, 'go.mod'))) return 'Go';
@@ -317,7 +321,7 @@ Your responsibilities:
 Rate every review: EXCELLENT | GOOD | NEEDS_WORK | CRITICAL_ISSUES
 
 Provide specific line-by-line feedback with fix suggestions.`,
-        tools: ['Read', 'Grep', 'Glob']
+        tools: ['Read', 'Grep', 'Glob'],
       },
       {
         name: 'test-specialist',
@@ -339,7 +343,7 @@ Requirements:
 - Clear, descriptive test names
 
 NEVER implement features before tests exist.`,
-        tools: ['Read', 'Write', 'Edit', 'Bash', 'Grep']
+        tools: ['Read', 'Write', 'Edit', 'Bash', 'Grep'],
       },
       {
         name: 'architect',
@@ -360,22 +364,29 @@ Deliverables:
 - Scalability analysis
 
 Think deeply about trade-offs and long-term maintainability.`,
-        tools: ['Read', 'Write', 'Grep', 'Glob', 'WebFetch']
-      }
+        tools: ['Read', 'Write', 'Grep', 'Glob', 'WebFetch'],
+      },
     ];
 
-    agents.forEach(agent => {
+    agents.forEach((agent) => {
       const agentPath = path.join(this.claudeDir, 'agents', `${agent.name}.json`);
-      fs.writeFileSync(agentPath, JSON.stringify({
-        name: agent.name,
-        description: agent.description,
-        systemPrompt: agent.systemPrompt,
-        tools: agent.tools,
-        model: 'claude-sonnet-4-5'
-      }, null, 2));
+      fs.writeFileSync(
+        agentPath,
+        JSON.stringify(
+          {
+            name: agent.name,
+            description: agent.description,
+            systemPrompt: agent.systemPrompt,
+            tools: agent.tools,
+            model: 'claude-sonnet-4-5',
+          },
+          null,
+          2
+        )
+      );
     });
 
-    return { created: agents.length, agents: agents.map(a => a.name) };
+    return { created: agents.length, agents: agents.map((a) => a.name) };
   }
 
   setupHooks() {
@@ -387,22 +398,25 @@ Think deeply about trade-offs and long-term maintainability.`,
           {
             name: 'Auto-format Python',
             matcher: 'Edit|Write',
-            command: 'if [[ "$CLAUDE_TOOL_INPUT" == *.py ]]; then black "$CLAUDE_TOOL_INPUT" 2>/dev/null || true; fi'
+            command:
+              'if [[ "$CLAUDE_TOOL_INPUT" == *.py ]]; then black "$CLAUDE_TOOL_INPUT" 2>/dev/null || true; fi',
           },
           {
             name: 'Auto-format JavaScript',
             matcher: 'Edit|Write',
-            command: 'if [[ "$CLAUDE_TOOL_INPUT" =~ \\.(js|ts|jsx|tsx)$ ]]; then npx prettier --write "$CLAUDE_TOOL_INPUT" 2>/dev/null || true; fi'
-          }
+            command:
+              'if [[ "$CLAUDE_TOOL_INPUT" =~ \\.(js|ts|jsx|tsx)$ ]]; then npx prettier --write "$CLAUDE_TOOL_INPUT" 2>/dev/null || true; fi',
+          },
         ],
         PreToolUse: [
           {
             name: 'Security check',
             matcher: 'Bash',
-            command: 'echo "[Hook] Running command: $CLAUDE_TOOL_INPUT" && if [[ "$CLAUDE_TOOL_INPUT" =~ rm\\ -rf\\ / ]]; then echo "BLOCKED: Dangerous command"; exit 1; fi'
-          }
-        ]
-      }
+            command:
+              'echo "[Hook] Running command: $CLAUDE_TOOL_INPUT" && if [[ "$CLAUDE_TOOL_INPUT" =~ rm\\ -rf\\ / ]]; then echo "BLOCKED: Dangerous command"; exit 1; fi',
+          },
+        ],
+      },
     };
 
     fs.writeFileSync(hooksPath, JSON.stringify(hooks, null, 2));
@@ -415,7 +429,7 @@ Think deeply about trade-offs and long-term maintainability.`,
     const config = {
       allowedTools: ['Read', 'Write', 'Edit', 'Bash', 'Grep', 'Glob'],
       dangerousToolsRequireConfirmation: ['Write', 'Edit', 'Bash'],
-      autoApprove: ['Read', 'Grep', 'Glob']
+      autoApprove: ['Read', 'Grep', 'Glob'],
     };
 
     fs.writeFileSync(permissionsPath, JSON.stringify(config, null, 2));
@@ -427,10 +441,10 @@ Think deeply about trade-offs and long-term maintainability.`,
     console.log('VIBE CODING ENVIRONMENT - INITIALIZATION REPORT');
     console.log('='.repeat(60) + '\n');
 
-    const succeeded = results.filter(r => r.status === 'success').length;
-    const failed = results.filter(r => r.status === 'error').length;
+    const succeeded = results.filter((r) => r.status === 'success').length;
+    const failed = results.filter((r) => r.status === 'error').length;
 
-    results.forEach(result => {
+    results.forEach((result) => {
       const icon = result.status === 'success' ? '✓' : '✗';
       const color = result.status === 'success' ? '\x1b[32m' : '\x1b[31m';
       const reset = '\x1b[0m';
@@ -468,10 +482,13 @@ if (typeof module !== 'undefined' && module.exports) {
 // CLI
 if (require.main === module) {
   const system = new VibeCodingSystem();
-  system.initializeEnvironment().then(() => {
-    process.exit(0);
-  }).catch(err => {
-    console.error('Fatal error:', err);
-    process.exit(1);
-  });
+  system
+    .initializeEnvironment()
+    .then(() => {
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error('Fatal error:', err);
+      process.exit(1);
+    });
 }

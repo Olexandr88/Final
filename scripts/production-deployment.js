@@ -18,7 +18,7 @@ class ProductionDeployment {
       timestamp: new Date().toISOString(),
       overall: 'UNKNOWN',
       phases: [],
-      metrics: {}
+      metrics: {},
     };
     this.startTime = performance.now();
   }
@@ -29,7 +29,7 @@ class ProductionDeployment {
       success: '\x1b[32m',
       warn: '\x1b[33m',
       error: '\x1b[31m',
-      reset: '\x1b[0m'
+      reset: '\x1b[0m',
     };
     console.log(`${colors[level]}${message}${colors.reset}`);
   }
@@ -40,7 +40,7 @@ class ProductionDeployment {
       status,
       message,
       timestamp: new Date().toISOString(),
-      ...metrics
+      ...metrics,
     });
   }
 
@@ -83,8 +83,11 @@ class ProductionDeployment {
     // Check npm dependencies
     await this.log('Checking npm dependencies...');
     const depsCheck = await this.executeCommand('npm list --depth=0', 'Checking dependencies');
-    await this.addPhase('Dependencies Check', depsCheck.success ? 'PASS' : 'WARN',
-      depsCheck.success ? 'All dependencies installed' : 'Some dependencies missing');
+    await this.addPhase(
+      'Dependencies Check',
+      depsCheck.success ? 'PASS' : 'WARN',
+      depsCheck.success ? 'All dependencies installed' : 'Some dependencies missing'
+    );
 
     return true;
   }
@@ -102,7 +105,11 @@ class ProductionDeployment {
     );
 
     if (!redisStart.success) {
-      await this.addPhase('Redis Cluster Start', 'FAIL', `Failed to start Redis: ${redisStart.error}`);
+      await this.addPhase(
+        'Redis Cluster Start',
+        'FAIL',
+        `Failed to start Redis: ${redisStart.error}`
+      );
       return false;
     }
 
@@ -111,7 +118,7 @@ class ProductionDeployment {
 
     // Wait for health checks
     await this.log('Waiting for Redis nodes to become healthy...');
-    await new Promise(resolve => setTimeout(resolve, 10000));
+    await new Promise((resolve) => setTimeout(resolve, 10000));
 
     // Verify all nodes are healthy
     for (let node = 1; node <= 3; node++) {
@@ -132,7 +139,7 @@ class ProductionDeployment {
       nodes: 3,
       healthy: 3,
       quorum: 2,
-      startTime: `${clusterStartTime.toFixed(2)}ms`
+      startTime: `${clusterStartTime.toFixed(2)}ms`,
     });
 
     return true;
@@ -180,10 +187,15 @@ class ProductionDeployment {
     if (appendTest.success) {
       const avgTime = parseFloat(appendTest.stdout.trim());
       const status = avgTime < 5 ? 'PASS' : 'WARN';
-      await this.addPhase('Event Append Performance', status, `Average: ${avgTime.toFixed(2)}ms/event`, {
-        target: '<5ms',
-        actual: avgTime
-      });
+      await this.addPhase(
+        'Event Append Performance',
+        status,
+        `Average: ${avgTime.toFixed(2)}ms/event`,
+        {
+          target: '<5ms',
+          actual: avgTime,
+        }
+      );
     }
 
     return true;
@@ -207,10 +219,7 @@ class ProductionDeployment {
 
     // Run migrations
     await this.log('Running database migrations...');
-    const migrate = await this.executeCommand(
-      'npx prisma migrate deploy',
-      'Running migrations'
-    );
+    const migrate = await this.executeCommand('npx prisma migrate deploy', 'Running migrations');
 
     if (migrate.success || migrate.stdout?.includes('already')) {
       await this.addPhase('Database Migrations', 'PASS', 'Migrations applied');
@@ -240,10 +249,7 @@ class ProductionDeployment {
 
     // Check system health
     await this.log('Running system health check...');
-    const sysHealth = await this.executeCommand(
-      'npm run health:system',
-      'System health check'
-    );
+    const sysHealth = await this.executeCommand('npm run health:system', 'System health check');
 
     await this.addPhase('System Health Check', 'PASS', 'System health verified');
 
@@ -255,20 +261,17 @@ class ProductionDeployment {
 
     // Run lock benchmark
     await this.log('Running distributed lock benchmark...');
-    const benchmark = await this.executeCommand(
-      'npm run locks:benchmark',
-      'Lock benchmark'
-    );
+    const benchmark = await this.executeCommand('npm run locks:benchmark', 'Lock benchmark');
 
     if (benchmark.success) {
       // Parse benchmark results
       const lines = benchmark.stdout.split('\n');
-      const p95Line = lines.find(l => l.includes('P95'));
-      const throughputLine = lines.find(l => l.includes('throughput'));
+      const p95Line = lines.find((l) => l.includes('P95'));
+      const throughputLine = lines.find((l) => l.includes('throughput'));
 
       await this.addPhase('Lock Benchmark', 'PASS', 'Benchmark completed', {
         p95: p95Line || 'N/A',
-        throughput: throughputLine || 'N/A'
+        throughput: throughputLine || 'N/A',
       });
     } else {
       await this.addPhase('Lock Benchmark', 'WARN', 'Benchmark not available');
@@ -287,8 +290,14 @@ class ProductionDeployment {
     );
 
     if (containers.success) {
-      const runningContainers = containers.stdout.split('\n').filter(l => l.includes('Up')).length;
-      await this.addPhase('Container Status', 'PASS', `${runningContainers}/3 Redis containers running`);
+      const runningContainers = containers.stdout
+        .split('\n')
+        .filter((l) => l.includes('Up')).length;
+      await this.addPhase(
+        'Container Status',
+        'PASS',
+        `${runningContainers}/3 Redis containers running`
+      );
     }
 
     // Verify Redis cluster connectivity
@@ -308,8 +317,8 @@ class ProductionDeployment {
   }
 
   determineOverallStatus() {
-    const failCount = this.results.phases.filter(p => p.status === 'FAIL').length;
-    const warnCount = this.results.phases.filter(p => p.status === 'WARN').length;
+    const failCount = this.results.phases.filter((p) => p.status === 'FAIL').length;
+    const warnCount = this.results.phases.filter((p) => p.status === 'WARN').length;
 
     if (failCount > 0) {
       this.results.overall = 'FAIL';
@@ -333,9 +342,10 @@ class ProductionDeployment {
     console.log();
 
     // Phase summary
-    this.results.phases.forEach(phase => {
+    this.results.phases.forEach((phase) => {
       const icon = phase.status === 'PASS' ? '✓' : phase.status === 'WARN' ? '⚠' : '✗';
-      const color = phase.status === 'PASS' ? '\x1b[32m' : phase.status === 'WARN' ? '\x1b[33m' : '\x1b[31m';
+      const color =
+        phase.status === 'PASS' ? '\x1b[32m' : phase.status === 'WARN' ? '\x1b[33m' : '\x1b[31m';
       const reset = '\x1b[0m';
 
       console.log(`${color}${icon} ${phase.name}${reset}`);
@@ -359,9 +369,9 @@ class ProductionDeployment {
 
     const summary = {
       total: this.results.phases.length,
-      passed: this.results.phases.filter(p => p.status === 'PASS').length,
-      warned: this.results.phases.filter(p => p.status === 'WARN').length,
-      failed: this.results.phases.filter(p => p.status === 'FAIL').length
+      passed: this.results.phases.filter((p) => p.status === 'PASS').length,
+      warned: this.results.phases.filter((p) => p.status === 'WARN').length,
+      failed: this.results.phases.filter((p) => p.status === 'FAIL').length,
     };
 
     console.log(`Total Checks: ${summary.total}`);
@@ -441,7 +451,6 @@ class ProductionDeployment {
       this.determineOverallStatus();
       const exitCode = await this.generateReport();
       process.exit(exitCode);
-
     } catch (error) {
       console.error('Deployment error:', error);
       await this.addPhase('Deployment', 'FAIL', `Critical error: ${error.message}`);

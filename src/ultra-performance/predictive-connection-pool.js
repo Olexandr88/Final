@@ -24,11 +24,11 @@ class ConnectionLoadPredictor {
       connectionCount,
       queueLength,
       responseTime,
-      load: connectionCount + (queueLength * 2) + Math.min(responseTime / 100, 10)
+      load: connectionCount + queueLength * 2 + Math.min(responseTime / 100, 10),
     };
-    
+
     this.history.push(dataPoint);
-    
+
     // Keep only recent history
     if (this.history.length > 1000) {
       this.history.shift();
@@ -41,67 +41,68 @@ class ConnectionLoadPredictor {
     }
 
     const recent = this.history.slice(-this.windowSize);
-    
+
     // Simple moving average with trend and seasonal adjustment
     const movingAverage = recent.reduce((sum, point) => sum + point.load, 0) / recent.length;
-    
+
     // Calculate trend
     const trend = this.calculateTrend(recent);
-    
+
     // Seasonal adjustment (if we have enough history)
     const seasonal = this.calculateSeasonalAdjustment();
-    
+
     // Predict load
-    const prediction = Math.max(1, movingAverage + (trend * minutesAhead) + seasonal);
-    
+    const prediction = Math.max(1, movingAverage + trend * minutesAhead + seasonal);
+
     this.predictions.push({
       timestamp: Date.now(),
       minutesAhead,
       prediction,
-      components: { movingAverage, trend, seasonal }
+      components: { movingAverage, trend, seasonal },
     });
-    
+
     // Keep prediction history limited
     if (this.predictions.length > 100) {
       this.predictions.shift();
     }
-    
+
     return Math.round(prediction);
   }
 
   calculateTrend(data) {
     if (data.length < 3) return 0;
-    
+
     const x = data.map((_, i) => i);
-    const y = data.map(d => d.load);
+    const y = data.map((d) => d.load);
     const n = data.length;
-    
+
     const sumX = x.reduce((a, b) => a + b, 0);
     const sumY = y.reduce((a, b) => a + b, 0);
     const sumXY = x.reduce((acc, xi, i) => acc + xi * y[i], 0);
     const sumXX = x.reduce((acc, xi) => acc + xi * xi, 0);
-    
+
     return (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX) || 0;
   }
 
   calculateSeasonalAdjustment() {
     if (this.history.length < this.seasonalPeriod) return 0;
-    
+
     const now = new Date();
-    const currentMinute = now.getMinutes() + (now.getHours() * 60);
-    
+    const currentMinute = now.getMinutes() + now.getHours() * 60;
+
     // Find historical data points at similar times
-    const similarTimes = this.history.filter(point => {
+    const similarTimes = this.history.filter((point) => {
       const pointDate = new Date(point.timestamp);
-      const pointMinute = pointDate.getMinutes() + (pointDate.getHours() * 60);
+      const pointMinute = pointDate.getMinutes() + pointDate.getHours() * 60;
       return Math.abs(pointMinute - currentMinute) <= 5; // Within 5 minutes
     });
-    
+
     if (similarTimes.length < 3) return 0;
-    
-    const avgHistorical = similarTimes.reduce((sum, point) => sum + point.load, 0) / similarTimes.length;
+
+    const avgHistorical =
+      similarTimes.reduce((sum, point) => sum + point.load, 0) / similarTimes.length;
     const recentAvg = this.history.slice(-10).reduce((sum, point) => sum + point.load, 0) / 10;
-    
+
     return (avgHistorical - recentAvg) * 0.3; // Dampen the seasonal effect
   }
 }
@@ -139,21 +140,21 @@ class SmartConnection {
     }
 
     const startTime = Date.now();
-    
+
     try {
       const result = await this.connection.execute(query, params);
-      
+
       this.lastUsed = Date.now();
       this.useCount++;
       this.responseTime = Date.now() - startTime;
-      
+
       // Update health based on response time
       if (this.responseTime < 100) {
         this.health = Math.min(100, this.health + 1);
       } else if (this.responseTime > 1000) {
         this.health = Math.max(0, this.health - 5);
       }
-      
+
       return result;
     } catch (error) {
       this.health = Math.max(0, this.health - 10);
@@ -187,7 +188,7 @@ class SmartConnection {
 export class PredictiveConnectionPool extends EventEmitter {
   constructor(options = {}) {
     super();
-    
+
     this.options = {
       minConnections: options.minConnections || 2,
       maxConnections: options.maxConnections || 20,
@@ -196,13 +197,13 @@ export class PredictiveConnectionPool extends EventEmitter {
       healthCheckInterval: options.healthCheckInterval || 60000, // 1 minute
       predictionInterval: options.predictionInterval || 30000, // 30 seconds
       createConnection: options.createConnection || this.defaultCreateConnection,
-      ...options
+      ...options,
     };
-    
+
     this.connections = new Map();
     this.waitQueue = [];
     this.predictor = new ConnectionLoadPredictor();
-    
+
     this.stats = {
       created: 0,
       destroyed: 0,
@@ -213,9 +214,9 @@ export class PredictiveConnectionPool extends EventEmitter {
       scaleUps: 0,
       scaleDowns: 0,
       totalResponseTime: 0,
-      queryCount: 0
+      queryCount: 0,
     };
-    
+
     this.setupMonitoring();
     this.initialize();
   }
@@ -224,10 +225,10 @@ export class PredictiveConnectionPool extends EventEmitter {
     // Mock connection for demonstration
     return {
       execute: async (query, params) => {
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 100));
+        await new Promise((resolve) => setTimeout(resolve, Math.random() * 100));
         return { rows: [], affectedRows: 0 };
       },
-      close: async () => {}
+      close: async () => {},
     };
   }
 
@@ -236,7 +237,7 @@ export class PredictiveConnectionPool extends EventEmitter {
     this.healthTimer = setInterval(() => {
       this.performHealthCheck();
     }, this.options.healthCheckInterval);
-    
+
     // Prediction and scaling interval
     this.predictionTimer = setInterval(() => {
       this.performPredictiveScaling();
@@ -248,21 +249,21 @@ export class PredictiveConnectionPool extends EventEmitter {
     for (let i = 0; i < this.options.minConnections; i++) {
       await this.createConnection();
     }
-    
+
     this.emit('initialized', { connections: this.connections.size });
   }
 
   async createConnection() {
     const id = `conn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const connection = new SmartConnection(id, this.options.createConnection);
-    
+
     try {
       await connection.initialize();
       this.connections.set(id, connection);
       this.stats.created++;
-      
+
       this.emit('connection-created', { id, total: this.connections.size });
-      
+
       return connection;
     } catch (error) {
       this.emit('connection-failed', { id, error: error.message });
@@ -272,7 +273,7 @@ export class PredictiveConnectionPool extends EventEmitter {
 
   async acquireConnection() {
     this.stats.acquired++;
-    
+
     // Find available healthy connection
     for (const [id, connection] of this.connections) {
       if (connection.isHealthy() && !connection.inUse) {
@@ -281,7 +282,7 @@ export class PredictiveConnectionPool extends EventEmitter {
         return connection;
       }
     }
-    
+
     // No available connection, try to create new one if under limit
     if (this.connections.size < this.options.maxConnections) {
       try {
@@ -292,24 +293,24 @@ export class PredictiveConnectionPool extends EventEmitter {
         // Fall through to queue if creation fails
       }
     }
-    
+
     // Queue the request
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.stats.waitTimeouts++;
         reject(new Error('Connection wait timeout'));
       }, this.options.maxWaitTime);
-      
+
       this.waitQueue.push({ resolve, reject, timeout });
     });
   }
 
   releaseConnection(connection) {
     this.stats.released++;
-    
+
     connection.inUse = false;
     this.emit('connection-released', { id: connection.id });
-    
+
     // Serve waiting requests
     if (this.waitQueue.length > 0) {
       const { resolve, timeout } = this.waitQueue.shift();
@@ -321,18 +322,18 @@ export class PredictiveConnectionPool extends EventEmitter {
 
   async performHealthCheck() {
     const unhealthyConnections = [];
-    
+
     for (const [id, connection] of this.connections) {
       if (!connection.isHealthy() || connection.getIdleTime() > this.options.idleTimeout) {
         unhealthyConnections.push(id);
       }
     }
-    
+
     // Remove unhealthy connections
     for (const id of unhealthyConnections) {
       await this.destroyConnection(id);
     }
-    
+
     // Ensure minimum connections
     while (this.connections.size < this.options.minConnections) {
       try {
@@ -341,10 +342,10 @@ export class PredictiveConnectionPool extends EventEmitter {
         break; // Stop trying if creation fails
       }
     }
-    
-    this.emit('health-check', { 
-      removed: unhealthyConnections.length, 
-      total: this.connections.size 
+
+    this.emit('health-check', {
+      removed: unhealthyConnections.length,
+      total: this.connections.size,
     });
   }
 
@@ -352,31 +353,26 @@ export class PredictiveConnectionPool extends EventEmitter {
     const currentLoad = this.getCurrentLoad();
     const queueLength = this.waitQueue.length;
     const avgResponseTime = this.getAverageResponseTime();
-    
+
     // Add data point to predictor
-    this.predictor.addDataPoint(
-      Date.now(),
-      this.connections.size,
-      queueLength,
-      avgResponseTime
-    );
-    
+    this.predictor.addDataPoint(Date.now(), this.connections.size, queueLength, avgResponseTime);
+
     // Predict future load
     const predictedLoad = this.predictor.predictLoad(5); // 5 minutes ahead
     this.stats.predictions++;
-    
+
     // Scale based on prediction
     const targetConnections = Math.min(
       this.options.maxConnections,
       Math.max(this.options.minConnections, Math.ceil(predictedLoad * 0.8))
     );
-    
+
     const currentConnections = this.connections.size;
-    
+
     if (targetConnections > currentConnections) {
       // Scale up
       const needToCreate = Math.min(3, targetConnections - currentConnections);
-      
+
       for (let i = 0; i < needToCreate; i++) {
         try {
           await this.createConnection();
@@ -385,40 +381,44 @@ export class PredictiveConnectionPool extends EventEmitter {
           break;
         }
       }
-    } else if (targetConnections < currentConnections && currentConnections > this.options.minConnections) {
+    } else if (
+      targetConnections < currentConnections &&
+      currentConnections > this.options.minConnections
+    ) {
       // Scale down (only idle connections)
       const toRemove = Math.min(2, currentConnections - targetConnections);
       let removed = 0;
-      
+
       for (const [id, connection] of this.connections) {
         if (removed >= toRemove) break;
-        
-        if (!connection.inUse && connection.getIdleTime() > 60000) { // 1 minute idle
+
+        if (!connection.inUse && connection.getIdleTime() > 60000) {
+          // 1 minute idle
           await this.destroyConnection(id);
           removed++;
           this.stats.scaleDowns++;
         }
       }
     }
-    
+
     this.emit('predictive-scaling', {
       currentLoad,
       predictedLoad,
       targetConnections,
-      currentConnections: this.connections.size
+      currentConnections: this.connections.size,
     });
   }
 
   getCurrentLoad() {
     let activeConnections = 0;
     let totalResponseTime = 0;
-    
+
     for (const connection of this.connections.values()) {
       if (connection.inUse) activeConnections++;
       totalResponseTime += connection.responseTime;
     }
-    
-    return activeConnections + (this.waitQueue.length * 2);
+
+    return activeConnections + this.waitQueue.length * 2;
   }
 
   getAverageResponseTime() {
@@ -432,7 +432,7 @@ export class PredictiveConnectionPool extends EventEmitter {
       await connection.close();
       this.connections.delete(id);
       this.stats.destroyed++;
-      
+
       this.emit('connection-destroyed', { id, total: this.connections.size });
     }
   }
@@ -440,14 +440,14 @@ export class PredictiveConnectionPool extends EventEmitter {
   async query(sql, params) {
     const connection = await this.acquireConnection();
     const startTime = Date.now();
-    
+
     try {
       const result = await connection.execute(sql, params);
-      
+
       const responseTime = Date.now() - startTime;
       this.stats.totalResponseTime += responseTime;
       this.stats.queryCount++;
-      
+
       return result;
     } finally {
       this.releaseConnection(connection);
@@ -455,9 +455,9 @@ export class PredictiveConnectionPool extends EventEmitter {
   }
 
   getStats() {
-    const activeConnections = Array.from(this.connections.values()).filter(c => c.inUse).length;
+    const activeConnections = Array.from(this.connections.values()).filter((c) => c.inUse).length;
     const avgResponseTime = this.getAverageResponseTime();
-    
+
     return {
       totalConnections: this.connections.size,
       activeConnections,
@@ -474,9 +474,9 @@ export class PredictiveConnectionPool extends EventEmitter {
       avgResponseTime: Math.round(avgResponseTime),
       queryCount: this.stats.queryCount,
       efficiency: {
-        utilization: this.connections.size > 0 ? (activeConnections / this.connections.size) : 0,
-        throughput: this.stats.queryCount / Math.max(1, (Date.now() - this.stats.startTime) / 1000)
-      }
+        utilization: this.connections.size > 0 ? activeConnections / this.connections.size : 0,
+        throughput: this.stats.queryCount / Math.max(1, (Date.now() - this.stats.startTime) / 1000),
+      },
     };
   }
 
@@ -484,24 +484,24 @@ export class PredictiveConnectionPool extends EventEmitter {
     if (this.healthTimer) {
       clearInterval(this.healthTimer);
     }
-    
+
     if (this.predictionTimer) {
       clearInterval(this.predictionTimer);
     }
-    
+
     // Close all connections
     for (const [id, connection] of this.connections) {
       await connection.close();
     }
-    
+
     this.connections.clear();
-    
+
     // Reject all waiting requests
     for (const { reject, timeout } of this.waitQueue) {
       clearTimeout(timeout);
       reject(new Error('Connection pool destroyed'));
     }
-    
+
     this.waitQueue = [];
     this.emit('destroyed');
   }

@@ -33,7 +33,7 @@ export async function getToken(account: MailTmAccount): Promise<MailTmToken> {
   const res = await fetch('https://api.mail.tm/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(account)
+    body: JSON.stringify(account),
   });
   if (!res.ok) {
     throw new Error(`Failed to get token: ${res.status} ${res.statusText}`);
@@ -50,15 +50,12 @@ export async function getToken(account: MailTmAccount): Promise<MailTmToken> {
  * @param token - The bearer token for authentication.
  * @param page - Optional page number (default 1)
  */
-export async function getMessages(
-  token: string,
-  page = 1
-): Promise<any> {
+export async function getMessages(token: string, page = 1): Promise<any> {
   const url = new URL('https://api.mail.tm/messages');
   url.searchParams.set('page', String(page));
   const res = await fetch(url.toString(), {
     method: 'GET',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
     throw new Error(`Failed to list messages: ${res.status} ${res.statusText}`);
@@ -87,9 +84,9 @@ export async function sendMessage(
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
-    body: JSON.stringify(message)
+    body: JSON.stringify(message),
   });
   if (!res.ok) {
     throw new Error(`Failed to send message: ${res.status} ${res.statusText}`);
@@ -106,7 +103,7 @@ export async function sendMessage(
 export async function getMessage(token: string, id: string): Promise<any> {
   const res = await fetch(`https://api.mail.tm/messages/${id}`, {
     method: 'GET',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) {
     throw new Error(`Failed to fetch message ${id}: ${res.status} ${res.statusText}`);
@@ -123,7 +120,7 @@ export async function getMessage(token: string, id: string): Promise<any> {
 export async function deleteMessage(token: string, id: string): Promise<boolean> {
   const res = await fetch(`https://api.mail.tm/messages/${id}`, {
     method: 'DELETE',
-    headers: { Authorization: `Bearer ${token}` }
+    headers: { Authorization: `Bearer ${token}` },
   });
   return res.ok;
 }

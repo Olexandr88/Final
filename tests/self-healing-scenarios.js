@@ -7,7 +7,7 @@ import { spawn } from 'child_process';
 import { promisify } from 'util';
 import fetch from 'node-fetch';
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const A2A_SERVER_URL = process.env.A2A_SERVER_URL || 'http://localhost:3001';
 
@@ -18,18 +18,18 @@ class SelfHealingScenarios {
 
   async testServiceCrashRecovery() {
     console.log('Testing service crash recovery...');
-    
+
     try {
       // Simulate service crash by killing the process
       const response = await fetch(`${A2A_SERVER_URL}/health`);
       if (response.ok) {
         console.log('✓ Service is healthy');
       }
-      
+
       // Simulate crash and recovery
       console.log('Simulating service crash...');
       await sleep(2000);
-      
+
       // Check if service auto-recovers
       const recoveryCheck = await fetch(`${A2A_SERVER_URL}/health`);
       if (recoveryCheck.ok) {
@@ -44,18 +44,18 @@ class SelfHealingScenarios {
 
   async testDependencyFailure() {
     console.log('Testing dependency failure handling...');
-    
+
     try {
       // Test with unavailable dependency
       const response = await fetch(`${A2A_SERVER_URL}/health-check`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ services: ['ollama', 'ai-bridge'] })
+        body: JSON.stringify({ services: ['ollama', 'ai-bridge'] }),
       });
-      
+
       const result = await response.json();
       console.log('Health check result:', result);
-      
+
       if (result.status === 'degraded' || result.status === 'healthy') {
         console.log('✓ Graceful degradation working');
         return true;
@@ -68,14 +68,14 @@ class SelfHealingScenarios {
 
   async testAutoRecovery() {
     console.log('Testing auto-recovery mechanisms...');
-    
+
     try {
       const response = await fetch(`${A2A_SERVER_URL}/auto-recover`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ force: true })
+        body: JSON.stringify({ force: true }),
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log('✓ Auto-recovery triggered:', result);
@@ -89,7 +89,7 @@ class SelfHealingScenarios {
 
   async testCircuitBreaker() {
     console.log('Testing circuit breaker pattern...');
-    
+
     // Simulate multiple failures
     let failures = 0;
     for (let i = 0; i < 5; i++) {
@@ -99,27 +99,27 @@ class SelfHealingScenarios {
         failures++;
       }
     }
-    
+
     console.log(`✓ Circuit breaker detected ${failures} failures`);
     return true;
   }
 
   async runAllScenarios() {
     console.log('\n=== Running Self-Healing Scenarios ===\n');
-    
+
     const results = {
       serviceCrashRecovery: await this.testServiceCrashRecovery(),
       dependencyFailure: await this.testDependencyFailure(),
       autoRecovery: await this.testAutoRecovery(),
-      circuitBreaker: await this.testCircuitBreaker()
+      circuitBreaker: await this.testCircuitBreaker(),
     };
-    
+
     console.log('\n=== Results Summary ===');
     console.log(JSON.stringify(results, null, 2));
-    
-    const allPassed = Object.values(results).every(r => r === true);
+
+    const allPassed = Object.values(results).every((r) => r === true);
     console.log(`\n${allPassed ? '✓' : '✗'} Overall: ${allPassed ? 'PASSED' : 'FAILED'}`);
-    
+
     return allPassed;
   }
 }
@@ -127,9 +127,10 @@ class SelfHealingScenarios {
 // Run if executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const scenarios = new SelfHealingScenarios();
-  scenarios.runAllScenarios()
-    .then(success => process.exit(success ? 0 : 1))
-    .catch(error => {
+  scenarios
+    .runAllScenarios()
+    .then((success) => process.exit(success ? 0 : 1))
+    .catch((error) => {
       console.error('Fatal error:', error);
       process.exit(1);
     });

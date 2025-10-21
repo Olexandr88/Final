@@ -24,12 +24,12 @@
 
 ## Performance Impact
 
-| Operation | Current | With ORM | Overhead | Acceptable? |
-|-----------|---------|----------|----------|-------------|
-| Simple Insert | 2ms | 3-4ms | +50-100% | ✅ Yes |
-| Complex Query | 5ms | 7-10ms | +40-100% | ✅ Yes |
-| Bulk Insert (100) | 20ms | 25-35ms | +25-75% | ✅ Yes |
-| Search | 8ms | 12-15ms | +50-87% | ✅ Yes |
+| Operation         | Current | With ORM | Overhead | Acceptable? |
+| ----------------- | ------- | -------- | -------- | ----------- |
+| Simple Insert     | 2ms     | 3-4ms    | +50-100% | ✅ Yes      |
+| Complex Query     | 5ms     | 7-10ms   | +40-100% | ✅ Yes      |
+| Bulk Insert (100) | 20ms    | 25-35ms  | +25-75%  | ✅ Yes      |
+| Search            | 8ms     | 12-15ms  | +50-87%  | ✅ Yes      |
 
 **Verdict**: Performance overhead acceptable for the benefits gained
 
@@ -38,21 +38,25 @@
 ## Migration Strategy
 
 ### Phase 1: Setup (Week 1-2)
+
 - Install Prisma
 - Create schema
 - Parallel infrastructure (ORM + raw SQL coexist)
 
 ### Phase 2: Incremental Rollout (Week 2-4)
+
 - Migrate SelectionStore (low risk)
 - Migrate SessionManager (medium risk)
 - Migrate LockManager (high risk, hybrid approach)
 
 ### Phase 3: Testing (Week 4-5)
+
 - Functional parity tests
 - Performance benchmarks
 - Load testing (1000 concurrent ops)
 
 ### Phase 4: Production (Week 5-6)
+
 - Feature flags for gradual rollout
 - Monitor metrics
 - Full rollout if green
@@ -62,6 +66,7 @@
 ## File Changes Required
 
 ### New Files
+
 ```
 prisma/
   schema.prisma              # ORM schema definition
@@ -76,6 +81,7 @@ examples/
 ```
 
 ### Modified Files
+
 ```
 src/session-manager.js      → src/session-manager-orm.js
 src/lock-manager.js         → src/lock-manager-orm.js
@@ -111,6 +117,7 @@ node scripts/benchmark-orm-performance.js
 ## Code Comparison
 
 ### Before (Raw SQL)
+
 ```javascript
 getSessionInfo(sessionId) {
   const session = this.db.prepare(`
@@ -126,6 +133,7 @@ getSessionInfo(sessionId) {
 ```
 
 ### After (Prisma ORM)
+
 ```javascript
 async getSessionInfo(sessionId) {
   return prisma.session.findUnique({
@@ -136,6 +144,7 @@ async getSessionInfo(sessionId) {
 ```
 
 **Changes**:
+
 - 9 lines → 5 lines (44% reduction)
 - Manual JOIN → Automatic relation loading
 - No type safety → Full TypeScript types
@@ -166,12 +175,14 @@ Zero downtime, instant rollback via feature flags.
 ## Success Criteria
 
 **Technical**:
+
 - [ ] All tests passing
 - [ ] Performance within 20% of baseline
 - [ ] Zero data loss/corruption
 - [ ] <5 ORM-related bugs in 3 months
 
 **Business**:
+
 - [ ] Faster feature development
 - [ ] Reduced onboarding time
 - [ ] Easier database migrations

@@ -12,13 +12,13 @@ class UltraOptimizedContentScript {
     this.performanceTracker = {
       analyses: 0,
       cacheHits: 0,
-      avgTime: 0
+      avgTime: 0,
     };
-    
+
     // Initialize the text analyzer
     this.initializeTextAnalyzer();
     this.initialize();
-    
+
     console.log('🚀 Ultra-Optimized Content Script v3.0.0 loaded for:', this.pageType);
   }
 
@@ -29,7 +29,7 @@ class UltraOptimizedContentScript {
     // Wait for UltraOptimizedTextAnalyzer to be available
     let attempts = 0;
     const maxAttempts = 10;
-    
+
     const checkAnalyzer = () => {
       if (typeof window.UltraOptimizedTextAnalyzer !== 'undefined') {
         this.textAnalyzer = new window.UltraOptimizedTextAnalyzer();
@@ -38,7 +38,7 @@ class UltraOptimizedContentScript {
       }
       return false;
     };
-    
+
     if (!checkAnalyzer()) {
       const interval = setInterval(() => {
         attempts++;
@@ -58,11 +58,11 @@ class UltraOptimizedContentScript {
    */
   async initialize() {
     if (this.isInitialized) return;
-    
+
     try {
       // Set up message listener
       this.setupMessageListener();
-      
+
       // Page-specific initialization
       switch (this.pageType) {
         case 'gcp-console':
@@ -77,16 +77,15 @@ class UltraOptimizedContentScript {
         default:
           await this.initializeGeneric();
       }
-      
+
       // Set up enhanced selection monitoring
       this.setupEnhancedSelectionMonitoring();
-      
+
       // Add floating analysis UI
       this.createFloatingAnalysisUI();
-      
+
       this.isInitialized = true;
       console.log('✅ Ultra-Optimized Content script initialized for:', this.pageType);
-      
     } catch (error) {
       console.error('❌ Content script initialization failed:', error);
     }
@@ -98,22 +97,22 @@ class UltraOptimizedContentScript {
   detectPageType() {
     const hostname = window.location.hostname;
     const pathname = window.location.pathname;
-    
+
     if (hostname === 'console.cloud.google.com') {
       if (pathname.includes('/iam-admin/serviceaccounts')) {
         return 'gcp-console';
       }
       return 'gcp-general';
     }
-    
+
     if (hostname === 'github.com') {
       return 'github';
     }
-    
+
     if (hostname === 'firebase.google.com' || hostname.includes('firebase')) {
       return 'firebase';
     }
-    
+
     return 'generic';
   }
 
@@ -134,7 +133,7 @@ class UltraOptimizedContentScript {
     try {
       const { action, data } = request;
       let result;
-      
+
       switch (action) {
         case 'analyzeSelectedText':
           result = await this.analyzeSelectedText(data);
@@ -167,7 +166,7 @@ class UltraOptimizedContentScript {
         default:
           throw new Error(`Unknown action: ${action}`);
       }
-      
+
       sendResponse({ success: true, data: result });
     } catch (error) {
       sendResponse({ success: false, error: error.message });
@@ -180,19 +179,19 @@ class UltraOptimizedContentScript {
   async analyzeSelectedText(options = {}) {
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
-    
+
     if (!selectedText) {
       return { error: 'No text selected', isEmpty: true };
     }
-    
+
     return await this.performTextAnalysis(selectedText, {
       ...options,
       source: 'selection',
       selectionRange: {
         start: selection.anchorOffset,
         end: selection.focusOffset,
-        element: selection.anchorNode?.parentElement?.tagName
-      }
+        element: selection.anchorNode?.parentElement?.tagName,
+      },
     });
   }
 
@@ -201,16 +200,16 @@ class UltraOptimizedContentScript {
    */
   async analyzePageText(options = {}) {
     const textContent = this.extractPageText();
-    
+
     if (!textContent || textContent.trim().length === 0) {
       return { error: 'No text content found on page', isEmpty: true };
     }
-    
+
     return await this.performTextAnalysis(textContent, {
       ...options,
       source: 'page',
       url: window.location.href,
-      title: document.title
+      title: document.title,
     });
   }
 
@@ -221,10 +220,10 @@ class UltraOptimizedContentScript {
     if (!text || text.trim().length === 0) {
       return { error: 'No text provided for analysis', isEmpty: true };
     }
-    
+
     return await this.performTextAnalysis(text, {
       ...options,
-      source: 'custom'
+      source: 'custom',
     });
   }
 
@@ -234,31 +233,31 @@ class UltraOptimizedContentScript {
   async performTextAnalysis(text, options = {}) {
     const startTime = performance.now();
     this.performanceTracker.analyses++;
-    
+
     try {
       // Generate cache key
       const cacheKey = this.generateCacheKey(text, options);
-      
+
       // Check cache first
       if (this.extractionCache.has(cacheKey)) {
         this.performanceTracker.cacheHits++;
         console.log('📋 Ultra-fast cache hit for text analysis');
-        
+
         const cachedResult = this.extractionCache.get(cacheKey);
         return {
           ...cachedResult,
           fromCache: true,
-          cacheAge: Date.now() - cachedResult.timestamp
+          cacheAge: Date.now() - cachedResult.timestamp,
         };
       }
-      
+
       // Perform analysis using the ultra-optimized analyzer
       const analysis = await this.textAnalyzer.analyze(text, {
         includeSummary: options.includeSummary || false,
         keywordLimit: options.keywordLimit || 10,
-        ...options
+        ...options,
       });
-      
+
       // Add metadata
       const enhancedAnalysis = {
         ...analysis,
@@ -268,26 +267,26 @@ class UltraOptimizedContentScript {
           url: options.url,
           title: options.title,
           selectionRange: options.selectionRange,
-          contentScript: 'ultra-optimized-v3.0.0'
-        }
+          contentScript: 'ultra-optimized-v3.0.0',
+        },
       };
-      
+
       // Cache the result
       this.cacheAnalysis(cacheKey, enhancedAnalysis);
-      
+
       // Update performance tracking
       const processingTime = performance.now() - startTime;
-      this.performanceTracker.avgTime = 
-        (this.performanceTracker.avgTime * (this.performanceTracker.analyses - 1) + processingTime) / 
+      this.performanceTracker.avgTime =
+        (this.performanceTracker.avgTime * (this.performanceTracker.analyses - 1) +
+          processingTime) /
         this.performanceTracker.analyses;
-      
+
       return enhancedAnalysis;
-      
     } catch (error) {
       console.error('❌ Text analysis failed:', error);
-      return { 
-        error: error.message, 
-        processingTime: performance.now() - startTime 
+      return {
+        error: error.message,
+        processingTime: performance.now() - startTime,
       };
     }
   }
@@ -297,22 +296,30 @@ class UltraOptimizedContentScript {
    */
   extractPageText() {
     // Remove script and style elements
-    const elementsToIgnore = document.querySelectorAll('script, style, nav, header, footer, .ad, .advertisement');
+    const elementsToIgnore = document.querySelectorAll(
+      'script, style, nav, header, footer, .ad, .advertisement'
+    );
     const tempContainer = document.cloneNode(true);
-    
-    elementsToIgnore.forEach(el => {
+
+    elementsToIgnore.forEach((el) => {
       const clonedEl = tempContainer.querySelector(el.tagName.toLowerCase());
       if (clonedEl) clonedEl.remove();
     });
-    
+
     // Extract text from main content areas
     const contentSelectors = [
-      'main', 'article', '.content', '.main-content', 
-      '#content', '#main', '.post-content', '.entry-content'
+      'main',
+      'article',
+      '.content',
+      '.main-content',
+      '#content',
+      '#main',
+      '.post-content',
+      '.entry-content',
     ];
-    
+
     let extractedText = '';
-    
+
     for (const selector of contentSelectors) {
       const contentEl = document.querySelector(selector);
       if (contentEl) {
@@ -320,12 +327,12 @@ class UltraOptimizedContentScript {
         break;
       }
     }
-    
+
     // Fallback to body text if no specific content area found
     if (!extractedText) {
       extractedText = document.body.innerText;
     }
-    
+
     // Clean up the text
     return extractedText
       .replace(/\s+/g, ' ') // Normalize whitespace
@@ -338,25 +345,25 @@ class UltraOptimizedContentScript {
    */
   async getTextFromElement(selector) {
     const element = document.querySelector(selector);
-    
+
     if (!element) {
       return { error: `Element not found: ${selector}` };
     }
-    
+
     const text = element.innerText || element.textContent || '';
-    
+
     if (!text.trim()) {
       return { error: 'Element contains no text', element: element.tagName };
     }
-    
+
     return await this.performTextAnalysis(text, {
       source: 'element',
       selector,
       element: {
         tagName: element.tagName,
         className: element.className,
-        id: element.id
-      }
+        id: element.id,
+      },
     });
   }
 
@@ -365,14 +372,14 @@ class UltraOptimizedContentScript {
    */
   setupEnhancedSelectionMonitoring() {
     let selectionTimeout;
-    
+
     document.addEventListener('selectionchange', () => {
       clearTimeout(selectionTimeout);
       selectionTimeout = setTimeout(() => {
         this.handleSelectionChange();
       }, 300); // Reduced debounce time for faster response
     });
-    
+
     // Also monitor mouse up for instant analysis
     document.addEventListener('mouseup', () => {
       setTimeout(() => this.handleSelectionChange(), 50);
@@ -385,16 +392,17 @@ class UltraOptimizedContentScript {
   async handleSelectionChange() {
     const selection = window.getSelection();
     const selectedText = selection.toString().trim();
-    
+
     // Remove existing hints
     const existingHint = document.getElementById('ultra-selection-hint');
     if (existingHint) {
       existingHint.remove();
     }
-    
-    if (selectedText.length > 15) { // Increased threshold for meaningful text
+
+    if (selectedText.length > 15) {
+      // Increased threshold for meaningful text
       this.showEnhancedSelectionHint(selection, selectedText);
-      
+
       // Auto-analyze if enabled
       const autoAnalyze = await this.getStoredSetting('autoAnalyzeSelection', false);
       if (autoAnalyze) {
@@ -410,12 +418,12 @@ class UltraOptimizedContentScript {
     const hint = document.createElement('div');
     hint.id = 'ultra-selection-hint';
     hint.className = 'ultra-selection-hint';
-    
+
     // Quick preview analysis
     const wordCount = selectedText.split(/\s+/).length;
     const charCount = selectedText.length;
     const readingTime = Math.ceil(wordCount / 200);
-    
+
     hint.innerHTML = `
       <div class="hint-content">
         <div class="hint-title">🔍 Text Selected</div>
@@ -426,7 +434,7 @@ class UltraOptimizedContentScript {
         </div>
       </div>
     `;
-    
+
     // Style the hint
     hint.style.cssText = `
       position: absolute;
@@ -442,27 +450,27 @@ class UltraOptimizedContentScript {
       backdrop-filter: blur(10px);
       border: 1px solid rgba(255,255,255,0.2);
     `;
-    
+
     // Position near selection
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    hint.style.left = (rect.left + window.scrollX) + 'px';
-    hint.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    
+    hint.style.left = rect.left + window.scrollX + 'px';
+    hint.style.top = rect.bottom + window.scrollY + 5 + 'px';
+
     // Add event listeners
     hint.querySelector('.analyze-btn').onclick = () => {
       this.quickAnalyzeSelection(selectedText);
       hint.remove();
     };
-    
+
     hint.querySelector('.copy-btn').onclick = () => {
       navigator.clipboard.writeText(selectedText);
       hint.querySelector('.copy-btn').textContent = '✓ Copied!';
       setTimeout(() => hint.remove(), 1000);
     };
-    
+
     document.body.appendChild(hint);
-    
+
     // Auto-remove after 5 seconds
     setTimeout(() => {
       if (hint.parentNode) hint.remove();
@@ -473,11 +481,11 @@ class UltraOptimizedContentScript {
    * Quick analysis of selected text with floating display
    */
   async quickAnalyzeSelection(text) {
-    const analysis = await this.performTextAnalysis(text, { 
+    const analysis = await this.performTextAnalysis(text, {
       source: 'quick-selection',
-      includeSummary: true 
+      includeSummary: true,
     });
-    
+
     this.showQuickAnalysisResults(analysis);
   }
 
@@ -488,11 +496,11 @@ class UltraOptimizedContentScript {
     // Remove existing panel
     const existing = document.getElementById('ultra-analysis-panel');
     if (existing) existing.remove();
-    
+
     const panel = document.createElement('div');
     panel.id = 'ultra-analysis-panel';
     panel.className = 'ultra-analysis-panel';
-    
+
     if (analysis.error) {
       panel.innerHTML = `
         <div class="panel-header">
@@ -505,7 +513,7 @@ class UltraOptimizedContentScript {
       `;
     } else {
       const { basic, readability, ai, content } = analysis;
-      
+
       panel.innerHTML = `
         <div class="panel-header">
           <span class="panel-title">🧠 Text Analysis</span>
@@ -538,19 +546,26 @@ class UltraOptimizedContentScript {
               <span class="metric-value">${ai.language.primary}</span>
             </div>
           </div>
-          ${ai.keywords && ai.keywords.length > 0 ? `
+          ${
+            ai.keywords && ai.keywords.length > 0
+              ? `
             <div class="keywords-section">
               <div class="section-title">Top Keywords</div>
               <div class="keywords">
-                ${ai.keywords.slice(0, 5).map(k => `<span class="keyword">${k.word}</span>`).join('')}
+                ${ai.keywords
+                  .slice(0, 5)
+                  .map((k) => `<span class="keyword">${k.word}</span>`)
+                  .join('')}
               </div>
             </div>
-          ` : ''}
+          `
+              : ''
+          }
           ${analysis.fromCache ? '<div class="cache-indicator">📋 From Cache</div>' : ''}
         </div>
       `;
     }
-    
+
     // Style the panel
     panel.style.cssText = `
       position: fixed;
@@ -565,7 +580,7 @@ class UltraOptimizedContentScript {
       border: 1px solid #e1e5e9;
       overflow: hidden;
     `;
-    
+
     // Add styles for internal elements
     const style = document.createElement('style');
     style.textContent = `
@@ -643,13 +658,13 @@ class UltraOptimizedContentScript {
         border-top: 1px solid #e9ecef;
       }
     `;
-    
+
     document.head.appendChild(style);
     document.body.appendChild(panel);
-    
+
     // Add close functionality
     panel.querySelector('.panel-close').onclick = () => panel.remove();
-    
+
     // Auto-remove after 10 seconds
     setTimeout(() => {
       if (panel.parentNode) panel.remove();
@@ -668,7 +683,7 @@ class UltraOptimizedContentScript {
         <span class="btn-text">Analyze</span>
       </div>
     `;
-    
+
     floatingUI.style.cssText = `
       position: fixed;
       bottom: 20px;
@@ -686,22 +701,22 @@ class UltraOptimizedContentScript {
       transition: all 0.3s ease;
       opacity: 0.9;
     `;
-    
+
     // Hover effects
     floatingUI.onmouseover = () => {
       floatingUI.style.transform = 'scale(1.05)';
       floatingUI.style.opacity = '1';
     };
-    
+
     floatingUI.onmouseout = () => {
       floatingUI.style.transform = 'scale(1)';
       floatingUI.style.opacity = '0.9';
     };
-    
+
     // Click handler
     floatingUI.onclick = async () => {
       const selection = window.getSelection().toString().trim();
-      
+
       if (selection) {
         this.quickAnalyzeSelection(selection);
       } else {
@@ -710,7 +725,7 @@ class UltraOptimizedContentScript {
         this.showQuickAnalysisResults(analysis);
       }
     };
-    
+
     document.body.appendChild(floatingUI);
   }
 
@@ -742,7 +757,7 @@ class UltraOptimizedContentScript {
     let hash = 0;
     for (let i = 0; i < text.length; i++) {
       const char = text.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString(36);
@@ -754,10 +769,10 @@ class UltraOptimizedContentScript {
       const firstKey = this.extractionCache.keys().next().value;
       this.extractionCache.delete(firstKey);
     }
-    
+
     this.extractionCache.set(key, {
       ...analysis,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -771,15 +786,16 @@ class UltraOptimizedContentScript {
   }
 
   getPerformanceStats() {
-    const cacheHitRate = this.performanceTracker.analyses > 0 
-      ? Math.round((this.performanceTracker.cacheHits / this.performanceTracker.analyses) * 100)
-      : 0;
-    
+    const cacheHitRate =
+      this.performanceTracker.analyses > 0
+        ? Math.round((this.performanceTracker.cacheHits / this.performanceTracker.analyses) * 100)
+        : 0;
+
     return {
       ...this.performanceTracker,
       cacheHitRate,
       cacheSize: this.extractionCache.size,
-      analyzerStats: this.textAnalyzer?.getCacheStats?.()
+      analyzerStats: this.textAnalyzer?.getCacheStats?.(),
     };
   }
 
@@ -803,7 +819,7 @@ class UltraOptimizedContentScript {
       url: window.location.href,
       title: document.title,
       pageType: this.pageType,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -816,18 +832,18 @@ class UltraOptimizedContentScript {
 // Fallback text analyzer for when main analyzer fails to load
 class FallbackTextAnalyzer {
   analyze(text) {
-    const words = text.split(/\s+/).filter(w => w.length > 0);
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    
+    const words = text.split(/\s+/).filter((w) => w.length > 0);
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+
     return {
       basic: {
         characters: { total: text.length },
         words: { total: words.length },
         sentences: { total: sentences.length },
-        readingTime: { average: `${Math.ceil(words.length / 200)} min` }
+        readingTime: { average: `${Math.ceil(words.length / 200)} min` },
       },
       fallback: true,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 

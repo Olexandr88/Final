@@ -35,7 +35,7 @@ export async function readFile(params, context) {
       content,
       size: stats.size,
       lines: content.split('\n').length,
-      modified: stats.mtime.toISOString()
+      modified: stats.mtime.toISOString(),
     };
   } catch (error) {
     throw new Error(`Failed to read file ${file_path}: ${error.message}`);
@@ -66,7 +66,7 @@ export async function writeFile(params, context) {
     return {
       file_path: resolvedPath,
       bytes_written: Buffer.byteLength(content, encoding),
-      success: true
+      success: true,
     };
   } catch (error) {
     throw new Error(`Failed to write file ${file_path}: ${error.message}`);
@@ -123,7 +123,7 @@ export async function editFile(params, context) {
       file_path,
       edits_applied: edits.length,
       lines_before: content.split('\n').length,
-      lines_after: lines.length
+      lines_after: lines.length,
     };
   } catch (error) {
     throw new Error(`Failed to edit file ${file_path}: ${error.message}`);
@@ -147,14 +147,14 @@ export async function globFiles(params, context) {
       cwd,
       ignore: [...ignore, '**/node_modules/**', '**/.git/**'],
       absolute: true,
-      nodir: true
+      nodir: true,
     });
 
     return {
       pattern,
       files,
       count: files.length,
-      search_path: cwd
+      search_path: cwd,
     };
   } catch (error) {
     throw new Error(`Glob search failed for pattern ${pattern}: ${error.message}`);
@@ -182,25 +182,25 @@ export async function grepPattern(params, context) {
     try {
       const { stdout } = await execAsync(command, {
         cwd: process.cwd(),
-        maxBuffer: 10 * 1024 * 1024 // 10MB
+        maxBuffer: 10 * 1024 * 1024, // 10MB
       });
 
       const matches = stdout
         .split('\n')
-        .filter(line => line.trim())
-        .map(line => JSON.parse(line))
-        .filter(obj => obj.type === 'match')
-        .map(obj => ({
+        .filter((line) => line.trim())
+        .map((line) => JSON.parse(line))
+        .filter((obj) => obj.type === 'match')
+        .map((obj) => ({
           file: obj.data.path.text,
           line: obj.data.line_number,
           content: obj.data.lines.text,
-          match: obj.data.submatches[0]
+          match: obj.data.submatches[0],
         }));
 
       return {
         pattern,
         matches,
-        count: matches.length
+        count: matches.length,
       };
     } catch (error) {
       if (error.code === 1) {
@@ -226,13 +226,14 @@ async function fallbackGrep(pattern, searchPath, caseSensitive) {
     cwd: searchPath,
     ignore: ['**/node_modules/**', '**/.git/**'],
     absolute: true,
-    nodir: true
+    nodir: true,
   });
 
   const matches = [];
   const regex = new RegExp(pattern, caseSensitive ? '' : 'i');
 
-  for (const file of files.slice(0, 100)) { // Limit to 100 files
+  for (const file of files.slice(0, 100)) {
+    // Limit to 100 files
     try {
       const content = await fs.readFile(file, 'utf-8');
       const lines = content.split('\n');
@@ -243,7 +244,7 @@ async function fallbackGrep(pattern, searchPath, caseSensitive) {
             file,
             line: idx + 1,
             content: line,
-            match: { text: line.match(regex)?.[0] || '' }
+            match: { text: line.match(regex)?.[0] || '' },
           });
         }
       });

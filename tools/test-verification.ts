@@ -56,7 +56,12 @@ export const testVerification: Tool = {
     },
     required: ['operation'],
   },
-  async execute(args: any): Promise<TestResult | { success: false; error: string; output: string; errors: string; timestamp: string; }> {
+  async execute(
+    args: any
+  ): Promise<
+    | TestResult
+    | { success: false; error: string; output: string; errors: string; timestamp: string }
+  > {
     const {
       operation,
       path = '',

@@ -11,13 +11,22 @@ describe('Redis Redlock Distributed Locks', () => {
     // Initialize lock manager with test configuration
     lockManager = new RedisRedlockManager({
       redisNodes: [
-        { host: process.env.REDIS_HOST_1 || 'localhost', port: parseInt(process.env.REDIS_PORT_1 || '6379') },
-        { host: process.env.REDIS_HOST_2 || 'localhost', port: parseInt(process.env.REDIS_PORT_2 || '6380') },
-        { host: process.env.REDIS_HOST_3 || 'localhost', port: parseInt(process.env.REDIS_PORT_3 || '6381') }
+        {
+          host: process.env.REDIS_HOST_1 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_1 || '6379'),
+        },
+        {
+          host: process.env.REDIS_HOST_2 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_2 || '6380'),
+        },
+        {
+          host: process.env.REDIS_HOST_3 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_3 || '6381'),
+        },
       ],
       lockTTL: 5000,
       retryCount: 3,
-      retryDelay: 100
+      retryDelay: 100,
     });
 
     try {
@@ -150,7 +159,7 @@ describe('Redis Redlock Distributed Locks', () => {
     assert.ok(lock);
 
     // Wait for lock to expire
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Lock should have expired, new lock should succeed immediately
     const lock2 = await lockManager.acquireLock(resource, 1000);
@@ -243,8 +252,8 @@ describe('Redis Redlock Distributed Locks', () => {
     const locks = lockManager.listLocks();
     assert.ok(locks.length >= 2);
 
-    const lock1 = locks.find(l => l.resourcePath === resource1);
-    const lock2 = locks.find(l => l.resourcePath === resource2);
+    const lock1 = locks.find((l) => l.resourcePath === resource1);
+    const lock2 = locks.find((l) => l.resourcePath === resource2);
 
     assert.ok(lock1);
     assert.ok(lock2);
@@ -267,11 +276,13 @@ describe('Redis Redlock Distributed Locks', () => {
     assert.ok(health.nodes);
     assert.strictEqual(health.nodes.length, 3);
 
-    const healthyCount = health.nodes.filter(n => n.healthy).length;
+    const healthyCount = health.nodes.filter((n) => n.healthy).length;
     console.log(`\nRedis Cluster Health: ${healthyCount}/3 nodes healthy`);
 
-    health.nodes.forEach(node => {
-      console.log(`  Node ${node.node.host}:${node.node.port} - ${node.healthy ? 'HEALTHY' : 'UNHEALTHY'} (${node.latency || 'N/A'}ms)`);
+    health.nodes.forEach((node) => {
+      console.log(
+        `  Node ${node.node.host}:${node.node.port} - ${node.healthy ? 'HEALTHY' : 'UNHEALTHY'} (${node.latency || 'N/A'}ms)`
+      );
     });
 
     // Should have at least quorum (2/3)
@@ -293,10 +304,11 @@ describe('Redis Redlock Distributed Locks', () => {
 
     for (let i = 0; i < concurrentRequests; i++) {
       promises.push(
-        lockManager.acquireLock(resource, 1000)
+        lockManager
+          .acquireLock(resource, 1000)
           .then(async (lock) => {
             successCount++;
-            await new Promise(resolve => setTimeout(resolve, 50));
+            await new Promise((resolve) => setTimeout(resolve, 50));
             await lockManager.releaseLock(resource);
           })
           .catch(() => {

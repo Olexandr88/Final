@@ -12,7 +12,7 @@ class CloudSQLAutoProvisioner {
   constructor(projectId = 'scarmonit-8bcee') {
     this.projectId = projectId;
     this.auth = new GoogleAuth({
-      scopes: ['https://www.googleapis.com/auth/sqlservice.admin']
+      scopes: ['https://www.googleapis.com/auth/sqlservice.admin'],
     });
     this.instanceId = `llm-optimized-${crypto.randomBytes(4).toString('hex')}`;
     this.dbName = 'optimization_db';
@@ -28,7 +28,7 @@ class CloudSQLAutoProvisioner {
 
   async createInstance() {
     const token = await this.getAccessToken();
-    
+
     const instanceConfig = {
       name: this.instanceId,
       databaseVersion: 'MYSQL_8_0',
@@ -44,30 +44,35 @@ class CloudSQLAutoProvisioner {
           enabled: true,
           binaryLogEnabled: false,
           pointInTimeRecoveryEnabled: false,
-          startTime: '02:00'
+          startTime: '02:00',
         },
         ipConfiguration: {
           ipv4Enabled: true,
-          authorizedNetworks: [{
-            name: 'allow-all',
-            value: '0.0.0.0/0'
-          }]
+          authorizedNetworks: [
+            {
+              name: 'allow-all',
+              value: '0.0.0.0/0',
+            },
+          ],
         },
         databaseFlags: [
           { name: 'max_connections', value: '50' },
-          { name: 'innodb_buffer_pool_size', value: '134217728' } // 128MB
-        ]
-      }
+          { name: 'innodb_buffer_pool_size', value: '134217728' }, // 128MB
+        ],
+      },
     };
 
-    const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(instanceConfig)
-    });
+    const response = await fetch(
+      `https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(instanceConfig),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
@@ -77,7 +82,7 @@ class CloudSQLAutoProvisioner {
     const result = await response.json();
     console.log(`✅ Instance creation initiated: ${this.instanceId}`);
     console.log(`🔄 Operation: ${result.name}`);
-    
+
     return result;
   }
 
@@ -87,12 +92,15 @@ class CloudSQLAutoProvisioner {
     const timeoutMs = maxWaitMinutes * 60 * 1000;
 
     while (Date.now() - startTime < timeoutMs) {
-      const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${this.projectId}/operations/${operationName}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const response = await fetch(
+        `https://sqladmin.googleapis.com/v1/projects/${this.projectId}/operations/${operationName}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const operation = await response.json();
-      
+
       if (operation.status === 'DONE') {
         if (operation.error) {
           throw new Error(`Operation failed: ${JSON.stringify(operation.error)}`);
@@ -102,7 +110,7 @@ class CloudSQLAutoProvisioner {
       }
 
       console.log(`⏳ Operation in progress: ${operation.status}`);
-      await new Promise(resolve => setTimeout(resolve, 15000)); // Wait 15s
+      await new Promise((resolve) => setTimeout(resolve, 15000)); // Wait 15s
     }
 
     throw new Error(`Operation timeout after ${maxWaitMinutes} minutes`);
@@ -110,21 +118,24 @@ class CloudSQLAutoProvisioner {
 
   async createDatabase() {
     const token = await this.getAccessToken();
-    
+
     const dbConfig = {
       name: this.dbName,
       charset: 'utf8mb4',
-      collation: 'utf8mb4_unicode_ci'
+      collation: 'utf8mb4_unicode_ci',
     };
 
-    const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}/databases`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dbConfig)
-    });
+    const response = await fetch(
+      `https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}/databases`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dbConfig),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
@@ -138,21 +149,24 @@ class CloudSQLAutoProvisioner {
 
   async createUser() {
     const token = await this.getAccessToken();
-    
+
     const userConfig = {
       name: this.username,
       password: this.password,
-      host: '%' // Allow from any host
+      host: '%', // Allow from any host
     };
 
-    const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}/users`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(userConfig)
-    });
+    const response = await fetch(
+      `https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}/users`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userConfig),
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
@@ -166,10 +180,13 @@ class CloudSQLAutoProvisioner {
 
   async getInstanceDetails() {
     const token = await this.getAccessToken();
-    
-    const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+
+    const response = await fetch(
+      `https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
 
     if (!response.ok) {
       const error = await response.text();
@@ -183,26 +200,26 @@ class CloudSQLAutoProvisioner {
   async provision() {
     try {
       console.log(`🚀 Starting Cloud SQL provisioning for project: ${this.projectId}`);
-      
+
       // Create instance
       const createOp = await this.createInstance();
       const operationId = createOp.name.split('/').pop();
-      
+
       // Wait for instance creation
       await this.waitForOperation(operationId);
-      
+
       // Get instance details
       const instance = await this.getInstanceDetails();
-      const ipAddress = instance.ipAddresses.find(ip => ip.type === 'PRIMARY').ipAddress;
-      
+      const ipAddress = instance.ipAddresses.find((ip) => ip.type === 'PRIMARY').ipAddress;
+
       console.log(`🌐 Instance IP: ${ipAddress}`);
-      
+
       // Create database
       await this.createDatabase();
-      
+
       // Create user
       await this.createUser();
-      
+
       // Generate connection config
       const config = {
         instanceId: this.instanceId,
@@ -216,24 +233,23 @@ class CloudSQLAutoProvisioner {
           CLOUD_SQL_PORT: '3306',
           CLOUD_SQL_USER: this.username,
           CLOUD_SQL_PASSWORD: this.password,
-          CLOUD_SQL_DATABASE: this.dbName
-        }
+          CLOUD_SQL_DATABASE: this.dbName,
+        },
       };
-      
+
       console.log('\n📋 Connection Configuration:');
       console.log(JSON.stringify(config, null, 2));
-      
+
       // Save to env file
       const envContent = Object.entries(config.environmentVariables)
         .map(([key, value]) => `${key}=${value}`)
         .join('\n');
-      
+
       const fs = await import('fs/promises');
       await fs.writeFile('.env.cloudsql', envContent);
       console.log('\n💾 Configuration saved to .env.cloudsql');
-      
+
       return config;
-      
     } catch (error) {
       console.error('❌ Provisioning failed:', error.message);
       throw error;
@@ -243,11 +259,14 @@ class CloudSQLAutoProvisioner {
   async cleanup() {
     try {
       const token = await this.getAccessToken();
-      
-      const response = await fetch(`https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+
+      const response = await fetch(
+        `https://sqladmin.googleapis.com/v1/projects/${this.projectId}/instances/${this.instanceId}`,
+        {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (!response.ok) {
         const error = await response.text();
@@ -268,17 +287,18 @@ class CloudSQLAutoProvisioner {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const action = process.argv[2] || 'provision';
   const provisioner = new CloudSQLAutoProvisioner();
-  
+
   if (action === 'provision') {
-    provisioner.provision()
-      .then(config => {
+    provisioner
+      .provision()
+      .then((config) => {
         console.log('\n✅ Cloud SQL provisioning completed successfully!');
         console.log('\n🔗 Next steps:');
         console.log('1. Source the environment: source .env.cloudsql');
         console.log('2. Run the setup script: node scripts/cloud-sql-setup.js');
         console.log('3. Test connection with your LLM optimization scripts');
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('💥 Provisioning failed:', error.message);
         process.exit(1);
       });

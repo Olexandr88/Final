@@ -24,7 +24,7 @@ export class ToolExecutor extends EventEmitter {
       totalExecutions: 0,
       successCount: 0,
       errorCount: 0,
-      toolUsage: {}
+      toolUsage: {},
     };
     this.executionHistory = [];
     this.cachedSchemas = null;
@@ -63,7 +63,7 @@ export class ToolExecutor extends EventEmitter {
 
     logger.info(`Tool executor initialized for ${this.agentId}`, {
       toolCount: this.tools.size,
-      tools: Array.from(this.tools.keys())
+      tools: Array.from(this.tools.keys()),
     });
   }
 
@@ -95,7 +95,7 @@ export class ToolExecutor extends EventEmitter {
 
     logger.info(`Executing tool: ${toolName}`, {
       agentId: this.agentId,
-      params
+      params,
     });
 
     // Check if tool exists
@@ -123,14 +123,14 @@ export class ToolExecutor extends EventEmitter {
         tool: toolName,
         success: true,
         duration,
-        agentId: this.agentId
+        agentId: this.agentId,
       });
 
       return {
         success: true,
         tool: toolName,
         result,
-        duration
+        duration,
       };
     } catch (error) {
       const duration = Date.now() - startTime;
@@ -141,7 +141,7 @@ export class ToolExecutor extends EventEmitter {
         success: false,
         duration,
         error: error.message,
-        agentId: this.agentId
+        agentId: this.agentId,
       });
 
       throw error;
@@ -166,7 +166,7 @@ export class ToolExecutor extends EventEmitter {
       git_commit: 'git_operations',
       git_log: 'git_operations',
       analyze_code: 'code_analysis',
-      run_tests: 'test_execution'
+      run_tests: 'test_execution',
     };
 
     const requiredPermission = permissionMap[toolName];
@@ -195,7 +195,7 @@ export class ToolExecutor extends EventEmitter {
       duration,
       error: error?.message,
       timestamp: new Date().toISOString(),
-      agentId: this.agentId
+      agentId: this.agentId,
     });
 
     // Keep only last 100 executions
@@ -223,7 +223,7 @@ export class ToolExecutor extends EventEmitter {
       file_path,
       content,
       encoding,
-      size: content.length
+      size: content.length,
     };
   }
 
@@ -247,7 +247,7 @@ export class ToolExecutor extends EventEmitter {
     return {
       file_path,
       bytesWritten: content.length,
-      success: true
+      success: true,
     };
   }
 
@@ -267,7 +267,7 @@ export class ToolExecutor extends EventEmitter {
     return {
       pattern,
       files,
-      count: files.length
+      count: files.length,
     };
   }
 
@@ -291,7 +291,7 @@ export class ToolExecutor extends EventEmitter {
       if (regex.test(line)) {
         matches.push({
           line: index + 1,
-          content: line
+          content: line,
         });
       }
     });
@@ -300,7 +300,7 @@ export class ToolExecutor extends EventEmitter {
       file_path,
       pattern,
       matches,
-      count: matches.length
+      count: matches.length,
     };
   }
 
@@ -327,7 +327,7 @@ export class ToolExecutor extends EventEmitter {
     return {
       file_path,
       success: true,
-      replacements: 1
+      replacements: 1,
     };
   }
 
@@ -350,7 +350,7 @@ export class ToolExecutor extends EventEmitter {
       command: fullCommand,
       stdout: stdout.trim(),
       stderr: stderr.trim(),
-      success: true
+      success: true,
     };
   }
 
@@ -373,7 +373,7 @@ export class ToolExecutor extends EventEmitter {
       command: fullCommand,
       stdout: stdout.trim(),
       stderr: stderr.trim(),
-      success: true
+      success: true,
     };
   }
 
@@ -388,8 +388,14 @@ export class ToolExecutor extends EventEmitter {
 
     return {
       status: stdout.trim(),
-      modified: stdout.trim().split('\n').filter(l => l.startsWith(' M')).length,
-      untracked: stdout.trim().split('\n').filter(l => l.startsWith('??')).length
+      modified: stdout
+        .trim()
+        .split('\n')
+        .filter((l) => l.startsWith(' M')).length,
+      untracked: stdout
+        .trim()
+        .split('\n')
+        .filter((l) => l.startsWith('??')).length,
     };
   }
 
@@ -405,7 +411,7 @@ export class ToolExecutor extends EventEmitter {
 
     return {
       diff: stdout.trim(),
-      file_path: file_path || 'all'
+      file_path: file_path || 'all',
     };
   }
 
@@ -429,7 +435,7 @@ export class ToolExecutor extends EventEmitter {
     return {
       message,
       output: stdout.trim(),
-      success: true
+      success: true,
     };
   }
 
@@ -444,7 +450,7 @@ export class ToolExecutor extends EventEmitter {
 
     return {
       log: stdout.trim(),
-      commits: stdout.trim().split('\n')
+      commits: stdout.trim().split('\n'),
     };
   }
 
@@ -466,7 +472,7 @@ export class ToolExecutor extends EventEmitter {
       lines: content.split('\n').length,
       size: content.length,
       functions: (content.match(/function\s+\w+/g) || []).length,
-      classes: (content.match(/class\s+\w+/g) || []).length
+      classes: (content.match(/class\s+\w+/g) || []).length,
     };
   }
 
@@ -484,7 +490,7 @@ export class ToolExecutor extends EventEmitter {
         command,
         stdout: stdout.trim(),
         stderr: stderr.trim(),
-        success: true
+        success: true,
       };
     } catch (error) {
       return {
@@ -492,7 +498,7 @@ export class ToolExecutor extends EventEmitter {
         stdout: error.stdout?.trim() || '',
         stderr: error.stderr?.trim() || error.message,
         success: false,
-        exitCode: error.code
+        exitCode: error.code,
       };
     }
   }
@@ -518,10 +524,10 @@ export class ToolExecutor extends EventEmitter {
           type: 'object',
           properties: {
             file_path: { type: 'string', description: 'Path to file' },
-            encoding: { type: 'string', description: 'File encoding', default: 'utf-8' }
+            encoding: { type: 'string', description: 'File encoding', default: 'utf-8' },
           },
-          required: ['file_path']
-        }
+          required: ['file_path'],
+        },
       },
       {
         name: 'write',
@@ -531,10 +537,10 @@ export class ToolExecutor extends EventEmitter {
           properties: {
             file_path: { type: 'string', description: 'Path to file' },
             content: { type: 'string', description: 'Content to write' },
-            encoding: { type: 'string', description: 'File encoding', default: 'utf-8' }
+            encoding: { type: 'string', description: 'File encoding', default: 'utf-8' },
           },
-          required: ['file_path', 'content']
-        }
+          required: ['file_path', 'content'],
+        },
       },
       {
         name: 'bash',
@@ -544,10 +550,10 @@ export class ToolExecutor extends EventEmitter {
           properties: {
             command: { type: 'string', description: 'Command to execute' },
             args: { type: 'array', items: { type: 'string' }, description: 'Command arguments' },
-            cwd: { type: 'string', description: 'Working directory' }
+            cwd: { type: 'string', description: 'Working directory' },
           },
-          required: ['command']
-        }
+          required: ['command'],
+        },
       },
       {
         name: 'git_status',
@@ -555,10 +561,10 @@ export class ToolExecutor extends EventEmitter {
         parameters: {
           type: 'object',
           properties: {
-            cwd: { type: 'string', description: 'Repository directory' }
-          }
-        }
-      }
+            cwd: { type: 'string', description: 'Repository directory' },
+          },
+        },
+      },
     ];
   }
 
@@ -569,9 +575,10 @@ export class ToolExecutor extends EventEmitter {
   getMetrics() {
     return {
       ...this.metrics,
-      successRate: this.metrics.totalExecutions > 0
-        ? (this.metrics.successCount / this.metrics.totalExecutions * 100).toFixed(2) + '%'
-        : '0%'
+      successRate:
+        this.metrics.totalExecutions > 0
+          ? ((this.metrics.successCount / this.metrics.totalExecutions) * 100).toFixed(2) + '%'
+          : '0%',
     };
   }
 

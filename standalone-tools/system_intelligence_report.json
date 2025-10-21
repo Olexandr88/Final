@@ -36,9 +36,7 @@
       },
       "config_files": {
         "count": 1,
-        "files": [
-          "configure_mcp.py"
-        ]
+        "files": ["configure_mcp.py"]
       },
       "fixed_files": {
         "count": 4,
@@ -62,44 +60,25 @@
     "security_inventory": {
       "deployment_files": {
         "count": 2,
-        "files": [
-          "deploy.py",
-          "deploy_fixes.py"
-        ]
+        "files": ["deploy.py", "deploy_fixes.py"]
       },
       "validator_files": {
         "count": 4,
-        "files": [
-          "run_validation.py",
-          "validate_setup.py",
-          "validate_all.py",
-          "validators.py"
-        ]
+        "files": ["run_validation.py", "validate_setup.py", "validate_all.py", "validators.py"]
       },
       "error_handlers": {
         "count": 1,
-        "files": [
-          "error_handler.py"
-        ]
+        "files": ["error_handler.py"]
       },
       "security_modules": {
         "count": 3,
-        "files": [
-          "create_security.py",
-          "test_security_fixes.py",
-          "test_security_enhancements.py"
-        ]
+        "files": ["create_security.py", "test_security_fixes.py", "test_security_enhancements.py"]
       }
     },
     "versioning_analysis": {
       "total_files": 41,
       "versioned_file_groups": 4,
-      "versioned_files": [
-        "data_tools.py",
-        "file_tools.py",
-        "math_tools.py",
-        "text_tools.py"
-      ]
+      "versioned_files": ["data_tools.py", "file_tools.py", "math_tools.py", "text_tools.py"]
     }
   },
   "recommendations": [

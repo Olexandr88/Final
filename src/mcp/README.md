@@ -36,6 +36,7 @@ IDE (Claude Desktop/Continue.dev/VS Code)
 The MCP server is built into the LLM framework. No additional installation required.
 
 Dependencies (already in package.json):
+
 - `@modelcontextprotocol/sdk` ^1.0.4
 - `@anthropic-ai/sdk` ^0.67.0
 
@@ -65,12 +66,12 @@ npm run mcp:jules
 
 Available Jules tools:
 
-| Tool | Description |
-|------|-------------|
-| `jules_create_session` | Create a Jules session for a repository/source. |
-| `jules_list_sessions` | List accessible Jules sessions. |
-| `jules_get_session` | Fetch details for a specific session. |
-| `jules_send_message` | Send a follow-up message to an existing session. |
+| Tool                   | Description                                      |
+| ---------------------- | ------------------------------------------------ |
+| `jules_create_session` | Create a Jules session for a repository/source.  |
+| `jules_list_sessions`  | List accessible Jules sessions.                  |
+| `jules_get_session`    | Fetch details for a specific session.            |
+| `jules_send_message`   | Send a follow-up message to an existing session. |
 
 Configure `JULES_API_KEY` in `.env` before starting the server. When calling `jules_get_session`, pass the numeric `id` returned by `jules_list_sessions` (the server will also accept a full resource name like `sessions/123` and normalize it for you).
 
@@ -95,9 +96,7 @@ Add to `~/.claude/config.json` (macOS/Linux) or `%APPDATA%\Claude\config.json` (
   "mcpServers": {
     "llm-framework": {
       "command": "node",
-      "args": [
-        "C:/Users/scarm/src/mcp/index.js"
-      ],
+      "args": ["C:/Users/scarm/src/mcp/index.js"],
       "cwd": "C:/Users/scarm",
       "env": {
         "LOG_LEVEL": "INFO"
@@ -149,11 +148,13 @@ Add to `.vscode/settings.json`:
 Analyze source code for bugs, security issues, and quality metrics using AST-based analysis.
 
 **Parameters:**
+
 - `code` (string, required): Source code to analyze
 - `filepath` (string, optional): File path for context
 - `language` (string, optional): Programming language (auto-detected)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -177,9 +178,7 @@ Analyze source code for bugs, security issues, and quality metrics using AST-bas
       "category": "style"
     }
   ],
-  "recommendations": [
-    "Consider refactoring complex functions"
-  ]
+  "recommendations": ["Consider refactoring complex functions"]
 }
 ```
 
@@ -188,11 +187,13 @@ Analyze source code for bugs, security issues, and quality metrics using AST-bas
 Execute test suite with configurable options.
 
 **Parameters:**
+
 - `pattern` (string, optional): Test file pattern (default: "tests")
 - `timeout` (number, optional): Timeout in ms (default: 30000)
 - `parallel` (boolean, optional): Run tests in parallel (default: true)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -209,10 +210,12 @@ Execute test suite with configurable options.
 Retrieve session context and state information.
 
 **Parameters:**
+
 - `sessionId` (string, optional): Session ID (uses current if not provided)
 - `includeHistory` (boolean, optional): Include log history (default: false)
 
 **Response:**
+
 ```json
 {
   "session": {
@@ -232,12 +235,14 @@ Retrieve session context and state information.
 Execute shell commands safely with validation.
 
 **Parameters:**
+
 - `command` (string, required): Shell command to execute
 - `cwd` (string, optional): Working directory
 - `timeout` (number, optional): Timeout in ms (default: 10000)
 - `env` (object, optional): Environment variables
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -254,11 +259,13 @@ Execute shell commands safely with validation.
 Read file contents with encoding support.
 
 **Parameters:**
+
 - `filepath` (string, required): File path (absolute or relative)
 - `encoding` (string, optional): File encoding (default: "utf-8")
 - `maxSize` (number, optional): Max file size in bytes (default: 1MB)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -274,12 +281,14 @@ Read file contents with encoding support.
 Write content to file with backup support.
 
 **Parameters:**
+
 - `filepath` (string, required): File path (absolute or relative)
 - `content` (string, required): Content to write
 - `encoding` (string, optional): File encoding (default: "utf-8")
 - `createBackup` (boolean, optional): Create backup (default: true)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -294,10 +303,12 @@ Write content to file with backup support.
 List Jules sessions available to the configured `JULES_API_KEY`.
 
 **Parameters:**
+
 - `page_size` (number, optional): Number of sessions to return (default: 10)
 - `page_token` (string, optional): Pagination token from a previous call
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -318,9 +329,11 @@ List Jules sessions available to the configured `JULES_API_KEY`.
 Fetch detailed information for a single Jules session. Accepts either the numeric session ID or a resource name (`sessions/<id>`).
 
 **Parameters:**
+
 - `session_id` (string, required): Session identifier (numeric ID or resource name)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -339,12 +352,14 @@ Fetch detailed information for a single Jules session. Accepts either the numeri
 Create a Jules session for a repository/source.
 
 **Parameters:**
+
 - `prompt` (string, required): Task prompt for Jules
 - `source_id` (string, required): Source identifier (e.g., `sources/github/owner/repo`)
 - `title` (string, optional): Session title
 - `starting_branch` (string, optional): Repository branch (default: `main`)
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -361,10 +376,12 @@ Create a Jules session for a repository/source.
 Send a follow-up message to an existing Jules session.
 
 **Parameters:**
+
 - `session_id` (string, required): Session identifier (numeric ID or resource name)
 - `message` (string, required): Message content to send
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -388,6 +405,7 @@ npm run test:coverage
 ```
 
 Test coverage includes:
+
 - Tool definitions and schemas
 - Code analysis functionality
 - File read/write operations

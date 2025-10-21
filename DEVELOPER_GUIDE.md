@@ -23,6 +23,7 @@ npm test
 ## 🛠️ Essential Developer Commands
 
 ### Quick Testing
+
 ```bash
 npm run test:quick basic          # Run basic tests only
 npm run test:quick a2a            # Run A2A system tests
@@ -31,6 +32,7 @@ npm test                          # Full test suite (slow)
 ```
 
 ### Development Utilities
+
 ```bash
 npm run dev:helper                # Show all dev commands
 npm run dev:ports                 # Check what ports are in use
@@ -39,6 +41,7 @@ npm run dev:kill-bridge           # Kill stuck bridge processes
 ```
 
 ### Network Debugging
+
 ```bash
 npm run net:listening             # Show all listening ports
 npm run net:connections           # Analyze active connections
@@ -52,6 +55,7 @@ node scripts/network-debug.js dns-resolve google.com
 ```
 
 ### Process Management
+
 ```bash
 npm run proc:top                  # Top CPU-consuming processes
 npm run proc:mem                  # Top memory-consuming processes
@@ -60,6 +64,7 @@ npm run proc:watch                # Watch Node.js process count
 ```
 
 ### SSL/TLS Operations
+
 ```bash
 npm run ssl:helper                # Show all SSL commands
 npm run ssl:check google.com 443  # Check certificate details
@@ -68,6 +73,7 @@ npm run ssl:test example.com      # Test SSL/TLS connection
 ```
 
 ### System Diagnostics
+
 ```bash
 npm run quickfix                  # 5-second instant diagnostic
 npm run diag:advanced             # Interactive diagnostics menu (8 modes)
@@ -79,6 +85,7 @@ npm run quick-test                # Quick test runner
 ```
 
 ### Shell Toolkit (NEW)
+
 ```bash
 npm run swiss                     # Swiss Army Knife utility menu
 npm run util                      # Alias for swiss
@@ -86,6 +93,7 @@ npm run control                   # Master control hub (all tools)
 ```
 
 **Swiss Army Knife Features:**
+
 - Git visualization (beautiful log with stats)
 - Quick HTTP server (Python/PHP fallback)
 - DNS lookup (dig/host/nslookup/Google DNS API)
@@ -96,6 +104,7 @@ npm run control                   # Master control hub (all tools)
 - Project analysis (file types, dependencies, git)
 
 ### Workspace Cleanup
+
 ```bash
 npm run cleanup                   # Kill zombies & clean artifacts
 npm run workspace:clean:dry       # Preview what will be deleted
@@ -254,6 +263,7 @@ npm run diag:advanced
 ### Common Issues
 
 **Port Already in Use**
+
 ```bash
 npm run net:kill 65028           # Kill process on AI Bridge port
 npm run dev:kill-bridge          # Kill all bridge processes
@@ -261,6 +271,7 @@ npm run net:listening            # Verify port is freed
 ```
 
 **Tests Timing Out**
+
 ```bash
 npm run proc:zombie              # Find stuck test processes
 npm run cleanup                  # Kill zombies & clean artifacts
@@ -268,6 +279,7 @@ taskkill /F /IM node.exe         # Nuclear option (Windows)
 ```
 
 **Memory Issues**
+
 ```bash
 npm run proc:mem                 # Check memory usage
 npm run workspace:clean:dry      # Preview cleanup
@@ -276,6 +288,7 @@ npm run proc:zombie              # Kill zombie processes
 ```
 
 **AI Bridge Not Responding**
+
 ```bash
 npm run dev:bridge-check         # Check bridge status
 npm run health:system            # AI system health scan
@@ -285,6 +298,7 @@ npm run bridge:start             # Start fresh
 ```
 
 **Network Issues**
+
 ```bash
 npm run net:debug                # Network debug utility
 npm run net:dns google.com       # Test DNS resolution
@@ -293,6 +307,7 @@ npm run swiss                    # Menu option 6: Network Quick Test
 ```
 
 **Performance Degradation**
+
 ```bash
 npm run quickfix                 # Baseline metrics
 npm run diag:advanced            # Select mode 6: Bottlenecks
@@ -526,42 +541,42 @@ npm run control
 
 ### Keyboard Shortcuts (via npm scripts)
 
-| Command | Shortcut | Time |
-|---------|----------|------|
-| **Quick Diagnostics** | | |
-| 5-second health check | `npm run quickfix` | 5s |
-| Master control hub | `npm run control` | Interactive |
-| Swiss Army Knife | `npm run swiss` | Interactive |
-| Live monitoring | `npm run monitor:live` | Real-time |
-| Advanced diagnostics | `npm run diag:advanced` | Interactive |
-| **Testing** | | |
-| Quick test | `npm run test:quick <pattern>` | Fast |
-| Full test suite | `npm test` | Slow |
-| Test with coverage | `npm run test:coverage` | Slow |
-| **Network** | | |
-| Port scan | `npm run net:listening` | 1s |
-| DNS lookup | `npm run net:dns <domain>` | 2s |
-| Kill port | `npm run net:kill <port>` | 1s |
-| Network summary | `npm run net:summary` | 2s |
-| Watch port | `npm run net:watch <port>` | Real-time |
-| **Process Management** | | |
-| Top CPU | `npm run proc:top` | 1s |
-| Top Memory | `npm run proc:mem` | 1s |
-| Find zombies | `npm run proc:zombie` | 2s |
-| Kill zombies | `npm run cleanup` | 5s |
-| **AI Bridge** | | |
-| Start bridge | `npm run bridge:start` | 2s |
-| Kill bridge | `npm run dev:kill-bridge` | 1s |
-| Bridge diagnostic | `npm run bridge:diagnostic` | 5s |
-| Start system | `npm run system:start` | 5s |
-| **SSL/TLS** | | |
-| SSL check | `npm run ssl:check <domain>` | 2s |
-| SSL test | `npm run ssl:test <domain>` | 3s |
-| Generate key | `npm run ssl:gen-key` | 1s |
-| **Workspace** | | |
-| Clean (dry-run) | `npm run workspace:clean:dry` | 2s |
-| Clean workspace | `npm run workspace:clean` | 5s |
-| Aggressive clean | `npm run workspace:clean:aggressive` | 10s |
+| Command                | Shortcut                             | Time        |
+| ---------------------- | ------------------------------------ | ----------- |
+| **Quick Diagnostics**  |                                      |             |
+| 5-second health check  | `npm run quickfix`                   | 5s          |
+| Master control hub     | `npm run control`                    | Interactive |
+| Swiss Army Knife       | `npm run swiss`                      | Interactive |
+| Live monitoring        | `npm run monitor:live`               | Real-time   |
+| Advanced diagnostics   | `npm run diag:advanced`              | Interactive |
+| **Testing**            |                                      |             |
+| Quick test             | `npm run test:quick <pattern>`       | Fast        |
+| Full test suite        | `npm test`                           | Slow        |
+| Test with coverage     | `npm run test:coverage`              | Slow        |
+| **Network**            |                                      |             |
+| Port scan              | `npm run net:listening`              | 1s          |
+| DNS lookup             | `npm run net:dns <domain>`           | 2s          |
+| Kill port              | `npm run net:kill <port>`            | 1s          |
+| Network summary        | `npm run net:summary`                | 2s          |
+| Watch port             | `npm run net:watch <port>`           | Real-time   |
+| **Process Management** |                                      |             |
+| Top CPU                | `npm run proc:top`                   | 1s          |
+| Top Memory             | `npm run proc:mem`                   | 1s          |
+| Find zombies           | `npm run proc:zombie`                | 2s          |
+| Kill zombies           | `npm run cleanup`                    | 5s          |
+| **AI Bridge**          |                                      |             |
+| Start bridge           | `npm run bridge:start`               | 2s          |
+| Kill bridge            | `npm run dev:kill-bridge`            | 1s          |
+| Bridge diagnostic      | `npm run bridge:diagnostic`          | 5s          |
+| Start system           | `npm run system:start`               | 5s          |
+| **SSL/TLS**            |                                      |             |
+| SSL check              | `npm run ssl:check <domain>`         | 2s          |
+| SSL test               | `npm run ssl:test <domain>`          | 3s          |
+| Generate key           | `npm run ssl:gen-key`                | 1s          |
+| **Workspace**          |                                      |             |
+| Clean (dry-run)        | `npm run workspace:clean:dry`        | 2s          |
+| Clean workspace        | `npm run workspace:clean`            | 5s          |
+| Aggressive clean       | `npm run workspace:clean:aggressive` | 10s         |
 
 ## 🤝 Contributing
 
@@ -594,6 +609,7 @@ git status
 **Types**: feat, fix, docs, style, refactor, test, chore
 
 **Example**:
+
 ```
 feat(ai-bridge): add message compression for large payloads
 

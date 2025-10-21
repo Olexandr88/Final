@@ -14,7 +14,7 @@ describe('Comet Automation Agent', () => {
     // Create agent instance
     agent = new CometAutomationAgent({
       autoReconnect: false, // Disable for tests
-      debugPort: 9223 // Use different port to avoid conflicts
+      debugPort: 9223, // Use different port to avoid conflicts
     });
   });
 
@@ -40,14 +40,11 @@ describe('Comet Automation Agent', () => {
       'dom-interaction',
       'data-extraction',
       'screenshot-capture',
-      'network-monitoring'
+      'network-monitoring',
     ];
 
-    expectedCapabilities.forEach(capability => {
-      assert.ok(
-        agent.capabilities.includes(capability),
-        `Missing capability: ${capability}`
-      );
+    expectedCapabilities.forEach((capability) => {
+      assert.ok(agent.capabilities.includes(capability), `Missing capability: ${capability}`);
     });
   });
 
@@ -61,14 +58,14 @@ describe('Comet Automation Agent', () => {
         assert.deepEqual(command.params, { url: 'https://example.com' });
       },
       on: () => {},
-      removeListener: () => {}
+      removeListener: () => {},
     };
 
     // This will timeout, but we're testing the command structure
     try {
       await Promise.race([
         agent.sendCDPCommand('Page.navigate', { url: 'https://example.com' }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 100))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 100)),
       ]);
     } catch (error) {
       assert.strictEqual(error.message, 'timeout');
@@ -81,13 +78,13 @@ describe('Comet Automation Agent', () => {
     agent.bridgeConnection = {
       send: (data) => {
         sentMessage = JSON.parse(data);
-      }
+      },
     };
     agent.isConnected = true;
 
     agent.sendToBridge({
       type: 'test:message',
-      data: { foo: 'bar' }
+      data: { foo: 'bar' },
     });
 
     assert.ok(sentMessage);
@@ -111,14 +108,14 @@ describe('Comet Automation Agent', () => {
   it('should emit events on lifecycle changes', async () => {
     let eventsFired = 0;
 
-    const readyPromise = new Promise(resolve => {
+    const readyPromise = new Promise((resolve) => {
       agent.on('ready', () => {
         eventsFired++;
         resolve();
       });
     });
 
-    const destroyedPromise = new Promise(resolve => {
+    const destroyedPromise = new Promise((resolve) => {
       agent.on('destroyed', () => {
         eventsFired++;
         resolve();
@@ -144,7 +141,7 @@ describe('Comet API Integration', () => {
     const customAgent = new CometAutomationAgent({
       debugPort: 9999,
       agentId: 'custom-agent',
-      autoReconnect: false
+      autoReconnect: false,
     });
 
     assert.strictEqual(customAgent.config.debugPort, 9999);

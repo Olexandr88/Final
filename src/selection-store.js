@@ -13,7 +13,7 @@ fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 // Initialize database pool
 const pool = new DatabasePool(DB_PATH, {
   poolSize: 15,
-  enableWAL: true
+  enableWAL: true,
 });
 
 // Initialize schema with WAL mode for better concurrency
@@ -53,7 +53,7 @@ export async function saveSelection({ url, title, selected_text, source = 'brows
       url: String(url).slice(0, 2048),
       title: title ? String(title).slice(0, 512) : null,
       selected_text: String(selected_text).slice(0, 100000),
-      source: String(source).slice(0, 64)
+      source: String(source).slice(0, 64),
     });
     return result.lastInsertRowid;
   });
@@ -104,7 +104,7 @@ export async function searchSelections(query, limit = 50) {
     `);
     return searchStmt.all({
       query: `%${query}%`,
-      limit: Math.min(limit, 1000)
+      limit: Math.min(limit, 1000),
     });
   });
 }
@@ -121,5 +121,5 @@ export default {
   getLatestSelections,
   getSelectionCount,
   searchSelections,
-  closeDatabase
+  closeDatabase,
 };

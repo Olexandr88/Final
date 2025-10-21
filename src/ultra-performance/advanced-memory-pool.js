@@ -50,9 +50,9 @@ class ObjectPool extends EventEmitter {
       poolSize: this.pool.length,
       created: this.created,
       reused: this.reused,
-      reuseRatio: this.created > 0 ? (this.reused / (this.created + this.reused)) : 0,
+      reuseRatio: this.created > 0 ? this.reused / (this.created + this.reused) : 0,
       peak: this.peak,
-      maxSize: this.maxSize
+      maxSize: this.maxSize,
     };
   }
 
@@ -71,9 +71,9 @@ class BufferPool extends ObjectPool {
   constructor(bufferSize = 64 * 1024, maxBuffers = 500) {
     const factory = () => Buffer.allocUnsafe(bufferSize);
     const reset = (buffer) => buffer.fill(0);
-    
+
     super(factory, reset, maxBuffers);
-    
+
     this.bufferSize = bufferSize;
     this.totalMemory = 0;
     this.maxMemory = maxBuffers * bufferSize;
@@ -96,7 +96,7 @@ class BufferPool extends ObjectPool {
       bufferSize: this.bufferSize,
       totalMemory: this.totalMemory,
       maxMemory: this.maxMemory,
-      memoryEfficiency: this.maxMemory > 0 ? (this.totalMemory / this.maxMemory) : 0
+      memoryEfficiency: this.maxMemory > 0 ? this.totalMemory / this.maxMemory : 0,
     };
   }
 }
@@ -107,109 +107,109 @@ class BufferPool extends ObjectPool {
 export class AdvancedMemoryPool extends EventEmitter {
   constructor(options = {}) {
     super();
-    
+
     this.options = {
       bufferSize: options.bufferSize || 64 * 1024,
       maxBuffers: options.maxBuffers || 500,
       gcInterval: options.gcInterval || 30000,
       memoryPressureThreshold: options.memoryPressureThreshold || 0.85,
-      ...options
+      ...options,
     };
-    
+
     this.pools = {
-      buffers: new BufferPool(this.options.bufferSize, this.options.maxBuffers)
+      buffers: new BufferPool(this.options.bufferSize, this.options.maxBuffers),
     };
-    
+
     this.stats = {
       startTime: Date.now(),
       totalAllocations: 0,
       totalReleases: 0,
       memoryPressureEvents: 0,
-      gcTriggers: 0
+      gcTriggers: 0,
     };
-    
+
     this.setupMonitoring();
     this.setupGarbageCollection();
   }
-  
+
   setupMonitoring() {
     Object.entries(this.pools).forEach(([name, pool]) => {
       pool.on('acquire', (data) => {
         this.stats.totalAllocations++;
         this.emit('pool-acquire', { pool: name, ...data });
       });
-      
+
       pool.on('release', (data) => {
         this.stats.totalReleases++;
         this.emit('pool-release', { pool: name, ...data });
       });
     });
   }
-  
+
   setupGarbageCollection() {
     this.gcTimer = setInterval(() => {
       this.checkMemoryPressure();
     }, this.options.gcInterval);
   }
-  
+
   checkMemoryPressure() {
     const memUsage = process.memoryUsage();
     const memoryPressure = memUsage.heapUsed / memUsage.heapTotal;
-    
+
     if (memoryPressure > this.options.memoryPressureThreshold) {
       this.handleMemoryPressure(memoryPressure);
     }
   }
-  
+
   handleMemoryPressure(pressure) {
     this.stats.memoryPressureEvents++;
-    
+
     if (global.gc) {
       this.stats.gcTriggers++;
       global.gc();
     }
-    
+
     this.emit('memory-pressure', {
       pressure,
-      gcTriggered: !!global.gc
+      gcTriggered: !!global.gc,
     });
   }
-  
+
   acquireBuffer() {
     return this.pools.buffers.acquire();
   }
-  
+
   releaseBuffer(buffer) {
     return this.pools.buffers.release(buffer);
   }
-  
+
   getStats() {
     const uptime = Date.now() - this.stats.startTime;
     const poolStats = {};
-    
+
     Object.entries(this.pools).forEach(([name, pool]) => {
       poolStats[name] = pool.getStats();
     });
-    
+
     return {
       uptime: Math.floor(uptime / 1000),
       totalAllocations: this.stats.totalAllocations,
       totalReleases: this.stats.totalReleases,
       memoryPressureEvents: this.stats.memoryPressureEvents,
       gcTriggers: this.stats.gcTriggers,
-      pools: poolStats
+      pools: poolStats,
     };
   }
-  
+
   destroy() {
     if (this.gcTimer) {
       clearInterval(this.gcTimer);
     }
-    
-    Object.values(this.pools).forEach(pool => {
+
+    Object.values(this.pools).forEach((pool) => {
       pool.drain();
     });
-    
+
     this.emit('destroyed');
   }
 }

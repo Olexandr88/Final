@@ -17,7 +17,7 @@ async function loadProjects() {
   if (!res.ok) throw new Error(`Failed to load Projects.json: ${res.status}`);
   const data = await res.json();
   // Normalize list: accept array or {projects:[...]}
-  state.projects = Array.isArray(data) ? data : (Array.isArray(data.projects) ? data.projects : []);
+  state.projects = Array.isArray(data) ? data : Array.isArray(data.projects) ? data.projects : [];
   state.filtered = state.projects;
   render();
 }
@@ -32,7 +32,7 @@ function render() {
     const title = p.name || p.title || p.repo || 'Untitled';
     const desc = p.description || '';
     const repo = p.url || p.repo || p.github || '';
-    const tags = Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || '');
+    const tags = Array.isArray(p.tags) ? p.tags.join(', ') : p.tags || '';
 
     card.innerHTML = `
       <h3>${escapeHtml(title)}</h3>
@@ -49,8 +49,10 @@ function render() {
     `;
 
     const statusEl = card.querySelector('[data-status]');
-    card.querySelectorAll('button').forEach(btn => {
-      btn.addEventListener('click', () => handleAction(btn.dataset.action, { project: p, statusEl }));
+    card.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        handleAction(btn.dataset.action, { project: p, statusEl })
+      );
     });
 
     els.list.appendChild(card);
@@ -58,7 +60,10 @@ function render() {
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return String(s).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
+  );
 }
 
 els.search.addEventListener('input', () => {
@@ -66,11 +71,19 @@ els.search.addEventListener('input', () => {
   if (!q) {
     state.filtered = state.projects;
   } else {
-    state.filtered = state.projects.filter(p => {
+    state.filtered = state.projects.filter((p) => {
       const hay = [
-        p.name, p.title, p.description, p.repo, p.url, p.github,
-        Array.isArray(p.tags) ? p.tags.join(' ') : p.tags
-      ].filter(Boolean).join(' ').toLowerCase();
+        p.name,
+        p.title,
+        p.description,
+        p.repo,
+        p.url,
+        p.github,
+        Array.isArray(p.tags) ? p.tags.join(' ') : p.tags,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
       return hay.includes(q);
     });
   }
@@ -116,6 +129,6 @@ async function handleAction(action, { project, statusEl }) {
   }
 }
 
-loadProjects().catch(err => {
+loadProjects().catch((err) => {
   els.list.innerHTML = `<div class="card"><div class="desc">Error: ${err.message}</div></div>`;
 });

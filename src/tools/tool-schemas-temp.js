@@ -23,7 +23,7 @@ async function executeGit(command, cwd) {
     const { stdout, stderr } = await execAsync(command, {
       cwd: cwd || process.cwd(),
       encoding: 'utf8',
-      maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+      maxBuffer: 10 * 1024 * 1024, // 10MB buffer
     });
 
     // Git sometimes outputs to stderr even on success
@@ -36,7 +36,7 @@ async function executeGit(command, cwd) {
     logger.error('Git command failed', {
       command,
       error: error.message,
-      stderr: error.stderr
+      stderr: error.stderr,
     });
     throw new Error(`Git command failed: ${error.message}`);
   }
@@ -58,7 +58,7 @@ export async function gitStatus(params = {}, context = {}) {
   logger.info('Executing git status', {
     agentId: context.agentId,
     cwd,
-    porcelain
+    porcelain,
   });
 
   try {
@@ -68,14 +68,12 @@ export async function gitStatus(params = {}, context = {}) {
     } catch (error) {
       return {
         isRepository: false,
-        error: 'Not a git repository'
+        error: 'Not a git repository',
       };
     }
 
     // Get status in porcelain format for structured parsing
-    const statusCommand = porcelain
-      ? 'git status --porcelain=v2 --branch'
-      : 'git status';
+    const statusCommand = porcelain ? 'git status --porcelain=v2 --branch' : 'git status';
 
     const output = await executeGit(statusCommand, cwd);
 
@@ -90,7 +88,7 @@ export async function gitStatus(params = {}, context = {}) {
         staged: [],
         unstaged: [],
         untracked: [],
-        conflicted: []
+        conflicted: [],
       };
 
       const lines = output.split('\n');
@@ -136,13 +134,13 @@ export async function gitStatus(params = {}, context = {}) {
       // Return raw output for human-readable format
       return {
         isRepository: true,
-        output
+        output,
       };
     }
   } catch (error) {
     logger.error('Git status failed', {
       agentId: context.agentId,
-      error: error.message
+      error: error.message,
     });
     throw error;
   }
@@ -162,13 +160,7 @@ export async function gitStatus(params = {}, context = {}) {
  * @returns {Promise<Object>} Diff results
  */
 export async function gitDiff(params = {}, context = {}) {
-  const {
-    cwd = process.cwd(),
-    file = null,
-    staged = false,
-    nameOnly = false,
-    ref = null
-  } = params;
+  const { cwd = process.cwd(), file = null, staged = false, nameOnly = false, ref = null } = params;
 
   logger.info('Executing git diff', {
     agentId: context.agentId,
@@ -176,7 +168,7 @@ export async function gitDiff(params = {}, context = {}) {
     file,
     staged,
     nameOnly,
-    ref
+    ref,
   });
 
   try {
@@ -186,7 +178,7 @@ export async function gitDiff(params = {}, context = {}) {
     } catch (error) {
       return {
         isRepository: false,
-        error: 'Not a git repository'
+        error: 'Not a git repository',
       };
     }
 
@@ -213,22 +205,22 @@ export async function gitDiff(params = {}, context = {}) {
 
     if (nameOnly) {
       // Parse file list
-      const files = output.split('\n').filter(f => f.trim());
+      const files = output.split('\n').filter((f) => f.trim());
       return {
         files,
-        count: files.length
+        count: files.length,
       };
     } else {
       // Return full diff
       return {
         diff: output,
-        hasChanges: output.length > 0
+        hasChanges: output.length > 0,
       };
     }
   } catch (error) {
     logger.error('Git diff failed', {
       agentId: context.agentId,
-      error: error.message
+      error: error.message,
     });
     throw error;
   }
@@ -255,7 +247,7 @@ export async function gitCommit(params = {}, context = {}) {
     files = null,
     all = false,
     amend = false,
-    author = null
+    author = null,
   } = params;
 
   // Validate required parameters
@@ -269,7 +261,7 @@ export async function gitCommit(params = {}, context = {}) {
     message: message.substring(0, 50) + (message.length > 50 ? '...' : ''),
     filesCount: files ? files.length : 'all staged',
     all,
-    amend
+    amend,
   });
 
   try {
@@ -279,7 +271,7 @@ export async function gitCommit(params = {}, context = {}) {
     } catch (error) {
       return {
         isRepository: false,
-        error: 'Not a git repository'
+        error: 'Not a git repository',
       };
     }
 
@@ -295,7 +287,7 @@ export async function gitCommit(params = {}, context = {}) {
     // Check if there are changes to commit (unless amending)
     if (!amend) {
       const statusOutput = await executeGit('git status --porcelain', cwd);
-      const hasStaged = statusOutput.split('\n').some(line => {
+      const hasStaged = statusOutput.split('\n').some((line) => {
         const status = line.substring(0, 2);
         return status[0] !== ' ' && status[0] !== '?' && status[0] !== '!';
       });
@@ -303,7 +295,7 @@ export async function gitCommit(params = {}, context = {}) {
       if (!hasStaged && !all) {
         return {
           success: false,
-          error: 'No changes staged for commit'
+          error: 'No changes staged for commit',
         };
       }
     }
@@ -345,10 +337,10 @@ export async function gitCommit(params = {}, context = {}) {
           hash,
           author: {
             name: authorName,
-            email: authorEmail
+            email: authorEmail,
           },
           timestamp: parseInt(timestamp),
-          subject
+          subject,
         };
       } catch (error) {
         logger.warn('Failed to get commit details', { error: error.message });
@@ -357,19 +349,19 @@ export async function gitCommit(params = {}, context = {}) {
 
     logger.info('Git commit successful', {
       agentId: context.agentId,
-      commitHash
+      commitHash,
     });
 
     return {
       success: true,
       commitHash,
       commit: commitDetails,
-      output
+      output,
     };
   } catch (error) {
     logger.error('Git commit failed', {
       agentId: context.agentId,
-      error: error.message
+      error: error.message,
     });
     throw error;
   }
@@ -381,20 +373,21 @@ export async function gitCommit(params = {}, context = {}) {
 export const gitToolSchemas = {
   git_status: {
     name: 'git_status',
-    description: 'Get the current git repository status including branch, staged/unstaged changes, and untracked files',
+    description:
+      'Get the current git repository status including branch, staged/unstaged changes, and untracked files',
     input_schema: {
       type: 'object',
       properties: {
         cwd: {
           type: 'string',
-          description: 'Repository directory path (defaults to current directory)'
+          description: 'Repository directory path (defaults to current directory)',
         },
         porcelain: {
           type: 'boolean',
-          description: 'Use machine-readable format (default: true)'
-        }
-      }
-    }
+          description: 'Use machine-readable format (default: true)',
+        },
+      },
+    },
   },
 
   git_diff: {
@@ -405,26 +398,26 @@ export const gitToolSchemas = {
       properties: {
         cwd: {
           type: 'string',
-          description: 'Repository directory path'
+          description: 'Repository directory path',
         },
         file: {
           type: 'string',
-          description: 'Specific file to diff (optional)'
+          description: 'Specific file to diff (optional)',
         },
         staged: {
           type: 'boolean',
-          description: 'Show staged changes (--cached flag)'
+          description: 'Show staged changes (--cached flag)',
         },
         nameOnly: {
           type: 'boolean',
-          description: 'Show only changed file names'
+          description: 'Show only changed file names',
         },
         ref: {
           type: 'string',
-          description: 'Compare against specific commit/branch/ref'
-        }
-      }
-    }
+          description: 'Compare against specific commit/branch/ref',
+        },
+      },
+    },
   },
 
   git_commit: {
@@ -435,31 +428,31 @@ export const gitToolSchemas = {
       properties: {
         message: {
           type: 'string',
-          description: 'Commit message (required)'
+          description: 'Commit message (required)',
         },
         cwd: {
           type: 'string',
-          description: 'Repository directory path'
+          description: 'Repository directory path',
         },
         files: {
           type: 'array',
           items: { type: 'string' },
-          description: 'Specific files to stage and commit (optional)'
+          description: 'Specific files to stage and commit (optional)',
         },
         all: {
           type: 'boolean',
-          description: 'Stage all tracked changes (-a flag)'
+          description: 'Stage all tracked changes (-a flag)',
         },
         amend: {
           type: 'boolean',
-          description: 'Amend the previous commit'
+          description: 'Amend the previous commit',
         },
         author: {
           type: 'string',
-          description: 'Override commit author (format: "Name <email>")'
-        }
+          description: 'Override commit author (format: "Name <email>")',
+        },
       },
-      required: ['message']
-    }
-  }
-}
+      required: ['message'],
+    },
+  },
+};

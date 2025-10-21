@@ -7,21 +7,21 @@ class RateLimiter {
     this.windowSize = options.windowSize || 60000; // 1 minute
     this.windows = new Map();
     this.cleanupInterval = options.cleanupInterval || 120000; // 2 minutes
-    
+
     // Metrics tracking
     this.metrics = {
       totalRequests: 0,
       blockedRequests: 0,
       uniqueKeys: 0,
-      cleanupRuns: 0
+      cleanupRuns: 0,
     };
-    
+
     this.startCleanupCycle();
-    
+
     console.log('🚦 RateLimiter initialized:', {
       maxRequests: this.maxRequests,
       windowSize: this.windowSize + 'ms',
-      cleanupInterval: this.cleanupInterval + 'ms'
+      cleanupInterval: this.cleanupInterval + 'ms',
     });
   }
 
@@ -33,29 +33,31 @@ class RateLimiter {
   isAllowed(key) {
     const now = Date.now();
     const windowStart = now - this.windowSize;
-    
+
     // Initialize window for new key
     if (!this.windows.has(key)) {
       this.windows.set(key, []);
       this.metrics.uniqueKeys++;
     }
-    
+
     const window = this.windows.get(key);
-    
+
     // Remove requests outside current window (sliding window)
-    const validRequests = window.filter(timestamp => timestamp > windowStart);
+    const validRequests = window.filter((timestamp) => timestamp > windowStart);
     this.windows.set(key, validRequests);
-    
+
     this.metrics.totalRequests++;
-    
+
     // Check if under limit
     if (validRequests.length < this.maxRequests) {
       validRequests.push(now);
       return true;
     }
-    
+
     this.metrics.blockedRequests++;
-    console.warn(`⚠️ Rate limit exceeded for key: ${key} (${validRequests.length}/${this.maxRequests})`);
+    console.warn(
+      `⚠️ Rate limit exceeded for key: ${key} (${validRequests.length}/${this.maxRequests})`
+    );
     return false;
   }
 
@@ -68,12 +70,12 @@ class RateLimiter {
     if (!this.windows.has(key)) {
       return this.maxRequests;
     }
-    
+
     const now = Date.now();
     const windowStart = now - this.windowSize;
     const window = this.windows.get(key);
-    const validRequests = window.filter(timestamp => timestamp > windowStart);
-    
+    const validRequests = window.filter((timestamp) => timestamp > windowStart);
+
     return Math.max(0, this.maxRequests - validRequests.length);
   }
 
@@ -86,15 +88,15 @@ class RateLimiter {
     if (!this.windows.has(key)) {
       return 0;
     }
-    
+
     const window = this.windows.get(key);
     if (window.length < this.maxRequests) {
       return 0;
     }
-    
+
     const oldestRequest = Math.min(...window);
     const resetTime = oldestRequest + this.windowSize;
-    
+
     return Math.max(0, resetTime - Date.now());
   }
 
@@ -106,7 +108,7 @@ class RateLimiter {
   getStatus(key) {
     const remaining = this.getRemainingRequests(key);
     const timeUntilReset = this.getTimeUntilReset(key);
-    
+
     return {
       key,
       remaining,
@@ -114,7 +116,7 @@ class RateLimiter {
       limit: this.maxRequests,
       timeUntilReset,
       isAllowed: remaining > 0,
-      windowSize: this.windowSize
+      windowSize: this.windowSize,
     };
   }
 
@@ -123,7 +125,7 @@ class RateLimiter {
    * @returns {Array} Array of status objects for all keys
    */
   getAllStatus() {
-    return Array.from(this.windows.keys()).map(key => this.getStatus(key));
+    return Array.from(this.windows.keys()).map((key) => this.getStatus(key));
   }
 
   /**
@@ -131,10 +133,11 @@ class RateLimiter {
    * @returns {object} Performance and usage statistics
    */
   getStats() {
-    const blockRate = this.metrics.totalRequests > 0 
-      ? (this.metrics.blockedRequests / this.metrics.totalRequests) * 100 
-      : 0;
-    
+    const blockRate =
+      this.metrics.totalRequests > 0
+        ? (this.metrics.blockedRequests / this.metrics.totalRequests) * 100
+        : 0;
+
     return {
       totalRequests: this.metrics.totalRequests,
       blockedRequests: this.metrics.blockedRequests,
@@ -145,8 +148,8 @@ class RateLimiter {
       config: {
         maxRequests: this.maxRequests,
         windowSize: this.windowSize,
-        cleanupInterval: this.cleanupInterval
-      }
+        cleanupInterval: this.cleanupInterval,
+      },
     };
   }
 
@@ -165,13 +168,13 @@ class RateLimiter {
    */
   cleanup() {
     const now = Date.now();
-    const cutoff = now - (this.windowSize * 2); // Keep 2x window for safety
+    const cutoff = now - this.windowSize * 2; // Keep 2x window for safety
     let cleanedKeys = 0;
-    
+
     for (const [key, window] of this.windows.entries()) {
       // Filter out very old requests
-      const validRequests = window.filter(timestamp => timestamp > cutoff);
-      
+      const validRequests = window.filter((timestamp) => timestamp > cutoff);
+
       if (validRequests.length === 0) {
         this.windows.delete(key);
         cleanedKeys++;
@@ -179,12 +182,12 @@ class RateLimiter {
         this.windows.set(key, validRequests);
       }
     }
-    
+
     if (cleanedKeys > 0) {
       this.metrics.cleanupRuns++;
       console.log(`🧹 Rate limiter cleaned ${cleanedKeys} expired keys`);
     }
-    
+
     return cleanedKeys;
   }
 
@@ -219,11 +222,11 @@ class RateLimiter {
     if (newConfig.maxRequests) this.maxRequests = newConfig.maxRequests;
     if (newConfig.windowSize) this.windowSize = newConfig.windowSize;
     if (newConfig.cleanupInterval) this.cleanupInterval = newConfig.cleanupInterval;
-    
+
     console.log('🔧 Rate limiter configuration updated:', {
       maxRequests: this.maxRequests,
       windowSize: this.windowSize,
-      cleanupInterval: this.cleanupInterval
+      cleanupInterval: this.cleanupInterval,
     });
   }
 
@@ -239,7 +242,7 @@ class RateLimiter {
         const timeUntilReset = this.getTimeUntilReset(key);
         throw new Error(`Rate limit exceeded. Try again in ${Math.ceil(timeUntilReset / 1000)}s`);
       }
-      
+
       return await fn(...args);
     };
   }

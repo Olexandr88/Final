@@ -21,7 +21,7 @@ export class WorkflowOrchestrator extends EventEmitter {
       task,
       phases: {},
       timestamp: Date.now(),
-      success: true
+      success: true,
     };
     return workflow;
   }
@@ -29,7 +29,7 @@ export class WorkflowOrchestrator extends EventEmitter {
   async executeTDD(feature, options = {}) {
     return {
       feature,
-      testsPassing: true
+      testsPassing: true,
     };
   }
 
@@ -38,13 +38,13 @@ export class WorkflowOrchestrator extends EventEmitter {
   }
 
   async fork(fromPhase) {
-    return this.sessionHistory.find(h => h.phase === fromPhase);
+    return this.sessionHistory.find((h) => h.phase === fromPhase);
   }
 
   getStats() {
     return {
       totalPhases: this.sessionHistory.length,
-      currentPhase: this.currentPhase
+      currentPhase: this.currentPhase,
     };
   }
 }

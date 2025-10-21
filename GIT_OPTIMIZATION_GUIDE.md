@@ -20,11 +20,13 @@ Loose Objects: 187 objects (159.93 MiB)
 ### ⚠️ Large Files in History
 
 **Critical Issues:**
+
 1. **release/LLMChat.exe** - 38MB (❌ Should NEVER be in git)
 2. **build/chat-launcher.cjs** - 683KB (Build artifact)
 3. **Multiple package-lock.json versions** - 300-600KB each
 
 **Impact:**
+
 - `.git` directory is **179M** (should be <30M for this project)
 - Every clone downloads unnecessary 150M+ of binary files
 - CI/CD builds are slower due to large clone size
@@ -37,6 +39,7 @@ Loose Objects: 187 objects (159.93 MiB)
 ### Priority 1: Remove Binary Files (HIGH IMPACT)
 
 **Files to Remove from History:**
+
 ```
 release/LLMChat.exe         # 38MB executable
 build/chat-launcher.cjs     # 683KB build artifact
@@ -76,6 +79,7 @@ git gc --prune=now --aggressive
 ```
 
 **Expected Result:**
+
 - `.git` size: 179M → ~25M (85% reduction)
 - Clone time: 30s → 5s (6x faster)
 - Bandwidth saved: 150M per clone
@@ -120,10 +124,12 @@ package-lock.json  # Optional: many teams ignore this
 ### Priority 3: Clean Package Lock Churn (MEDIUM IMPACT)
 
 **Issue:**
+
 - 20+ versions of `package-lock.json` in history (300-600KB each)
 - Total wasted space: ~7-10MB
 
 **Solution:**
+
 - Keep package-lock.json in git (good practice)
 - But consider using `.gitattributes` to reduce diffs:
 
@@ -133,6 +139,7 @@ package-lock.json diff=lockfile
 ```
 
 **Or (if team agrees):**
+
 - Add `package-lock.json` to `.gitignore`
 - Use `npm ci` in CI/CD with committed lock file elsewhere
 
@@ -143,6 +150,7 @@ package-lock.json diff=lockfile
 ### Step-by-Step Execution
 
 **Phase 1: Preparation (5 minutes)**
+
 ```bash
 # 1. Notify team about upcoming force push
 # 2. Ensure all team members have pushed their work
@@ -151,6 +159,7 @@ git clone --mirror <repo-url> backup-$(date +%Y%m%d).git
 ```
 
 **Phase 2: Cleanup (10 minutes)**
+
 ```bash
 # 1. Use BFG Repo-Cleaner (recommended)
 java -jar bfg.jar --delete-files LLMChat.exe
@@ -168,6 +177,7 @@ git gc --prune=now --aggressive
 ```
 
 **Phase 3: Force Push (BREAKING CHANGE)**
+
 ```bash
 # ⚠️ WARNING: This rewrites history. All team members must re-clone.
 git push --force --all origin
@@ -175,6 +185,7 @@ git push --force --tags origin
 ```
 
 **Phase 4: Team Synchronization**
+
 ```bash
 # Every team member must run:
 cd LLM
@@ -273,6 +284,7 @@ jobs:
 ## 📊 Expected Results
 
 ### Before Optimization
+
 ```
 .git directory: 179M
 Clone time: ~30 seconds
@@ -281,6 +293,7 @@ Objects: 5,206
 ```
 
 ### After Optimization
+
 ```
 .git directory: ~25M (85% reduction)
 Clone time: ~5 seconds (6x faster)
@@ -289,6 +302,7 @@ Objects: ~4,800 (removed binary blob objects)
 ```
 
 ### Benefits
+
 - ✅ **6x faster clones** for all contributors
 - ✅ **85% less bandwidth** for CI/CD pipelines
 - ✅ **Cleaner repository** with proper .gitignore
@@ -310,6 +324,7 @@ Objects: ~4,800 (removed binary blob objects)
 ### After Force Push
 
 1. **All contributors must re-clone:**
+
    ```bash
    cd ..
    rm -rf LLM
@@ -317,6 +332,7 @@ Objects: ~4,800 (removed binary blob objects)
    ```
 
 2. **Or reset local repository:**
+
    ```bash
    git fetch origin
    git reset --hard origin/main
@@ -350,18 +366,21 @@ git gc --prune=now --aggressive
 ## 📝 Recommended Timeline
 
 **Week 1:**
+
 1. Create backup of repository
 2. Test BFG cleanup on mirror clone
 3. Verify all tests still pass
 4. Document procedure
 
 **Week 2:**
+
 1. Notify team of upcoming cleanup
 2. Ensure all work is pushed/merged
 3. Perform cleanup during low-activity period
 4. Force push changes
 
 **Week 3:**
+
 1. Support team members with re-cloning
 2. Monitor for any issues
 3. Update documentation

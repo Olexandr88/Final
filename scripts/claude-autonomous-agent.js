@@ -21,11 +21,11 @@ const CONTEXT_WINDOW = 200000; // 200K tokens
 class ClaudeAutonomousAgent {
   constructor() {
     this.claude = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
+      apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
     this.octokit = new Octokit({
-      auth: process.env.GITHUB_TOKEN
+      auth: process.env.GITHUB_TOKEN,
     });
 
     this.owner = 'scarmonit';
@@ -47,16 +47,16 @@ class ClaudeAutonomousAgent {
         owner: this.owner,
         repo: this.repo,
         state: 'open',
-        per_page: 100
+        per_page: 100,
       });
 
       logger.info(`📋 Found ${issues.length} open issues`);
 
       // Filter for unassigned or Copilot-assigned issues
-      const targetIssues = issues.filter(issue =>
-        !issue.pull_request && // Not a PR
-        (issue.assignees.length === 0 ||
-         issue.assignees.some(a => a.login === 'Copilot'))
+      const targetIssues = issues.filter(
+        (issue) =>
+          !issue.pull_request && // Not a PR
+          (issue.assignees.length === 0 || issue.assignees.some((a) => a.login === 'Copilot'))
       );
 
       logger.info(`🎯 Targeting ${targetIssues.length} issues for autonomous resolution\n`);
@@ -66,7 +66,6 @@ class ClaudeAutonomousAgent {
       }
 
       logger.info('\n✅ Autonomous agent cycle complete!');
-
     } catch (error) {
       logger.error('❌ Agent error:', { error: error.message });
       throw error;
@@ -106,7 +105,6 @@ class ClaudeAutonomousAgent {
       await this.createBranchAndPR(issue, branchName, changes);
 
       logger.info(`✅ Issue #${issue.number} solved! PR created.`);
-
     } catch (error) {
       logger.error(`❌ Failed to solve issue #${issue.number}:`, { error: error.message });
 
@@ -115,7 +113,7 @@ class ClaudeAutonomousAgent {
         owner: this.owner,
         repo: this.repo,
         issue_number: issue.number,
-        body: `🤖 **Claude Autonomous Agent** attempted to solve this issue but encountered an error:\n\n\`\`\`\n${error.message}\n\`\`\`\n\nManual intervention may be required.`
+        body: `🤖 **Claude Autonomous Agent** attempted to solve this issue but encountered an error:\n\n\`\`\`\n${error.message}\n\`\`\`\n\nManual intervention may be required.`,
       });
     }
   }
@@ -138,26 +136,25 @@ class ClaudeAutonomousAgent {
         owner: this.owner,
         repo: this.repo,
         tree_sha: this.baseBranch,
-        recursive: '1'
+        recursive: '1',
       });
 
       const fileTree = tree.tree
-        .filter(item => item.type === 'blob')
-        .map(item => item.path)
+        .filter((item) => item.type === 'blob')
+        .map((item) => item.path)
         .join('\n');
 
       return {
         packageJson: JSON.parse(packageJson),
         conventions: claudeMd,
-        fileTree
+        fileTree,
       };
-
     } catch (error) {
       logger.warn('⚠️  Could not gather full codebase context:', error.message);
       return {
         packageJson: {},
         conventions: '',
-        fileTree: ''
+        fileTree: '',
       };
     }
   }
@@ -171,7 +168,7 @@ class ClaudeAutonomousAgent {
         owner: this.owner,
         repo: this.repo,
         path,
-        ref: this.baseBranch
+        ref: this.baseBranch,
       });
 
       return Buffer.from(data.content, 'base64').toString('utf-8');
@@ -190,7 +187,9 @@ class ClaudeAutonomousAgent {
 **CODEBASE CONTEXT:**
 Repository: ${this.owner}/${this.repo}
 Main Branch: ${this.baseBranch}
-Tech Stack: ${Object.keys(codebaseContext.packageJson.dependencies || {}).slice(0, 10).join(', ')}
+Tech Stack: ${Object.keys(codebaseContext.packageJson.dependencies || {})
+      .slice(0, 10)
+      .join(', ')}
 
 **PROJECT CONVENTIONS:**
 ${codebaseContext.conventions.slice(0, 5000)}
@@ -201,7 +200,7 @@ ${codebaseContext.fileTree.slice(0, 3000)}
 **ISSUE TO SOLVE:**
 Title: ${issue.title}
 Number: #${issue.number}
-Labels: ${issue.labels.map(l => l.name).join(', ')}
+Labels: ${issue.labels.map((l) => l.name).join(', ')}
 
 Body:
 ${issue.body || 'No description provided'}
@@ -227,10 +226,12 @@ Respond ONLY with valid JSON, no markdown formatting.`;
     const response = await this.claude.messages.create({
       model: CLAUDE_MODEL,
       max_tokens: MAX_TOKENS,
-      messages: [{
-        role: 'user',
-        content: prompt
-      }]
+      messages: [
+        {
+          role: 'user',
+          content: prompt,
+        },
+      ],
     });
 
     const analysisText = response.content[0].text;
@@ -285,15 +286,17 @@ Generate the COMPLETE MODIFIED FILE content. Respond with ONLY the file content,
       const response = await this.claude.messages.create({
         model: CLAUDE_MODEL,
         max_tokens: MAX_TOKENS,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
       });
 
       changes.push({
         path: filePath,
-        content: response.content[0].text.trim()
+        content: response.content[0].text.trim(),
       });
     }
 
@@ -323,15 +326,17 @@ Generate the COMPLETE FILE content. Respond with ONLY the file content, no expla
       const response = await this.claude.messages.create({
         model: CLAUDE_MODEL,
         max_tokens: MAX_TOKENS,
-        messages: [{
-          role: 'user',
-          content: prompt
-        }]
+        messages: [
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
       });
 
       changes.push({
         path: filePath,
-        content: response.content[0].text.trim()
+        content: response.content[0].text.trim(),
       });
     }
 
@@ -347,14 +352,14 @@ Generate the COMPLETE FILE content. Respond with ONLY the file content, no expla
       const { data: ref } = await this.octokit.git.getRef({
         owner: this.owner,
         repo: this.repo,
-        ref: `heads/${this.baseBranch}`
+        ref: `heads/${this.baseBranch}`,
       });
 
       await this.octokit.git.createRef({
         owner: this.owner,
         repo: this.repo,
         ref: `refs/heads/${branchName}`,
-        sha: ref.object.sha
+        sha: ref.object.sha,
       });
 
       // Push files
@@ -365,7 +370,7 @@ Generate the COMPLETE FILE content. Respond with ONLY the file content, no expla
           path: change.path,
           message: `Fix: Update ${change.path} for issue #${issue.number}`,
           content: Buffer.from(change.content).toString('base64'),
-          branch: branchName
+          branch: branchName,
         });
       }
 
@@ -381,7 +386,7 @@ Generate the COMPLETE FILE content. Respond with ONLY the file content, no expla
 **Resolves:** #${issue.number}
 
 ### 📝 Changes Made:
-${changes.map(c => `- \`${c.path}\``).join('\n')}
+${changes.map((c) => `- \`${c.path}\``).join('\n')}
 
 ### 🧠 AI Analysis:
 This PR was autonomously generated by Claude Sonnet 4.5 (77.2% SWE-bench Verified).
@@ -399,7 +404,7 @@ This PR was autonomously generated by Claude Sonnet 4.5 (77.2% SWE-bench Verifie
 ---
 *🤖 Generated with [Claude Code](https://claude.com/claude-code)*
 
-Co-Authored-By: Claude <noreply@anthropic.com>`
+Co-Authored-By: Claude <noreply@anthropic.com>`,
       });
 
       logger.info(`✅ PR created: #${pr.number} - ${pr.html_url}`);
@@ -409,9 +414,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>`
         owner: this.owner,
         repo: this.repo,
         issue_number: issue.number,
-        body: `🤖 **Claude Autonomous Agent** has created PR #${pr.number} to resolve this issue.\n\nReview at: ${pr.html_url}`
+        body: `🤖 **Claude Autonomous Agent** has created PR #${pr.number} to resolve this issue.\n\nReview at: ${pr.html_url}`,
       });
-
     } catch (error) {
       logger.error('❌ Failed to create branch/PR:', { error: error.message });
       throw error;
@@ -432,7 +436,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>`
 
 // Run agent
 const agent = new ClaudeAutonomousAgent();
-agent.run().catch(error => {
+agent.run().catch((error) => {
   logger.error('Fatal error:', error);
   process.exit(1);
 });

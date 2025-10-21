@@ -19,7 +19,7 @@ class PerformanceMetrics {
       fileWrites: [],
       fileReads: [],
       compressionOverhead: [],
-      memoryUsage: []
+      memoryUsage: [],
     };
   }
 
@@ -27,7 +27,7 @@ class PerformanceMetrics {
     this.metrics[category].push({
       duration,
       timestamp: Date.now(),
-      ...metadata
+      ...metadata,
     });
   }
 
@@ -35,7 +35,7 @@ class PerformanceMetrics {
     const data = this.metrics[category];
     if (data.length === 0) return null;
 
-    const durations = data.map(d => d.duration);
+    const durations = data.map((d) => d.duration);
     const sorted = durations.sort((a, b) => a - b);
 
     return {
@@ -45,7 +45,7 @@ class PerformanceMetrics {
       avg: durations.reduce((a, b) => a + b, 0) / durations.length,
       median: sorted[Math.floor(sorted.length / 2)],
       p95: sorted[Math.floor(sorted.length * 0.95)],
-      p99: sorted[Math.floor(sorted.length * 0.99)]
+      p99: sorted[Math.floor(sorted.length * 0.99)],
     };
   }
 
@@ -77,9 +77,13 @@ async function testTokenEstimation(metrics) {
     { text: 'a'.repeat(100), expectedTokens: 25, description: '100 chars (simple)' },
     { text: 'hello world ', expectedTokens: 3, description: '12 chars (words)' },
     { text: 'const x = 42;'.repeat(100), expectedTokens: 325, description: '1300 chars (code)' },
-    { text: JSON.stringify({ key: 'value', nested: { array: [1, 2, 3] } }).repeat(50), expectedTokens: 500, description: 'JSON payload' },
+    {
+      text: JSON.stringify({ key: 'value', nested: { array: [1, 2, 3] } }).repeat(50),
+      expectedTokens: 500,
+      description: 'JSON payload',
+    },
     { text: 'x'.repeat(4000), expectedTokens: 1000, description: '4000 chars (large text)' },
-    { text: '\u{1F600}'.repeat(100), expectedTokens: 25, description: '100 emojis (unicode)' }
+    { text: '\u{1F600}'.repeat(100), expectedTokens: 25, description: '100 emojis (unicode)' },
   ];
 
   const cm = new ContextManager('test-token-estimation', 'benchmark');
@@ -93,7 +97,7 @@ async function testTokenEstimation(metrics) {
     metrics.record('tokenEstimation', duration, {
       textLength: testCase.text.length,
       estimated,
-      expected: testCase.expectedTokens
+      expected: testCase.expectedTokens,
     });
 
     const accuracy = Math.abs(estimated - testCase.expectedTokens) / testCase.expectedTokens;
@@ -104,7 +108,7 @@ async function testTokenEstimation(metrics) {
       estimated,
       error: Math.abs(estimated - testCase.expectedTokens),
       errorPercent: (accuracy * 100).toFixed(2),
-      durationMs: duration.toFixed(3)
+      durationMs: duration.toFixed(3),
     });
   }
 
@@ -124,7 +128,7 @@ async function testFileIO(metrics) {
     criticalState: { passcode: 'test123' },
     nextSteps: ['step1', 'step2', 'step3'],
     filesModified: ['file1.js', 'file2.js'],
-    decisions: [{ timestamp: new Date().toISOString(), decision: 'test', rationale: 'benchmark' }]
+    decisions: [{ timestamp: new Date().toISOString(), decision: 'test', rationale: 'benchmark' }],
   };
 
   // Test multiple writes
@@ -156,13 +160,13 @@ async function testFileIO(metrics) {
   console.log('File Write Stats:', {
     avg: (writeResults.reduce((a, b) => a + b, 0) / writeResults.length).toFixed(3),
     min: Math.min(...writeResults).toFixed(3),
-    max: Math.max(...writeResults).toFixed(3)
+    max: Math.max(...writeResults).toFixed(3),
   });
 
   console.log('File Read Stats:', {
     avg: (readResults.reduce((a, b) => a + b, 0) / readResults.length).toFixed(3),
     min: Math.min(...readResults).toFixed(3),
-    max: Math.max(...readResults).toFixed(3)
+    max: Math.max(...readResults).toFixed(3),
   });
 
   // Cleanup
@@ -188,14 +192,14 @@ async function testCompressionOverhead(metrics) {
 
   metrics.record('compressionOverhead', duration, {
     tokensBefore: 160000,
-    tokensAfter: cm.tokenCount
+    tokensAfter: cm.tokenCount,
   });
 
   console.log('Compression Stats:', {
     durationMs: duration.toFixed(3),
     tokensBefore: 160000,
     tokensAfter: cm.tokenCount,
-    reduction: (100 - (cm.tokenCount / 160000 * 100)).toFixed(2) + '%'
+    reduction: (100 - (cm.tokenCount / 160000) * 100).toFixed(2) + '%',
   });
 
   // Cleanup
@@ -231,11 +235,15 @@ async function testMemoryUsage(metrics) {
   console.log('  Initial heap used:', (initialMemory.heapUsed / 1024 / 1024).toFixed(2), 'MB');
   console.log('  After 100 instances:', (afterCreation.heapUsed / 1024 / 1024).toFixed(2), 'MB');
   console.log('  After usage:', (afterUsage.heapUsed / 1024 / 1024).toFixed(2), 'MB');
-  console.log('  Increase per instance:', ((afterCreation.heapUsed - initialMemory.heapUsed) / 100 / 1024).toFixed(2), 'KB');
+  console.log(
+    '  Increase per instance:',
+    ((afterCreation.heapUsed - initialMemory.heapUsed) / 100 / 1024).toFixed(2),
+    'KB'
+  );
 
   metrics.record('memoryUsage', afterUsage.heapUsed - initialMemory.heapUsed, {
     instanceCount: 100,
-    perInstance: (afterCreation.heapUsed - initialMemory.heapUsed) / 100
+    perInstance: (afterCreation.heapUsed - initialMemory.heapUsed) / 100,
   });
 }
 
@@ -256,7 +264,7 @@ async function testTokenCountUpdate(metrics) {
     iterations,
     totalDurationMs: duration.toFixed(3),
     avgPerUpdateMs: (duration / iterations).toFixed(6),
-    updatesPerSecond: Math.floor(iterations / (duration / 1000))
+    updatesPerSecond: Math.floor(iterations / (duration / 1000)),
   });
 }
 
@@ -284,7 +292,9 @@ async function runBenchmark() {
     console.log('\n=== ANALYSIS & RECOMMENDATIONS ===\n');
 
     // Token estimation accuracy
-    const avgError = tokenEstResults.reduce((sum, r) => sum + parseFloat(r.errorPercent), 0) / tokenEstResults.length;
+    const avgError =
+      tokenEstResults.reduce((sum, r) => sum + parseFloat(r.errorPercent), 0) /
+      tokenEstResults.length;
     console.log('1. TOKEN ESTIMATION ACCURACY:');
     console.log(`   Average error: ${avgError.toFixed(2)}%`);
     if (avgError > 10) {
@@ -334,7 +344,6 @@ async function runBenchmark() {
     console.log('   ✓ Implement lazy loading for historical data');
 
     console.log('\n=== BENCHMARK COMPLETE ===\n');
-
   } catch (error) {
     console.error('Benchmark failed:', error);
     throw error;

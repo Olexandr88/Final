@@ -10,14 +10,14 @@ import { readFileSync } from 'fs';
 const config = {
   preChecks: [
     { name: 'Git Status', cmd: 'git status --porcelain' },
-    { name: 'Dependencies', cmd: 'npm audit --audit-level=high' }
+    { name: 'Dependencies', cmd: 'npm audit --audit-level=high' },
   ],
   build: { name: 'Build', cmd: 'npm run build' },
   test: { name: 'Tests', cmd: 'npm test', timeout: 120000 },
   deploy: {
     name: 'Deploy',
-    cmd: 'flyctl deploy --strategy canary --wait-timeout 300'
-  }
+    cmd: 'flyctl deploy --strategy canary --wait-timeout 300',
+  },
 };
 
 function exec(cmd, options = {}) {
@@ -26,7 +26,7 @@ function exec(cmd, options = {}) {
     const output = execSync(cmd, {
       encoding: 'utf8',
       stdio: 'pipe',
-      ...options
+      ...options,
     });
     console.log(`✅ Success: ${cmd.split(' ')[0]}`);
     return { success: true, output };
@@ -40,7 +40,7 @@ function exec(cmd, options = {}) {
 
 async function runDeployment() {
   console.log('🚀 Starting Auto-Deployment Pipeline\n');
-  console.log('=' .repeat(50));
+  console.log('='.repeat(50));
 
   // Pre-checks
   console.log('\n📋 Phase 1: Pre-deployment Checks');
@@ -97,7 +97,7 @@ process.on('SIGINT', () => {
 });
 
 // Run
-runDeployment().catch(error => {
+runDeployment().catch((error) => {
   console.error('\n💥 Fatal error:', error.message);
   process.exit(1);
 });

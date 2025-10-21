@@ -24,69 +24,69 @@ jobs:
     name: 🔨 Build & Test Website
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: 📦 Install Dependencies
         run: |
           npm ci --prefer-offline --no-audit
           cd src/nitric && npm install
-          
+
       - name: 🏗️ Build Website
         run: |
           echo "Building optimized website..."
           npm run build:website
           echo "✅ Website built successfully"
           ls -la website/dist/
-          
+
       - name: 🧪 Test Website Build
         run: |
           echo "Testing website build..."
           npm run test:website
-          
+
           # Verify critical files exist
           test -f website/dist/index.html || exit 1
           test -f website/dist/404.html || exit 1
-          
+
           # Check file sizes (should be smaller after minification)
           echo "📊 Build optimization results:"
           echo "Original files:"
           wc -c website/index.html website/404.html 2>/dev/null || echo "Source files found"
           echo "Optimized files:"
           wc -c website/dist/index.html website/dist/404.html
-          
+
       - name: 📤 Upload Website Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website-build-${{ github.sha }}
           path: website/dist/
           retention-days: 7
-          
+
   deploy-preview:
     name: 🌐 Deploy Preview (PR Only)
     runs-on: ubuntu-latest
     needs: build-and-test
     if: github.event_name == 'pull_request'
     timeout-minutes: 15
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: 🚀 Install Nitric CLI
         run: |
           echo "Installing Nitric CLI..."
@@ -94,15 +94,15 @@ jobs:
           export PATH="$HOME/.nitric/bin:$PATH"
           nitric version
           echo "✅ Nitric CLI installed successfully"
-          
+
       - name: 📦 Install Dependencies
         run: |
           npm ci --prefer-offline --no-audit
           cd src/nitric && npm install
-          
+
       - name: 🏗️ Build Website
         run: npm run build:website
-        
+
       - name: 🧪 Validate Nitric Configuration
         run: |
           echo "Validating Nitric configuration..."
@@ -110,44 +110,44 @@ jobs:
           # Dry run to validate config without deploying
           nitric build --verbose
           echo "✅ Nitric configuration is valid"
-          
+
       - name: 📝 Comment Preview Info
         uses: actions/github-script@v7
         with:
           script: |
             const comment = `## 🌐 Website Preview Build
-            
+
             **Build Status**: ✅ **SUCCESS**
             **Commit**: ${context.sha.substring(0, 7)}
             **Branch**: ${context.payload.pull_request.head.ref}
-            
+
             ### 🏗️ Build Results
             - ✅ Website assets optimized and minified
             - ✅ Nitric configuration validated
             - ✅ All tests passed
-            
+
             ### 🚀 Ready for Deployment
             Once this PR is merged, the website will be automatically deployed to:
             - **Primary**: AWS CloudFront CDN
             - **Custom Domain**: https://www.scarmonit.com
             - **API Endpoints**: /api/llm-ai-bridge/*
             - **WebSocket**: /ws/realtime
-            
+
             ### 📋 Post-Merge Steps
             1. Merge this PR to trigger production deployment
             2. Configure Cloudflare DNS: CNAME www.scarmonit.com → [Nitric CDN output]
             3. Verify deployment at https://www.scarmonit.com
-            
+
             ---
             *Automated by Nitric Website Deploy CI*`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: comment
             });
-            
+
   deploy-production:
     name: 🚀 Deploy to Production
     runs-on: ubuntu-latest
@@ -155,17 +155,17 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     timeout-minutes: 20
     environment: production
-    
+
     steps:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
-        
+
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          
+
       - name: 🚀 Install Nitric CLI
         run: |
           echo "Installing Nitric CLI..."
@@ -173,35 +173,35 @@ jobs:
           export PATH="$HOME/.nitric/bin:$PATH"
           nitric version
           echo "✅ Nitric CLI installed successfully"
-          
+
       - name: 📦 Install Dependencies
         run: |
           npm ci --prefer-offline --no-audit
           cd src/nitric && npm install
           echo "✅ All dependencies installed"
-          
+
       - name: 🏗️ Build Production Website
         run: |
           npm run build:website
           echo "✅ Production website built and optimized"
-          
+
       - name: 🚀 Deploy to AWS with Nitric
         run: |
           echo "🚀 Starting production deployment..."
           export PATH="$HOME/.nitric/bin:$PATH"
-          
+
           # Deploy to AWS (primary provider)
           nitric up --provider aws --confirm
-          
+
           echo "✅ Deployment completed successfully!"
-          
+
       - name: 📊 Generate Deployment Report
         run: |
           echo "📊 Generating deployment report..."
-          
+
           DEPLOY_TIME=$(date -Iseconds)
           COMMIT_SHA=${GITHUB_SHA:0:7}
-          
+
           cat > deployment-report.json << EOF
           {
             "timestamp": "$DEPLOY_TIME",
@@ -220,14 +220,14 @@ jobs:
             }
           }
           EOF
-          
+
           echo "📋 Deployment Report:"
           cat deployment-report.json
-          
+
       - name: 🔍 Verify Deployment
         run: |
           echo "🔍 Verifying deployment health..."
-          
+
           # Note: Replace with actual CDN URL once available
           echo "⚠️ Manual verification required:"
           echo "1. Check Nitric deployment output for CDN URL"
@@ -235,7 +235,7 @@ jobs:
           echo "3. Verify https://www.scarmonit.com loads correctly"
           echo "4. Test API endpoints: https://www.scarmonit.com/api/llm-ai-bridge/health"
           echo "5. Test WebSocket: wss://www.scarmonit.com/ws/realtime"
-          
+
       - name: 📤 Upload Deployment Artifacts
         uses: actions/upload-artifact@v4
         if: always()
@@ -245,7 +245,7 @@ jobs:
             deployment-report.json
             website/dist/
           retention-days: 30
-          
+
       - name: ✅ Deployment Success Notification
         if: success()
         run: |

@@ -142,6 +142,7 @@ npm run control quick
 ```
 
 This will:
+
 1. Stop any running processes
 2. Clean the workspace
 3. Run basic tests
@@ -244,19 +245,25 @@ AI_BRIDGE_HTTP_PORT=65029
 ## 🎯 Key Features
 
 ### System Control
+
 One command for all common workflows:
+
 - `npm run control status` - System overview
 - `npm run control quick` - Full workflow
 - `npm run control test` - Quick tests
 
 ### Quick Testing
+
 Run individual test files without waiting:
+
 - `npm run quick-test basic` - Basic tests
 - `npm run quick-test a2a` - A2A tests
 - `npm run quick-test claude` - Claude tests
 
 ### Developer Tools
+
 Built-in utilities for common tasks:
+
 - `npm run dev:helper` - Dev commands
 - `npm run workspace:clean` - Clean workspace
 - `npm run bridge:diagnostic` - Full diagnostic
@@ -302,18 +309,21 @@ npm run dev:bridge-check  # Bridge status
 ## 🎓 Learning Path
 
 ### Day 1: Setup
+
 1. Install and configure
 2. Run `npm run control status`
 3. Start the bridge: `npm run control start`
 4. Run basic tests: `npm run quick-test basic`
 
 ### Day 2: Development
+
 1. Learn system control: `npm run control help`
 2. Try dev helper: `npm run dev:helper`
 3. Make a change and test it
 4. Clean up: `npm run workspace:clean`
 
 ### Day 3: Advanced
+
 1. Run diagnostics: `npm run bridge:diagnostic`
 2. Start full system: `npm run system:start`
 3. Write and run your own tests
@@ -332,6 +342,7 @@ npm run dev:bridge-check  # Bridge status
 ---
 
 **Next Steps:**
+
 - Read `DEVELOPER_TOOLS.md` for detailed tool documentation
 - Read `CLAUDE.md` for coding conventions
 - Start building! 🚀

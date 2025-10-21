@@ -22,7 +22,7 @@ export class BridgeAPIClient {
     return this._request('/api/send', {
       to,
       intent,
-      payload
+      payload,
     });
   }
 
@@ -44,7 +44,7 @@ export class BridgeAPIClient {
   async createAgent(type, name) {
     return this.sendMessage('meta-agent-factory', 'agent.create', {
       type,
-      name
+      name,
     });
   }
 
@@ -55,7 +55,7 @@ export class BridgeAPIClient {
    */
   async spawnAgent(agentName) {
     return this.sendMessage('meta-agent-factory', 'agent.spawn', {
-      agentName
+      agentName,
     });
   }
 
@@ -106,9 +106,9 @@ export class BridgeAPIClient {
         method,
         headers: {
           'Content-Type': 'application/json',
-          ...(postData && { 'Content-Length': Buffer.byteLength(postData) })
+          ...(postData && { 'Content-Length': Buffer.byteLength(postData) }),
         },
-        timeout: 30000
+        timeout: 30000,
       };
 
       const req = http.request(url, options, (res) => {

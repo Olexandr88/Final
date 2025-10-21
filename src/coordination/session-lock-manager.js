@@ -28,7 +28,7 @@ export class SessionLockManager {
       await fs.mkdir(LOCK_DIR, { recursive: true });
       logger.info('Session lock manager initialized', {
         sessionId: this.sessionId,
-        lockDir: LOCK_DIR
+        lockDir: LOCK_DIR,
       });
 
       // Start heartbeat to keep locks alive
@@ -49,7 +49,7 @@ export class SessionLockManager {
     const {
       timeout = LOCK_TIMEOUT,
       mode = 'exclusive', // 'exclusive' or 'shared'
-      retries = 3
+      retries = 3,
     } = options;
 
     const lockId = this._getLockId(resourcePath);
@@ -68,7 +68,7 @@ export class SessionLockManager {
             logger.warn('Removing stale lock', {
               resource: resourcePath,
               staleLockSession: existingLock.sessionId,
-              age: lockAge
+              age: lockAge,
             });
             await this._removeLock(lockFile);
           } else if (existingLock.sessionId !== this.sessionId) {
@@ -77,21 +77,21 @@ export class SessionLockManager {
               logger.info('Lock held by another session, retrying...', {
                 resource: resourcePath,
                 holder: existingLock.sessionId,
-                attempt: attempt + 1
+                attempt: attempt + 1,
               });
               await this._sleep(1000 * (attempt + 1)); // Exponential backoff
               continue;
             } else {
               logger.error('Failed to acquire lock after retries', {
                 resource: resourcePath,
-                holder: existingLock.sessionId
+                holder: existingLock.sessionId,
               });
               return false;
             }
           } else {
             // We already hold this lock
             logger.debug('Lock already held by current session', {
-              resource: resourcePath
+              resource: resourcePath,
             });
             await this._updateLockHeartbeat(lockFile);
             return true;
@@ -104,7 +104,7 @@ export class SessionLockManager {
           resourcePath,
           mode,
           timestamp: Date.now(),
-          pid: process.pid
+          pid: process.pid,
         };
 
         await fs.writeFile(lockFile, JSON.stringify(lockData, null, 2));
@@ -113,7 +113,7 @@ export class SessionLockManager {
         const verifyLock = await this._readLock(lockFile);
         if (!verifyLock || verifyLock.sessionId !== this.sessionId) {
           logger.warn('Lock verification failed (race condition)', {
-            resource: resourcePath
+            resource: resourcePath,
           });
           continue;
         }
@@ -121,21 +121,20 @@ export class SessionLockManager {
         this.locks.set(resourcePath, {
           lockFile,
           lockData,
-          acquiredAt: Date.now()
+          acquiredAt: Date.now(),
         });
 
         logger.info('Lock acquired', {
           resource: resourcePath,
-          sessionId: this.sessionId
+          sessionId: this.sessionId,
         });
 
         return true;
-
       } catch (error) {
         logger.error('Error acquiring lock', {
           resource: resourcePath,
           attempt: attempt + 1,
-          error: error.message
+          error: error.message,
         });
 
         if (attempt === retries - 1) {
@@ -156,7 +155,7 @@ export class SessionLockManager {
 
     if (!lockInfo) {
       logger.warn('Attempted to release non-existent lock', {
-        resource: resourcePath
+        resource: resourcePath,
       });
       return;
     }
@@ -167,12 +166,12 @@ export class SessionLockManager {
 
       logger.info('Lock released', {
         resource: resourcePath,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       });
     } catch (error) {
       logger.error('Error releasing lock', {
         resource: resourcePath,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -225,7 +224,7 @@ export class SessionLockManager {
     return {
       ...existingLock,
       age: lockAge,
-      isOwnLock: existingLock.sessionId === this.sessionId
+      isOwnLock: existingLock.sessionId === this.sessionId,
     };
   }
 
@@ -235,7 +234,7 @@ export class SessionLockManager {
   async releaseAll() {
     logger.info('Releasing all locks', {
       sessionId: this.sessionId,
-      count: this.locks.size
+      count: this.locks.size,
     });
 
     const resources = Array.from(this.locks.keys());
@@ -246,7 +245,7 @@ export class SessionLockManager {
       } catch (error) {
         logger.error('Error releasing lock during cleanup', {
           resource,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -268,7 +267,7 @@ export class SessionLockManager {
         } catch (error) {
           logger.error('Heartbeat failed for lock', {
             resource,
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -338,9 +337,7 @@ export class SessionLockManager {
    * @private
    */
   _getLockId(resourcePath) {
-    return resourcePath
-      .replace(/[^a-zA-Z0-9]/g, '_')
-      .substring(0, 200);
+    return resourcePath.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 200);
   }
 
   /**
@@ -348,7 +345,7 @@ export class SessionLockManager {
    * @private
    */
   _sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -374,7 +371,7 @@ export class SessionLockManager {
           logger.info('Cleaned stale lock', {
             file,
             sessionId: lockData.sessionId,
-            age
+            age,
           });
         }
       }

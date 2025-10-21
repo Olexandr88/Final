@@ -11,7 +11,7 @@ const CONTEXT_LIMITS = {
   maxTokens: 200000,
   warningThreshold: 150000,
   criticalThreshold: 180000,
-  compressionThreshold: 160000
+  compressionThreshold: 160000,
 };
 
 const STATE_DIR = '.agent-locks/SESSION-STATE';
@@ -44,10 +44,14 @@ export class ContextManager {
 
     // Check thresholds
     if (this.tokenCount >= CONTEXT_LIMITS.criticalThreshold) {
-      logger.error(`[${this.sessionId}] CRITICAL: Token count at ${this.tokenCount}. Initiating handoff!`);
+      logger.error(
+        `[${this.sessionId}] CRITICAL: Token count at ${this.tokenCount}. Initiating handoff!`
+      );
       this.initiateHandoff();
     } else if (this.tokenCount >= CONTEXT_LIMITS.compressionThreshold) {
-      logger.warn(`[${this.sessionId}] WARNING: Token count at ${this.tokenCount}. Compressing context...`);
+      logger.warn(
+        `[${this.sessionId}] WARNING: Token count at ${this.tokenCount}. Compressing context...`
+      );
       this.compressContext();
     } else if (this.tokenCount >= CONTEXT_LIMITS.warningThreshold) {
       logger.info(`[${this.sessionId}] Token count approaching limit: ${this.tokenCount}`);
@@ -68,13 +72,13 @@ export class ContextManager {
         warningThreshold: CONTEXT_LIMITS.warningThreshold,
         criticalThreshold: CONTEXT_LIMITS.criticalThreshold,
         status: this.getStatus(),
-        compressionNeeded: this.tokenCount >= CONTEXT_LIMITS.compressionThreshold
+        compressionNeeded: this.tokenCount >= CONTEXT_LIMITS.compressionThreshold,
       },
       currentTask,
       criticalState,
       nextSteps,
       filesModified,
-      decisions
+      decisions,
     };
 
     try {
@@ -149,7 +153,13 @@ Context has been cleared but critical state preserved in SESSION-STATE files.
         {},
         ['Resume from last known state'],
         [],
-        [{ timestamp: new Date().toISOString(), decision: 'Context compressed', rationale: 'Prevent overflow' }]
+        [
+          {
+            timestamp: new Date().toISOString(),
+            decision: 'Context compressed',
+            rationale: 'Prevent overflow',
+          },
+        ]
       );
     } catch (error) {
       logger.error(`[${this.sessionId}] Context compression failed:`, error);
@@ -165,7 +175,7 @@ Context has been cleared but critical state preserved in SESSION-STATE files.
       const handoffFile = path.join(HANDOFF_DIR, `${this.sessionId}-${timestamp}.md`);
 
       // Load current state
-      const state = await this.loadState() || {};
+      const state = (await this.loadState()) || {};
 
       const handoff = `# Session Handoff - ${new Date().toISOString()}
 
@@ -221,7 +231,10 @@ ${state.nextSteps?.map((step, i) => `${i + 1}. ${step}`).join('\n') || 'No pendi
    */
   async createCheckpoint() {
     const now = Date.now();
-    if (now - this.lastCheckpoint < 30 * 60 * 1000 && this.tokenCount < this.lastCheckpoint + 50000) {
+    if (
+      now - this.lastCheckpoint < 30 * 60 * 1000 &&
+      this.tokenCount < this.lastCheckpoint + 50000
+    ) {
       return; // Not time yet
     }
 
@@ -280,7 +293,7 @@ ${state.nextSteps?.map((step, i) => `${i + 1}. ${step}`).join('\n') || 'No pendi
       role: this.role,
       status,
       tokenCount: this.tokenCount,
-      healthy: status === 'healthy'
+      healthy: status === 'healthy',
     };
   }
 }

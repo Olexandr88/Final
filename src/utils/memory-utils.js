@@ -17,7 +17,7 @@ export class WeakRefCache {
   get(key) {
     const ref = this.cache.get(key);
     if (!ref) return undefined;
-    
+
     const value = ref.deref();
     if (value === undefined) {
       this.cache.delete(key);
@@ -45,7 +45,7 @@ export class ObjectPool {
     this.factory = factory;
     this.resetFn = resetFn;
     this.pool = [];
-    
+
     // Pre-populate pool
     for (let i = 0; i < initialSize; i++) {
       this.pool.push(this.factory());
@@ -78,7 +78,7 @@ export class BatchProcessor {
 
   add(item) {
     this.queue.push(item);
-    
+
     if (this.queue.length >= this.batchSize) {
       this.flush();
     } else if (!this.timer) {
@@ -91,7 +91,7 @@ export class BatchProcessor {
       clearTimeout(this.timer);
       this.timer = null;
     }
-    
+
     if (this.queue.length > 0) {
       const batch = this.queue.splice(0);
       this.processFn(batch);
@@ -163,7 +163,7 @@ export class MemoryPressureMonitor {
 
   start(intervalMs = 5000) {
     if (this.monitoring) return;
-    
+
     this.monitoring = true;
     this.interval = setInterval(() => {
       this.checkMemoryPressure();
@@ -202,10 +202,10 @@ export class MemoryPressureMonitor {
         usage: usageRatio,
         heapUsed,
         heapTotal,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
 
-      this.listeners.forEach(callback => {
+      this.listeners.forEach((callback) => {
         try {
           callback(event);
         } catch (error) {
@@ -233,9 +233,9 @@ export class TaskScheduler {
     if (!this.queues.has(priority)) {
       this.queues.set(priority, []);
     }
-    
+
     this.queues.get(priority).push(task);
-    
+
     if (!this.running) {
       setImmediate(() => this.processTasks());
     }
@@ -248,21 +248,21 @@ export class TaskScheduler {
     try {
       // Process tasks by priority: high -> normal -> low
       const priorities = ['high', 'normal', 'low'];
-      
+
       for (const priority of priorities) {
         const queue = this.queues.get(priority);
         if (queue && queue.length > 0) {
           const task = queue.shift();
           this.currentTask = task;
-          
+
           try {
             await task();
           } catch (error) {
             console.error('Task execution error:', error);
           }
-          
+
           this.currentTask = null;
-          
+
           // Yield control after each task
           if (queue.length > 0 || this._hasMoreTasks()) {
             setImmediate(() => this.processTasks());
@@ -302,11 +302,11 @@ export class ResourceTracker {
       label,
       memory: process.memoryUsage(),
       cpuUsage: process.cpuUsage(),
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
 
     this.snapshots.push(snapshot);
-    
+
     if (this.snapshots.length > this.maxSnapshots) {
       this.snapshots.shift();
     }
@@ -320,13 +320,13 @@ export class ResourceTracker {
 
     const first = recent[0];
     const last = recent[recent.length - 1];
-    
+
     return {
       heapUsedDelta: last.memory.heapUsed - first.memory.heapUsed,
       heapTotalDelta: last.memory.heapTotal - first.memory.heapTotal,
       externalDelta: last.memory.external - first.memory.external,
       timeDelta: last.timestamp - first.timestamp,
-      trend: last.memory.heapUsed > first.memory.heapUsed ? 'increasing' : 'decreasing'
+      trend: last.memory.heapUsed > first.memory.heapUsed ? 'increasing' : 'decreasing',
     };
   }
 
@@ -336,7 +336,7 @@ export class ResourceTracker {
 
     const first = recent[0];
     const last = recent[recent.length - 1];
-    
+
     const userDelta = last.cpuUsage.user - first.cpuUsage.user;
     const systemDelta = last.cpuUsage.system - first.cpuUsage.system;
     const timeDelta = last.timestamp - first.timestamp;
@@ -344,7 +344,7 @@ export class ResourceTracker {
     return {
       userCpuPercent: (userDelta / (timeDelta * 1000)) * 100,
       systemCpuPercent: (systemDelta / (timeDelta * 1000)) * 100,
-      totalCpuPercent: ((userDelta + systemDelta) / (timeDelta * 1000)) * 100
+      totalCpuPercent: ((userDelta + systemDelta) / (timeDelta * 1000)) * 100,
     };
   }
 

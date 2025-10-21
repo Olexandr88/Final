@@ -30,7 +30,7 @@ const config = {
   maxMemory: process.env.MAX_MEMORY || '512mb',
   enableClustering: process.env.ENABLE_CLUSTERING === 'true',
   enableCompression: process.env.ENABLE_COMPRESSION !== 'false',
-  enableRateLimit: process.env.ENABLE_RATE_LIMIT !== 'false'
+  enableRateLimit: process.env.ENABLE_RATE_LIMIT !== 'false',
 };
 
 /**
@@ -42,40 +42,40 @@ class UltraCache {
       maxSize: options.maxSize || 100 * 1024 * 1024, // 100MB
       maxAge: options.maxAge || 1000 * 60 * 15, // 15 minutes
       compression: options.compression !== false,
-      ...options
+      ...options,
     };
-    
+
     // Multi-tier caching
     this.l1Cache = new LRU({
       max: 1000, // Hot data
       maxSize: 10 * 1024 * 1024, // 10MB
       sizeCalculation: (value) => JSON.stringify(value).length,
-      ttl: 1000 * 60 * 5 // 5 minutes
+      ttl: 1000 * 60 * 5, // 5 minutes
     });
-    
+
     this.l2Cache = new LRU({
       max: 5000, // Warm data
       maxSize: this.options.maxSize,
       sizeCalculation: (value) => JSON.stringify(value).length,
-      ttl: this.options.maxAge
+      ttl: this.options.maxAge,
     });
-    
+
     this.stats = {
       hits: 0,
       misses: 0,
       sets: 0,
       evictions: 0,
-      compressionSaved: 0
+      compressionSaved: 0,
     };
-    
+
     this.setupEventListeners();
   }
-  
+
   setupEventListeners() {
     this.l1Cache.on('evict', () => this.stats.evictions++);
     this.l2Cache.on('evict', () => this.stats.evictions++);
   }
-  
+
   get(key) {
     // Try L1 cache first (hot data)
     let value = this.l1Cache.get(key);
@@ -83,7 +83,7 @@ class UltraCache {
       this.stats.hits++;
       return this.decompress(value);
     }
-    
+
     // Try L2 cache (warm data)
     value = this.l2Cache.get(key);
     if (value !== undefined) {
@@ -92,24 +92,24 @@ class UltraCache {
       this.l1Cache.set(key, value);
       return this.decompress(value);
     }
-    
+
     this.stats.misses++;
     return undefined;
   }
-  
+
   set(key, value, ttl) {
     const compressed = this.compress(value);
-    
+
     // Always set in L2, promote to L1 for immediate access
     this.l2Cache.set(key, compressed, { ttl });
     this.l1Cache.set(key, compressed, { ttl: Math.min(ttl || this.options.maxAge, 1000 * 60 * 5) });
-    
+
     this.stats.sets++;
   }
-  
+
   compress(value) {
     if (!this.options.compression) return value;
-    
+
     try {
       const original = JSON.stringify(value);
       // Simple compression simulation (in production, use zlib)
@@ -120,22 +120,22 @@ class UltraCache {
       return value;
     }
   }
-  
+
   decompress(value) {
     if (!value || !value._compressed) return value;
-    
+
     try {
       return JSON.parse(value.data);
     } catch (error) {
       return value;
     }
   }
-  
+
   clear() {
     this.l1Cache.clear();
     this.l2Cache.clear();
   }
-  
+
   getStats() {
     return {
       ...this.stats,
@@ -143,7 +143,7 @@ class UltraCache {
       l2Size: this.l2Cache.size,
       l1Memory: this.l1Cache.calculatedSize,
       l2Memory: this.l2Cache.calculatedSize,
-      hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) || 0
+      hitRate: this.stats.hits / (this.stats.hits + this.stats.misses) || 0,
     };
   }
 }
@@ -159,68 +159,70 @@ class MemoryManager {
     this.monitoringInterval = null;
     this.leakDetectionHistory = [];
   }
-  
+
   start() {
     this.baselineMemory = process.memoryUsage();
-    
+
     this.monitoringInterval = setInterval(() => {
       this.checkMemoryPressure();
     }, 30000); // Check every 30 seconds
-    
+
     console.log('🧠 Advanced Memory Manager started');
   }
-  
+
   stop() {
     if (this.monitoringInterval) {
       clearInterval(this.monitoringInterval);
     }
   }
-  
+
   checkMemoryPressure() {
     const memUsage = process.memoryUsage();
     const heapUsed = memUsage.heapUsed;
     const heapTotal = memUsage.heapTotal;
     const usage = heapUsed / heapTotal;
-    
+
     // Track memory growth for leak detection
     this.leakDetectionHistory.push({
       timestamp: Date.now(),
       heapUsed,
-      rss: memUsage.rss
+      rss: memUsage.rss,
     });
-    
+
     // Keep only last 10 measurements
     if (this.leakDetectionHistory.length > 10) {
       this.leakDetectionHistory.shift();
     }
-    
+
     // Check for memory pressure
     if (usage > this.gcThreshold) {
       console.log(`⚠️ Memory pressure detected: ${(usage * 100).toFixed(1)}% - Triggering GC`);
       this.triggerGC();
     }
-    
+
     // Check for potential memory leaks
     this.detectMemoryLeak();
   }
-  
+
   detectMemoryLeak() {
     if (this.leakDetectionHistory.length < 5) return;
-    
+
     const recent = this.leakDetectionHistory.slice(-3);
     const older = this.leakDetectionHistory.slice(0, 3);
-    
+
     const recentAvg = recent.reduce((sum, m) => sum + m.heapUsed, 0) / recent.length;
     const olderAvg = older.reduce((sum, m) => sum + m.heapUsed, 0) / older.length;
-    
+
     const growth = recentAvg - olderAvg;
-    
+
     if (growth > this.memoryLeakThreshold) {
-      console.warn(`🚨 Potential memory leak detected: ${(growth / 1024 / 1024).toFixed(2)}MB growth`);
+      console.warn(
+        `🚨 Potential memory leak detected: ${(growth / 1024 / 1024).toFixed(2)}MB growth`
+      );
       this.triggerGC();
     }
   }
-  
+
   triggerGC() {
     if (global.gc) {
       const before = process.memoryUsage().heapUsed;
@@ -230,7 +232,7 @@ class MemoryManager {
       console.log(`🗑️ GC freed ${(freed / 1024 / 1024).toFixed(2)}MB`);
     }
   }
-  
+
   getStats() {
     const memUsage = process.memoryUsage();
     return {
@@ -238,7 +240,7 @@ class MemoryManager {
       baseline: this.baselineMemory,
       usage: memUsage.heapUsed / memUsage.heapTotal,
       growth: this.baselineMemory ? memUsage.heapUsed - this.baselineMemory.heapUsed : 0,
-      leakDetectionSamples: this.leakDetectionHistory.length
+      leakDetectionSamples: this.leakDetectionHistory.length,
     };
   }
 }
@@ -253,7 +255,7 @@ class PredictiveOptimizer {
     this.predictions = new Map();
     this.learningEnabled = true;
   }
-  
+
   recordRequest(req, responseTime, memoryUsed) {
     const pattern = {
       path: req.path,
@@ -261,12 +263,12 @@ class PredictiveOptimizer {
       timestamp: Date.now(),
       responseTime,
       memoryUsed,
-      userAgent: req.get('User-Agent')?.substring(0, 50) || 'unknown'
+      userAgent: req.get('User-Agent')?.substring(0, 50) || 'unknown',
     };
-    
+
     this.requestPatterns.push(pattern);
     this.performanceHistory.push({ timestamp: pattern.timestamp, responseTime, memoryUsed });
-    
+
     // Keep only recent history
     if (this.requestPatterns.length > 1000) {
       this.requestPatterns = this.requestPatterns.slice(-500);
@@ -274,16 +276,16 @@ class PredictiveOptimizer {
     if (this.performanceHistory.length > 1000) {
       this.performanceHistory = this.performanceHistory.slice(-500);
     }
-    
+
     if (this.learningEnabled) {
       this.updatePredictions();
     }
   }
-  
+
   updatePredictions() {
     // Simple pattern recognition for performance prediction
     const pathGroups = new Map();
-    
+
     for (const pattern of this.requestPatterns.slice(-100)) {
       const key = `${pattern.method}:${pattern.path}`;
       if (!pathGroups.has(key)) {
@@ -291,36 +293,36 @@ class PredictiveOptimizer {
       }
       pathGroups.get(key).push(pattern.responseTime);
     }
-    
+
     // Calculate average response times for prediction
     for (const [key, times] of pathGroups) {
       if (times.length >= 3) {
         const avgTime = times.reduce((sum, time) => sum + time, 0) / times.length;
         const isSlowEndpoint = avgTime > 1000; // > 1 second
-        
+
         this.predictions.set(key, {
           avgResponseTime: avgTime,
           requestCount: times.length,
           isSlowEndpoint,
-          lastUpdated: Date.now()
+          lastUpdated: Date.now(),
         });
       }
     }
   }
-  
+
   shouldPrewarm(req) {
     const key = `${req.method}:${req.path}`;
     const prediction = this.predictions.get(key);
-    
+
     return prediction && prediction.isSlowEndpoint;
   }
-  
+
   getStats() {
     return {
       patternsRecorded: this.requestPatterns.length,
       predictionsCount: this.predictions.size,
       learningEnabled: this.learningEnabled,
-      recentPerformance: this.performanceHistory.slice(-10)
+      recentPerformance: this.performanceHistory.slice(-10),
     };
   }
 }
@@ -333,7 +335,7 @@ const predictiveOptimizer = new PredictiveOptimizer();
 const perfMonitor = new PerformanceMonitor({
   enableFileLogging: config.env === 'production',
   samplingInterval: 10000,
-  memoryThreshold: 0.9
+  memoryThreshold: 0.9,
 });
 
 // Start monitoring
@@ -341,28 +343,32 @@ perfMonitor.start();
 memoryManager.start();
 
 // Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:"],
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", 'data:'],
+      },
     },
-  },
-  crossOriginEmbedderPolicy: false
-}));
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Compression middleware
 if (config.enableCompression) {
-  app.use(compression({
-    level: 6, // Good balance between speed and compression
-    threshold: 1024, // Only compress responses > 1KB
-    filter: (req, res) => {
-      if (req.headers['x-no-compression']) return false;
-      return compression.filter(req, res);
-    }
-  }));
+  app.use(
+    compression({
+      level: 6, // Good balance between speed and compression
+      threshold: 1024, // Only compress responses > 1KB
+      filter: (req, res) => {
+        if (req.headers['x-no-compression']) return false;
+        return compression.filter(req, res);
+      },
+    })
+  );
 }
 
 // Rate limiting
@@ -372,7 +378,7 @@ if (config.enableRateLimit) {
     max: 1000, // Limit each IP to 1000 requests per windowMs
     message: 'Too many requests from this IP, please try again later.',
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
   });
   app.use(limiter);
 }
@@ -385,29 +391,29 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use((req, res, next) => {
   const startTime = performance.now();
   const startMemory = process.memoryUsage().heapUsed;
-  
+
   // Add response tracking
   res.on('finish', () => {
     const endTime = performance.now();
     const endMemory = process.memoryUsage().heapUsed;
     const responseTime = endTime - startTime;
     const memoryDelta = endMemory - startMemory;
-    
+
     // Record for predictive optimization
     predictiveOptimizer.recordRequest(req, responseTime, memoryDelta);
-    
+
     // Log slow requests
     if (responseTime > 1000) {
       console.warn(`🐌 Slow request: ${req.method} ${req.path} took ${responseTime.toFixed(2)}ms`);
     }
   });
-  
+
   // Add caching helpers
   req.cache = {
     get: (key) => ultraCache.get(`${req.path}:${key}`),
-    set: (key, value, ttl) => ultraCache.set(`${req.path}:${key}`, value, ttl)
+    set: (key, value, ttl) => ultraCache.set(`${req.path}:${key}`, value, ttl),
   };
-  
+
   next();
 });
 
@@ -423,7 +429,7 @@ const initializeBrowserHistory = async () => {
     console.log('✅ Real browser history tool loaded with optimizations');
   } catch (error) {
     console.log('⚠️ Using optimized mock browser history implementation');
-    
+
     class OptimizedMockBrowserHistoryTool {
       constructor(config = {}) {
         this.config = config;
@@ -442,7 +448,7 @@ const initializeBrowserHistory = async () => {
             visitTime: Date.now(),
             visitCount: 12,
             browser: 'chrome',
-            score: 0.95
+            score: 0.95,
           },
           {
             url: 'https://www.perplexity.ai',
@@ -450,7 +456,7 @@ const initializeBrowserHistory = async () => {
             visitTime: Date.now() - 1800000,
             visitCount: 8,
             browser: 'chrome',
-            score: 0.89
+            score: 0.89,
           },
           {
             url: 'https://shell.cloud.google.com',
@@ -458,8 +464,8 @@ const initializeBrowserHistory = async () => {
             visitTime: Date.now() - 3600000,
             visitCount: 15,
             browser: 'chrome',
-            score: 0.92
-          }
+            score: 0.92,
+          },
         ].slice(0, count);
 
         this.cache.set(cacheKey, mockData);
@@ -470,7 +476,7 @@ const initializeBrowserHistory = async () => {
         this.cache.clear();
       }
     }
-    
+
     BrowserHistoryTool = OptimizedMockBrowserHistoryTool;
     tool = new OptimizedMockBrowserHistoryTool({ autoSync: true });
   }
@@ -487,7 +493,7 @@ let metrics = {
   lastUpdated: new Date().toISOString(),
   cache: ultraCache.getStats(),
   memory: memoryManager.getStats(),
-  predictions: predictiveOptimizer.getStats()
+  predictions: predictiveOptimizer.getStats(),
 };
 
 // Update metrics periodically
@@ -497,7 +503,7 @@ setInterval(() => {
     lastUpdated: new Date().toISOString(),
     cache: ultraCache.getStats(),
     memory: memoryManager.getStats(),
-    predictions: predictiveOptimizer.getStats()
+    predictions: predictiveOptimizer.getStats(),
   };
 }, 5000);
 
@@ -505,12 +511,12 @@ setInterval(() => {
 app.get('/health', (req, res) => {
   const cacheKey = 'health_check';
   let cached = req.cache.get(cacheKey);
-  
+
   if (!cached) {
     const uptime = Math.floor((Date.now() - metrics.uptime) / 1000);
     const memUsage = process.memoryUsage();
     const isRealHistory = tool.constructor.name !== 'OptimizedMockBrowserHistoryTool';
-    
+
     cached = {
       status: 'optimal',
       timestamp: new Date().toISOString(),
@@ -519,32 +525,32 @@ app.get('/health', (req, res) => {
       browserHistory: {
         available: true,
         type: isRealHistory ? 'real' : 'optimized-mock',
-        cached: !isRealHistory
+        cached: !isRealHistory,
       },
       memory: {
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
         pressure: Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100),
-        managementActive: true
+        managementActive: true,
       },
       performance: {
         cache: metrics.cache,
         predictions: metrics.predictions.predictionsCount,
-        monitoring: perfMonitor.getStats()
+        monitoring: perfMonitor.getStats(),
       },
       optimizations: {
         caching: 'multi-tier-lru',
         compression: config.enableCompression,
         rateLimit: config.enableRateLimit,
         memoryManagement: 'advanced',
-        prediction: 'ml-based'
-      }
+        prediction: 'ml-based',
+      },
     };
-    
+
     // Cache for 30 seconds
     req.cache.set(cacheKey, cached, 30000);
   }
-  
+
   metrics.requests++;
   res.json(cached);
 });
@@ -556,9 +562,9 @@ app.get('/metrics', (req, res) => {
     performance: perfMonitor.getStats(),
     cache: ultraCache.getStats(),
     memory: memoryManager.getStats(),
-    predictions: predictiveOptimizer.getStats()
+    predictions: predictiveOptimizer.getStats(),
   };
-  
+
   res.set('Content-Type', 'application/json');
   res.json(stats);
 });
@@ -568,27 +574,27 @@ app.get('/history', async (req, res) => {
   try {
     const count = parseInt(req.query.count) || 50;
     const cacheKey = `history_${count}`;
-    
+
     let history = req.cache.get(cacheKey);
     if (!history) {
       history = await tool.getRecentHistory(count);
       req.cache.set(cacheKey, history, 60000); // Cache for 1 minute
     }
-    
+
     metrics.requests++;
     res.json({
       success: true,
       count: history.length,
       data: history,
       cached: true,
-      optimizations: 'multi-tier-cache'
+      optimizations: 'multi-tier-cache',
     });
   } catch (error) {
     metrics.errors++;
     res.status(500).json({
       success: false,
       error: error.message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -598,15 +604,15 @@ app.get('/optimize', (req, res) => {
   // Trigger optimizations
   memoryManager.triggerGC();
   ultraCache.clear();
-  
+
   res.json({
     success: true,
     message: 'System optimization triggered',
     actions: [
       'Garbage collection triggered',
       'Cache cleared and refreshed',
-      'Memory pressure relieved'
-    ]
+      'Memory pressure relieved',
+    ],
   });
 });
 
@@ -617,18 +623,18 @@ app.use((error, req, res, next) => {
   res.status(500).json({
     success: false,
     error: 'Internal server error',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 // Graceful shutdown
 const gracefulShutdown = (signal) => {
   console.log(`\n🛑 Received ${signal}, shutting down gracefully...`);
-  
+
   perfMonitor.stop();
   memoryManager.stop();
   tool.destroy?.();
-  
+
   process.exit(0);
 };
 
@@ -638,11 +644,11 @@ process.on('SIGINT', gracefulShutdown);
 // Start server
 if (config.enableClustering && cluster.isPrimary && config.env === 'production') {
   console.log(`🚀 Starting ${config.workers} workers for ultra-performance`);
-  
+
   for (let i = 0; i < config.workers; i++) {
     cluster.fork();
   }
-  
+
   cluster.on('exit', (worker, code, signal) => {
     console.log(`Worker ${worker.process.pid} died. Starting new worker...`);
     cluster.fork();
@@ -650,7 +656,7 @@ if (config.enableClustering && cluster.isPrimary && config.env === 'production')
 } else {
   const server = app.listen(config.port, config.host, () => {
     const isRealHistory = tool.constructor.name !== 'OptimizedMockBrowserHistoryTool';
-    
+
     console.log(`\n🎯 Ultra-Optimized LLM AI Bridge Server`);
     console.log(`🌐 Listening: http://${config.host}:${config.port}`);
     console.log(`📊 Environment: ${config.env}`);
@@ -667,11 +673,11 @@ if (config.enableClustering && cluster.isPrimary && config.env === 'production')
     console.log(`  GET /optimize - Trigger system optimization`);
     console.log(`\n🚀 Server ready for ultra-performance operations`);
   });
-  
+
   // Configure server for optimal performance
   server.keepAliveTimeout = 65000;
   server.headersTimeout = 66000;
   server.maxHeadersCount = 100;
-  
+
   export default app;
 }

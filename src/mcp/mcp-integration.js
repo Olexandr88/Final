@@ -34,7 +34,7 @@ export class MCPIntegration extends EventEmitter {
     const providerDetector = new ProviderDetector();
     this.builtInTools.set('detect_providers', {
       definition: ProviderDetector.getToolDefinition(),
-      executor: providerDetector.executeTool.bind(providerDetector)
+      executor: providerDetector.executeTool.bind(providerDetector),
     });
 
     // System info tool
@@ -78,7 +78,7 @@ export class MCPIntegration extends EventEmitter {
       tools.push({
         ...tool.definition,
         source: 'built-in',
-        available: true
+        available: true,
       });
     }
 
@@ -90,7 +90,7 @@ export class MCPIntegration extends EventEmitter {
           server: serverName,
           source: 'server',
           available: server.connected,
-          url: server.url
+          url: server.url,
         });
       }
     }
@@ -110,7 +110,7 @@ export class MCPIntegration extends EventEmitter {
       args,
       scope = 'project', // local, project, user
       tools = [],
-      auth = null
+      auth = null,
     } = config;
 
     const serverConfig = {
@@ -123,7 +123,7 @@ export class MCPIntegration extends EventEmitter {
       tools,
       auth,
       connected: false,
-      addedAt: Date.now()
+      addedAt: Date.now(),
     };
 
     this.servers.set(name, serverConfig);
@@ -241,7 +241,7 @@ export class MCPIntegration extends EventEmitter {
           server: serverName,
           tool,
           available: server.connected,
-          url: server.url
+          url: server.url,
         });
       }
     }
@@ -313,9 +313,9 @@ export class MCPIntegration extends EventEmitter {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(server.auth ? { 'Authorization': server.auth } : {})
+            ...(server.auth ? { Authorization: server.auth } : {}),
           },
-          body: JSON.stringify(params)
+          body: JSON.stringify(params),
         });
 
         if (!response.ok) {
@@ -327,7 +327,7 @@ export class MCPIntegration extends EventEmitter {
 
       async close() {
         // HTTP is stateless, nothing to close
-      }
+      },
     };
   }
 
@@ -369,7 +369,7 @@ export class MCPIntegration extends EventEmitter {
 
       async close() {
         process.kill();
-      }
+      },
     };
   }
 
@@ -419,7 +419,7 @@ export class MCPIntegration extends EventEmitter {
 
       async close() {
         ws.close();
-      }
+      },
     };
   }
 
@@ -437,7 +437,7 @@ export class MCPIntegration extends EventEmitter {
         this.servers.set(name, {
           name,
           ...serverConfig,
-          connected: false
+          connected: false,
         });
       }
 
@@ -454,11 +454,7 @@ export class MCPIntegration extends EventEmitter {
     let configPath;
 
     if (scope === 'user') {
-      configPath = path.join(
-        process.env.HOME || process.env.USERPROFILE,
-        '.claude',
-        'mcp.json'
-      );
+      configPath = path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'mcp.json');
     } else {
       configPath = this.configPath;
     }
@@ -473,7 +469,7 @@ export class MCPIntegration extends EventEmitter {
       transport: serverConfig.transport,
       url: serverConfig.url,
       tools: serverConfig.tools,
-      auth: serverConfig.auth
+      auth: serverConfig.auth,
     };
 
     await fs.promises.mkdir(path.dirname(configPath), { recursive: true });

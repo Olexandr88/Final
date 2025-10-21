@@ -48,16 +48,18 @@ export class BenchmarkSuite {
         const modules = [
           '../src/ai-bridge.js',
           '../src/session-coordinator.js',
-          '../src/utils/performance-monitor.js'
+          '../src/utils/performance-monitor.js',
         ];
 
-        await Promise.all(modules.map(async (mod) => {
-          try {
-            await import(mod);
-          } catch (e) {
-            // Module might not exist, that's okay for benchmark
-          }
-        }));
+        await Promise.all(
+          modules.map(async (mod) => {
+            try {
+              await import(mod);
+            } catch (e) {
+              // Module might not exist, that's okay for benchmark
+            }
+          })
+        );
       } catch (error) {
         // Ignore import errors for benchmarking
       }
@@ -73,11 +75,13 @@ export class BenchmarkSuite {
       avg: times.reduce((a, b) => a + b) / times.length,
       min: Math.min(...times),
       max: Math.max(...times),
-      runs: times
+      runs: times,
     };
 
     console.log(`   ✓ Average: ${this.results.startup.avg.toFixed(2)}ms`);
-    console.log(`   ✓ Range: ${this.results.startup.min.toFixed(2)}ms - ${this.results.startup.max.toFixed(2)}ms`);
+    console.log(
+      `   ✓ Range: ${this.results.startup.min.toFixed(2)}ms - ${this.results.startup.max.toFixed(2)}ms`
+    );
   }
 
   async benchmarkWorkerPoolPerformance() {
@@ -89,7 +93,7 @@ export class BenchmarkSuite {
     // Simulate parallel task processing
     const tasks = Array.from({ length: iterations }, (_, i) => ({
       id: i,
-      data: Buffer.alloc(1024).fill(i % 256)
+      data: Buffer.alloc(1024).fill(i % 256),
     }));
 
     // Process tasks in batches
@@ -101,9 +105,7 @@ export class BenchmarkSuite {
 
     const results = [];
     for (const batch of batches) {
-      const batchResults = await Promise.all(
-        batch.map(task => this.processTask(task))
-      );
+      const batchResults = await Promise.all(batch.map((task) => this.processTask(task)));
       results.push(...batchResults);
     }
 
@@ -115,7 +117,7 @@ export class BenchmarkSuite {
       iterations,
       throughput: parseFloat(throughput),
       avgLatency: duration / iterations,
-      batchSize
+      batchSize,
     };
 
     console.log(`   ✓ Processed ${iterations} tasks in ${duration.toFixed(2)}ms`);
@@ -154,7 +156,7 @@ export class BenchmarkSuite {
     allocations.length = 0;
     if (global.gc) global.gc();
 
-    await new Promise(resolve => setTimeout(resolve, 100)); // Let GC run
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Let GC run
     const endMem = process.memoryUsage();
 
     this.results.memory = {
@@ -162,7 +164,10 @@ export class BenchmarkSuite {
       allocationsPerSec: (iterations / (allocDuration / 1000)).toFixed(2),
       peakHeapUsed: peakMem.heapUsed - startMem.heapUsed,
       peakHeapUsedMB: ((peakMem.heapUsed - startMem.heapUsed) / 1024 / 1024).toFixed(2),
-      gcEfficiency: ((1 - (endMem.heapUsed - startMem.heapUsed) / (peakMem.heapUsed - startMem.heapUsed)) * 100).toFixed(2)
+      gcEfficiency: (
+        (1 - (endMem.heapUsed - startMem.heapUsed) / (peakMem.heapUsed - startMem.heapUsed)) *
+        100
+      ).toFixed(2),
     };
 
     console.log(`   ✓ Allocated ${iterations} buffers in ${allocDuration.toFixed(2)}ms`);
@@ -179,12 +184,12 @@ export class BenchmarkSuite {
 
     for (let i = 0; i < samples; i++) {
       const start = performance.now();
-      await new Promise(resolve => setImmediate(resolve));
+      await new Promise((resolve) => setImmediate(resolve));
       const delay = performance.now() - start;
       delays.push(delay);
 
       // Add some work between measurements
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
     }
 
     const sorted = delays.sort((a, b) => a - b);
@@ -196,7 +201,7 @@ export class BenchmarkSuite {
       max: Math.max(...delays),
       p50: sorted[Math.floor(sorted.length * 0.5)],
       p95: sorted[Math.floor(sorted.length * 0.95)],
-      p99: sorted[Math.floor(sorted.length * 0.99)]
+      p99: sorted[Math.floor(sorted.length * 0.99)],
     };
 
     console.log(`   ✓ Samples: ${samples}`);
@@ -218,7 +223,7 @@ export class BenchmarkSuite {
       cache.set(`key_${i}`, {
         data: `value_${i}`,
         timestamp: Date.now(),
-        metadata: { index: i }
+        metadata: { index: i },
       });
     }
     const writeDuration = performance.now() - writeStart;
@@ -242,9 +247,9 @@ export class BenchmarkSuite {
       iterations,
       writeOpsPerSec: (iterations / (writeDuration / 1000)).toFixed(2),
       readOpsPerSec: (iterations / (readDuration / 1000)).toFixed(2),
-      deleteOpsPerSec: ((iterations / 2) / (deleteDuration / 1000)).toFixed(2),
+      deleteOpsPerSec: (iterations / 2 / (deleteDuration / 1000)).toFixed(2),
       hitRate: ((hits / iterations) * 100).toFixed(2),
-      finalSize: cache.size
+      finalSize: cache.size,
     };
 
     console.log(`   ✓ Write: ${this.results.cache.writeOpsPerSec} ops/sec`);
@@ -262,12 +267,12 @@ export class BenchmarkSuite {
       timestamp: Date.now(),
       data: {
         users: Array.from({ length: 100 }, (_, i) => ({ id: i, name: `User ${i}` })),
-        settings: { theme: 'dark', language: 'en', notifications: true }
+        settings: { theme: 'dark', language: 'en', notifications: true },
       },
       metadata: {
         version: '1.0.0',
-        tags: ['test', 'benchmark', 'performance']
-      }
+        tags: ['test', 'benchmark', 'performance'],
+      },
     };
 
     // Stringify performance
@@ -291,7 +296,7 @@ export class BenchmarkSuite {
       stringifyOpsPerSec: (iterations / (stringifyDuration / 1000)).toFixed(2),
       parseOpsPerSec: (iterations / (parseDuration / 1000)).toFixed(2),
       avgStringifyTime: (stringifyDuration / iterations).toFixed(2),
-      avgParseTime: (parseDuration / iterations).toFixed(2)
+      avgParseTime: (parseDuration / iterations).toFixed(2),
     };
 
     console.log(`   ✓ Object Size: ${this.results.json.objectSize} bytes`);
@@ -339,7 +344,7 @@ export class BenchmarkSuite {
       throughput: 25,
       memory: 20,
       eventLoop: 20,
-      cache: 15
+      cache: 15,
     };
 
     // Startup score (target < 100ms avg)
@@ -372,8 +377,9 @@ export class BenchmarkSuite {
       score.cache = Math.max(0, 15 - penalty);
     }
 
-    score.total = Object.values(score).reduce((sum, val) =>
-      typeof val === 'number' ? sum + val : sum, 0
+    score.total = Object.values(score).reduce(
+      (sum, val) => (typeof val === 'number' ? sum + val : sum),
+      0
     );
 
     return score;
@@ -393,8 +399,8 @@ export class BenchmarkSuite {
           'Enable --max-old-space-size flag',
           'Implement lazy module loading',
           'Review module dependencies',
-          'Consider pre-compilation'
-        ]
+          'Consider pre-compilation',
+        ],
       });
     }
 
@@ -407,8 +413,8 @@ export class BenchmarkSuite {
           'Increase UV_THREADPOOL_SIZE',
           'Optimize worker pool size',
           'Review task batching strategy',
-          'Consider worker thread reuse'
-        ]
+          'Consider worker thread reuse',
+        ],
       });
     }
 
@@ -421,8 +427,8 @@ export class BenchmarkSuite {
           'Enable --expose-gc flag',
           'Implement manual GC triggers',
           'Review memory leaks',
-          'Optimize buffer allocations'
-        ]
+          'Optimize buffer allocations',
+        ],
       });
     }
 
@@ -435,8 +441,8 @@ export class BenchmarkSuite {
           'Move CPU-intensive work to workers',
           'Reduce synchronous operations',
           'Optimize I/O operations',
-          'Review third-party middleware'
-        ]
+          'Review third-party middleware',
+        ],
       });
     }
 
@@ -449,8 +455,8 @@ export class BenchmarkSuite {
           'Consider LRU cache implementation',
           'Review cache size limits',
           'Optimize cache key structure',
-          'Implement cache warming'
-        ]
+          'Implement cache warming',
+        ],
       });
     }
 
@@ -461,7 +467,7 @@ export class BenchmarkSuite {
       recommendations.forEach((rec, i) => {
         console.log(`${i + 1}. [${rec.severity}] ${rec.area}: ${rec.issue}`);
         console.log('   Suggestions:');
-        rec.suggestions.forEach(s => console.log(`   • ${s}`));
+        rec.suggestions.forEach((s) => console.log(`   • ${s}`));
         console.log();
       });
     }
@@ -472,7 +478,8 @@ export class BenchmarkSuite {
 if (process.argv[1] === __filename || process.argv[1].endsWith('benchmark-suite.js')) {
   const suite = new BenchmarkSuite();
 
-  suite.runAll()
+  suite
+    .runAll()
     .then(() => {
       console.log('\n✅ Benchmark suite completed successfully\n');
       process.exit(0);

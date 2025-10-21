@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "my-optimized-server": {
+      "command": "node",
+      "args": ["server.js"],
+      "env": {
+        "MCP_MAX_CONCURRENCY": "8",
+        "MCP_REQUEST_TIMEOUT_MS": "20000",
+        "MCP_CONNECT_TIMEOUT_MS": "5000",
+        "MCP_MAX_RETRIES": "2",
+        "MCP_RETRY_BASE_MS": "250",
+        "MCP_CACHE_TTL_MS": "60000",
+        "MCP_STREAMING": "1",
+        "NODE_OPTIONS": "--max-old-space-size=1024"
+      },
+      "disabled": false
+    }
+  }
+}

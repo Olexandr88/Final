@@ -11,7 +11,7 @@ export interface OllamaConfig {
 }
 
 export interface OllamaMessage {
-  role: "system" | "user" | "assistant";
+  role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
@@ -43,22 +43,22 @@ export async function chatCompletion(
   request: OllamaRequest,
   config: OllamaConfig = {}
 ): Promise<OllamaResponse> {
-  const baseUrl = config.baseUrl || process.env.OLLAMA_API_BASE || "http://localhost:11434";
+  const baseUrl = config.baseUrl || process.env.OLLAMA_API_BASE || 'http://localhost:11434';
   const apiKey = config.apiKey || process.env.OLLAMA_API_KEY;
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+    'Content-Type': 'application/json',
   };
 
   // Add Authorization header if API key is provided (for cloud)
   if (apiKey) {
-    headers["Authorization"] = `Bearer ${apiKey}`;
+    headers['Authorization'] = `Bearer ${apiKey}`;
   }
 
   const url = `${baseUrl}/api/chat`;
 
   const response = await fetch(url, {
-    method: "POST",
+    method: 'POST',
     headers,
     body: JSON.stringify({
       model: request.model,
@@ -79,17 +79,18 @@ export async function chatCompletion(
  * Ollama agent that follows the multi-agent protocol
  */
 export async function agent(env: any): Promise<any> {
-  const userText = env?.content?.text || "";
-  const model = env?.inputs?.parameters?.model || env?.agent?.model || "llama3.2";
+  const userText = env?.content?.text || '';
+  const model = env?.inputs?.parameters?.model || env?.agent?.model || 'llama3.2';
   const temperature = env?.inputs?.parameters?.temperature || 0.7;
   const maxTokens = env?.inputs?.parameters?.max_tokens || 2048;
 
   const messages: OllamaMessage[] = [
     {
-      role: "system",
-      content: "You are a helpful AI assistant powered by Ollama. Provide clear, accurate, and concise responses."
+      role: 'system',
+      content:
+        'You are a helpful AI assistant powered by Ollama. Provide clear, accurate, and concise responses.',
     },
-    { role: "user", content: userText },
+    { role: 'user', content: userText },
   ];
 
   const request: OllamaRequest = {
@@ -104,26 +105,26 @@ export async function agent(env: any): Promise<any> {
   const result = await chatCompletion(request);
 
   return {
-    protocol: "multiagent-1.0",
-    role: "agent",
+    protocol: 'multiagent-1.0',
+    role: 'agent',
     agent: {
-      id: "ollama.agent",
-      name: "Ollama Agent",
+      id: 'ollama.agent',
+      name: 'Ollama Agent',
       model: result.model,
-      version: "2025-10",
+      version: '2025-10',
     },
     timestamp: new Date().toISOString(),
-    intent: env.intent || "execute",
-    task: env.task || "Process request",
+    intent: env.intent || 'execute',
+    task: env.task || 'Process request',
     content: {
-      type: "text",
+      type: 'text',
       text: result.message.content,
     },
     outputs: {
       artifacts: [
         {
-          kind: "response",
-          name: "ollama_response",
+          kind: 'response',
+          name: 'ollama_response',
           inline: result.message.content,
         },
       ],
@@ -139,7 +140,7 @@ export async function agent(env: any): Promise<any> {
  * List available models (local only)
  */
 export async function listModels(config: OllamaConfig = {}): Promise<any> {
-  const baseUrl = config.baseUrl || process.env.OLLAMA_API_BASE || "http://localhost:11434";
+  const baseUrl = config.baseUrl || process.env.OLLAMA_API_BASE || 'http://localhost:11434';
 
   const response = await fetch(`${baseUrl}/api/tags`);
 

@@ -25,13 +25,13 @@ export class SecureToolExecutor extends ToolExecutor {
       workingDirectory: process.cwd(),
       allowedPaths: [process.cwd()],
       timeout: 30000,
-      allowedCommands: ['npm', 'node', 'git', 'ls', 'dir', 'echo', 'cat', 'type']
+      allowedCommands: ['npm', 'node', 'git', 'ls', 'dir', 'echo', 'cat', 'type'],
     });
 
     this.rateLimiter = new RateLimiter({
       maxRequestsPerMinute: 30,
       maxRequestsPerHour: 500,
-      maxConcurrentExecutions: 3
+      maxConcurrentExecutions: 3,
     });
 
     this.validator = inputValidator;
@@ -42,7 +42,7 @@ export class SecureToolExecutor extends ToolExecutor {
     });
 
     logger.info(`SecureToolExecutor initialized for ${this.agentId}`, {
-      toolCount: this.tools.size
+      toolCount: this.tools.size,
     });
   }
 
@@ -59,7 +59,7 @@ export class SecureToolExecutor extends ToolExecutor {
 
     logger.info(`Secure tool execution started: ${toolName}`, {
       agentId: this.agentId,
-      executionId
+      executionId,
     });
 
     // Step 1: Rate Limiting
@@ -68,7 +68,7 @@ export class SecureToolExecutor extends ToolExecutor {
       logger.warn('Rate limit exceeded', {
         agentId: this.agentId,
         tool: toolName,
-        reason: rateLimitCheck.reason
+        reason: rateLimitCheck.reason,
       });
 
       await auditLogger.logEvent({
@@ -77,7 +77,7 @@ export class SecureToolExecutor extends ToolExecutor {
         agentId: this.agentId,
         operation: toolName,
         result: 'DENIED',
-        details: rateLimitCheck
+        details: rateLimitCheck,
       });
 
       return {
@@ -85,7 +85,7 @@ export class SecureToolExecutor extends ToolExecutor {
         tool: toolName,
         error: rateLimitCheck.reason,
         executionId,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
     }
 
@@ -97,7 +97,7 @@ export class SecureToolExecutor extends ToolExecutor {
       logger.error('Input validation failed', {
         agentId: this.agentId,
         tool: toolName,
-        error: error.message
+        error: error.message,
       });
 
       await auditLogger.logEvent({
@@ -107,7 +107,7 @@ export class SecureToolExecutor extends ToolExecutor {
         operation: toolName,
         resource: JSON.stringify(params),
         result: 'DENIED',
-        details: { error: error.message }
+        details: { error: error.message },
       });
 
       return {
@@ -115,7 +115,7 @@ export class SecureToolExecutor extends ToolExecutor {
         tool: toolName,
         error: error.message,
         executionId,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
     }
 
@@ -123,7 +123,7 @@ export class SecureToolExecutor extends ToolExecutor {
     if (!this._hasPermissionSecure(toolName)) {
       logger.error('Permission denied', {
         agentId: this.agentId,
-        tool: toolName
+        tool: toolName,
       });
 
       await auditLogger.logEvent({
@@ -132,7 +132,7 @@ export class SecureToolExecutor extends ToolExecutor {
         agentId: this.agentId,
         operation: toolName,
         result: 'DENIED',
-        details: { permissions: this.permissions }
+        details: { permissions: this.permissions },
       });
 
       return {
@@ -140,7 +140,7 @@ export class SecureToolExecutor extends ToolExecutor {
         tool: toolName,
         error: `Permission denied: ${toolName}`,
         executionId,
-        duration: Date.now() - startTime
+        duration: Date.now() - startTime,
       };
     }
 
@@ -172,13 +172,13 @@ export class SecureToolExecutor extends ToolExecutor {
         operation: toolName,
         resource: JSON.stringify(validatedParams),
         result: 'SUCCESS',
-        details: { duration, executionId }
+        details: { duration, executionId },
       });
 
       logger.info(`Secure tool execution successful: ${toolName}`, {
         agentId: this.agentId,
         executionId,
-        duration
+        duration,
       });
 
       return {
@@ -186,9 +186,8 @@ export class SecureToolExecutor extends ToolExecutor {
         tool: toolName,
         result,
         executionId,
-        duration
+        duration,
       };
-
     } catch (error) {
       const duration = Date.now() - startTime;
 
@@ -196,7 +195,7 @@ export class SecureToolExecutor extends ToolExecutor {
         agentId: this.agentId,
         tool: toolName,
         error: error.message,
-        executionId
+        executionId,
       });
 
       await auditLogger.logEvent({
@@ -208,8 +207,8 @@ export class SecureToolExecutor extends ToolExecutor {
         details: {
           error: error.message,
           duration,
-          executionId
-        }
+          executionId,
+        },
       });
 
       return {
@@ -217,9 +216,8 @@ export class SecureToolExecutor extends ToolExecutor {
         tool: toolName,
         error: error.message,
         executionId,
-        duration
+        duration,
       };
-
     } finally {
       this.rateLimiter.endExecution(this.agentId);
     }
@@ -249,7 +247,7 @@ export class SecureToolExecutor extends ToolExecutor {
     if (!this.permissions || Object.keys(this.permissions).length === 0) {
       logger.warn('No permissions configured - denying access', {
         agentId: this.agentId,
-        tool: toolName
+        tool: toolName,
       });
       return false; // SECURE DEFAULT
     }
@@ -266,14 +264,14 @@ export class SecureToolExecutor extends ToolExecutor {
       git_diff: 'git_operations',
       git_commit: 'git_operations',
       analyze_code: 'code_analysis',
-      run_tests: 'test_execution'
+      run_tests: 'test_execution',
     };
 
     const requiredPermission = permissionMap[toolName];
     if (!requiredPermission) {
       logger.warn('Unknown tool - denying access', {
         agentId: this.agentId,
-        tool: toolName
+        tool: toolName,
       });
       return false;
     }
@@ -286,9 +284,7 @@ export class SecureToolExecutor extends ToolExecutor {
    * @private
    */
   async _executeInSandbox(toolName, params, context, executionId) {
-    const command = toolName === 'npm'
-      ? `npm ${params.command || ''}`
-      : params.command;
+    const command = toolName === 'npm' ? `npm ${params.command || ''}` : params.command;
 
     return await this.sandbox.executeCommand(command, { executionId });
   }
@@ -307,7 +303,7 @@ export class SecureToolExecutor extends ToolExecutor {
     return await handler(params, {
       agentId: this.agentId,
       executionId,
-      ...context
+      ...context,
     });
   }
 
@@ -320,7 +316,7 @@ export class SecureToolExecutor extends ToolExecutor {
     const redacted = JSON.parse(JSON.stringify(result));
     const redactDeep = (obj) => {
       if (!obj || typeof obj !== 'object') return obj;
-      if (Array.isArray(obj)) return obj.map(item => redactDeep(item));
+      if (Array.isArray(obj)) return obj.map((item) => redactDeep(item));
       for (const [k, v] of Object.entries(obj)) {
         if (typeof v === 'string') {
           obj[k] = credentialManager.redactSecrets(v);
@@ -337,8 +333,10 @@ export class SecureToolExecutor extends ToolExecutor {
       if (typeof redacted.error === 'string') {
         redacted.error = credentialManager.redactSecrets(redacted.error);
       } else if (typeof redacted.error === 'object') {
-        if (redacted.error.message) redacted.error.message = credentialManager.redactSecrets(redacted.error.message);
-        if (redacted.error.stack) redacted.error.stack = credentialManager.redactSecrets(redacted.error.stack);
+        if (redacted.error.message)
+          redacted.error.message = credentialManager.redactSecrets(redacted.error.message);
+        if (redacted.error.stack)
+          redacted.error.stack = credentialManager.redactSecrets(redacted.error.stack);
       }
     }
     return redactDeep(redacted);
@@ -351,7 +349,7 @@ export class SecureToolExecutor extends ToolExecutor {
   async _handleSecurityViolation(event) {
     logger.error('Security violation detected', {
       agentId: this.agentId,
-      event
+      event,
     });
 
     await auditLogger.logEvent({
@@ -361,7 +359,7 @@ export class SecureToolExecutor extends ToolExecutor {
       operation: 'command_execution',
       resource: event.command,
       result: 'DENIED',
-      details: event
+      details: event,
     });
 
     this.emit('securityViolation', event);
@@ -376,7 +374,7 @@ export class SecureToolExecutor extends ToolExecutor {
     for (const [name] of this.tools) {
       tools.push({
         name,
-        hasPermission: this._hasPermissionSecure(name)
+        hasPermission: this._hasPermissionSecure(name),
       });
     }
 
@@ -391,7 +389,7 @@ export class SecureToolExecutor extends ToolExecutor {
       agentId: this.agentId,
       rateLimitStats: this.rateLimiter.getStats(this.agentId),
       metrics: this.metrics,
-      toolCount: this.tools.size
+      toolCount: this.tools.size,
     };
   }
 }

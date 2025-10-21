@@ -18,8 +18,8 @@ class SecurityAgent1Agent {
   constructor() {
     this.agentId = AGENT_ID;
     this.ws = null;
-    this.capabilities = ["sql_injection_check","xss_detection","dependency_audit"];
-    this.intents = ["security.scan","security.audit","security.report"];
+    this.capabilities = ['sql_injection_check', 'xss_detection', 'dependency_audit'];
+    this.intents = ['security.scan', 'security.audit', 'security.report'];
   }
 
   async connect() {
@@ -31,17 +31,19 @@ class SecurityAgent1Agent {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'Scans for security vulnerabilities',
-      labels: ['auto-generated', 'specialized', 'security-agent-1'],
-      tools: this.capabilities,
-      intents: this.intents,
-      maxConcurrentTasks: 3
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'Scans for security vulnerabilities',
+        labels: ['auto-generated', 'specialized', 'security-agent-1'],
+        tools: this.capabilities,
+        intents: this.intents,
+        maxConcurrentTasks: 3,
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info(`✅ ${this.agentId} ready\n`);
 
     this.setupHandlers();
@@ -80,29 +82,32 @@ class SecurityAgent1Agent {
       // Auto-generated agent logic
       const result = await this.processTask(intent, payload);
 
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: `${intent}.result`,
-          replyTo: id,
-          payload: result
-        }
-      }));
-
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: `${intent}.result`,
+            replyTo: id,
+            payload: result,
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Error processing task:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: 'agent.error',
-          replyTo: id,
-          payload: { error: error.message }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: 'agent.error',
+            replyTo: id,
+            payload: { error: error.message },
+          },
+        })
+      );
     }
   }
 
@@ -126,7 +131,7 @@ class SecurityAgent1Agent {
       timestamp: new Date().toISOString(),
       payload,
       capabilities: this.capabilities,
-      message: `Task processed by security agent`
+      message: `Task processed by security agent`,
     };
 
     return result;
@@ -142,7 +147,7 @@ class SecurityAgent1Agent {
       const output = execSync('npm run security:audit', {
         encoding: 'utf8',
         timeout: 120000,
-        maxBuffer: 10 * 1024 * 1024
+        maxBuffer: 10 * 1024 * 1024,
       });
 
       // Read the generated report
@@ -154,7 +159,7 @@ class SecurityAgent1Agent {
         status: 'completed',
         timestamp: new Date().toISOString(),
         audit: report,
-        message: 'Security audit completed successfully'
+        message: 'Security audit completed successfully',
       };
     } catch (error) {
       logger.error('Security audit failed:', error.message);
@@ -163,7 +168,7 @@ class SecurityAgent1Agent {
         status: 'failed',
         timestamp: new Date().toISOString(),
         error: error.message,
-        message: 'Security audit encountered errors'
+        message: 'Security audit encountered errors',
       };
     }
   }
@@ -178,7 +183,7 @@ class SecurityAgent1Agent {
         return {
           agent: this.agentId,
           status: 'not_found',
-          message: 'No security report available. Run security.scan first.'
+          message: 'No security report available. Run security.scan first.',
         };
       }
 
@@ -189,14 +194,14 @@ class SecurityAgent1Agent {
         status: 'completed',
         timestamp: new Date().toISOString(),
         report,
-        message: 'Security report retrieved successfully'
+        message: 'Security report retrieved successfully',
       };
     } catch (error) {
       logger.error('Failed to get security report:', error.message);
       return {
         agent: this.agentId,
         status: 'failed',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -204,8 +209,8 @@ class SecurityAgent1Agent {
 
 // Start agent
 const agent = new SecurityAgent1Agent();
-agent.connect().catch(err => {
-  logger.error('❌ Failed to connect:', err ? (err.message || JSON.stringify(err)) : 'Unknown error');
+agent.connect().catch((err) => {
+  logger.error('❌ Failed to connect:', err ? err.message || JSON.stringify(err) : 'Unknown error');
   console.error('Full error:', err);
   process.exit(1);
 });

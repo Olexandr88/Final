@@ -28,15 +28,17 @@ class CodeFixerAgent {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'code-fixer',
-      role: 'fixer',
-      skills: ['fix_bugs', 'refactor', 'optimize'],
-      intents: ['code.fix', 'code.refactor']
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'code-fixer',
+        role: 'fixer',
+        skills: ['fix_bugs', 'refactor', 'optimize'],
+        intents: ['code.fix', 'code.refactor'],
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info('✅ Code Fixer ready\n');
 
     this.setupHandlers();
@@ -72,11 +74,9 @@ class CodeFixerAgent {
     const fixes = [];
 
     // Sort issues by line number descending (bottom-up) to preserve line numbers
-    const sortedIssues = issues
-      .filter(i => i.fix && i.line)
-      .sort((a, b) => b.line - a.line);
+    const sortedIssues = issues.filter((i) => i.fix && i.line).sort((a, b) => b.line - a.line);
 
-    sortedIssues.forEach(issue => {
+    sortedIssues.forEach((issue) => {
       const lineIdx = issue.line - 1;
       if (lineIdx >= 0 && lineIdx < lines.length) {
         const original = lines[lineIdx];
@@ -85,14 +85,14 @@ class CodeFixerAgent {
           line: issue.line,
           original: original.trim(),
           fixed: issue.fix.trim(),
-          message: issue.message
+          message: issue.message,
         });
       }
     });
 
     return {
       code: lines.join('\n'),
-      fixes
+      fixes,
     };
   }
 
@@ -108,7 +108,35 @@ class CodeFixerAgent {
       if (issues.length === 0) {
         logger.info('✅ No issues to fix\n');
 
-        this.ws.send(JSON.stringify({
+        this.ws.send(
+          JSON.stringify({
+            type: 'envelope',
+            envelope: {
+              intent: 'code.fix_result',
+              from: 'code-fixer',
+              to: envelope.from,
+              taskId: envelope.taskId,
+              replyTo: envelope.id,
+              payload: {
+                original_code: code,
+                fixed_code: code,
+                fixes: [],
+                issues_fixed: 0,
+                timestamp: Date.now(),
+                filePath,
+              },
+            },
+          })
+        );
+        return;
+      }
+
+      const result = this.applyFixes(code, issues);
+
+      logger.info(`✅ Applied ${result.fixes.length} fixes\n`);
+
+      this.ws.send(
+        JSON.stringify({
           type: 'envelope',
           envelope: {
             intent: 'code.fix_result',
@@ -118,57 +146,35 @@ class CodeFixerAgent {
             replyTo: envelope.id,
             payload: {
               original_code: code,
-              fixed_code: code,
-              fixes: [],
-              issues_fixed: 0,
+              fixed_code: result.code,
+              fixes: result.fixes,
+              issues_fixed: result.fixes.length,
               timestamp: Date.now(),
-              filePath
-            }
-          }
-        }));
-        return;
-      }
-
-      const result = this.applyFixes(code, issues);
-
-      logger.info(`✅ Applied ${result.fixes.length} fixes\n`);
-
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'code.fix_result',
-          from: 'code-fixer',
-          to: envelope.from,
-          taskId: envelope.taskId,
-          replyTo: envelope.id,
-          payload: {
-            original_code: code,
-            fixed_code: result.code,
-            fixes: result.fixes,
-            issues_fixed: result.fixes.length,
-            timestamp: Date.now(),
-            filePath
-          }
-        }
-      }));
+              filePath,
+            },
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Fix error:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'agent.error',
-          from: 'code-fixer',
-          to: envelope.from,
-          taskId: envelope.taskId,
-          payload: { error: error.message }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            intent: 'agent.error',
+            from: 'code-fixer',
+            to: envelope.from,
+            taskId: envelope.taskId,
+            payload: { error: error.message },
+          },
+        })
+      );
     }
   }
 }
 
 const agent = new CodeFixerAgent();
-agent.connect().catch(err => {
+agent.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

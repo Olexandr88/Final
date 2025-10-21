@@ -17,36 +17,44 @@ const colors = {
   green: '\x1b[32m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  reset: '\x1b[0m'
+  reset: '\x1b[0m',
 };
 
 function log(color, prefix, message) {
   console.log(`${color}[${prefix}]${colors.reset} ${message}`);
 }
 
-function info(msg) { log(colors.blue, 'INFO', msg); }
-function success(msg) { log(colors.green, 'SUCCESS', msg); }
-function warning(msg) { log(colors.yellow, 'WARNING', msg); }
-function error(msg) { log(colors.red, 'ERROR', msg); }
+function info(msg) {
+  log(colors.blue, 'INFO', msg);
+}
+function success(msg) {
+  log(colors.green, 'SUCCESS', msg);
+}
+function warning(msg) {
+  log(colors.yellow, 'WARNING', msg);
+}
+function error(msg) {
+  log(colors.red, 'ERROR', msg);
+}
 
 async function testEndpoint(url, expectedVersion = EXPECTED_VERSION) {
   return new Promise((resolve) => {
     const client = url.startsWith('https:') ? https : http;
     const startTime = Date.now();
-    
+
     const req = client.get(url, { timeout: TIMEOUT }, (res) => {
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', (chunk) => (data += chunk));
       res.on('end', () => {
         const responseTime = Date.now() - startTime;
-        
+
         try {
           const parsed = JSON.parse(data);
           const hasVersion = data.includes(expectedVersion);
-          
+
           if (res.statusCode === 200 && hasVersion) {
             success(`✅ ${url} - ${responseTime}ms`);
-            
+
             // Extract key metrics
             if (parsed.connectedClients !== undefined) {
               info(`   Connected clients: ${parsed.connectedClients}`);
@@ -57,7 +65,7 @@ async function testEndpoint(url, expectedVersion = EXPECTED_VERSION) {
             if (parsed.performance?.messagesProcessed !== undefined) {
               info(`   Messages processed: ${parsed.performance.messagesProcessed}`);
             }
-            
+
             resolve({ success: true, responseTime, data: parsed });
           } else {
             warning(`⚠️  ${url} - Status ${res.statusCode}, version check: ${hasVersion}`);
@@ -69,13 +77,13 @@ async function testEndpoint(url, expectedVersion = EXPECTED_VERSION) {
         }
       });
     });
-    
+
     req.on('timeout', () => {
       req.destroy();
       error(`❌ ${url} - Timeout after ${TIMEOUT}ms`);
       resolve({ success: false, error: 'Timeout' });
     });
-    
+
     req.on('error', (err) => {
       error(`❌ ${url} - ${err.message}`);
       resolve({ success: false, error: err.message });
@@ -86,21 +94,21 @@ async function testEndpoint(url, expectedVersion = EXPECTED_VERSION) {
 async function verifyDeployment(baseUrl) {
   console.log(`\n🔍 Verifying deployment: ${baseUrl}`);
   console.log('='.repeat(50));
-  
+
   const endpoints = [
     { path: '/health', name: 'Health Check' },
-    { path: '/api/status', name: 'Status API' }
+    { path: '/api/status', name: 'Status API' },
   ];
-  
+
   const results = [];
-  
+
   for (const endpoint of endpoints) {
     const url = `${baseUrl}${endpoint.path}`;
     info(`Testing ${endpoint.name}: ${url}`);
-    
+
     const result = await testEndpoint(url);
     results.push({ ...result, endpoint: endpoint.name, url });
-    
+
     if (result.success && result.responseTime) {
       if (result.responseTime < 1000) {
         success(`   Performance: EXCELLENT (${result.responseTime}ms)`);
@@ -111,48 +119,48 @@ async function verifyDeployment(baseUrl) {
       }
     }
   }
-  
+
   return results;
 }
 
 async function main() {
   console.log('🚀 AI BRIDGE DEPLOYMENT VERIFICATION');
   console.log('====================================\n');
-  
+
   // Default deployment URLs
   const deploymentUrls = [
     'https://llm-ai-bridge.onrender.com',
     'https://llm-ai-bridge.fly.dev',
-    'https://llm-ai-bridge.up.railway.app'
+    'https://llm-ai-bridge.up.railway.app',
   ];
-  
+
   // Use custom URL if provided
   const customUrl = process.argv[2];
   const urlsToTest = customUrl ? [customUrl] : deploymentUrls;
-  
+
   if (customUrl) {
     info(`Testing custom URL: ${customUrl}`);
   }
-  
+
   let totalTests = 0;
   let successfulTests = 0;
   const deploymentResults = [];
-  
+
   for (const baseUrl of urlsToTest) {
     const results = await verifyDeployment(baseUrl);
     deploymentResults.push({ baseUrl, results });
-    
-    const successful = results.filter(r => r.success).length;
+
+    const successful = results.filter((r) => r.success).length;
     totalTests += results.length;
     successfulTests += successful;
   }
-  
+
   // Summary
   console.log('\n📊 VERIFICATION SUMMARY');
   console.log('======================');
   console.log(`   Tests passed: ${successfulTests}/${totalTests}`);
   console.log(`   Success rate: ${Math.round((successfulTests / totalTests) * 100)}%`);
-  
+
   if (successfulTests === totalTests) {
     success('\n🎉 ALL DEPLOYMENTS VERIFIED SUCCESSFULLY!');
     console.log('\nNext steps:');

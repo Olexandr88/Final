@@ -16,8 +16,8 @@ await fetch('http://localhost:3001/register', {
   body: JSON.stringify({
     agent_id: 'calculator',
     capabilities: ['add', 'multiply', 'divide'],
-    metadata: { version: '1.0' }
-  })
+    metadata: { version: '1.0' },
+  }),
 });
 console.log('✅ Calculator registered\n');
 
@@ -29,8 +29,8 @@ await fetch('http://localhost:3001/register', {
   body: JSON.stringify({
     agent_id: 'validator',
     capabilities: ['validate-results'],
-    metadata: { version: '1.0' }
-  })
+    metadata: { version: '1.0' },
+  }),
 });
 console.log('✅ Validator registered\n');
 
@@ -44,9 +44,9 @@ const calcResult = await fetch('http://localhost:3001/message', {
     to: 'calculator',
     payload: {
       operation: 'multiply',
-      numbers: [100, 42]
-    }
-  })
+      numbers: [100, 42],
+    },
+  }),
 });
 console.log('✅ Request sent:', await calcResult.json());
 console.log('   → Calculator would compute: 100 * 42 = 4200\n');
@@ -61,9 +61,9 @@ const collabResult = await fetch('http://localhost:3001/collaborate', {
     task: 'Calculate and validate: (50 + 30) * 2',
     data: {
       expression: '(50 + 30) * 2',
-      expected: 160
-    }
-  })
+      expected: 160,
+    },
+  }),
 });
 const collab = await collabResult.json();
 console.log('✅ Collaboration started:', collab.collaboration_id);
@@ -81,10 +81,10 @@ const workflowResult = await fetch('http://localhost:3001/workflow', {
     steps: [
       { provider: 'calculator', action: 'parse-expression' },
       { provider: 'calculator', action: 'calculate' },
-      { provider: 'validator', action: 'validate' }
+      { provider: 'validator', action: 'validate' },
     ],
-    input: '(10 + 20) * (5 - 2)'
-  })
+    input: '(10 + 20) * (5 - 2)',
+  }),
 });
 const workflow = await workflowResult.json();
 console.log('✅ Workflow created:', workflow.workflow_id);
@@ -103,9 +103,9 @@ console.log('   Active Agents:', health.active_agents);
 console.log('   Active Workflows:', health.active_workflows);
 console.log('   Protocol:', health.protocol, '\n');
 
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 console.log('WHAT A2A ACTUALLY DOES:');
-console.log('=' .repeat(50));
+console.log('='.repeat(50));
 console.log('✅ Registers multiple AI agents with capabilities');
 console.log('✅ Routes messages between agents');
 console.log('✅ Coordinates multi-agent collaboration');

@@ -25,7 +25,7 @@ function postSubagentHook(event) {
     subagent: subagent_name,
     raw_output,
     filtered_output,
-    filtering_detected: raw_output !== filtered_output
+    filtering_detected: raw_output !== filtered_output,
   };
 
   fs.writeFileSync(logFile, JSON.stringify(logEntry, null, 2));

@@ -18,7 +18,7 @@ const executor = new ToolExecutor('proof-agent', {
   file_write: true,
   command_exec: true,
   git_operations: true,
-  code_analysis: true
+  code_analysis: true,
 });
 
 // Wait for tools to load
@@ -32,9 +32,13 @@ console.log('══════════════════════�
 console.log('TEST 1: Autonomous File Read (package.json)');
 console.log('═══════════════════════════════════════════════════════════');
 
-const readResult = await executor.executeTool('read', {
-  file_path: 'package.json'
-}, { taskId: 'test-1' });
+const readResult = await executor.executeTool(
+  'read',
+  {
+    file_path: 'package.json',
+  },
+  { taskId: 'test-1' }
+);
 
 if (readResult.success) {
   const pkg = JSON.parse(readResult.result.content);
@@ -65,10 +69,14 @@ Proof of autonomous execution:
 This demonstrates that agents CAN autonomously execute file operations,
 NOT just generate text responses.`;
 
-const writeResult = await executor.executeTool('write', {
-  file_path: filename,
-  content
-}, { taskId: 'test-2' });
+const writeResult = await executor.executeTool(
+  'write',
+  {
+    file_path: filename,
+    content,
+  },
+  { taskId: 'test-2' }
+);
 
 if (writeResult.success) {
   console.log(`✅ Successfully created ${filename}`);
@@ -78,7 +86,9 @@ if (writeResult.success) {
   // Verify file exists
   try {
     const verifyContent = await fs.readFile(filename, 'utf-8');
-    console.log(`   Verification: File exists and contains ${verifyContent.split('\n').length} lines`);
+    console.log(
+      `   Verification: File exists and contains ${verifyContent.split('\n').length} lines`
+    );
   } catch (err) {
     console.log(`   ⚠️ Verification failed: ${err.message}`);
   }
@@ -91,14 +101,18 @@ console.log('\n═════════════════════�
 console.log('TEST 3: Autonomous File Discovery (glob)');
 console.log('═══════════════════════════════════════════════════════════');
 
-const globResult = await executor.executeTool('glob', {
-  pattern: 'src/agents/*.js'
-}, { taskId: 'test-3' });
+const globResult = await executor.executeTool(
+  'glob',
+  {
+    pattern: 'src/agents/*.js',
+  },
+  { taskId: 'test-3' }
+);
 
 if (globResult.success) {
   console.log(`✅ Successfully found ${globResult.result.files.length} agent files`);
   console.log(`   Files found:`);
-  globResult.result.files.slice(0, 5).forEach(f => {
+  globResult.result.files.slice(0, 5).forEach((f) => {
     console.log(`   - ${f}`);
   });
   console.log(`   Execution time: ${globResult.duration}ms`);
@@ -111,9 +125,13 @@ console.log('\n═════════════════════�
 console.log('TEST 4: Autonomous Command Execution (bash)');
 console.log('═══════════════════════════════════════════════════════════');
 
-const bashResult = await executor.executeTool('bash', {
-  command: 'echo "Autonomous execution works!"'
-}, { taskId: 'test-4' });
+const bashResult = await executor.executeTool(
+  'bash',
+  {
+    command: 'echo "Autonomous execution works!"',
+  },
+  { taskId: 'test-4' }
+);
 
 if (bashResult.success) {
   console.log(`✅ Successfully executed bash command`);
@@ -179,10 +197,14 @@ export function proveAutonomy() {
 export default { getAutonomousTimestamp, proveAutonomy };
 `;
 
-const codeResult = await executor.executeTool('write', {
-  file_path: codeFilename,
-  content: codeContent
-}, { taskId: 'test-6' });
+const codeResult = await executor.executeTool(
+  'write',
+  {
+    file_path: codeFilename,
+    content: codeContent,
+  },
+  { taskId: 'test-6' }
+);
 
 if (codeResult.success) {
   console.log(`✅ Successfully implemented code file: ${codeFilename}`);

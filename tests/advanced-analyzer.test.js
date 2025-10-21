@@ -29,7 +29,7 @@ test('AST Parser - Detect var usage', async () => {
 
   const result = parser.analyzeCode(code, 'test.js');
 
-  assert.ok(result.issues.some(i => i.type === 'var-usage'));
+  assert.ok(result.issues.some((i) => i.type === 'var-usage'));
   assert.strictEqual(result.metrics.errorCount, 1);
 });
 
@@ -39,7 +39,7 @@ test('AST Parser - Detect console.log', async () => {
 
   const result = parser.analyzeCode(code, 'test.js');
 
-  assert.ok(result.issues.some(i => i.type === 'console-log'));
+  assert.ok(result.issues.some((i) => i.type === 'console-log'));
   assert.ok(result.metrics.warningCount > 0);
 });
 
@@ -49,7 +49,7 @@ test('AST Parser - Detect weak equality', async () => {
 
   const result = parser.analyzeCode(code, 'test.js');
 
-  assert.ok(result.issues.some(i => i.type === 'weak-equality'));
+  assert.ok(result.issues.some((i) => i.type === 'weak-equality'));
 });
 
 test('AST Parser - Calculate complexity', async () => {
@@ -108,7 +108,7 @@ test('Context Aware Analyzer - Analysis with context', async () => {
   const code = `const test = 'hello';`;
 
   const result = analyzer.analyzeWithContext(code, 'test.js', {
-    source: 'test-suite'
+    source: 'test-suite',
   });
 
   assert.ok(result.context);
@@ -126,14 +126,14 @@ test('Context Aware Analyzer - Self-improvement suggestions', async () => {
   `;
 
   const result = analyzer.analyzeWithContext(code, 'src/agents/ast-parser.js', {
-    source: 'test'
+    source: 'test',
   });
 
   assert.strictEqual(result.context.isSelfAnalysis, true);
-  assert.ok(result.recommendations.some(r => r.type === 'self-improvement'));
+  assert.ok(result.recommendations.some((r) => r.type === 'self-improvement'));
 
   // Verify analyzer detects the FIXME comment
-  assert.ok(result.issues.some(i => i.message.includes('TODO/FIXME comment found')));
+  assert.ok(result.issues.some((i) => i.message.includes('TODO/FIXME comment found')));
 });
 
 test('Context Aware Analyzer - Get statistics', async () => {
@@ -161,8 +161,8 @@ test('Self-Modifying Analyzer - Propose modifications', async () => {
     const proposal = await analyzer.proposeSelfModifications(tmpFile);
 
     assert.ok(proposal.proposedModifications.length > 0);
-    assert.ok(proposal.proposedModifications.some(m => m.type === 'replace-var'));
-    assert.ok(proposal.proposedModifications.some(m => m.type === 'fix-equality'));
+    assert.ok(proposal.proposedModifications.some((m) => m.type === 'replace-var'));
+    assert.ok(proposal.proposedModifications.some((m) => m.type === 'fix-equality'));
     assert.ok(proposal.safetyStatus);
   } finally {
     if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
@@ -172,7 +172,7 @@ test('Self-Modifying Analyzer - Propose modifications', async () => {
 test('Self-Modifying Analyzer - Apply safe modifications', async () => {
   const analyzer = new SelfModifyingAnalyzer({
     safeMode: false,
-    backupEnabled: false
+    backupEnabled: false,
   });
   const tmpFile = path.join(process.cwd(), '.tmp-test-file.js');
 
@@ -181,10 +181,7 @@ test('Self-Modifying Analyzer - Apply safe modifications', async () => {
 
   try {
     const proposal = await analyzer.proposeSelfModifications(tmpFile);
-    const result = await analyzer.applySelfModifications(
-      tmpFile,
-      proposal.proposedModifications
-    );
+    const result = await analyzer.applySelfModifications(tmpFile, proposal.proposedModifications);
 
     assert.strictEqual(result.success, true);
     assert.ok(result.applied.length > 0);
@@ -200,7 +197,7 @@ test('Self-Modifying Analyzer - Apply safe modifications', async () => {
 test('Self-Modifying Analyzer - Safety check prevents syntax errors', async () => {
   const analyzer = new SelfModifyingAnalyzer({
     safeMode: false,
-    backupEnabled: true
+    backupEnabled: true,
   });
   const tmpFile = path.join(process.cwd(), '.tmp-test-file.js');
 
@@ -212,7 +209,7 @@ test('Self-Modifying Analyzer - Safety check prevents syntax errors', async () =
     const badModification = {
       type: 'custom',
       safe: true,
-      line: 1
+      line: 1,
     };
 
     // This should not break the file
@@ -231,7 +228,7 @@ test('Verification Loop - Single iteration', async () => {
     maxIterations: 1,
     runLinter: false,
     runTests: false,
-    autoFix: false
+    autoFix: false,
   });
 
   const tmpFile = path.join(process.cwd(), '.tmp-test-file.js');
@@ -255,7 +252,7 @@ test('Verification Loop - Quality convergence', async () => {
     qualityThreshold: 9.0,
     runLinter: false,
     runTests: false,
-    autoFix: true
+    autoFix: true,
   });
 
   const tmpFile = path.join(process.cwd(), '.tmp-test-file.js');
@@ -322,7 +319,7 @@ test('Integration - Full workflow', async () => {
     // Step 3: Self-modification
     const selfModifier = new SelfModifyingAnalyzer({
       safeMode: false,
-      backupEnabled: false
+      backupEnabled: false,
     });
     const proposal = await selfModifier.proposeSelfModifications(tmpFile);
     assert.ok(proposal.proposedModifications.length > 0);

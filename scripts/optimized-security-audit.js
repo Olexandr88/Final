@@ -17,7 +17,7 @@ class OptimizedSecurityAudit {
       timestamp: new Date().toISOString(),
       vulnerabilities: { info: 0, low: 0, moderate: 0, high: 0, critical: 0 },
       recommendations: [],
-      errors: []
+      errors: [],
     };
   }
 
@@ -30,7 +30,7 @@ class OptimizedSecurityAudit {
     } catch (error) {
       console.error('NPM audit failed:', error.message);
       this.results.errors.push({ source: 'npm-audit', error: error.message });
-      
+
       // Fallback: analyze package-lock.json directly
       await this.analyzePackageLock();
     }
@@ -40,29 +40,29 @@ class OptimizedSecurityAudit {
 
     // Generate report
     this.generateReport();
-    
+
     return this.results;
   }
 
   async runNpmAudit() {
     console.log('Running npm audit (with timeout protection)...');
-    
+
     try {
       const result = execSync('npm audit --json', {
         timeout: TIMEOUT,
         encoding: 'utf8',
-        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
       });
 
       const auditData = JSON.parse(result);
-      
+
       if (auditData.metadata) {
         this.results.vulnerabilities = {
           info: auditData.metadata.vulnerabilities?.info || 0,
           low: auditData.metadata.vulnerabilities?.low || 0,
           moderate: auditData.metadata.vulnerabilities?.moderate || 0,
           high: auditData.metadata.vulnerabilities?.high || 0,
-          critical: auditData.metadata.vulnerabilities?.critical || 0
+          critical: auditData.metadata.vulnerabilities?.critical || 0,
         };
       }
 
@@ -102,7 +102,7 @@ class OptimizedSecurityAudit {
       this.results.packageAnalysis = {
         totalPackages,
         lockfileSize: fs.statSync(packageLockPath).size,
-        nodeModulesSize: this.getDirectorySize('node_modules')
+        nodeModulesSize: this.getDirectorySize('node_modules'),
       };
 
       console.log(`✓ Analyzed ${totalPackages} packages\n`);
@@ -118,7 +118,7 @@ class OptimizedSecurityAudit {
     const criticalPackages = [
       { name: 'axios', minVersion: '1.6.0', reason: 'SSRF vulnerability in older versions' },
       { name: 'express', minVersion: '4.18.0', reason: 'Path traversal in older versions' },
-      { name: 'ws', minVersion: '8.0.0', reason: 'DoS vulnerability in older versions' }
+      { name: 'ws', minVersion: '8.0.0', reason: 'DoS vulnerability in older versions' },
     ];
 
     try {
@@ -132,7 +132,7 @@ class OptimizedSecurityAudit {
             package: name,
             installed: installedVersion,
             minimum: minVersion,
-            reason
+            reason,
           });
         }
       }
@@ -148,7 +148,7 @@ class OptimizedSecurityAudit {
     try {
       const result = execSync(`du -sh ${dirPath} 2>/dev/null || echo "0"`, {
         encoding: 'utf8',
-        timeout: 5000
+        timeout: 5000,
       });
       return result.trim().split('\t')[0];
     } catch {
@@ -169,13 +169,15 @@ class OptimizedSecurityAudit {
     if (this.results.packageAnalysis) {
       console.log('\nPackage Analysis:');
       console.log(`  Total Packages: ${this.results.packageAnalysis.totalPackages}`);
-      console.log(`  Lockfile Size:  ${(this.results.packageAnalysis.lockfileSize / 1024).toFixed(2)} KB`);
+      console.log(
+        `  Lockfile Size:  ${(this.results.packageAnalysis.lockfileSize / 1024).toFixed(2)} KB`
+      );
       console.log(`  node_modules:   ${this.results.packageAnalysis.nodeModulesSize}`);
     }
 
     if (this.results.recommendations.length > 0) {
       console.log('\nRecommendations:');
-      this.results.recommendations.forEach(rec => {
+      this.results.recommendations.forEach((rec) => {
         console.log(`  - ${rec.package}: ${rec.reason}`);
         console.log(`    Installed: ${rec.installed}, Minimum: ${rec.minimum}`);
       });
@@ -183,16 +185,13 @@ class OptimizedSecurityAudit {
 
     if (this.results.errors.length > 0) {
       console.log('\nErrors Encountered:');
-      this.results.errors.forEach(err => {
+      this.results.errors.forEach((err) => {
         console.log(`  - ${err.source}: ${err.error}`);
       });
     }
 
     // Save to file
-    fs.writeFileSync(
-      'reports/security-audit-report.json',
-      JSON.stringify(this.results, null, 2)
-    );
+    fs.writeFileSync('reports/security-audit-report.json', JSON.stringify(this.results, null, 2));
     console.log('\n✓ Report saved to reports/security-audit-report.json');
 
     // Determine exit code
@@ -209,7 +208,7 @@ class OptimizedSecurityAudit {
 
 // Run audit
 const audit = new OptimizedSecurityAudit();
-audit.run().catch(error => {
+audit.run().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

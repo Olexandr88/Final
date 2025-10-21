@@ -27,7 +27,9 @@ const SSL_COMMANDS = {
         );
 
         // Parse certificate info
-        const certMatch = stdout.match(/-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/);
+        const certMatch = stdout.match(
+          /-----BEGIN CERTIFICATE-----([\s\S]*?)-----END CERTIFICATE-----/
+        );
         if (certMatch) {
           console.log('✅ Certificate found');
 
@@ -52,7 +54,7 @@ const SSL_COMMANDS = {
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'gen-key': {
@@ -65,16 +67,14 @@ const SSL_COMMANDS = {
 
       try {
         // Block 106 - Generate RSA key
-        await execAsync(
-          `openssl genrsa -out ${output} ${bits}`
-        );
+        await execAsync(`openssl genrsa -out ${output} ${bits}`);
         console.log(`✅ Key generated: ${output}`);
         console.log(`Bits: ${bits}`);
       } catch (err) {
         console.log('❌ Error:', err.message);
         console.log('Note: Requires OpenSSL installed');
       }
-    }
+    },
   },
 
   'gen-csr': {
@@ -87,14 +87,12 @@ const SSL_COMMANDS = {
 
       try {
         // Block 113 - Generate CSR from existing key
-        await execAsync(
-          `openssl req -out ${csrFile} -new -key ${keyFile}`
-        );
+        await execAsync(`openssl req -out ${csrFile} -new -key ${keyFile}`);
         console.log(`✅ CSR generated: ${csrFile}`);
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'check-key': {
@@ -106,15 +104,11 @@ const SSL_COMMANDS = {
 
       try {
         // Block 110 - Check RSA key
-        await execAsync(
-          `openssl rsa -check -in ${keyFile} -noout`
-        );
+        await execAsync(`openssl rsa -check -in ${keyFile} -noout`);
         console.log(`✅ Key is valid`);
 
         // Get key details
-        const { stdout } = await execAsync(
-          `openssl rsa -noout -text -in ${keyFile}`
-        );
+        const { stdout } = await execAsync(`openssl rsa -noout -text -in ${keyFile}`);
         const bitsMatch = stdout.match(/Private-Key: \((\d+) bit/);
         if (bitsMatch) {
           console.log(`Bits: ${bitsMatch[1]}`);
@@ -122,7 +116,7 @@ const SSL_COMMANDS = {
       } catch (err) {
         console.log('❌ Invalid key or error:', err.message);
       }
-    }
+    },
   },
 
   'extract-pubkey': {
@@ -135,14 +129,12 @@ const SSL_COMMANDS = {
 
       try {
         // Block 111 - Extract public key
-        await execAsync(
-          `openssl rsa -pubout -in ${privKey} -out ${pubKey}`
-        );
+        await execAsync(`openssl rsa -pubout -in ${privKey} -out ${pubKey}`);
         console.log(`✅ Public key extracted: ${pubKey}`);
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'self-signed': {
@@ -156,16 +148,14 @@ const SSL_COMMANDS = {
 
       try {
         // Block 124 - Self-signed cert
-        await execAsync(
-          `openssl req -key ${keyFile} -nodes -x509 -days ${days} -out ${certFile}`
-        );
+        await execAsync(`openssl req -key ${keyFile} -nodes -x509 -days ${days} -out ${certFile}`);
         console.log(`✅ Certificate generated: ${certFile}`);
         console.log(`Valid for: ${days} days`);
       } catch (err) {
         console.log('❌ Error:', err.message);
         console.log('Tip: Generate key first with gen-key command');
       }
-    }
+    },
   },
 
   'verify-cert': {
@@ -196,7 +186,7 @@ const SSL_COMMANDS = {
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'cert-info': {
@@ -208,9 +198,7 @@ const SSL_COMMANDS = {
 
       try {
         // Block 135 - Show cert details
-        const { stdout } = await execAsync(
-          `openssl x509 -noout -text -in ${certFile}`
-        );
+        const { stdout } = await execAsync(`openssl x509 -noout -text -in ${certFile}`);
 
         // Parse important fields
         const lines = stdout.split('\n');
@@ -218,7 +206,7 @@ const SSL_COMMANDS = {
         let inIssuer = false;
 
         console.log('Certificate Details:');
-        lines.forEach(line => {
+        lines.forEach((line) => {
           if (line.includes('Subject:')) {
             console.log(`\n  ${line.trim()}`);
           } else if (line.includes('Issuer:')) {
@@ -236,7 +224,7 @@ const SSL_COMMANDS = {
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'convert-pem-der': {
@@ -249,14 +237,12 @@ const SSL_COMMANDS = {
 
       try {
         // Block 132 - PEM to DER
-        await execAsync(
-          `openssl x509 -in ${pemFile} -outform der -out ${derFile}`
-        );
+        await execAsync(`openssl x509 -in ${pemFile} -outform der -out ${derFile}`);
         console.log(`✅ Converted to: ${derFile}`);
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'convert-der-pem': {
@@ -269,14 +255,12 @@ const SSL_COMMANDS = {
 
       try {
         // Block 131 - DER to PEM
-        await execAsync(
-          `openssl x509 -in ${derFile} -inform der -outform pem -out ${pemFile}`
-        );
+        await execAsync(`openssl x509 -in ${derFile} -inform der -outform pem -out ${pemFile}`);
         console.log(`✅ Converted to: ${pemFile}`);
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'test-ssl': {
@@ -315,8 +299,8 @@ const SSL_COMMANDS = {
       } catch (err) {
         console.log('❌ Connection failed:', err.message);
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {
@@ -350,7 +334,7 @@ async function main() {
   await cmd.run(args);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

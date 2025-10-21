@@ -60,7 +60,7 @@ const coreFiles = [
   'src/tools/tools/git-tools.js',
   'src/tools/tools/code-tools.js',
   'src/tools/tools/test-tools.js',
-  'src/ai-bridge.js'
+  'src/ai-bridge.js',
 ];
 
 for (const file of coreFiles) {
@@ -75,7 +75,7 @@ const demoFiles = [
   'demo-agent-orchestration.js',
   'tests/autonomous-agent-integration.test.js',
   'AUTONOMOUS_AGENTS.md',
-  'AUTONOMOUS_SYSTEM_READY.md'
+  'AUTONOMOUS_SYSTEM_READY.md',
 ];
 
 for (const file of demoFiles) {
@@ -93,7 +93,7 @@ await check('npm scripts configured', async () => {
     'test:autonomous',
     'bridge:start',
     'agent:claude',
-    'system:full'
+    'system:full',
   ];
 
   for (const script of requiredScripts) {
@@ -129,12 +129,7 @@ await check('ToolExecutor imports', async () => {
 // 7. Check dependencies are installed
 await check('Required npm packages installed', async () => {
   const pkg = JSON.parse(await fs.readFile('package.json', 'utf-8'));
-  const requiredDeps = [
-    '@anthropic-ai/sdk',
-    'ws',
-    'dotenv',
-    'glob'
-  ];
+  const requiredDeps = ['@anthropic-ai/sdk', 'ws', 'dotenv', 'glob'];
 
   for (const dep of requiredDeps) {
     if (!pkg.dependencies[dep]) {

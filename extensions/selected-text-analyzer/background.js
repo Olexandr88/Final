@@ -21,7 +21,8 @@ class ExtensionController {
         if (capabilities.available === 'readily') {
           console.log('[AI] Prompt API available - Gemini Nano ready');
           this.aiSession = await ai.languageModel.create({
-            systemPrompt: "You are a helpful text analyzer assistant. Analyze text for clarity, sentiment, readability, and provide actionable insights."
+            systemPrompt:
+              'You are a helpful text analyzer assistant. Analyze text for clarity, sentiment, readability, and provide actionable insights.',
           });
         } else if (capabilities.available === 'after-download') {
           console.log('[AI] Gemini Nano model needs to be downloaded');
@@ -38,7 +39,7 @@ class ExtensionController {
           this.summarizer = await ai.summarizer.create({
             type: 'key-points',
             format: 'markdown',
-            length: 'medium'
+            length: 'medium',
           });
         }
       }
@@ -59,7 +60,7 @@ class ExtensionController {
       charCount: text.length,
       aiAnalysis: null,
       summary: null,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     try {
@@ -88,7 +89,7 @@ class ExtensionController {
 
   // Fallback: Basic text analysis without AI
   performBasicAnalysis(text) {
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const words = text.split(/\s+/);
     const avgWordsPerSentence = words.length / sentences.length;
 
@@ -96,8 +97,9 @@ class ExtensionController {
       sentiment: 'neutral',
       sentences: sentences.length,
       avgWordsPerSentence: avgWordsPerSentence.toFixed(1),
-      readability: avgWordsPerSentence < 15 ? 'easy' : avgWordsPerSentence < 25 ? 'moderate' : 'complex',
-      note: 'Basic analysis (AI not available)'
+      readability:
+        avgWordsPerSentence < 15 ? 'easy' : avgWordsPerSentence < 25 ? 'moderate' : 'complex',
+      note: 'Basic analysis (AI not available)',
     };
   }
 
@@ -106,7 +108,7 @@ class ExtensionController {
     chrome.runtime.onInstalled.addListener((details) => {
       this.createContextMenus();
       this.setDefaultConfiguration();
-      
+
       // Handle updates
       if (details.reason === 'update') {
         console.log(`[Update] Updated from version ${details.previousVersion}`);
@@ -140,19 +142,19 @@ class ExtensionController {
       chrome.contextMenus.create({
         id: 'analyze-text-ai',
         title: 'Analyze with AI',
-        contexts: ['selection']
+        contexts: ['selection'],
       });
 
       chrome.contextMenus.create({
         id: 'summarize-text',
         title: 'Summarize',
-        contexts: ['selection']
+        contexts: ['selection'],
       });
 
       chrome.contextMenus.create({
         id: 'analyze-page',
         title: 'Analyze Current Page',
-        contexts: ['page']
+        contexts: ['page'],
       });
     });
   }
@@ -163,7 +165,7 @@ class ExtensionController {
       autoAnalysis: false,
       aiEnabled: true,
       summaryLength: 'medium',
-      notificationsEnabled: true
+      notificationsEnabled: true,
     };
 
     await chrome.storage.local.set({ config });
@@ -219,13 +221,13 @@ class ExtensionController {
             success: true,
             data: {
               promptAPI: !!this.aiSession,
-              summarizer: !!this.summarizer
-            }
+              summarizer: !!this.summarizer,
+            },
           });
           break;
 
         case 'getPageInfo':
-          this.getPageInfo(sender.tab.id).then(info => {
+          this.getPageInfo(sender.tab.id).then((info) => {
             sendResponse({ success: true, data: info });
           });
           break;
@@ -260,26 +262,26 @@ class ExtensionController {
             url: window.location.href,
             forms: document.forms.length,
             links: document.links.length,
-            images: document.images.length
+            images: document.images.length,
           };
-        }
+        },
       });
 
       if (results[0]?.result) {
         const pageData = results[0].result;
         const analysis = await this.analyzeTextWithAI(pageData.text.substring(0, 5000));
-        
+
         chrome.notifications.create({
           type: 'basic',
           iconUrl: 'icon48.png',
           title: 'Page Analysis Complete',
           message: `Analyzed: ${pageData.title}\nWords: ${analysis.wordCount}\nForms: ${pageData.forms}`,
-          priority: 2
+          priority: 2,
         });
 
         // Store analysis in session storage
         await chrome.storage.session.set({
-          [`analysis_${tabId}`]: { ...analysis, pageData }
+          [`analysis_${tabId}`]: { ...analysis, pageData },
         });
       }
     } catch (error) {
@@ -294,7 +296,7 @@ class ExtensionController {
         console.log('[AI Analysis Results]', results);
         // Results are displayed in popup
       },
-      args: [analysis]
+      args: [analysis],
     });
 
     // Store in session for popup access
@@ -307,7 +309,7 @@ class ExtensionController {
       iconUrl: 'icon48.png',
       title: 'Text Summary',
       message: summary.substring(0, 200),
-      priority: 1
+      priority: 1,
     });
 
     await chrome.storage.session.set({ lastSummary: summary });
@@ -326,8 +328,8 @@ class ExtensionController {
       func: () => ({
         url: window.location.href,
         title: document.title,
-        readyState: document.readyState
-      })
+        readyState: document.readyState,
+      }),
     });
     return results[0]?.result || {};
   }

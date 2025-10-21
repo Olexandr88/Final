@@ -25,7 +25,7 @@ function postEditHook(event) {
     console.log(`[Hook] Auto-formatting ${file_path}...`);
     execSync(`npx prettier --write "${file_path}"`, {
       stdio: 'inherit',
-      cwd: __dirname + '/..'
+      cwd: __dirname + '/..',
     });
     console.log(`[Hook] ✓ Formatted ${file_path}`);
   } catch (error) {

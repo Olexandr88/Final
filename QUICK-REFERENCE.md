@@ -16,17 +16,20 @@ npm run monitor:live    # Real-time dashboard (5s refresh)
 ## 🎯 Most Common Tasks
 
 ### Starting Your Day
+
 ```bash
 npm run quickfix && npm run system:start
 ```
 
 ### Running Tests
+
 ```bash
 npm run test:quick <pattern>    # Fast iteration
 npm test                        # Full suite
 ```
 
 ### Debugging Issues
+
 ```bash
 npm run quickfix                # Quick check
 npm run diag:advanced           # Deep analysis
@@ -34,6 +37,7 @@ npm run monitor:live            # Real-time watch
 ```
 
 ### Cleaning Up
+
 ```bash
 npm run cleanup                 # Kill zombies
 npm run workspace:clean         # Clean files
@@ -43,80 +47,81 @@ npm run workspace:clean         # Clean files
 
 ## 📊 Diagnostics & Monitoring
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run quickfix` | 5-second health check | 5s |
-| `npm run control` | Master control hub | Interactive |
-| `npm run swiss` | Swiss Army Knife menu | Interactive |
-| `npm run monitor:live` | Real-time dashboard | Live |
-| `npm run diag:advanced` | 8-mode deep analysis | Interactive |
-| `npm run health:check` | Project health | 10s |
-| `npm run health:system` | AI system health | 15s |
+| Command                 | Purpose               | Time        |
+| ----------------------- | --------------------- | ----------- |
+| `npm run quickfix`      | 5-second health check | 5s          |
+| `npm run control`       | Master control hub    | Interactive |
+| `npm run swiss`         | Swiss Army Knife menu | Interactive |
+| `npm run monitor:live`  | Real-time dashboard   | Live        |
+| `npm run diag:advanced` | 8-mode deep analysis  | Interactive |
+| `npm run health:check`  | Project health        | 10s         |
+| `npm run health:system` | AI system health      | 15s         |
 
 ---
 
 ## 🌐 Network Commands
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run net:listening` | Show all listening ports | 1s |
-| `npm run net:connections` | Active connections | 2s |
-| `npm run net:summary` | Connection summary | 2s |
-| `npm run net:kill <port>` | Kill process on port | 1s |
-| `npm run net:dns <domain>` | DNS lookup (4 methods) | 2s |
-| `npm run net:watch <port>` | Watch port activity | Live |
-| `npm run net:scan <ip> <ports>` | Port scanning | 5s |
+| Command                         | Purpose                  | Time |
+| ------------------------------- | ------------------------ | ---- |
+| `npm run net:listening`         | Show all listening ports | 1s   |
+| `npm run net:connections`       | Active connections       | 2s   |
+| `npm run net:summary`           | Connection summary       | 2s   |
+| `npm run net:kill <port>`       | Kill process on port     | 1s   |
+| `npm run net:dns <domain>`      | DNS lookup (4 methods)   | 2s   |
+| `npm run net:watch <port>`      | Watch port activity      | Live |
+| `npm run net:scan <ip> <ports>` | Port scanning            | 5s   |
 
 ---
 
 ## 🔧 Process Management
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run proc:top` | Top CPU processes | 1s |
-| `npm run proc:mem` | Top memory processes | 1s |
-| `npm run proc:zombie` | Find zombie processes | 2s |
-| `npm run proc:watch` | Watch Node.js count | Live |
-| `npm run cleanup` | Kill zombies + clean | 5s |
+| Command               | Purpose               | Time |
+| --------------------- | --------------------- | ---- |
+| `npm run proc:top`    | Top CPU processes     | 1s   |
+| `npm run proc:mem`    | Top memory processes  | 1s   |
+| `npm run proc:zombie` | Find zombie processes | 2s   |
+| `npm run proc:watch`  | Watch Node.js count   | Live |
+| `npm run cleanup`     | Kill zombies + clean  | 5s   |
 
 ---
 
 ## 🔒 SSL/TLS Operations
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run ssl:helper` | Show all SSL commands | 1s |
-| `npm run ssl:check <domain>` | Check certificate | 2s |
-| `npm run ssl:test <domain>` | Test SSL/TLS | 3s |
-| `npm run ssl:gen-key` | Generate RSA key | 1s |
+| Command                      | Purpose               | Time |
+| ---------------------------- | --------------------- | ---- |
+| `npm run ssl:helper`         | Show all SSL commands | 1s   |
+| `npm run ssl:check <domain>` | Check certificate     | 2s   |
+| `npm run ssl:test <domain>`  | Test SSL/TLS          | 3s   |
+| `npm run ssl:gen-key`        | Generate RSA key      | 1s   |
 
 ---
 
 ## 🧪 Testing
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run test:quick <pattern>` | Quick pattern test | Fast |
-| `npm test` | Full test suite | Slow |
-| `npm run test:unit` | Unit tests only | Medium |
-| `npm run test:integration` | Integration tests | Medium |
-| `npm run test:coverage` | With coverage report | Slow |
-| `npm run test:watch` | Watch mode | Live |
+| Command                        | Purpose              | Time   |
+| ------------------------------ | -------------------- | ------ |
+| `npm run test:quick <pattern>` | Quick pattern test   | Fast   |
+| `npm test`                     | Full test suite      | Slow   |
+| `npm run test:unit`            | Unit tests only      | Medium |
+| `npm run test:integration`     | Integration tests    | Medium |
+| `npm run test:coverage`        | With coverage report | Slow   |
+| `npm run test:watch`           | Watch mode           | Live   |
 
 ---
 
 ## 🤖 AI Bridge System
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run bridge:start` | Start AI Bridge only | 2s |
-| `npm run system:start` | Start bridge + agents | 5s |
-| `npm run system:full` | Start all + GUI | 10s |
-| `npm run dev:bridge-check` | Check bridge status | 1s |
-| `npm run dev:kill-bridge` | Kill bridge processes | 1s |
-| `npm run bridge:diagnostic` | Full bridge diagnostic | 5s |
+| Command                     | Purpose                | Time |
+| --------------------------- | ---------------------- | ---- |
+| `npm run bridge:start`      | Start AI Bridge only   | 2s   |
+| `npm run system:start`      | Start bridge + agents  | 5s   |
+| `npm run system:full`       | Start all + GUI        | 10s  |
+| `npm run dev:bridge-check`  | Check bridge status    | 1s   |
+| `npm run dev:kill-bridge`   | Kill bridge processes  | 1s   |
+| `npm run bridge:diagnostic` | Full bridge diagnostic | 5s   |
 
 **Ports:**
+
 - WebSocket: `65028`
 - HTTP API: `65029`
 
@@ -124,11 +129,11 @@ npm run workspace:clean         # Clean files
 
 ## 🧹 Workspace Management
 
-| Command | Purpose | Time |
-|---------|---------|------|
-| `npm run workspace:clean:dry` | Preview cleanup | 2s |
-| `npm run workspace:clean` | Clean temp files | 5s |
-| `npm run workspace:clean:aggressive` | Deep clean | 10s |
+| Command                              | Purpose          | Time |
+| ------------------------------------ | ---------------- | ---- |
+| `npm run workspace:clean:dry`        | Preview cleanup  | 2s   |
+| `npm run workspace:clean`            | Clean temp files | 5s   |
+| `npm run workspace:clean:aggressive` | Deep clean       | 10s  |
 
 ---
 
@@ -165,6 +170,7 @@ npm run workspace:clean         # Clean files
 ## 📈 Performance Monitoring
 
 **Metrics Endpoints:**
+
 ```bash
 curl http://localhost:65029/health      # Health check
 curl http://localhost:65029/api/status  # Detailed metrics
@@ -172,6 +178,7 @@ curl http://localhost:65029/api/agents  # Agent list
 ```
 
 **Performance Targets:**
+
 - Message Latency: < 120ms (p95)
 - Memory (idle): < 100MB
 - Cache Hit Rate: > 75%
@@ -182,6 +189,7 @@ curl http://localhost:65029/api/agents  # Agent list
 ## 🚨 Emergency Commands
 
 ### System is Hanging
+
 ```bash
 npm run proc:zombie              # Find culprits
 npm run cleanup                  # Kill zombies
@@ -189,6 +197,7 @@ taskkill /F /IM node.exe         # Nuclear option (Windows)
 ```
 
 ### Port Conflicts
+
 ```bash
 npm run net:listening            # Find what's using ports
 npm run net:kill 65028           # Kill specific port
@@ -196,6 +205,7 @@ npm run dev:kill-bridge          # Kill AI Bridge
 ```
 
 ### Memory Issues
+
 ```bash
 npm run proc:mem                 # Find memory hogs
 npm run workspace:clean          # Free disk space
@@ -203,6 +213,7 @@ npm run cleanup                  # Kill zombies
 ```
 
 ### Network Issues
+
 ```bash
 npm run net:debug                # Network diagnostic
 npm run net:dns google.com       # Test DNS
@@ -215,11 +226,13 @@ npm run swiss                    # Menu → Network Quick Test
 ## 🎯 Daily Workflow
 
 **Morning (< 30 seconds):**
+
 ```bash
 npm run quickfix && npm run system:start
 ```
 
 **Development Loop:**
+
 ```bash
 # Code... test... code... test...
 npm run test:quick <pattern>
@@ -227,12 +240,14 @@ npm run quickfix
 ```
 
 **Pre-Commit:**
+
 ```bash
 npm test && npm run lint:fix && npm run format
 npm run proc:zombie && npm run workspace:clean:dry
 ```
 
 **End of Day:**
+
 ```bash
 npm run cleanup && npm run workspace:clean
 npm run quickfix
@@ -280,8 +295,8 @@ npm run quickfix
 ---
 
 **Last Updated**: 2025-10-17
-**Print Date**: _____________
+**Print Date**: ******\_******
 
 ---
 
-*Keep this handy while developing. Memorize the "5-Second Commands" section first.*
+_Keep this handy while developing. Memorize the "5-Second Commands" section first._

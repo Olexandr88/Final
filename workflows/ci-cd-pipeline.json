@@ -14,11 +14,7 @@
           "src/agents/meta-agent-factory.js",
           "src/agents/workflow-coordinator.js"
         ],
-        "metrics": [
-          "cyclomatic-complexity",
-          "maintainability-index",
-          "code-duplication"
-        ],
+        "metrics": ["cyclomatic-complexity", "maintainability-index", "code-duplication"],
         "thresholds": {
           "complexity": 10,
           "maintainability": 70
@@ -48,11 +44,7 @@
       "intent": "refactor.suggest",
       "payload": {
         "target": "src/agents/",
-        "patterns": [
-          "extract-method",
-          "reduce-complexity",
-          "remove-duplication"
-        ],
+        "patterns": ["extract-method", "reduce-complexity", "remove-duplication"],
         "autoApply": false
       },
       "dependsOn": [0, 1]
@@ -62,12 +54,7 @@
       "agent": "api-test-workflow-1",
       "intent": "api.validate",
       "payload": {
-        "endpoints": [
-          "/health",
-          "/api/send",
-          "/api/send/batch",
-          "/api/status"
-        ],
+        "endpoints": ["/health", "/api/send", "/api/send/batch", "/api/status"],
         "timeout": 5000,
         "expectedStatus": [200, 201]
       },
@@ -98,12 +85,7 @@
       "intent": "api.test",
       "payload": {
         "environment": "staging",
-        "tests": [
-          "health-check",
-          "agent-registration",
-          "message-routing",
-          "batch-processing"
-        ]
+        "tests": ["health-check", "agent-registration", "message-routing", "batch-processing"]
       },
       "dependsOn": [4]
     },
@@ -164,10 +146,6 @@
   },
   "rollback": {
     "automatic": true,
-    "conditions": [
-      "any_step_fails",
-      "health_check_fails",
-      "error_rate_exceeds_5_percent"
-    ]
+    "conditions": ["any_step_fails", "health_check_fails", "error_rate_exceeds_5_percent"]
   }
 }

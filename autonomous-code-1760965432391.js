@@ -8,11 +8,7 @@ export function autonomousProof() {
     generated: true,
     timestamp: 1760965432391,
     message: 'This code was autonomously implemented',
-    capabilities: [
-      'Code generation',
-      'File creation',
-      'Autonomous execution'
-    ]
+    capabilities: ['Code generation', 'File creation', 'Autonomous execution'],
   };
 }
 

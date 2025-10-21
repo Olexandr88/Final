@@ -13,8 +13,8 @@ async function sendTask(intent, message) {
       body: JSON.stringify({
         to: 'ollama-agent-1',
         intent: intent,
-        payload: { message }
-      })
+        payload: { message },
+      }),
     });
 
     if (!response.ok) {
@@ -31,7 +31,7 @@ async function sendTask(intent, message) {
 }
 
 async function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function runCoordinatedWorkflow() {
@@ -47,7 +47,9 @@ async function runCoordinatedWorkflow() {
   console.log('📋 Task: Design distributed tracing system for A2A network');
   console.log('');
 
-  await sendTask('ai.query', `You are a Senior Software Architect. Design a distributed tracing system for an A2A (Agent-to-Agent) network.
+  await sendTask(
+    'ai.query',
+    `You are a Senior Software Architect. Design a distributed tracing system for an A2A (Agent-to-Agent) network.
 
 Requirements:
 - Trace ID generation and propagation
@@ -61,7 +63,8 @@ Provide:
 3. Technology stack
 4. Implementation plan
 
-Be concise and specific.`);
+Be concise and specific.`
+  );
 
   console.log('✅ Architecture design complete');
   console.log('');
@@ -75,7 +78,9 @@ Be concise and specific.`);
   console.log('📋 Task: Implement tracing system based on architecture');
   console.log('');
 
-  await sendTask('ai.query', `You are an Expert Software Developer. Implement a distributed tracing system for A2A agents.
+  await sendTask(
+    'ai.query',
+    `You are an Expert Software Developer. Implement a distributed tracing system for A2A agents.
 
 Based on the architecture:
 - Trace ID middleware
@@ -89,7 +94,8 @@ Provide:
 3. Configuration
 4. Integration points
 
-Write production-ready code.`);
+Write production-ready code.`
+  );
 
   console.log('✅ Implementation complete');
   console.log('');
@@ -103,7 +109,9 @@ Write production-ready code.`);
   console.log('📋 Task: Create comprehensive test suite');
   console.log('');
 
-  await sendTask('ai.query', `You are an Expert QA Engineer. Create a comprehensive test suite for the distributed tracing system.
+  await sendTask(
+    'ai.query',
+    `You are an Expert QA Engineer. Create a comprehensive test suite for the distributed tracing system.
 
 Test Coverage:
 - Unit tests for trace ID generation
@@ -117,7 +125,8 @@ Provide:
 3. Performance tests
 4. Test data examples
 
-Create thorough tests.`);
+Create thorough tests.`
+  );
 
   console.log('✅ Testing complete');
   console.log('');

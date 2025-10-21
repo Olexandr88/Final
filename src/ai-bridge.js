@@ -11,6 +11,7 @@ import fastJson from 'fast-json-stringify';
 import { ResponseCache } from './utils/optimized-cache.js';
 import { globalPerformanceMonitor } from './utils/performance-monitor.js';
 import { globalLazyLoader } from './utils/lazy-loader.js';
+import { CircuitBreakerManager } from './utils/circuit-breaker.js';
 
 dotenv.config();
 
@@ -33,9 +34,7 @@ setImmediate(() => {
 const DEFAULT_HISTORY_LIMIT = Number(process.env.AI_BRIDGE_HISTORY_LIMIT) || 50;
 const MAX_QUEUE_PER_CLIENT = Number(process.env.AI_BRIDGE_MAX_QUEUE) || 50;
 const TOKEN_AUTH_ENABLED = process.env.AI_BRIDGE_AUTH_TOKEN ? true : false;
-const ALLOWED_ORIGINS = (process.env.AI_BRIDGE_CORS_ORIGINS || '*')
-  .split(',')
-  .map((s) => s.trim());
+const ALLOWED_ORIGINS = (process.env.AI_BRIDGE_CORS_ORIGINS || '*').split(',').map((s) => s.trim());
 
 // WebSocket compression configuration
 const WS_COMPRESSION_THRESHOLD = Number(process.env.AI_BRIDGE_WS_COMPRESSION_THRESHOLD) || 4096; // 4KB default (was 8KB)
@@ -89,8 +88,16 @@ export class AIBridge extends EventEmitter {
       messagesProcessed: 0,
       totalConnections: 0,
       errors: 0,
-      lastError: null
+      lastError: null,
     };
+
+    // Circuit breaker for client health monitoring
+    this.circuitBreakers = new CircuitBreakerManager({
+      failureThreshold: 5,
+      resetTimeout: 60000,
+      halfOpenRequests: 3,
+    });
+
     // Cleanup timer - optimized interval
     const interval = Number(process.env.AI_BRIDGE_CLEANUP_INTERVAL_MS) || 120000; // Increased to 120s for better performance
     this.cleanupTimer = setInterval(() => this._cleanup(), interval);
@@ -101,17 +108,17 @@ export class AIBridge extends EventEmitter {
       lastCleanup: Date.now(),
       cleanupDuration: 0,
       messageQueuePeak: 0,
-      clientsPeak: 0
+      clientsPeak: 0,
     };
 
     // WebSocket message size tracking
     this.messageSizeMetrics = {
-      small: 0,     // <1KB
-      medium: 0,    // 1-10KB
-      large: 0,     // 10-100KB
-      huge: 0,      // >100KB
+      small: 0, // <1KB
+      medium: 0, // 1-10KB
+      large: 0, // 10-100KB
+      huge: 0, // >100KB
       totalBytes: 0,
-      totalMessages: 0
+      totalMessages: 0,
     };
   }
 
@@ -148,7 +155,7 @@ export class AIBridge extends EventEmitter {
       errors: 0,
       lastError: null,
       avgLatency: 0,
-      healthScore: 100
+      healthScore: 100,
     };
 
     this.clients.set(clientId, { ws, meta });
@@ -174,6 +181,7 @@ export class AIBridge extends EventEmitter {
   unregisterClient(clientId) {
     if (!this.clients.has(clientId)) return;
     this.clients.delete(clientId);
+    this.circuitBreakers.remove(clientId); // Clean up circuit breaker
     this.logger.log(`[Bridge] Client disconnected: ${clientId} (${this.clients.size} remaining)`);
 
     // Emit event for coordinators
@@ -205,7 +213,10 @@ export class AIBridge extends EventEmitter {
       ...this.stats,
       uptime: Math.floor(uptime / 1000),
       connectedClients: this.clients.size,
-      queuedMessages: Array.from(this.messageQueue.values()).reduce((sum, queue) => sum + queue.length, 0),
+      queuedMessages: Array.from(this.messageQueue.values()).reduce(
+        (sum, queue) => sum + queue.length,
+        0
+      ),
       historySize: this.history.length,
       messagesPerSecond: this.stats.messagesProcessed / (uptime / 1000) || 0,
       performance: {
@@ -213,8 +224,8 @@ export class AIBridge extends EventEmitter {
         cleanupDuration: this.metrics.cleanupDuration,
         messageQueuePeak: this.metrics.messageQueuePeak,
         clientsPeak: this.metrics.clientsPeak,
-        memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024 // MB
-      }
+        memoryUsage: process.memoryUsage().heapUsed / 1024 / 1024, // MB
+      },
     };
   }
 
@@ -227,39 +238,43 @@ export class AIBridge extends EventEmitter {
 
         if (enriched.to) {
           if (!this._sendEnvelope(enriched.to, enriched) && allowQueue) {
-          // Check global queue limit
-          const MAX_TOTAL_QUEUED = 1000;
-          const currentQueuedTotal = Array.from(this.messageQueue.values())
-            .reduce((sum, q) => sum + q.length, 0);
+            // Check global queue limit
+            const MAX_TOTAL_QUEUED = 1000;
+            const currentQueuedTotal = Array.from(this.messageQueue.values()).reduce(
+              (sum, q) => sum + q.length,
+              0
+            );
 
-          if (currentQueuedTotal >= MAX_TOTAL_QUEUED) {
-            this.logger.warn(`[Bridge] Total queue limit reached (${MAX_TOTAL_QUEUED}), dropping message`);
-            this.stats.errors++;
-            return enriched;
-          }
+            if (currentQueuedTotal >= MAX_TOTAL_QUEUED) {
+              this.logger.warn(
+                `[Bridge] Total queue limit reached (${MAX_TOTAL_QUEUED}), dropping message`
+              );
+              this.stats.errors++;
+              return enriched;
+            }
 
-          const q = this.messageQueue.get(enriched.to) || [];
-          if (q.length >= MAX_QUEUE_PER_CLIENT) {
-            q.shift(); // drop oldest
+            const q = this.messageQueue.get(enriched.to) || [];
+            if (q.length >= MAX_QUEUE_PER_CLIENT) {
+              q.shift(); // drop oldest
+            }
+            q.push(enriched);
+            this.messageQueue.set(enriched.to, q);
+            this.logger.log(`[Bridge] Queued envelope ${enriched.id} for ${enriched.to} (offline)`);
           }
-          q.push(enriched);
-          this.messageQueue.set(enriched.to, q);
-          this.logger.log(`[Bridge] Queued envelope ${enriched.id} for ${enriched.to} (offline)`);
+        } else {
+          this._broadcast(enriched.from, enriched);
         }
-      } else {
-        this._broadcast(enriched.from, enriched);
-      }
 
-      this.logger.log(
-        `[Bridge] Envelope ${enriched.intent || 'agent.message'} from ${enriched.from} -> ${
-          enriched.to || 'broadcast'
-        }: ${previewPayload(enriched.payload)}`
-      );
+        this.logger.log(
+          `[Bridge] Envelope ${enriched.intent || 'agent.message'} from ${enriched.from} -> ${
+            enriched.to || 'broadcast'
+          }: ${previewPayload(enriched.payload)}`
+        );
 
-      // Emit event for coordinators
-      this.emit('envelopeProcessed', enriched);
+        // Emit event for coordinators
+        this.emit('envelopeProcessed', enriched);
 
-      return enriched;
+        return enriched;
       } catch (error) {
         this.stats.errors++;
         this.stats.lastError = error.message;
@@ -276,14 +291,14 @@ export class AIBridge extends EventEmitter {
     const results = [];
 
     // Parallel enrichment with error isolation
-    const enrichPromises = envelopes.map(envelope =>
+    const enrichPromises = envelopes.map((envelope) =>
       Promise.resolve()
         .then(() => {
           const enriched = this._enrichEnvelope(envelope);
           this.stats.messagesProcessed++;
           return { success: true, envelope: enriched };
         })
-        .catch(error => {
+        .catch((error) => {
           this.stats.errors++;
           this.stats.lastError = error.message;
           this.logger.error(`[Bridge] Error enriching envelope: ${error.message}`);
@@ -295,39 +310,43 @@ export class AIBridge extends EventEmitter {
 
     // Extract successful envelopes
     const enrichedBatch = enrichmentResults
-      .filter(r => r.status === 'fulfilled' && r.value.success)
-      .map(r => r.value.envelope);
+      .filter((r) => r.status === 'fulfilled' && r.value.success)
+      .map((r) => r.value.envelope);
 
     // Batch history insertion (single operation instead of multiple pushes)
     if (enrichedBatch.length > 0) {
-      this.history.pushBatch?.(enrichedBatch) || enrichedBatch.forEach(e => this.history.push(e));
+      this.history.pushBatch?.(enrichedBatch) || enrichedBatch.forEach((e) => this.history.push(e));
     }
 
     // Collect all results
-    enrichmentResults.forEach(r => {
-      results.push(r.status === 'fulfilled' ? r.value : { success: false, error: r.reason?.message });
+    enrichmentResults.forEach((r) => {
+      results.push(
+        r.status === 'fulfilled' ? r.value : { success: false, error: r.reason?.message }
+      );
     });
 
     // Chunked parallel send/queue operations to avoid blocking
     for (let i = 0; i < enrichedBatch.length; i += CHUNK_SIZE) {
       const chunk = enrichedBatch.slice(i, i + CHUNK_SIZE);
 
-      await Promise.allSettled(chunk.map(enriched =>
-        Promise.resolve().then(() => {
-          if (enriched.to) {
-            if (!this._sendEnvelope(enriched.to, enriched) && allowQueue) {
-              const q = this.messageQueue.get(enriched.to) || [];
-              if (q.length >= MAX_QUEUE_PER_CLIENT) {
-                q.shift();
+      await Promise.allSettled(
+        chunk.map((enriched) =>
+          Promise.resolve().then(() => {
+            if (enriched.to) {
+              if (!this._sendEnvelope(enriched.to, enriched) && allowQueue) {
+                const q = this.messageQueue.get(enriched.to) || [];
+                if (q.length >= MAX_QUEUE_PER_CLIENT) {
+                  q.shift();
+                }
+                q.push(enriched);
+                this.messageQueue.set(enriched.to, q);
               }
-              q.push(enriched);
-              this.messageQueue.set(enriched.to, q);
+            } else {
+              this._broadcast(enriched.from, enriched);
             }
-          } else {
-            this._broadcast(enriched.from, enriched);
-          }
-        })
-      ));
+          })
+        )
+      );
     }
 
     this.emit('envelopeBatchProcessed', enrichedBatch);
@@ -368,7 +387,9 @@ export class AIBridge extends EventEmitter {
     this.metrics.clientsPeak = Math.max(this.metrics.clientsPeak, this.clients.size);
 
     if (removedQueues > 0 || expiredClients > 0) {
-      this.logger.log(`[Bridge] Cleanup: removed ${removedQueues} queues, expired ${expiredClients} clients in ${this.metrics.cleanupDuration}ms`);
+      this.logger.log(
+        `[Bridge] Cleanup: removed ${removedQueues} queues, expired ${expiredClients} clients in ${this.metrics.cleanupDuration}ms`
+      );
     }
   }
 
@@ -398,47 +419,60 @@ export class AIBridge extends EventEmitter {
     if (!target || target.ws.readyState !== 1) {
       return false;
     }
-    try {
-      const sendStart = Date.now();
-      // Minimal wrapper to reduce JSON size
-      const payload = JSON.stringify(['env', envelope]);
 
-      // Track message size metrics
-      const size = Buffer.byteLength(payload);
-      this.messageSizeMetrics.totalBytes += size;
-      this.messageSizeMetrics.totalMessages++;
-      if (size < 1024) {
-        this.messageSizeMetrics.small++;
-      } else if (size < 10240) {
-        this.messageSizeMetrics.medium++;
-      } else if (size < 102400) {
-        this.messageSizeMetrics.large++;
-      } else {
-        this.messageSizeMetrics.huge++;
-      }
+    // Use circuit breaker to protect against failing clients
+    return this.circuitBreakers
+      .getBreaker(targetId)
+      .execute(async () => {
+        const sendStart = Date.now();
+        // Minimal wrapper to reduce JSON size
+        const payload = JSON.stringify(['env', envelope]);
 
-      target.ws.send(payload);
+        // Track message size metrics
+        const size = Buffer.byteLength(payload);
+        this.messageSizeMetrics.totalBytes += size;
+        this.messageSizeMetrics.totalMessages++;
+        if (size < 1024) {
+          this.messageSizeMetrics.small++;
+        } else if (size < 10240) {
+          this.messageSizeMetrics.medium++;
+        } else if (size < 102400) {
+          this.messageSizeMetrics.large++;
+        } else {
+          this.messageSizeMetrics.huge++;
+        }
 
-      // Track performance metrics
-      const latency = Date.now() - sendStart;
-      target.meta.messagesSent++;
-      target.meta.avgLatency = (target.meta.avgLatency * (target.meta.messagesSent - 1) + latency) / target.meta.messagesSent;
+        // Send with promise wrapper for circuit breaker
+        await new Promise((resolve, reject) => {
+          target.ws.send(payload, (error) => {
+            if (error) reject(error);
+            else resolve();
+          });
+        });
 
-      return true;
-    } catch (error) {
-      this.logger.error(`[Bridge] Failed to send envelope to ${targetId}: ${error.message}`);
-      this.stats.errors++;
-      this.stats.lastError = error.message;
+        // Track performance metrics
+        const latency = Date.now() - sendStart;
+        target.meta.messagesSent++;
+        target.meta.avgLatency =
+          (target.meta.avgLatency * (target.meta.messagesSent - 1) + latency) /
+          target.meta.messagesSent;
 
-      // Track client-specific errors
-      if (target?.meta) {
-        target.meta.errors++;
-        target.meta.lastError = error.message;
-        target.meta.healthScore = Math.max(0, target.meta.healthScore - 5);
-      }
+        return true;
+      })
+      .catch((error) => {
+        this.logger.error(`[Bridge] Failed to send envelope to ${targetId}: ${error.message}`);
+        this.stats.errors++;
+        this.stats.lastError = error.message;
 
-      return false;
-    }
+        // Track client-specific errors
+        if (target?.meta) {
+          target.meta.errors++;
+          target.meta.lastError = error.message;
+          target.meta.healthScore = Math.max(0, target.meta.healthScore - 5);
+        }
+
+        return false;
+      });
   }
 
   async _broadcast(senderId, envelope) {
@@ -457,19 +491,20 @@ export class AIBridge extends EventEmitter {
       const payload = JSON.stringify(['env', envelope]);
 
       // Parallel broadcast with proper error handling
-      const sends = activeClients.map(({ clientId, ws }) =>
-        new Promise((resolve, reject) => {
-          ws.send(payload, (error) => {
-            if (error) {
-              this.logger.error(`[Bridge] Failed broadcast to ${clientId}: ${error.message}`);
-              this.stats.errors++;
-              this.stats.lastError = error.message;
-              reject(error);
-            } else {
-              resolve();
-            }
-          });
-        })
+      const sends = activeClients.map(
+        ({ clientId, ws }) =>
+          new Promise((resolve, reject) => {
+            ws.send(payload, (error) => {
+              if (error) {
+                this.logger.error(`[Bridge] Failed broadcast to ${clientId}: ${error.message}`);
+                this.stats.errors++;
+                this.stats.lastError = error.message;
+                reject(error);
+              } else {
+                resolve();
+              }
+            });
+          })
       );
 
       await Promise.allSettled(sends);
@@ -543,10 +578,12 @@ export async function createAIBridgeServer({
   bridge.on('envelopeProcessed', () => {
     const currentStats = bridge.getStats();
     // Only clear status cache if significant change (10+ messages or error count changed)
-    if (!lastStatsSnapshot ||
-        currentStats.messagesProcessed - lastStatsSnapshot.messagesProcessed >= 10 ||
-        currentStats.errors !== lastStatsSnapshot.errors ||
-        currentStats.connectedClients !== lastStatsSnapshot.connectedClients) {
+    if (
+      !lastStatsSnapshot ||
+      currentStats.messagesProcessed - lastStatsSnapshot.messagesProcessed >= 10 ||
+      currentStats.errors !== lastStatsSnapshot.errors ||
+      currentStats.connectedClients !== lastStatsSnapshot.connectedClients
+    ) {
       statusCache.clear();
       lastStatsSnapshot = currentStats;
     }
@@ -594,7 +631,13 @@ export async function createAIBridgeServer({
     const start = Date.now();
     res.on('finish', () => {
       const duration = Date.now() - start;
-      requestTimings.push({ path: req.path, method: req.method, duration, status: res.statusCode, timestamp: Date.now() });
+      requestTimings.push({
+        path: req.path,
+        method: req.method,
+        duration,
+        status: res.statusCode,
+        timestamp: Date.now(),
+      });
       // Keep only last 1000 requests
       if (requestTimings.length > 1000) requestTimings.shift();
     });
@@ -603,10 +646,12 @@ export async function createAIBridgeServer({
 
   // Compression middleware for responses > 1KB (lazy loaded)
   const { default: compression } = await globalLazyLoader.get('compression');
-  app.use(compression({
-    threshold: 1024, // Only compress responses larger than 1KB
-    level: 6 // Balance between speed and compression ratio
-  }));
+  app.use(
+    compression({
+      threshold: 1024, // Only compress responses larger than 1KB
+      level: 6, // Balance between speed and compression ratio
+    })
+  );
 
   app.use(express.json({ limit: '1mb' }));
 
@@ -626,7 +671,10 @@ export async function createAIBridgeServer({
       res.header('Access-Control-Allow-Origin', origin || '*');
     }
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+    );
     if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
   });
@@ -659,7 +707,7 @@ export async function createAIBridgeServer({
       historySize: bridge.history.length,
       uptime: stats.uptime,
       version: '1.1.0',
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     };
 
     // Generate ETag (excluding timestamp for better caching)
@@ -699,12 +747,12 @@ export async function createAIBridgeServer({
         messagesPerSecond: Number(stats.messagesPerSecond.toFixed(2)),
         queuedMessages: stats.queuedMessages,
         errors: stats.errors,
-        lastError: stats.lastError
+        lastError: stats.lastError,
       },
       websocket: { port: actualWsPort, enabled: true, connections: stats.connectedClients },
       http: { port: actualHttpPort, enabled: true },
       storage: { historySize: stats.historySize, historyLimit },
-      environment: process.env.NODE_ENV || 'development'
+      environment: process.env.NODE_ENV || 'development',
     };
 
     statusCache.set('status', response);
@@ -727,7 +775,7 @@ export async function createAIBridgeServer({
       historySize: stats.historySize,
       errors: stats.errors,
       lastError: stats.lastError,
-      clients: bridge.listClients()
+      clients: bridge.listClients(),
     });
   });
 
@@ -743,10 +791,10 @@ export async function createAIBridgeServer({
         statusCache: {
           size: statusCache.cache.size,
           ttl: statusCache.ttl,
-          healthy: true
-        }
+          healthy: true,
+        },
       },
-      recommendations: []
+      recommendations: [],
     };
 
     res.json(cacheHealth);
@@ -763,12 +811,12 @@ export async function createAIBridgeServer({
       caches: {
         statusCache: {
           ...statusCacheStats,
-          ttl: statusCache.ttl + 'ms'
+          ttl: statusCache.ttl + 'ms',
         },
         clientsCache: {
           ...clientsCacheStats,
-          ttl: clientsCache.ttl + 'ms'
-        }
+          ttl: clientsCache.ttl + 'ms',
+        },
       },
       summary: {
         totalHits: statusCacheStats.hits + clientsCacheStats.hits,
@@ -778,8 +826,8 @@ export async function createAIBridgeServer({
           const hits = statusCacheStats.hits + clientsCacheStats.hits;
           return total > 0 ? ((hits / total) * 100).toFixed(2) + '%' : '0%';
         })(),
-        totalEntries: statusCacheStats.size + clientsCacheStats.size
-      }
+        totalEntries: statusCacheStats.size + clientsCacheStats.size,
+      },
     });
   });
 
@@ -803,12 +851,12 @@ export async function createAIBridgeServer({
           status: wss.clients.size >= 0 ? 'healthy' : 'degraded',
           port: actualWsPort,
           connections: wss.clients.size,
-          healthy: true
+          healthy: true,
         },
         http: {
           status: 'healthy',
           port: actualHttpPort,
-          healthy: true
+          healthy: true,
         },
         bridge: {
           status: stats.errors < 100 ? 'healthy' : 'degraded',
@@ -817,13 +865,13 @@ export async function createAIBridgeServer({
           messagesPerSecond: Number(stats.messagesPerSecond.toFixed(2)),
           queuedMessages: stats.queuedMessages,
           errors: stats.errors,
-          healthy: stats.errors < 100
+          healthy: stats.errors < 100,
         },
         cache: {
           status: 'healthy',
           statusCacheSize: statusCache.cache.size,
           clientsCacheSize: clientsCache.cache.size,
-          healthy: true
+          healthy: true,
         },
         memory: {
           status: memUsage.heapUsed < 500 * 1024 * 1024 ? 'healthy' : 'degraded',
@@ -832,16 +880,16 @@ export async function createAIBridgeServer({
           rss: Math.round(memUsage.rss / 1024 / 1024),
           external: Math.round(memUsage.external / 1024 / 1024),
           unit: 'MB',
-          healthy: memUsage.heapUsed < 500 * 1024 * 1024
-        }
+          healthy: memUsage.heapUsed < 500 * 1024 * 1024,
+        },
       },
       queues: Object.fromEntries(queuedByClient),
       uptime: stats.uptime,
       lastError: stats.lastError,
-      performance: stats.performance
+      performance: stats.performance,
     };
 
-    const overallHealthy = Object.values(health.subsystems).every(s => s.healthy);
+    const overallHealthy = Object.values(health.subsystems).every((s) => s.healthy);
     health.status = overallHealthy ? 'healthy' : 'degraded';
 
     res.json(health);
@@ -866,7 +914,7 @@ export async function createAIBridgeServer({
       return res.json(cached);
     }
 
-    let clients = bridge.listClients().map(client => ({
+    let clients = bridge.listClients().map((client) => ({
       id: client.id,
       role: client.role,
       labels: client.labels,
@@ -880,21 +928,21 @@ export async function createAIBridgeServer({
       messagesReceived: client.messagesReceived || 0,
       errors: client.errors || 0,
       avgLatency: client.avgLatency ? Number(client.avgLatency.toFixed(2)) : 0,
-      healthScore: client.healthScore || 100
+      healthScore: client.healthScore || 100,
     }));
 
     // Apply filters
     if (role) {
-      clients = clients.filter(c => c.role === role);
+      clients = clients.filter((c) => c.role === role);
     }
     if (label) {
-      clients = clients.filter(c => c.labels.includes(label));
+      clients = clients.filter((c) => c.labels.includes(label));
     }
     if (tool) {
-      clients = clients.filter(c => c.tools.includes(tool));
+      clients = clients.filter((c) => c.tools.includes(tool));
     }
     if (intent) {
-      clients = clients.filter(c => c.intents.includes(intent));
+      clients = clients.filter((c) => c.intents.includes(intent));
     }
 
     const response = { clients, count: clients.length };
@@ -915,7 +963,7 @@ export async function createAIBridgeServer({
     if (!client) {
       return res.status(404).json({
         error: 'Client not found',
-        clientId: id
+        clientId: id,
       });
     }
 
@@ -924,9 +972,10 @@ export async function createAIBridgeServer({
     const queuedMessages = bridge.messageQueue.get(id) || [];
 
     // Calculate additional metrics
-    const errorRate = client.meta.messagesSent > 0
-      ? ((client.meta.errors / client.meta.messagesSent) * 100).toFixed(2) + '%'
-      : '0%';
+    const errorRate =
+      client.meta.messagesSent > 0
+        ? ((client.meta.errors / client.meta.messagesSent) * 100).toFixed(2) + '%'
+        : '0%';
 
     const response = {
       client: {
@@ -939,7 +988,7 @@ export async function createAIBridgeServer({
         connected: client.ws.readyState === 1,
         lastSeen: client.meta.lastSeen,
         connectedAt: client.meta.connectedAt,
-        connectionState: ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][client.ws.readyState]
+        connectionState: ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'][client.ws.readyState],
       },
       performance: {
         messagesSent: client.meta.messagesSent,
@@ -948,25 +997,25 @@ export async function createAIBridgeServer({
         errorRate,
         avgLatency: client.meta.avgLatency ? Number(client.meta.avgLatency.toFixed(2)) : 0,
         healthScore: client.meta.healthScore,
-        lastError: client.meta.lastError || null
+        lastError: client.meta.lastError || null,
       },
       queues: {
         depth: queuedMessages.length,
         maxDepth: MAX_QUEUE_PER_CLIENT,
         utilization: ((queuedMessages.length / MAX_QUEUE_PER_CLIENT) * 100).toFixed(1) + '%',
-        oldestMessage: queuedMessages.length > 0 ? queuedMessages[0].timestamp : null
+        oldestMessage: queuedMessages.length > 0 ? queuedMessages[0].timestamp : null,
       },
       history: {
         totalMessages: clientHistory.length,
-        recentMessages: clientHistory.slice(-10).map(env => ({
+        recentMessages: clientHistory.slice(-10).map((env) => ({
           id: env.id,
           timestamp: env.timestamp,
           intent: env.intent,
           from: env.from,
           to: env.to,
-          payloadSize: JSON.stringify(env.payload).length
-        }))
-      }
+          payloadSize: JSON.stringify(env.payload).length,
+        })),
+      },
     };
 
     res.json(response);
@@ -997,7 +1046,7 @@ export async function createAIBridgeServer({
       historySize: stats.historySize,
       uptime: stats.uptime,
       errors: stats.errors,
-      clients: bridge.listClients()
+      clients: bridge.listClients(),
     };
 
     // Only broadcast if stats actually changed (excluding uptime/timestamp)
@@ -1006,7 +1055,7 @@ export async function createAIBridgeServer({
       lastStatsHash = currentHash;
       const payload = JSON.stringify({
         type: 'stats_update',
-        stats: statsData
+        stats: statsData,
       });
 
       // Send to monitor clients only
@@ -1039,7 +1088,7 @@ export async function createAIBridgeServer({
         to,
         intent: intent || 'agent.message',
         payload,
-        taskId
+        taskId,
       });
       res.status(202).json({
         success: true,
@@ -1049,8 +1098,8 @@ export async function createAIBridgeServer({
           from: envelope.from,
           to: envelope.to,
           intent: envelope.intent,
-          timestamp: envelope.timestamp
-        }
+          timestamp: envelope.timestamp,
+        },
       });
     } catch (error) {
       logger.error(`[Bridge] Error sending message:`, error);
@@ -1059,7 +1108,7 @@ export async function createAIBridgeServer({
   });
 
   // POST /api/send/batch - Send multiple messages in one request
-  app.post('/api/send/batch', (req, res) => {
+  app.post('/api/send/batch', async (req, res) => {
     const { messages } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
@@ -1075,18 +1124,18 @@ export async function createAIBridgeServer({
     }
 
     try {
-      const envelopes = messages.map(msg => ({
+      const envelopes = messages.map((msg) => ({
         from: msg.from || 'http-api',
         to: msg.to,
         intent: msg.intent || 'agent.message',
         payload: msg.payload,
-        taskId: msg.taskId
+        taskId: msg.taskId,
       }));
 
-      const results = bridge.acceptEnvelopeBatch(envelopes);
+      const results = await bridge.acceptEnvelopeBatch(envelopes);
 
-      const successful = results.filter(r => r.success).length;
-      const failed = results.filter(r => !r.success).length;
+      const successful = results.filter((r) => r.success).length;
+      const failed = results.filter((r) => !r.success).length;
 
       res.status(202).json({
         success: true,
@@ -1094,15 +1143,19 @@ export async function createAIBridgeServer({
         total: messages.length,
         successful,
         failed,
-        results: results.map(r => r.success ? {
-          id: r.envelope.id,
-          from: r.envelope.from,
-          to: r.envelope.to,
-          intent: r.envelope.intent,
-          timestamp: r.envelope.timestamp
-        } : {
-          error: r.error
-        })
+        results: results.map((r) =>
+          r.success
+            ? {
+                id: r.envelope.id,
+                from: r.envelope.from,
+                to: r.envelope.to,
+                intent: r.envelope.intent,
+                timestamp: r.envelope.timestamp,
+              }
+            : {
+                error: r.error,
+              }
+        ),
       });
     } catch (error) {
       logger.error(`[Bridge] Error sending batch:`, error);
@@ -1115,9 +1168,10 @@ export async function createAIBridgeServer({
     const stats = bridge.getStats();
     const memUsage = process.memoryUsage();
 
-    const avgMsgSize = bridge.messageSizeMetrics.totalMessages > 0
-      ? Math.round(bridge.messageSizeMetrics.totalBytes / bridge.messageSizeMetrics.totalMessages)
-      : 0;
+    const avgMsgSize =
+      bridge.messageSizeMetrics.totalMessages > 0
+        ? Math.round(bridge.messageSizeMetrics.totalBytes / bridge.messageSizeMetrics.totalMessages)
+        : 0;
 
     res.json({
       service: 'AI Bridge Metrics',
@@ -1127,7 +1181,10 @@ export async function createAIBridgeServer({
         messagesProcessed: stats.messagesProcessed,
         messagesPerSecond: Number(stats.messagesPerSecond.toFixed(2)),
         errors: stats.errors,
-        errorRate: stats.messagesProcessed > 0 ? (stats.errors / stats.messagesProcessed * 100).toFixed(2) + '%' : '0%'
+        errorRate:
+          stats.messagesProcessed > 0
+            ? ((stats.errors / stats.messagesProcessed) * 100).toFixed(2) + '%'
+            : '0%',
       },
       resources: {
         connectedClients: stats.connectedClients,
@@ -1135,45 +1192,89 @@ export async function createAIBridgeServer({
         queuedMessages: stats.queuedMessages,
         messageQueuePeak: stats.performance?.messageQueuePeak || 0,
         historySize: stats.historySize,
-        historyLimit
+        historyLimit,
       },
       memory: {
         heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024) + 'MB',
         heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024) + 'MB',
         external: Math.round(memUsage.external / 1024 / 1024) + 'MB',
-        rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB'
+        rss: Math.round(memUsage.rss / 1024 / 1024) + 'MB',
       },
       websocket: {
         messageSizeDistribution: {
           small: bridge.messageSizeMetrics.small,
           medium: bridge.messageSizeMetrics.medium,
           large: bridge.messageSizeMetrics.large,
-          huge: bridge.messageSizeMetrics.huge
+          huge: bridge.messageSizeMetrics.huge,
         },
         totalMessages: bridge.messageSizeMetrics.totalMessages,
         totalBytes: bridge.messageSizeMetrics.totalBytes,
         avgMessageSize: avgMsgSize + ' bytes',
-        totalBandwidth: Math.round(bridge.messageSizeMetrics.totalBytes / 1024) + 'KB'
+        totalBandwidth: Math.round(bridge.messageSizeMetrics.totalBytes / 1024) + 'KB',
       },
       cache: {
         statusCache: statusCache.getStats(),
-        clientsCache: clientsCache.getStats()
+        clientsCache: clientsCache.getStats(),
       },
       cleanup: {
-        lastRun: stats.performance?.lastCleanup ? new Date(stats.performance.lastCleanup).toISOString() : 'never',
-        duration: (stats.performance?.cleanupDuration || 0) + 'ms'
+        lastRun: stats.performance?.lastCleanup
+          ? new Date(stats.performance.lastCleanup).toISOString()
+          : 'never',
+        duration: (stats.performance?.cleanupDuration || 0) + 'ms',
       },
+      circuitBreakers: bridge.circuitBreakers.getMetrics(),
       http: {
-        recentRequests: requestTimings.slice(-100).map(r => ({
+        recentRequests: requestTimings.slice(-100).map((r) => ({
           path: r.path,
           method: r.method,
           duration: r.duration + 'ms',
-          status: r.status
+          status: r.status,
         })),
-        avgResponseTime: requestTimings.length > 0
-          ? (requestTimings.reduce((sum, r) => sum + r.duration, 0) / requestTimings.length).toFixed(2) + 'ms'
-          : '0ms'
-      }
+        avgResponseTime:
+          requestTimings.length > 0
+            ? (
+                requestTimings.reduce((sum, r) => sum + r.duration, 0) / requestTimings.length
+              ).toFixed(2) + 'ms'
+            : '0ms',
+      },
+    });
+  });
+
+  // GET /api/circuit-breakers - Circuit breaker health status
+  app.get('/api/circuit-breakers', (req, res) => {
+    const metrics = bridge.circuitBreakers.getMetrics();
+    const statuses = bridge.circuitBreakers.getAllStatuses();
+
+    res.json({
+      service: 'Circuit Breaker Monitor',
+      timestamp: new Date().toISOString(),
+      summary: metrics,
+      breakers: statuses,
+      recommendations: (() => {
+        const recs = [];
+        const openCount = statuses.filter((s) => s.state === 'OPEN').length;
+        const halfOpenCount = statuses.filter((s) => s.state === 'HALF_OPEN').length;
+
+        if (openCount > 0) {
+          recs.push({
+            severity: 'warning',
+            message: `${openCount} client(s) with open circuit breaker - investigate connection issues`,
+          });
+        }
+        if (halfOpenCount > 0) {
+          recs.push({
+            severity: 'info',
+            message: `${halfOpenCount} client(s) in recovery mode (half-open)`,
+          });
+        }
+        if (metrics.totalFailures > 100) {
+          recs.push({
+            severity: 'error',
+            message: 'High total failure count - system health degraded',
+          });
+        }
+        return recs;
+      })(),
     });
   });
 
@@ -1187,12 +1288,12 @@ export async function createAIBridgeServer({
         maxDepth: MAX_QUEUE_PER_CLIENT,
         utilization: ((queue.length / MAX_QUEUE_PER_CLIENT) * 100).toFixed(1) + '%',
         clientConnected: client && client.ws.readyState === 1,
-        oldestMessage: queue.length > 0 ? queue[0].timestamp : null
+        oldestMessage: queue.length > 0 ? queue[0].timestamp : null,
       };
     });
 
     const totalQueued = queues.reduce((sum, q) => sum + q.queueDepth, 0);
-    const highUtilization = queues.filter(q => q.queueDepth > MAX_QUEUE_PER_CLIENT * 0.8);
+    const highUtilization = queues.filter((q) => q.queueDepth > MAX_QUEUE_PER_CLIENT * 0.8);
 
     res.json({
       service: 'Queue Monitoring',
@@ -1201,9 +1302,9 @@ export async function createAIBridgeServer({
         totalQueues: queues.length,
         totalMessages: totalQueued,
         highUtilization: highUtilization.length,
-        warnings: highUtilization.length > 0 ? ['High queue utilization detected'] : []
+        warnings: highUtilization.length > 0 ? ['High queue utilization detected'] : [],
       },
-      queues
+      queues,
     });
   });
 
@@ -1216,29 +1317,40 @@ export async function createAIBridgeServer({
     const clientsCacheStats = clientsCache.getStats();
 
     // Calculate client health distribution
-    const healthyClients = clients.filter(c => c.healthScore >= 80).length;
-    const degradedClients = clients.filter(c => c.healthScore >= 50 && c.healthScore < 80).length;
-    const unhealthyClients = clients.filter(c => c.healthScore < 50).length;
+    const healthyClients = clients.filter((c) => c.healthScore >= 80).length;
+    const degradedClients = clients.filter((c) => c.healthScore >= 50 && c.healthScore < 80).length;
+    const unhealthyClients = clients.filter((c) => c.healthScore < 50).length;
 
     // Calculate message processing metrics
-    const avgMsgSize = bridge.messageSizeMetrics.totalMessages > 0
-      ? Math.round(bridge.messageSizeMetrics.totalBytes / bridge.messageSizeMetrics.totalMessages)
-      : 0;
+    const avgMsgSize =
+      bridge.messageSizeMetrics.totalMessages > 0
+        ? Math.round(bridge.messageSizeMetrics.totalBytes / bridge.messageSizeMetrics.totalMessages)
+        : 0;
 
-    const errorRate = stats.messagesProcessed > 0
-      ? ((stats.errors / stats.messagesProcessed) * 100).toFixed(2)
-      : '0.00';
+    const errorRate =
+      stats.messagesProcessed > 0
+        ? ((stats.errors / stats.messagesProcessed) * 100).toFixed(2)
+        : '0.00';
 
     // System health score (0-100)
-    const memoryHealthScore = memUsage.heapUsed < 200 * 1024 * 1024 ? 100 :
-                               memUsage.heapUsed < 400 * 1024 * 1024 ? 75 :
-                               memUsage.heapUsed < 600 * 1024 * 1024 ? 50 : 25;
+    const memoryHealthScore =
+      memUsage.heapUsed < 200 * 1024 * 1024
+        ? 100
+        : memUsage.heapUsed < 400 * 1024 * 1024
+          ? 75
+          : memUsage.heapUsed < 600 * 1024 * 1024
+            ? 50
+            : 25;
 
-    const errorHealthScore = stats.errors < 10 ? 100 :
-                              stats.errors < 50 ? 75 :
-                              stats.errors < 100 ? 50 : 25;
+    const errorHealthScore =
+      stats.errors < 10 ? 100 : stats.errors < 50 ? 75 : stats.errors < 100 ? 50 : 25;
 
-    const overallHealthScore = Math.round((memoryHealthScore + errorHealthScore + (healthyClients / Math.max(clients.length, 1) * 100)) / 3);
+    const overallHealthScore = Math.round(
+      (memoryHealthScore +
+        errorHealthScore +
+        (healthyClients / Math.max(clients.length, 1)) * 100) /
+        3
+    );
 
     const dashboard = {
       service: 'AI Bridge Dashboard',
@@ -1247,12 +1359,26 @@ export async function createAIBridgeServer({
       uptime: stats.uptime,
       health: {
         overall: overallHealthScore,
-        status: overallHealthScore >= 80 ? 'healthy' : overallHealthScore >= 50 ? 'degraded' : 'unhealthy',
+        status:
+          overallHealthScore >= 80
+            ? 'healthy'
+            : overallHealthScore >= 50
+              ? 'degraded'
+              : 'unhealthy',
         subsystems: {
-          memory: { score: memoryHealthScore, status: memoryHealthScore >= 80 ? 'healthy' : 'degraded' },
-          errors: { score: errorHealthScore, status: errorHealthScore >= 80 ? 'healthy' : 'degraded' },
-          clients: { score: Math.round((healthyClients / Math.max(clients.length, 1)) * 100), status: unhealthyClients === 0 ? 'healthy' : 'degraded' }
-        }
+          memory: {
+            score: memoryHealthScore,
+            status: memoryHealthScore >= 80 ? 'healthy' : 'degraded',
+          },
+          errors: {
+            score: errorHealthScore,
+            status: errorHealthScore >= 80 ? 'healthy' : 'degraded',
+          },
+          clients: {
+            score: Math.round((healthyClients / Math.max(clients.length, 1)) * 100),
+            status: unhealthyClients === 0 ? 'healthy' : 'degraded',
+          },
+        },
       },
       metrics: {
         clients: {
@@ -1260,7 +1386,7 @@ export async function createAIBridgeServer({
           healthy: healthyClients,
           degraded: degradedClients,
           unhealthy: unhealthyClients,
-          peak: stats.performance?.clientsPeak || clients.length
+          peak: stats.performance?.clientsPeak || clients.length,
         },
         messages: {
           processed: stats.messagesProcessed,
@@ -1270,34 +1396,34 @@ export async function createAIBridgeServer({
           errors: stats.errors,
           errorRate: errorRate + '%',
           avgSize: avgMsgSize + ' bytes',
-          totalBandwidth: Math.round(bridge.messageSizeMetrics.totalBytes / 1024) + 'KB'
+          totalBandwidth: Math.round(bridge.messageSizeMetrics.totalBytes / 1024) + 'KB',
         },
         cache: {
           statusCache: {
             hits: statusCacheStats.hits,
             misses: statusCacheStats.misses,
             hitRate: statusCacheStats.hitRate,
-            size: statusCacheStats.size
+            size: statusCacheStats.size,
           },
           clientsCache: {
             hits: clientsCacheStats.hits,
             misses: clientsCacheStats.misses,
             hitRate: clientsCacheStats.hitRate,
-            size: clientsCacheStats.size
+            size: clientsCacheStats.size,
           },
           overallHitRate: (() => {
             const total = statusCacheStats.total + clientsCacheStats.total;
             const hits = statusCacheStats.hits + clientsCacheStats.hits;
             return total > 0 ? ((hits / total) * 100).toFixed(2) + '%' : '0%';
-          })()
+          })(),
         },
         memory: {
           heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
           heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
           rss: Math.round(memUsage.rss / 1024 / 1024),
           external: Math.round(memUsage.external / 1024 / 1024),
-          unit: 'MB'
-        }
+          unit: 'MB',
+        },
       },
       config: {
         wsPort: actualWsPort,
@@ -1307,16 +1433,19 @@ export async function createAIBridgeServer({
         maxQueuePerClient: MAX_QUEUE_PER_CLIENT,
         compressionThreshold: WS_COMPRESSION_THRESHOLD + ' bytes',
         compressionLevel: WS_COMPRESSION_LEVEL,
-        environment: process.env.NODE_ENV || 'development'
+        environment: process.env.NODE_ENV || 'development',
       },
       alerts: (() => {
         const alerts = [];
-        if (unhealthyClients > 0) alerts.push({ severity: 'warning', message: `${unhealthyClients} client(s) unhealthy` });
-        if (memUsage.heapUsed > 400 * 1024 * 1024) alerts.push({ severity: 'warning', message: 'High memory usage' });
+        if (unhealthyClients > 0)
+          alerts.push({ severity: 'warning', message: `${unhealthyClients} client(s) unhealthy` });
+        if (memUsage.heapUsed > 400 * 1024 * 1024)
+          alerts.push({ severity: 'warning', message: 'High memory usage' });
         if (stats.errors > 50) alerts.push({ severity: 'error', message: 'High error count' });
-        if (stats.queuedMessages > 100) alerts.push({ severity: 'warning', message: 'High queue depth' });
+        if (stats.queuedMessages > 100)
+          alerts.push({ severity: 'warning', message: 'High queue depth' });
         return alerts;
-      })()
+      })(),
     };
 
     res.json(dashboard);
@@ -1375,26 +1504,34 @@ export async function createAIBridgeServer({
     const clients = bridge.listClients();
     metrics.push('# HELP ai_bridge_client_messages_sent_total Messages sent per client');
     metrics.push('# TYPE ai_bridge_client_messages_sent_total counter');
-    clients.forEach(client => {
-      metrics.push(`ai_bridge_client_messages_sent_total{client_id="${client.id}",role="${client.role}"} ${client.messagesSent || 0}`);
+    clients.forEach((client) => {
+      metrics.push(
+        `ai_bridge_client_messages_sent_total{client_id="${client.id}",role="${client.role}"} ${client.messagesSent || 0}`
+      );
     });
 
     metrics.push('# HELP ai_bridge_client_messages_received_total Messages received per client');
     metrics.push('# TYPE ai_bridge_client_messages_received_total counter');
-    clients.forEach(client => {
-      metrics.push(`ai_bridge_client_messages_received_total{client_id="${client.id}",role="${client.role}"} ${client.messagesReceived || 0}`);
+    clients.forEach((client) => {
+      metrics.push(
+        `ai_bridge_client_messages_received_total{client_id="${client.id}",role="${client.role}"} ${client.messagesReceived || 0}`
+      );
     });
 
     metrics.push('# HELP ai_bridge_client_health_score Client health score (0-100)');
     metrics.push('# TYPE ai_bridge_client_health_score gauge');
-    clients.forEach(client => {
-      metrics.push(`ai_bridge_client_health_score{client_id="${client.id}",role="${client.role}"} ${client.healthScore || 100}`);
+    clients.forEach((client) => {
+      metrics.push(
+        `ai_bridge_client_health_score{client_id="${client.id}",role="${client.role}"} ${client.healthScore || 100}`
+      );
     });
 
     metrics.push('# HELP ai_bridge_client_avg_latency_ms Average message latency per client');
     metrics.push('# TYPE ai_bridge_client_avg_latency_ms gauge');
-    clients.forEach(client => {
-      metrics.push(`ai_bridge_client_avg_latency_ms{client_id="${client.id}",role="${client.role}"} ${(client.avgLatency || 0).toFixed(2)}`);
+    clients.forEach((client) => {
+      metrics.push(
+        `ai_bridge_client_avg_latency_ms{client_id="${client.id}",role="${client.role}"} ${(client.avgLatency || 0).toFixed(2)}`
+      );
     });
 
     res.set('Content-Type', 'text/plain; version=0.0.4');
@@ -1434,21 +1571,23 @@ export async function createAIBridgeServer({
 
     // Replay by message ID(s)
     if (messageId) {
-      const msg = bridge.history.toArray().find(env => env.id === messageId);
+      const msg = bridge.history.toArray().find((env) => env.id === messageId);
       if (msg) messagesToReplay.push(msg);
     } else if (messageIds && Array.isArray(messageIds)) {
       const historyArray = bridge.history.toArray();
-      messagesToReplay = historyArray.filter(env => messageIds.includes(env.id));
+      messagesToReplay = historyArray.filter((env) => messageIds.includes(env.id));
     } else if (fromTimestamp || toTimestamp) {
       // Replay by timestamp range
       const from = fromTimestamp ? new Date(fromTimestamp).getTime() : 0;
       const to = toTimestamp ? new Date(toTimestamp).getTime() : Date.now();
-      messagesToReplay = bridge.history.toArray().filter(env => {
+      messagesToReplay = bridge.history.toArray().filter((env) => {
         const envTime = new Date(env.timestamp).getTime();
         return envTime >= from && envTime <= to;
       });
     } else {
-      return res.status(400).json({ error: 'Must specify messageId, messageIds, or timestamp range' });
+      return res
+        .status(400)
+        .json({ error: 'Must specify messageId, messageIds, or timestamp range' });
     }
 
     if (messagesToReplay.length === 0) {
@@ -1459,7 +1598,7 @@ export async function createAIBridgeServer({
     let successCount = 0;
     let failureCount = 0;
 
-    messagesToReplay.forEach(env => {
+    messagesToReplay.forEach((env) => {
       const replayEnvelope = {
         ...env,
         id: randomUUID(), // New ID for replayed message
@@ -1468,8 +1607,8 @@ export async function createAIBridgeServer({
           ...env.context,
           replay: true,
           originalId: env.id,
-          originalTimestamp: env.timestamp
-        }
+          originalTimestamp: env.timestamp,
+        },
       };
 
       if (bridge._sendEnvelope(targetClient, replayEnvelope)) {
@@ -1484,7 +1623,7 @@ export async function createAIBridgeServer({
       replayed: successCount,
       failed: failureCount,
       total: messagesToReplay.length,
-      targetClient
+      targetClient,
     });
   });
 
@@ -1499,7 +1638,7 @@ export async function createAIBridgeServer({
 
       logger.log(`[Bridge] Received ${items.length} history items from ${source || 'unknown'}`);
 
-      items.forEach(item => {
+      items.forEach((item) => {
         bridge.acceptEnvelope({
           intent: 'browser.history',
           from: source || 'browser-extension',
@@ -1511,8 +1650,8 @@ export async function createAIBridgeServer({
             visitCount: item.visitCount,
             typedCount: item.typedCount,
             transitionType: item.transitionType,
-            metadata: item.metadata
-          }
+            metadata: item.metadata,
+          },
         });
       });
 
@@ -1576,7 +1715,7 @@ export async function createAIBridgeServer({
       tasks: taskArray.slice(offset, offset + limit),
       total: taskArray.length,
       limit,
-      offset
+      offset,
     });
   });
 
@@ -1588,11 +1727,11 @@ export async function createAIBridgeServer({
     perMessageDeflate: {
       zlibDeflateOptions: {
         level: WS_COMPRESSION_LEVEL, // Configurable via AI_BRIDGE_WS_COMPRESSION_LEVEL
-        memLevel: 7 // Reduced memory usage
+        memLevel: 7, // Reduced memory usage
       },
       zlibInflateOptions: {
         chunkSize: 10 * 1024, // 10KB chunks for balanced performance
-        windowBits: 14 // Reduce window size for lower memory
+        windowBits: 14, // Reduce window size for lower memory
       },
       clientNoContextTakeover: true,
       serverNoContextTakeover: true,
@@ -1667,18 +1806,22 @@ export async function createAIBridgeServer({
       }
 
       if (payload.type === 'list_clients') {
-        ws.send(JSON.stringify({
-          type: 'clients',
-          clients: bridge.listClients()
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'clients',
+            clients: bridge.listClients(),
+          })
+        );
         return;
       }
 
       if (payload.type === 'get_stats') {
-        ws.send(JSON.stringify({
-          type: 'stats',
-          stats: bridge.getStats()
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'stats',
+            stats: bridge.getStats(),
+          })
+        );
         return;
       }
 
@@ -1693,7 +1836,11 @@ export async function createAIBridgeServer({
         return;
       }
 
-      if (payload.type === 'envelope_batch' && payload.envelopes && Array.isArray(payload.envelopes)) {
+      if (
+        payload.type === 'envelope_batch' &&
+        payload.envelopes &&
+        Array.isArray(payload.envelopes)
+      ) {
         // Batch send via WebSocket
         if (payload.envelopes.length > 100) {
           ws.send(JSON.stringify({ type: 'error', error: 'Maximum 100 envelopes per batch' }));
@@ -1701,7 +1848,7 @@ export async function createAIBridgeServer({
         }
 
         const results = bridge.acceptEnvelopeBatch(
-          payload.envelopes.map(env => ({ ...env, from: env.from || clientId }))
+          payload.envelopes.map((env) => ({ ...env, from: env.from || clientId }))
         );
 
         // Track received messages
@@ -1710,13 +1857,15 @@ export async function createAIBridgeServer({
         }
 
         // Send batch response
-        ws.send(JSON.stringify({
-          type: 'envelope_batch_result',
-          total: results.length,
-          successful: results.filter(r => r.success).length,
-          failed: results.filter(r => !r.success).length,
-          results: results.map(r => r.success ? { id: r.envelope.id } : { error: r.error })
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'envelope_batch_result',
+            total: results.length,
+            successful: results.filter((r) => r.success).length,
+            failed: results.filter((r) => !r.success).length,
+            results: results.map((r) => (r.success ? { id: r.envelope.id } : { error: r.error })),
+          })
+        );
 
         return;
       }

@@ -21,7 +21,7 @@ export class SubAgent {
   addContext(message) {
     this.context.push({
       timestamp: Date.now(),
-      ...message
+      ...message,
     });
 
     if (this.context.length > this.contextWindow / 1000) {
@@ -49,7 +49,7 @@ export class SubAgent {
       systemPrompt: this.systemPrompt,
       tools: this.tools,
       contextWindow: this.contextWindow,
-      active: this.active
+      active: this.active,
     };
   }
 }
@@ -82,7 +82,7 @@ export class SubAgentManager extends EventEmitter {
   }
 
   listAgents() {
-    return Array.from(this.agents.values()).map(a => a.toJSON());
+    return Array.from(this.agents.values()).map((a) => a.toJSON());
   }
 
   deleteAgent(id) {
@@ -130,7 +130,7 @@ export class SubAgentManager extends EventEmitter {
 
     agent.addContext({
       role: 'user',
-      content: task
+      content: task,
     });
 
     this.emit('task:delegated', { agent, task });
@@ -139,7 +139,7 @@ export class SubAgentManager extends EventEmitter {
       agentId: agent.id,
       agentName: agent.name,
       task,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -151,7 +151,7 @@ export class SubAgentManager extends EventEmitter {
 
     agent.addContext({
       role: 'assistant',
-      content: response
+      content: response,
     });
 
     this.emit('response:received', { agent, response });
@@ -161,9 +161,9 @@ export class SubAgentManager extends EventEmitter {
 
   getActiveAgents() {
     return Array.from(this.activeAgents)
-      .map(id => this.agents.get(id))
+      .map((id) => this.agents.get(id))
       .filter(Boolean)
-      .map(a => a.toJSON());
+      .map((a) => a.toJSON());
   }
 
   createDefaultAgents() {
@@ -171,36 +171,41 @@ export class SubAgentManager extends EventEmitter {
       {
         name: 'code-reviewer',
         expertise: 'Code review, quality analysis, security scanning',
-        systemPrompt: 'You are an expert code reviewer. Analyze code for bugs, security issues, performance problems, and best practices violations. Be thorough and specific.',
-        tools: ['read', 'grep', 'bash']
+        systemPrompt:
+          'You are an expert code reviewer. Analyze code for bugs, security issues, performance problems, and best practices violations. Be thorough and specific.',
+        tools: ['read', 'grep', 'bash'],
       },
       {
         name: 'ui-designer',
         expertise: 'UI/UX design, frontend development, visual design',
-        systemPrompt: 'You are a UI/UX expert. Design beautiful, accessible, and user-friendly interfaces following modern design principles.',
-        tools: ['read', 'write', 'edit', 'bash']
+        systemPrompt:
+          'You are a UI/UX expert. Design beautiful, accessible, and user-friendly interfaces following modern design principles.',
+        tools: ['read', 'write', 'edit', 'bash'],
       },
       {
         name: 'test-writer',
         expertise: 'Test design, TDD, test automation',
-        systemPrompt: 'You are a testing specialist. Write comprehensive, maintainable tests with high coverage. Follow TDD principles.',
-        tools: ['read', 'write', 'edit', 'bash']
+        systemPrompt:
+          'You are a testing specialist. Write comprehensive, maintainable tests with high coverage. Follow TDD principles.',
+        tools: ['read', 'write', 'edit', 'bash'],
       },
       {
         name: 'planner',
         expertise: 'Project planning, architecture design, task breakdown',
-        systemPrompt: 'You are a technical architect. Break down complex tasks into manageable steps, design system architecture, and plan implementations.',
-        tools: ['read', 'grep']
+        systemPrompt:
+          'You are a technical architect. Break down complex tasks into manageable steps, design system architecture, and plan implementations.',
+        tools: ['read', 'grep'],
       },
       {
         name: 'debugger',
         expertise: 'Debugging, error analysis, troubleshooting',
-        systemPrompt: 'You are a debugging expert. Systematically identify and fix bugs through root cause analysis and testing.',
-        tools: ['read', 'grep', 'bash', 'edit']
-      }
+        systemPrompt:
+          'You are a debugging expert. Systematically identify and fix bugs through root cause analysis and testing.',
+        tools: ['read', 'grep', 'bash', 'edit'],
+      },
     ];
 
-    defaults.forEach(config => this.createAgent(config));
+    defaults.forEach((config) => this.createAgent(config));
     return this.listAgents();
   }
 }

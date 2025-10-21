@@ -26,7 +26,7 @@ export class SessionManagerCQRS {
   async register() {
     this.sessionId = await this.commandHandlers.handleCreateSession({
       pid: process.pid,
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
 
     // Project event to read model
@@ -56,7 +56,7 @@ export class SessionManagerCQRS {
 
     await this.commandHandlers.handleUpdateSession({
       sessionId: this.sessionId,
-      currentTask: null
+      currentTask: null,
     });
 
     // Project event
@@ -76,7 +76,7 @@ export class SessionManagerCQRS {
 
     await this.commandHandlers.handleUpdateSession({
       sessionId: this.sessionId,
-      currentTask: task
+      currentTask: task,
     });
 
     const version = await this._getLastVersion('Session', this.sessionId);
@@ -93,7 +93,7 @@ export class SessionManagerCQRS {
   async listActiveSessions() {
     const sessions = await this.queryHandlers.listActiveSessions();
 
-    return sessions.map(s => ({
+    return sessions.map((s) => ({
       id: s.session_id,
       pid: s.pid,
       start_time: s.start_time,
@@ -102,7 +102,7 @@ export class SessionManagerCQRS {
       cwd: s.cwd,
       isCurrentSession: s.session_id === this.sessionId,
       uptime: Date.now() - s.start_time,
-      lastHeartbeatAge: Date.now() - s.last_heartbeat
+      lastHeartbeatAge: Date.now() - s.last_heartbeat,
     }));
   }
 
@@ -122,11 +122,11 @@ export class SessionManagerCQRS {
 
     return {
       ...session,
-      locks: locks.map(l => ({
+      locks: locks.map((l) => ({
         resource_path: l.resource_path,
         lock_type: l.lock_type,
-        acquired_at: l.acquired_at
-      }))
+        acquired_at: l.acquired_at,
+      })),
     };
   }
 
@@ -153,7 +153,7 @@ export class SessionManagerCQRS {
     const lockId = await this.commandHandlers.handleAcquireLock({
       sessionId: this.sessionId,
       resourcePath,
-      lockType
+      lockType,
     });
 
     // Project event
@@ -202,7 +202,7 @@ export class SessionManagerCQRS {
     // Terminate session
     await this.commandHandlers.handleTerminateSession({
       sessionId: this.sessionId,
-      reason: 'cleanup'
+      reason: 'cleanup',
     });
 
     const version = await this._getLastVersion('Session', this.sessionId);

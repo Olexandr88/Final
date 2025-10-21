@@ -20,7 +20,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
 
     // Initialize Anthropic client
     this.client = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
+      apiKey: process.env.ANTHROPIC_API_KEY,
     });
 
     // Initialize conversation history tracking
@@ -33,14 +33,14 @@ export class AutonomousClaudeAgent extends BaseAgent {
       command_exec: true,
       git_operations: true,
       code_analysis: true,
-      test_execution: true
+      test_execution: true,
     });
 
     // Track tool usage
     this.toolUsageStats = {
       totalCalls: 0,
       successfulCalls: 0,
-      failedCalls: 0
+      failedCalls: 0,
     };
 
     // Listen to tool execution events
@@ -55,7 +55,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
       logger.info(`Tool executed: ${event.tool}`, {
         agent: this.config.clientId,
         success: event.success,
-        duration: event.duration
+        duration: event.duration,
       });
     });
 
@@ -69,7 +69,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
     logger.info('Autonomous Claude Agent initializing...', {
       clientId: this.config.clientId,
       extendedThinking: this.extendedThinking,
-      thinkingBudget: this.thinkingBudget
+      thinkingBudget: this.thinkingBudget,
     });
   }
 
@@ -82,11 +82,11 @@ export class AutonomousClaudeAgent extends BaseAgent {
       await this.toolExecutor.waitForReady();
       logger.info('Autonomous Claude Agent initialized', {
         clientId: this.config.clientId,
-        availableTools: this.toolExecutor.getAvailableTools().length
+        availableTools: this.toolExecutor.getAvailableTools().length,
       });
     } catch (error) {
       logger.error('Failed to initialize autonomous agent', {
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -122,7 +122,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
         from,
         intent,
         taskId,
-        hasPayload: !!payload
+        hasPayload: !!payload,
       });
 
       // Extract message
@@ -131,7 +131,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
       if (!userMessage) {
         this.sendResponse(envelope, {
           error: 'No message content provided',
-          status: 'error'
+          status: 'error',
         });
         return;
       }
@@ -146,7 +146,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
       // Add user message to history
       history.push({
         role: 'user',
-        content: userMessage
+        content: userMessage,
       });
 
       // Call Claude with tool support and extended thinking
@@ -157,18 +157,17 @@ export class AutonomousClaudeAgent extends BaseAgent {
         response: response.text,
         thinking: response.thinking,
         tool_calls: response.toolCalls,
-        status: 'success'
+        status: 'success',
       });
-
     } catch (error) {
       logger.error('Failed to handle envelope', {
         error: error.message,
-        envelope
+        envelope,
       });
 
       this.sendResponse(envelope, {
         error: error.message,
-        status: 'error'
+        status: 'error',
       });
     }
   }
@@ -190,21 +189,21 @@ export class AutonomousClaudeAgent extends BaseAgent {
       iterationCount++;
 
       logger.info(`Claude iteration ${iterationCount}`, {
-        historyLength: history.length
+        historyLength: history.length,
       });
 
       // Prepare API call with extended thinking and tools
       const apiParams = {
         model: 'claude-sonnet-4-5-20250929', // Latest model with extended thinking
         max_tokens: 8000,
-        messages: history
+        messages: history,
       };
 
       // Add extended thinking if enabled
       if (this.extendedThinking) {
         apiParams.thinking = {
           type: 'enabled',
-          budget_tokens: this.thinkingBudget
+          budget_tokens: this.thinkingBudget,
         };
       }
 
@@ -215,70 +214,72 @@ export class AutonomousClaudeAgent extends BaseAgent {
       const response = await this.client.messages.create(apiParams);
 
       // Extract thinking content if present
-      const thinking = response.content.filter(c => c.type === 'thinking');
+      const thinking = response.content.filter((c) => c.type === 'thinking');
       if (thinking.length > 0) {
-        thinkingContent.push(...thinking.map(t => t.thinking));
+        thinkingContent.push(...thinking.map((t) => t.thinking));
       }
 
       // Check if Claude wants to use tools
-      const toolUses = response.content.filter(c => c.type === 'tool_use');
+      const toolUses = response.content.filter((c) => c.type === 'tool_use');
 
       if (toolUses.length > 0) {
         logger.info(`Claude requesting ${toolUses.length} tool(s)`, {
-          tools: toolUses.map(t => t.name)
+          tools: toolUses.map((t) => t.name),
         });
 
         // Add assistant message to history
         history.push({
           role: 'assistant',
-          content: response.content
+          content: response.content,
         });
 
         // Execute tools
         const toolResults = await this.executeTools(toolUses, envelope);
-        allToolCalls.push(...toolUses.map(t => ({
-          name: t.name,
-          input: t.input,
-          result: toolResults.find(r => r.tool_use_id === t.id)?.content
-        })));
+        allToolCalls.push(
+          ...toolUses.map((t) => ({
+            name: t.name,
+            input: t.input,
+            result: toolResults.find((r) => r.tool_use_id === t.id)?.content,
+          }))
+        );
 
         // Add tool results to history
         history.push({
           role: 'user',
-          content: toolResults
+          content: toolResults,
         });
 
         // Continue conversation to get final response
         continueConversation = true;
       } else {
         // No tool use, this is the final response
-        const textContent = response.content.find(c => c.type === 'text');
+        const textContent = response.content.find((c) => c.type === 'text');
 
         // Add assistant message to history
         history.push({
           role: 'assistant',
-          content: response.content
+          content: response.content,
         });
 
         return {
           text: textContent?.text || '',
           thinking: thinkingContent.join('\n\n'),
           toolCalls: allToolCalls,
-          iterations: iterationCount
+          iterations: iterationCount,
         };
       }
     }
 
     // Max iterations reached
     logger.warn('Max iterations reached in tool use loop', {
-      iterations: iterationCount
+      iterations: iterationCount,
     });
 
     return {
       text: 'Maximum tool use iterations reached',
       thinking: thinkingContent.join('\n\n'),
       toolCalls: allToolCalls,
-      iterations: iterationCount
+      iterations: iterationCount,
     };
   }
 
@@ -298,29 +299,28 @@ export class AutonomousClaudeAgent extends BaseAgent {
 
       try {
         // Execute tool via ToolExecutor
-        const result = await this.toolExecutor.executeTool(
-          name,
-          input,
-          { taskId: envelope.taskId, from: envelope.from }
-        );
+        const result = await this.toolExecutor.executeTool(name, input, {
+          taskId: envelope.taskId,
+          from: envelope.from,
+        });
 
         results.push({
           type: 'tool_result',
           tool_use_id: id,
-          content: JSON.stringify(result.result)
+          content: JSON.stringify(result.result),
         });
 
         logger.info(`Tool execution successful: ${name}`);
       } catch (error) {
         logger.error(`Tool execution failed: ${name}`, {
-          error: error.message
+          error: error.message,
         });
 
         results.push({
           type: 'tool_result',
           tool_use_id: id,
           is_error: true,
-          content: `Tool execution failed: ${error.message}`
+          content: `Tool execution failed: ${error.message}`,
         });
       }
     }
@@ -342,38 +342,38 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             file_path: {
               type: 'string',
-              description: 'Path to the file to read'
+              description: 'Path to the file to read',
             },
             encoding: {
               type: 'string',
               description: 'File encoding (default: utf-8)',
-              enum: ['utf-8', 'ascii', 'base64']
-            }
+              enum: ['utf-8', 'ascii', 'base64'],
+            },
           },
-          required: ['file_path']
-        }
+          required: ['file_path'],
+        },
       },
       {
         name: 'write',
-        description: 'Write content to a file, creating it if it doesn\'t exist',
+        description: "Write content to a file, creating it if it doesn't exist",
         input_schema: {
           type: 'object',
           properties: {
             file_path: {
               type: 'string',
-              description: 'Path to the file to write'
+              description: 'Path to the file to write',
             },
             content: {
               type: 'string',
-              description: 'Content to write to the file'
+              description: 'Content to write to the file',
             },
             encoding: {
               type: 'string',
-              description: 'File encoding (default: utf-8)'
-            }
+              description: 'File encoding (default: utf-8)',
+            },
           },
-          required: ['file_path', 'content']
-        }
+          required: ['file_path', 'content'],
+        },
       },
       {
         name: 'edit',
@@ -383,7 +383,7 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             file_path: {
               type: 'string',
-              description: 'Path to the file to edit'
+              description: 'Path to the file to edit',
             },
             edits: {
               type: 'array',
@@ -393,24 +393,24 @@ export class AutonomousClaudeAgent extends BaseAgent {
                 properties: {
                   line: {
                     type: 'number',
-                    description: 'Line number to edit (1-based)'
+                    description: 'Line number to edit (1-based)',
                   },
                   operation: {
                     type: 'string',
                     enum: ['replace', 'insert', 'delete'],
-                    description: 'Edit operation type'
+                    description: 'Edit operation type',
                   },
                   content: {
                     type: 'string',
-                    description: 'New content for replace/insert operations'
-                  }
+                    description: 'New content for replace/insert operations',
+                  },
                 },
-                required: ['line', 'operation']
-              }
-            }
+                required: ['line', 'operation'],
+              },
+            },
           },
-          required: ['file_path', 'edits']
-        }
+          required: ['file_path', 'edits'],
+        },
       },
       {
         name: 'glob',
@@ -420,20 +420,20 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             pattern: {
               type: 'string',
-              description: 'Glob pattern (e.g., "**/*.js", "src/**/*.ts")'
+              description: 'Glob pattern (e.g., "**/*.js", "src/**/*.ts")',
             },
             cwd: {
               type: 'string',
-              description: 'Working directory for search'
+              description: 'Working directory for search',
             },
             ignore: {
               type: 'array',
               items: { type: 'string' },
-              description: 'Patterns to ignore'
-            }
+              description: 'Patterns to ignore',
+            },
           },
-          required: ['pattern']
-        }
+          required: ['pattern'],
+        },
       },
       {
         name: 'grep',
@@ -443,19 +443,19 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             pattern: {
               type: 'string',
-              description: 'Search pattern (regex supported)'
+              description: 'Search pattern (regex supported)',
             },
             path: {
               type: 'string',
-              description: 'Path to search in (default: current directory)'
+              description: 'Path to search in (default: current directory)',
             },
             case_sensitive: {
               type: 'boolean',
-              description: 'Case sensitive search (default: false)'
-            }
+              description: 'Case sensitive search (default: false)',
+            },
           },
-          required: ['pattern']
-        }
+          required: ['pattern'],
+        },
       },
       {
         name: 'bash',
@@ -465,24 +465,24 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             command: {
               type: 'string',
-              description: 'Shell command to execute'
+              description: 'Shell command to execute',
             },
             args: {
               type: 'array',
               items: { type: 'string' },
-              description: 'Command arguments'
+              description: 'Command arguments',
             },
             cwd: {
               type: 'string',
-              description: 'Working directory'
+              description: 'Working directory',
             },
             timeout: {
               type: 'number',
-              description: 'Timeout in milliseconds (max: 60000)'
-            }
+              description: 'Timeout in milliseconds (max: 60000)',
+            },
           },
-          required: ['command']
-        }
+          required: ['command'],
+        },
       },
       {
         name: 'npm',
@@ -492,15 +492,15 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             command: {
               type: 'string',
-              description: 'NPM command (e.g., "install", "test", "run build")'
+              description: 'NPM command (e.g., "install", "test", "run build")',
             },
             cwd: {
               type: 'string',
-              description: 'Working directory'
-            }
+              description: 'Working directory',
+            },
           },
-          required: ['command']
-        }
+          required: ['command'],
+        },
       },
       {
         name: 'git_status',
@@ -510,10 +510,10 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             cwd: {
               type: 'string',
-              description: 'Repository directory'
-            }
-          }
-        }
+              description: 'Repository directory',
+            },
+          },
+        },
       },
       {
         name: 'git_diff',
@@ -523,18 +523,18 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             file: {
               type: 'string',
-              description: 'Specific file to diff (optional)'
+              description: 'Specific file to diff (optional)',
             },
             staged: {
               type: 'boolean',
-              description: 'Show staged changes only'
+              description: 'Show staged changes only',
             },
             cwd: {
               type: 'string',
-              description: 'Repository directory'
-            }
-          }
-        }
+              description: 'Repository directory',
+            },
+          },
+        },
       },
       {
         name: 'git_commit',
@@ -544,20 +544,20 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             message: {
               type: 'string',
-              description: 'Commit message'
+              description: 'Commit message',
             },
             files: {
               type: 'array',
               items: { type: 'string' },
-              description: 'Files to commit (optional, commits all if empty)'
+              description: 'Files to commit (optional, commits all if empty)',
             },
             cwd: {
               type: 'string',
-              description: 'Repository directory'
-            }
+              description: 'Repository directory',
+            },
           },
-          required: ['message']
-        }
+          required: ['message'],
+        },
       },
       {
         name: 'analyze_code',
@@ -567,19 +567,19 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             code: {
               type: 'string',
-              description: 'Code to analyze'
+              description: 'Code to analyze',
             },
             language: {
               type: 'string',
-              description: 'Programming language (js, ts, py, etc.)'
+              description: 'Programming language (js, ts, py, etc.)',
             },
             file_path: {
               type: 'string',
-              description: 'File path for context'
-            }
+              description: 'File path for context',
+            },
           },
-          required: ['code', 'language']
-        }
+          required: ['code', 'language'],
+        },
       },
       {
         name: 'run_tests',
@@ -589,24 +589,24 @@ export class AutonomousClaudeAgent extends BaseAgent {
           properties: {
             test_pattern: {
               type: 'string',
-              description: 'Test file pattern'
+              description: 'Test file pattern',
             },
             framework: {
               type: 'string',
               enum: ['node:test', 'jest', 'mocha', 'vitest'],
-              description: 'Test framework to use'
+              description: 'Test framework to use',
             },
             cwd: {
               type: 'string',
-              description: 'Working directory'
+              description: 'Working directory',
             },
             coverage: {
               type: 'boolean',
-              description: 'Generate coverage report'
-            }
-          }
-        }
-      }
+              description: 'Generate coverage report',
+            },
+          },
+        },
+      },
     ];
   }
 
@@ -617,10 +617,13 @@ export class AutonomousClaudeAgent extends BaseAgent {
   getToolStats() {
     return {
       ...this.toolUsageStats,
-      successRate: this.toolUsageStats.totalCalls > 0
-        ? ((this.toolUsageStats.successfulCalls / this.toolUsageStats.totalCalls) * 100).toFixed(2) + '%'
-        : '0%',
-      executorMetrics: this.toolExecutor.getMetrics()
+      successRate:
+        this.toolUsageStats.totalCalls > 0
+          ? ((this.toolUsageStats.successfulCalls / this.toolUsageStats.totalCalls) * 100).toFixed(
+              2
+            ) + '%'
+          : '0%',
+      executorMetrics: this.toolExecutor.getMetrics(),
     };
   }
 }
@@ -638,19 +641,22 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
       'file.read',
       'file.write',
       'command.execute',
-      'test.run'
+      'test.run',
     ],
     extendedThinking: true,
-    thinkingBudget: 10000
+    thinkingBudget: 10000,
   });
 
-  agent.connect().then(() => {
-    logger.info('✅ Autonomous Claude Agent connected and ready');
-    logger.info(`Available tools: ${agent.toolExecutor.getAvailableTools().join(', ')}`);
-  }).catch(error => {
-    logger.error('Failed to connect Autonomous Claude Agent', { error: error.message });
-    process.exit(1);
-  });
+  agent
+    .connect()
+    .then(() => {
+      logger.info('✅ Autonomous Claude Agent connected and ready');
+      logger.info(`Available tools: ${agent.toolExecutor.getAvailableTools().join(', ')}`);
+    })
+    .catch((error) => {
+      logger.error('Failed to connect Autonomous Claude Agent', { error: error.message });
+      process.exit(1);
+    });
 }
 
 export default AutonomousClaudeAgent;

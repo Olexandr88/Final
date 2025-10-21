@@ -30,9 +30,9 @@ class SystemHealthCheck {
         const lines = stdout.split('\n');
 
         for (const port of ports) {
-          const inUse = lines.some(line => line.includes(`:${port} `));
+          const inUse = lines.some((line) => line.includes(`:${port} `));
           if (inUse) {
-            const match = lines.find(line => line.includes(`:${port} `));
+            const match = lines.find((line) => line.includes(`:${port} `));
             const pid = match?.trim().split(/\s+/).pop();
             conflicts.push({ port, pid });
             console.log(`  ⚠️  Port ${port} in use by PID ${pid}`);
@@ -70,7 +70,7 @@ class SystemHealthCheck {
     try {
       if (isWindows) {
         const { stdout } = await execAsync('tasklist | findstr node.exe');
-        const processes = stdout.split('\n').filter(line => line.includes('node.exe'));
+        const processes = stdout.split('\n').filter((line) => line.includes('node.exe'));
         console.log(`  Found ${processes.length} Node.js processes`);
 
         if (processes.length > 10) {
@@ -125,7 +125,7 @@ class SystemHealthCheck {
       total: totalMem,
       used: usedMem,
       free: freeMem,
-      usedPercent: parseFloat(usedPercent)
+      usedPercent: parseFloat(usedPercent),
     };
   }
 
@@ -221,7 +221,7 @@ class SystemHealthCheck {
       '.claude-sessions',
       'tests/.test-sessions',
       'test-output.txt',
-      'test-results.txt'
+      'test-results.txt',
     ];
 
     const { existsSync, statSync } = await import('fs');
@@ -274,7 +274,7 @@ class SystemHealthCheck {
     }
 
     if (this.results.portConflicts?.length > 0) {
-      warnings.push(`Port conflicts: ${this.results.portConflicts.map(c => c.port).join(', ')}`);
+      warnings.push(`Port conflicts: ${this.results.portConflicts.map((c) => c.port).join(', ')}`);
     }
 
     if (this.results.memory?.usedPercent > 75) {
@@ -287,7 +287,7 @@ class SystemHealthCheck {
 
     if (warnings.length > 0) {
       console.log('\n⚠️  Warnings:');
-      warnings.forEach(w => console.log(`  • ${w}`));
+      warnings.forEach((w) => console.log(`  • ${w}`));
       console.log('\n💡 Run: npm run cleanup');
     } else {
       console.log('\n✅ All systems healthy!');
@@ -303,7 +303,7 @@ const __filename = fileURLToPath(import.meta.url);
 
 if (process.argv[1] === __filename || process.argv[1].endsWith('system-health-check.js')) {
   const checker = new SystemHealthCheck();
-  checker.runAll().catch(err => {
+  checker.runAll().catch((err) => {
     console.error('Health check failed:', err);
     process.exit(1);
   });

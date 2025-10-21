@@ -14,13 +14,15 @@ class AnalyzerAgent {
 
     this.ws.on('open', () => {
       console.log('🔬 Analyzer Agent: Connected');
-      this.ws.send(JSON.stringify({
-        type: 'register',
-        clientId: 'analyzer-agent',
-        role: 'analyzer',
-        tools: ['data-analysis', 'statistics'],
-        intents: ['analyze-data']
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'register',
+          clientId: 'analyzer-agent',
+          role: 'analyzer',
+          tools: ['data-analysis', 'statistics'],
+          intents: ['analyze-data'],
+        })
+      );
     });
 
     this.ws.on('message', (data) => {
@@ -43,24 +45,26 @@ class AnalyzerAgent {
             sum: numbers.reduce((a, b) => a + b, 0),
             average: numbers.reduce((a, b) => a + b, 0) / numbers.length,
             max: Math.max(...numbers),
-            min: Math.min(...numbers)
+            min: Math.min(...numbers),
           };
 
           console.log('   Analysis result:', analysis);
 
           // Send results to summarizer
-          this.ws.send(JSON.stringify({
-            type: 'envelope',
-            envelope: {
-              from: this.id,
-              to: 'summarizer-agent',
-              intent: 'summarize-results',
-              payload: {
-                original_data: numbers,
-                analysis: analysis
-              }
-            }
-          }));
+          this.ws.send(
+            JSON.stringify({
+              type: 'envelope',
+              envelope: {
+                from: this.id,
+                to: 'summarizer-agent',
+                intent: 'summarize-results',
+                payload: {
+                  original_data: numbers,
+                  analysis: analysis,
+                },
+              },
+            })
+          );
           console.log('✅ Analyzer Agent: Sent results to summarizer');
         }
       }
@@ -76,13 +80,15 @@ class SummarizerAgent {
 
     this.ws.on('open', () => {
       console.log('📝 Summarizer Agent: Connected');
-      this.ws.send(JSON.stringify({
-        type: 'register',
-        clientId: 'summarizer-agent',
-        role: 'summarizer',
-        tools: ['text-generation', 'reporting'],
-        intents: ['summarize-results']
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'register',
+          clientId: 'summarizer-agent',
+          role: 'summarizer',
+          tools: ['text-generation', 'reporting'],
+          intents: ['summarize-results'],
+        })
+      );
     });
 
     this.ws.on('message', (data) => {
@@ -114,18 +120,20 @@ CONCLUSION: Dataset shows ${analysis.average > 50 ? 'high' : 'low'} average valu
           console.log(summary);
 
           // Send to reporter
-          this.ws.send(JSON.stringify({
-            type: 'envelope',
-            envelope: {
-              from: this.id,
-              to: 'reporter-agent',
-              intent: 'publish-report',
-              payload: {
-                report: summary,
-                timestamp: new Date().toISOString()
-              }
-            }
-          }));
+          this.ws.send(
+            JSON.stringify({
+              type: 'envelope',
+              envelope: {
+                from: this.id,
+                to: 'reporter-agent',
+                intent: 'publish-report',
+                payload: {
+                  report: summary,
+                  timestamp: new Date().toISOString(),
+                },
+              },
+            })
+          );
           console.log('✅ Summarizer Agent: Sent report to publisher');
         }
       }
@@ -141,13 +149,15 @@ class ReporterAgent {
 
     this.ws.on('open', () => {
       console.log('📢 Reporter Agent: Connected');
-      this.ws.send(JSON.stringify({
-        type: 'register',
-        clientId: 'reporter-agent',
-        role: 'reporter',
-        tools: ['publishing', 'notifications'],
-        intents: ['publish-report']
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'register',
+          clientId: 'reporter-agent',
+          role: 'reporter',
+          tools: ['publishing', 'notifications'],
+          intents: ['publish-report'],
+        })
+      );
     });
 
     this.ws.on('message', (data) => {
@@ -170,17 +180,19 @@ class ReporterAgent {
           console.log(`Published at: ${envelope.payload.timestamp}`);
 
           // Broadcast completion to all agents
-          this.ws.send(JSON.stringify({
-            type: 'envelope',
-            envelope: {
-              from: this.id,
-              intent: 'workflow.complete',
-              payload: {
-                status: 'completed',
-                message: '✅ Analysis pipeline completed successfully!'
-              }
-            }
-          }));
+          this.ws.send(
+            JSON.stringify({
+              type: 'envelope',
+              envelope: {
+                from: this.id,
+                intent: 'workflow.complete',
+                payload: {
+                  status: 'completed',
+                  message: '✅ Analysis pipeline completed successfully!',
+                },
+              },
+            })
+          );
 
           console.log('\n✅ WORKFLOW COMPLETE - All agents finished their work!\n');
 
@@ -193,7 +205,7 @@ class ReporterAgent {
 
 // Coordinator - triggers the workflow
 async function startWorkflow() {
-  await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for agents to connect
+  await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait for agents to connect
 
   console.log('\n🚀 COORDINATOR: Starting A2A workflow...\n');
 
@@ -205,32 +217,36 @@ async function startWorkflow() {
       from: 'coordinator',
       to: 'analyzer-agent',
       payload: {
-        data: [45, 67, 23, 89, 34, 56, 78, 90, 12, 67]
-      }
-    })
+        data: [45, 67, 23, 89, 34, 56, 78, 90, 12, 67],
+      },
+    }),
   });
 
   // Also trigger via WebSocket bridge
   const ws = new WebSocket('ws://localhost:4567');
   ws.on('open', () => {
-    ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'coordinator',
-      role: 'coordinator'
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'coordinator',
+        role: 'coordinator',
+      })
+    );
 
     setTimeout(() => {
-      ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: 'coordinator',
-          to: 'analyzer-agent',
-          intent: 'analyze-data',
-          payload: {
-            data: [45, 67, 23, 89, 34, 56, 78, 90, 12, 67]
-          }
-        }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: 'coordinator',
+            to: 'analyzer-agent',
+            intent: 'analyze-data',
+            payload: {
+              data: [45, 67, 23, 89, 34, 56, 78, 90, 12, 67],
+            },
+          },
+        })
+      );
       console.log('📨 COORDINATOR: Sent data to analyzer agent\n');
     }, 500);
   });

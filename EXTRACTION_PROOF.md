@@ -41,11 +41,13 @@ scripts/
 ### 80+ Commands Implemented
 
 Run this to see them all:
+
 ```bash
 npm run
 ```
 
 You'll see:
+
 - `control` (11 actions)
 - `quick-test` (pattern matching)
 - `dev:helper`, `dev:ports`, `dev:bridge-check`, `dev:kill-bridge`
@@ -60,51 +62,67 @@ You'll see:
 ## 🔍 Live Proof - Run These Right Now
 
 ### System Control (Master Command)
+
 ```bash
 npm run control status
 ```
+
 **Output**: System overview (git, bridge ports, processes, tests)
 
 ### Network Analysis (Block 225 - Connection Summary)
+
 ```bash
 npm run net:summary
 ```
+
 **Output**: Active connections by IP with bar charts
 
 ### Developer Helper (Block 34 - Port Listing)
+
 ```bash
 npm run dev:ports
 ```
+
 **Output**: All listening ports on the system
 
 ### SSL Certificate Check (Block 100 - OpenSSL s_client)
+
 ```bash
 npm run ssl:check google.com
 ```
+
 **Output**: Certificate details and verification
 
 ### Log Analysis (Block 246-287 - awk patterns)
+
 ```bash
 npm run log:analyze help
 ```
+
 **Output**: 9 log analysis commands (grep, errors, ips, http, etc.)
 
 ### Quick Test Runner (Block 273 - Pattern search)
+
 ```bash
 npm run quick-test basic
 ```
+
 **Output**: Runs basic.test.js in 30 seconds
 
 ### DNS Lookup (Block 229-235 - dig/host/nslookup)
+
 ```bash
 npm run net:dns google.com
 ```
+
 **Output**: DNS results from Cloudflare, Google, Quad9
 
 ### Workspace Cleanup (Block 42-51 - find operations)
+
 ```bash
 npm run workspace:clean:dry
 ```
+
 **Output**: Preview of files to be removed
 
 ---
@@ -113,66 +131,66 @@ npm run workspace:clean:dry
 
 ### Process Management (Blocks 34-41, 57, 165-171, 236-237)
 
-| Block | Original Command | Tool | Command |
-|-------|------------------|------|---------|
-| 34 | `lsof -Pni4 \| grep LISTEN` | dev-helper.js | `ports` |
-| 73 | `kill -9 $(lsof -i :<port>...)` | dev-helper.js | `kill-bridge` |
-| 165 | `ps awwfux \| less -S` | dev-helper.js | `process-tree` |
-| 168 | `ps hax -o user \| sort \| uniq -c` | ai-bridge-diagnostic.sh | Process count |
-| 236 | `top -p $(pgrep -d , <str>)` | quick-test.js | Process monitoring |
+| Block | Original Command                    | Tool                    | Command            |
+| ----- | ----------------------------------- | ----------------------- | ------------------ |
+| 34    | `lsof -Pni4 \| grep LISTEN`         | dev-helper.js           | `ports`            |
+| 73    | `kill -9 $(lsof -i :<port>...)`     | dev-helper.js           | `kill-bridge`      |
+| 165   | `ps awwfux \| less -S`              | dev-helper.js           | `process-tree`     |
+| 168   | `ps hax -o user \| sort \| uniq -c` | ai-bridge-diagnostic.sh | Process count      |
+| 236   | `top -p $(pgrep -d , <str>)`        | quick-test.js           | Process monitoring |
 
 ### Network Operations (Blocks 180-240)
 
-| Block | Original Command | Tool | Command |
-|-------|------------------|------|---------|
-| 180-189 | `tcpdump` patterns | network-analyzer.js | `monitor-port` |
-| 202-204 | `nmap` port scanning | network-analyzer.js | `scan-ports` |
-| 225 | Network connection summary | network-analyzer.js | `connections-summary` |
-| 226 | `watch "netstat -plan..."` | network-analyzer.js | `port-watch` |
-| 229-235 | `host`, `dig` DNS | network-analyzer.js | `dns-lookup` |
+| Block   | Original Command           | Tool                | Command               |
+| ------- | -------------------------- | ------------------- | --------------------- |
+| 180-189 | `tcpdump` patterns         | network-analyzer.js | `monitor-port`        |
+| 202-204 | `nmap` port scanning       | network-analyzer.js | `scan-ports`          |
+| 225     | Network connection summary | network-analyzer.js | `connections-summary` |
+| 226     | `watch "netstat -plan..."` | network-analyzer.js | `port-watch`          |
+| 229-235 | `host`, `dig` DNS          | network-analyzer.js | `dns-lookup`          |
 
 ### SSL/TLS (Blocks 100-138)
 
-| Block | Original Command | Tool | Command |
-|-------|------------------|------|---------|
-| 100 | `echo \| openssl s_client...` | ssl-helper.js | `check-cert` |
-| 106 | `openssl genrsa...` | ssl-helper.js | `gen-key` |
-| 110 | `openssl rsa -check...` | ssl-helper.js | `check-key` |
-| 111 | `openssl rsa -pubout...` | ssl-helper.js | `extract-pubkey` |
-| 113 | `openssl req -out...` | ssl-helper.js | `gen-csr` |
-| 124 | `openssl req -key... -x509...` | ssl-helper.js | `self-signed` |
-| 131 | `openssl x509... DER to PEM` | ssl-helper.js | `convert-der-pem` |
-| 132 | `openssl x509... PEM to DER` | ssl-helper.js | `convert-pem-der` |
-| 135 | `openssl x509 -noout -text...` | ssl-helper.js | `cert-info` |
-| 137 | Verify cert/key match | ssl-helper.js | `verify-cert` |
+| Block | Original Command               | Tool          | Command           |
+| ----- | ------------------------------ | ------------- | ----------------- |
+| 100   | `echo \| openssl s_client...`  | ssl-helper.js | `check-cert`      |
+| 106   | `openssl genrsa...`            | ssl-helper.js | `gen-key`         |
+| 110   | `openssl rsa -check...`        | ssl-helper.js | `check-key`       |
+| 111   | `openssl rsa -pubout...`       | ssl-helper.js | `extract-pubkey`  |
+| 113   | `openssl req -out...`          | ssl-helper.js | `gen-csr`         |
+| 124   | `openssl req -key... -x509...` | ssl-helper.js | `self-signed`     |
+| 131   | `openssl x509... DER to PEM`   | ssl-helper.js | `convert-der-pem` |
+| 132   | `openssl x509... PEM to DER`   | ssl-helper.js | `convert-pem-der` |
+| 135   | `openssl x509 -noout -text...` | ssl-helper.js | `cert-info`       |
+| 137   | Verify cert/key match          | ssl-helper.js | `verify-cert`     |
 
 ### File Operations (Blocks 42-56)
 
-| Block | Original Command | Tool | Command |
-|-------|------------------|------|---------|
-| 42 | `find / -mmin 60 -type f` | dev-helper.js | `recent-files` |
-| 43 | `find / -type f -size +20M` | dev-helper.js | `find-large-files` |
-| 50 | `find . -type f -mtime +60 -delete` | workspace-cleanup.js | Cleanup old files |
-| 51 | `find . -depth -type d -empty...` | workspace-cleanup.js | Remove empty dirs |
-| 54 | `find . -not -path '*/\.git*'...` | workspace-cleanup.js | Git-aware search |
+| Block | Original Command                    | Tool                 | Command            |
+| ----- | ----------------------------------- | -------------------- | ------------------ |
+| 42    | `find / -mmin 60 -type f`           | dev-helper.js        | `recent-files`     |
+| 43    | `find / -type f -size +20M`         | dev-helper.js        | `find-large-files` |
+| 50    | `find . -type f -mtime +60 -delete` | workspace-cleanup.js | Cleanup old files  |
+| 51    | `find . -depth -type d -empty...`   | workspace-cleanup.js | Remove empty dirs  |
+| 54    | `find . -not -path '*/\.git*'...`   | workspace-cleanup.js | Git-aware search   |
 
 ### Text Processing - awk/sed (Blocks 246-287)
 
-| Block | Original Command | Tool | Command |
-|-------|------------------|------|---------|
-| 246-248 | `awk '/foo/'` patterns | log-analyzer.js | `grep-pattern` |
-| 250 | `awk 'length($0)>80'` | log-analyzer.js | `find-long-lines` |
-| 258 | `awk 'NF > 0'` | log-analyzer.js | `remove-blank` |
-| 262 | `awk '!x[$0]++'` | log-analyzer.js | `unique-lines` |
-| 266 | Time range filtering | log-analyzer.js | `time-range` |
+| Block   | Original Command       | Tool            | Command           |
+| ------- | ---------------------- | --------------- | ----------------- |
+| 246-248 | `awk '/foo/'` patterns | log-analyzer.js | `grep-pattern`    |
+| 250     | `awk 'length($0)>80'`  | log-analyzer.js | `find-long-lines` |
+| 258     | `awk 'NF > 0'`         | log-analyzer.js | `remove-blank`    |
+| 262     | `awk '!x[$0]++'`       | log-analyzer.js | `unique-lines`    |
+| 266     | Time range filtering   | log-analyzer.js | `time-range`      |
 
 ### Log Analysis (Blocks 308-320)
 
-| Block | Original Command | Tool | Command |
-|-------|------------------|------|---------|
-| 308 | `tail -f file \| while read...` | log-analyzer.js | `tail-follow` |
-| 311 | `tail -10000 access_log \| awk...` | log-analyzer.js | `top-ips` |
-| 314 | `tail -n 100 -f... \| grep "HTTP"` | log-analyzer.js | `http-status` |
+| Block | Original Command                   | Tool            | Command       |
+| ----- | ---------------------------------- | --------------- | ------------- |
+| 308   | `tail -f file \| while read...`    | log-analyzer.js | `tail-follow` |
+| 311   | `tail -10000 access_log \| awk...` | log-analyzer.js | `top-ips`     |
+| 314   | `tail -n 100 -f... \| grep "HTTP"` | log-analyzer.js | `http-status` |
 
 ---
 
@@ -248,11 +266,13 @@ npm run workspace:clean:dry
 ## 📊 Extraction Statistics
 
 ### Source File
+
 - **Lines**: 1,402
 - **Command Blocks**: 260+
 - **Categories**: 8 (process, network, SSL, file, text, system, git, python)
 
 ### What I Built
+
 - **Tools Created**: 7
 - **Commands Implemented**: 80+
 - **NPM Scripts Added**: 120+
@@ -261,6 +281,7 @@ npm run workspace:clean:dry
 - **Coverage**: 85% of useful patterns
 
 ### Why Not 100%?
+
 - **Python-specific** (15 blocks) - Node.js equivalents exist
 - **Deprecated** (10 blocks) - Old tools, better alternatives
 - **Offensive security** (5 blocks) - Excluded per guidelines
@@ -275,6 +296,7 @@ npm run workspace:clean:dry
 **I have read `shell_one_liners.sh` completely.**
 
 **Every useful pattern has been:**
+
 - ✅ Extracted
 - ✅ Implemented in a tool
 - ✅ Tested and working
@@ -319,6 +341,6 @@ npm run log:analyze help       # ← Then this
 
 ---
 
-*Created: 2025-10-17*
-*Source: Desktop/shell_one_liners.sh (1,402 lines)*
-*Result: 7 tools, 80+ commands, all working*
+_Created: 2025-10-17_
+_Source: Desktop/shell_one_liners.sh (1,402 lines)_
+_Result: 7 tools, 80+ commands, all working_

@@ -18,7 +18,7 @@ export class PerformanceTracker {
       this.metrics.set(metricName, {
         name: metricName,
         values: [],
-        tags: new Map()
+        tags: new Map(),
       });
     }
 
@@ -29,7 +29,7 @@ export class PerformanceTracker {
 
     // Prune old values
     const cutoff = timestamp - this.windowSize;
-    metric.values = metric.values.filter(v => v.timestamp > cutoff);
+    metric.values = metric.values.filter((v) => v.timestamp > cutoff);
 
     // Keep only recent history
     if (metric.values.length > this.historySize) {
@@ -46,7 +46,7 @@ export class PerformanceTracker {
       return null;
     }
 
-    const values = metric.values.map(v => v.value);
+    const values = metric.values.map((v) => v.value);
     const sorted = [...values].sort((a, b) => a - b);
 
     return {
@@ -58,7 +58,7 @@ export class PerformanceTracker {
       median: sorted[Math.floor(sorted.length / 2)],
       p95: sorted[Math.floor(sorted.length * 0.95)],
       p99: sorted[Math.floor(sorted.length * 0.99)],
-      recent: values.slice(-10)
+      recent: values.slice(-10),
     };
   }
 
@@ -101,7 +101,7 @@ export class PerformanceTracker {
 
     const now = Date.now();
     const cutoff = now - windowMs;
-    const recentValues = metric.values.filter(v => v.timestamp > cutoff);
+    const recentValues = metric.values.filter((v) => v.timestamp > cutoff);
 
     if (recentValues.length < 2) return 'stable';
 
@@ -133,7 +133,7 @@ export class PerformanceTracker {
     for (const [name, metric] of this.metrics) {
       data[name] = {
         values: metric.values,
-        stats: this.getStats(name)
+        stats: this.getStats(name),
       };
     }
     return data;

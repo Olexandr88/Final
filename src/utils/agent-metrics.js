@@ -17,7 +17,7 @@ export class AgentMetrics {
       maxResponseTime: 0,
       startTime: Date.now(),
       lastRequestTime: null,
-      lastResponseTime: null
+      lastResponseTime: null,
     };
     this.responseTimes = []; // Last 100 response times
     this.maxResponseTimes = 100;
@@ -56,17 +56,15 @@ export class AgentMetrics {
 
   getStats() {
     const uptime = Date.now() - this.metrics.startTime;
-    const avgResponseTime = this.metrics.responses > 0
-      ? this.metrics.totalResponseTime / this.metrics.responses
-      : 0;
+    const avgResponseTime =
+      this.metrics.responses > 0 ? this.metrics.totalResponseTime / this.metrics.responses : 0;
 
-    const cacheHitRate = (this.metrics.cacheHits + this.metrics.cacheMisses) > 0
-      ? (this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses)) * 100
-      : 0;
+    const cacheHitRate =
+      this.metrics.cacheHits + this.metrics.cacheMisses > 0
+        ? (this.metrics.cacheHits / (this.metrics.cacheHits + this.metrics.cacheMisses)) * 100
+        : 0;
 
-    const requestsPerSecond = uptime > 0
-      ? (this.metrics.requests / (uptime / 1000))
-      : 0;
+    const requestsPerSecond = uptime > 0 ? this.metrics.requests / (uptime / 1000) : 0;
 
     // Calculate percentiles
     const sortedTimes = [...this.responseTimes].sort((a, b) => a - b);
@@ -80,7 +78,8 @@ export class AgentMetrics {
       requests: this.metrics.requests,
       responses: this.metrics.responses,
       errors: this.metrics.errors,
-      errorRate: this.metrics.requests > 0 ? (this.metrics.errors / this.metrics.requests) * 100 : 0,
+      errorRate:
+        this.metrics.requests > 0 ? (this.metrics.errors / this.metrics.requests) * 100 : 0,
       cacheHits: this.metrics.cacheHits,
       cacheMisses: this.metrics.cacheMisses,
       cacheHitRate: cacheHitRate.toFixed(2),
@@ -90,18 +89,18 @@ export class AgentMetrics {
         max: this.metrics.maxResponseTime,
         p50: p50.toFixed(2),
         p95: p95.toFixed(2),
-        p99: p99.toFixed(2)
+        p99: p99.toFixed(2),
       },
       throughput: {
-        requestsPerSecond: requestsPerSecond.toFixed(2)
+        requestsPerSecond: requestsPerSecond.toFixed(2),
       },
       lastActivity: {
         lastRequest: this.metrics.lastRequestTime,
         lastResponse: this.metrics.lastResponseTime,
         timeSinceLastRequest: this.metrics.lastRequestTime
           ? Date.now() - this.metrics.lastRequestTime
-          : null
-      }
+          : null,
+      },
     };
   }
 
@@ -123,7 +122,7 @@ export class AgentMetrics {
       maxResponseTime: 0,
       startTime: Date.now(),
       lastRequestTime: null,
-      lastResponseTime: null
+      lastResponseTime: null,
     };
     this.responseTimes = [];
   }

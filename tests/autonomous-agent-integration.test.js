@@ -20,11 +20,11 @@ describe('Autonomous Agent Integration Tests', () => {
     // Start AI Bridge
     bridgeProcess = spawn('node', ['src/ai-bridge.js'], {
       stdio: 'pipe',
-      detached: false
+      detached: false,
     });
 
     // Wait for bridge startup
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // Initialize autonomous agent
     agent = new AutonomousClaudeAgent({
@@ -33,7 +33,7 @@ describe('Autonomous Agent Integration Tests', () => {
       bridgeUrl: 'ws://localhost:65028',
       intents: ['*'],
       extendedThinking: true,
-      thinkingBudget: 5000
+      thinkingBudget: 5000,
     });
 
     await agent.connect();
@@ -68,8 +68,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-read',
       intent: 'file.read',
       payload: {
-        message: 'Read the package.json file and tell me the project name'
-      }
+        message: 'Read the package.json file and tell me the project name',
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -82,7 +82,7 @@ describe('Autonomous Agent Integration Tests', () => {
     assert.ok(response.tool_calls);
 
     // Check that read tool was used
-    const readTool = response.tool_calls.find(t => t.name === 'read');
+    const readTool = response.tool_calls.find((t) => t.name === 'read');
     assert.ok(readTool, 'Read tool should have been executed');
 
     logger.info('✅ File read test passed');
@@ -96,8 +96,8 @@ describe('Autonomous Agent Integration Tests', () => {
       intent: 'code.analyze',
       payload: {
         message: `Find all .js files in src/agents/, read one of them,
-                  and provide a summary. Use multiple tools autonomously.`
-      }
+                  and provide a summary. Use multiple tools autonomously.`,
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -109,8 +109,8 @@ describe('Autonomous Agent Integration Tests', () => {
     assert.ok(response.tool_calls.length >= 2, 'Should use at least 2 tools');
 
     // Verify glob and read were used
-    const hasGlob = response.tool_calls.some(t => t.name === 'glob');
-    const hasRead = response.tool_calls.some(t => t.name === 'read');
+    const hasGlob = response.tool_calls.some((t) => t.name === 'glob');
+    const hasRead = response.tool_calls.some((t) => t.name === 'read');
 
     assert.ok(hasGlob, 'Should use glob tool');
     assert.ok(hasRead, 'Should use read tool');
@@ -126,8 +126,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-write',
       intent: 'file.write',
       payload: {
-        message: `Create a file named test-autonomous-file.txt with content: "${testContent}"`
-      }
+        message: `Create a file named test-autonomous-file.txt with content: "${testContent}"`,
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -138,7 +138,7 @@ describe('Autonomous Agent Integration Tests', () => {
     assert.strictEqual(response.status, 'success');
 
     // Verify write tool was used
-    const writeTool = response.tool_calls.find(t => t.name === 'write');
+    const writeTool = response.tool_calls.find((t) => t.name === 'write');
     assert.ok(writeTool, 'Write tool should have been executed');
 
     // Verify file was actually created
@@ -155,8 +155,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-bash',
       intent: 'command.execute',
       payload: {
-        message: 'Execute "echo Hello from autonomous agent" using bash tool'
-      }
+        message: 'Execute "echo Hello from autonomous agent" using bash tool',
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -166,7 +166,7 @@ describe('Autonomous Agent Integration Tests', () => {
 
     assert.strictEqual(response.status, 'success');
 
-    const bashTool = response.tool_calls.find(t => t.name === 'bash');
+    const bashTool = response.tool_calls.find((t) => t.name === 'bash');
     assert.ok(bashTool, 'Bash tool should have been executed');
 
     logger.info('✅ Bash execution test passed');
@@ -180,8 +180,8 @@ describe('Autonomous Agent Integration Tests', () => {
       intent: 'code.analyze',
       payload: {
         message: `Analyze the autonomous agent architecture and suggest improvements.
-                  Use extended thinking to reason through the analysis.`
-      }
+                  Use extended thinking to reason through the analysis.`,
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -203,8 +203,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-error',
       intent: 'file.read',
       payload: {
-        message: 'Read a file that does not exist: /nonexistent/file.txt'
-      }
+        message: 'Read a file that does not exist: /nonexistent/file.txt',
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -239,8 +239,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-git',
       intent: 'git.status',
       payload: {
-        message: 'Check git status and tell me the current branch'
-      }
+        message: 'Check git status and tell me the current branch',
+      },
     };
 
     const response = await new Promise((resolve) => {
@@ -250,7 +250,7 @@ describe('Autonomous Agent Integration Tests', () => {
 
     assert.strictEqual(response.status, 'success');
 
-    const gitTool = response.tool_calls.find(t => t.name === 'git_status');
+    const gitTool = response.tool_calls.find((t) => t.name === 'git_status');
     assert.ok(gitTool, 'Git status tool should have been executed');
 
     logger.info('✅ Git operations test passed');
@@ -264,8 +264,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-history-1',
       intent: 'conversation',
       payload: {
-        message: 'Remember this number: 42'
-      }
+        message: 'Remember this number: 42',
+      },
     };
 
     await new Promise((resolve) => {
@@ -280,8 +280,8 @@ describe('Autonomous Agent Integration Tests', () => {
       taskId: 'test-history-1', // Same task ID to maintain context
       intent: 'conversation',
       payload: {
-        message: 'What number did I just tell you to remember?'
-      }
+        message: 'What number did I just tell you to remember?',
+      },
     };
 
     const response = await new Promise((resolve) => {

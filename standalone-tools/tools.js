@@ -15,9 +15,9 @@ const TOOLS = {
   // Text Processing
   'regex-match': (args) => TextTools.regexMatch(...args),
   'regex-replace': (args) => TextTools.regexReplace(...args),
-  'hash': (args) => TextTools.hashText(...args),
-  'encode': (args) => TextTools.encodeDecode(args[0], 'encode', args[1]),
-  'decode': (args) => TextTools.encodeDecode(args[0], 'decode', args[1]),
+  hash: (args) => TextTools.hashText(...args),
+  encode: (args) => TextTools.encodeDecode(args[0], 'encode', args[1]),
+  decode: (args) => TextTools.encodeDecode(args[0], 'decode', args[1]),
   'analyze-text': (args) => TextTools.analyzeText(args[0], args.slice(1)),
   'diff-text': (args) => TextTools.diffText(...args),
 
@@ -30,36 +30,42 @@ const TOOLS = {
   'json-filter': (args) => DataTools.filterJson(...args),
 
   // File System (async)
-  'file-search': async (args) => await FileTools.searchFiles(args[0], args[1], {
-    maxDepth: args[2] ? parseInt(args[2]) : 3
-  }),
+  'file-search': async (args) =>
+    await FileTools.searchFiles(args[0], args[1], {
+      maxDepth: args[2] ? parseInt(args[2]) : 3,
+    }),
   'file-stats': async (args) => await FileTools.getStats(args[0]),
-  'file-rename': async (args) => await FileTools.batchRename(args[0], args[1], args[2], {
-    dryRun: args[3] !== 'false'
-  }),
+  'file-rename': async (args) =>
+    await FileTools.batchRename(args[0], args[1], args[2], {
+      dryRun: args[3] !== 'false',
+    }),
   'file-list': async (args) => await FileTools.listDirectory(args[0], { sortBy: args[1] }),
-  'file-duplicates': async (args) => await FileTools.findDuplicates(args[0], {
-    maxDepth: args[1] ? parseInt(args[1]) : 3
-  }),
+  'file-duplicates': async (args) =>
+    await FileTools.findDuplicates(args[0], {
+      maxDepth: args[1] ? parseInt(args[1]) : 3,
+    }),
 
   // Math & Statistics
-  'calculate': (args) => MathTools.calculate(args[0], {
-    precision: args[1] ? parseInt(args[1]) : 2
-  }),
-  'statistics': (args) => {
-    const data = args[0].split(',').map(n => parseFloat(n.trim()));
+  calculate: (args) =>
+    MathTools.calculate(args[0], {
+      precision: args[1] ? parseInt(args[1]) : 2,
+    }),
+  statistics: (args) => {
+    const data = args[0].split(',').map((n) => parseFloat(n.trim()));
     return MathTools.statistics(data, args.slice(1).length ? args.slice(1) : ['all']);
   },
   'convert-base': (args) => MathTools.convertBase(args[0], parseInt(args[1]), parseInt(args[2])),
-  'random-numbers': (args) => MathTools.randomNumbers({
-    count: args[0] ? parseInt(args[0]) : 1,
-    min: args[1] ? parseFloat(args[1]) : 0,
-    max: args[2] ? parseFloat(args[2]) : 100,
-    decimals: args[3] ? parseInt(args[3]) : 0
-  }),
-  'percentage': (args) => MathTools.percentage(parseFloat(args[0]), parseFloat(args[1]), {
-    precision: args[2] ? parseInt(args[2]) : 2
-  }),
+  'random-numbers': (args) =>
+    MathTools.randomNumbers({
+      count: args[0] ? parseInt(args[0]) : 1,
+      min: args[1] ? parseFloat(args[1]) : 0,
+      max: args[2] ? parseFloat(args[2]) : 100,
+      decimals: args[3] ? parseInt(args[3]) : 0,
+    }),
+  percentage: (args) =>
+    MathTools.percentage(parseFloat(args[0]), parseFloat(args[1]), {
+      precision: args[2] ? parseInt(args[2]) : 2,
+    }),
 
   // Date & Time
   'date-calc': (args) => DateTimeTools.dateCalc(...args),
@@ -68,14 +74,12 @@ const TOOLS = {
   'parse-date': (args) => DateTimeTools.parseDate(args[0]),
 
   // Utilities
-  'uuid': (args) => UtilityTools.generateUUID({
-    version: args[0] || 'v4',
-    count: args[1] ? parseInt(args[1]) : 1
-  }),
-  'random-string': (args) => UtilityTools.randomString(
-    args[0] ? parseInt(args[0]) : 16,
-    args[1]
-  )
+  uuid: (args) =>
+    UtilityTools.generateUUID({
+      version: args[0] || 'v4',
+      count: args[1] ? parseInt(args[1]) : 1,
+    }),
+  'random-string': (args) => UtilityTools.randomString(args[0] ? parseInt(args[0]) : 16, args[1]),
 };
 
 function showHelp() {
@@ -139,7 +143,7 @@ EXAMPLES
 }
 
 async function main() {
-  const [,, command, ...args] = process.argv;
+  const [, , command, ...args] = process.argv;
 
   if (!command || command === 'help' || command === '--help' || command === '-h') {
     showHelp();
@@ -162,10 +166,16 @@ async function main() {
       process.exit(1);
     }
   } catch (error) {
-    console.error(JSON.stringify({
-      success: false,
-      error: error.message
-    }, null, 2));
+    console.error(
+      JSON.stringify(
+        {
+          success: false,
+          error: error.message,
+        },
+        null,
+        2
+      )
+    );
     process.exit(1);
   }
 }

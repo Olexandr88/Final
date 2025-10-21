@@ -25,9 +25,9 @@ export class TesterAgent extends BaseAgent {
         code_analysis: true,
         command_exec: true,
         git_operations: false,
-        test_execution: true
+        test_execution: true,
       },
-      ...config
+      ...config,
     });
 
     this.ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
@@ -60,7 +60,7 @@ export class TesterAgent extends BaseAgent {
       this.send({
         intent: 'error',
         to: message.from,
-        payload: { error: error.message }
+        payload: { error: error.message },
       });
     }
   }
@@ -76,7 +76,7 @@ export class TesterAgent extends BaseAgent {
 TASK: ${payload.description}
 
 SUCCESS CRITERIA:
-${payload.criteria?.map(c => `- ${c}`).join('\n') || 'Complete test coverage'}
+${payload.criteria?.map((c) => `- ${c}`).join('\n') || 'Complete test coverage'}
 
 ${implementation ? `IMPLEMENTATION TO TEST:\n${implementation}\n` : ''}
 
@@ -107,8 +107,8 @@ Create thorough, production-ready tests.`;
         agent: this.config.clientId,
         task: payload.description,
         deliverable: filepath,
-        summary: response.substring(0, 200)
-      }
+        summary: response.substring(0, 200),
+      },
     });
   }
 
@@ -141,8 +141,8 @@ Provide:
       to: payload.requester || 'coordinator',
       payload: {
         type: 'test-generation',
-        deliverable: filepath
-      }
+        deliverable: filepath,
+      },
     });
   }
 
@@ -154,20 +154,22 @@ Provide:
       total: 10,
       passed: 9,
       failed: 1,
-      coverage: 87
+      coverage: 87,
     };
 
     this.send({
       intent: 'test.results',
       to: payload.requester || 'coordinator',
-      payload: results
+      payload: results,
     });
   }
 
   async findImplementation() {
     try {
       const files = await fs.readdir(this.workspace);
-      const implFiles = files.filter(f => f.startsWith('implementation-') || f.startsWith('code-'));
+      const implFiles = files.filter(
+        (f) => f.startsWith('implementation-') || f.startsWith('code-')
+      );
 
       if (implFiles.length > 0) {
         const latest = implFiles.sort().reverse()[0];
@@ -188,8 +190,8 @@ Provide:
         body: JSON.stringify({
           model: this.model,
           prompt: prompt,
-          stream: false
-        })
+          stream: false,
+        }),
       });
 
       if (!response.ok) {
@@ -206,11 +208,13 @@ Provide:
 
   send(message) {
     if (this.isConnected && this.ws) {
-      this.ws.send(JSON.stringify({
-        from: this.config.clientId,
-        timestamp: Date.now(),
-        ...message
-      }));
+      this.ws.send(
+        JSON.stringify({
+          from: this.config.clientId,
+          timestamp: Date.now(),
+          ...message,
+        })
+      );
     } else {
       this.messageQueue.push(message);
     }

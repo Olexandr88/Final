@@ -2,14 +2,14 @@ name: 🚀 Priority 1 Website Deployment
 
 on:
   push:
-    branches: [ nitric-optimization-integration ]
+    branches: [nitric-optimization-integration]
     paths:
       - 'website/**'
       - 'scripts/build-website.js'
       - 'nitric.yaml'
       - '.github/workflows/priority-1-deployment.yml'
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'website/**'
       - 'nitric.yaml'
@@ -37,23 +37,23 @@ jobs:
     steps:
       - name: 📋 Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
-          
+
       - name: 📦 Install Dependencies
         run: npm ci
-        
+
       - name: 🏗️ Build Website
         run: |
           echo "🚀 Building website with minification..."
           npm run build:website
           echo "✅ Build complete"
           ls -la website/dist/
-          
+
       - name: 🧪 Test 404 Page
         run: |
           echo "🔍 Testing 404.html exists and is valid..."
@@ -69,7 +69,7 @@ jobs:
             echo "❌ 404.html not found"
             exit 1
           fi
-          
+
       - name: 🔍 Validate Nitric Configuration
         run: |
           echo "🔍 Validating nitric.yaml configuration..."
@@ -90,14 +90,14 @@ jobs:
             echo "❌ nitric.yaml not found"
             exit 1
           fi
-          
+
       - name: 📊 Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: website-build-${{ github.sha }}
           path: website/dist/
           retention-days: 30
-          
+
   deploy-development:
     name: 🎆 Deploy to Development
     runs-on: ubuntu-latest
@@ -109,18 +109,18 @@ jobs:
     steps:
       - name: 📋 Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: 📊 Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: website-build-${{ github.sha }}
           path: website/dist/
-          
+
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          
+
       - name: 🚀 Install Nitric CLI
         run: |
           echo "🚀 Installing Nitric CLI..."
@@ -128,14 +128,14 @@ jobs:
           export PATH="$HOME/.nitric/bin:$PATH"
           nitric version
           echo "✅ Nitric CLI installed successfully"
-          
+
       - name: 🚀 Deploy with Nitric
         run: |
           echo "🚀 Deploying to development environment..."
           export PATH="$HOME/.nitric/bin:$PATH"
           echo "📋 Development deployment simulated"
           echo "✅ Ready for production deployment"
-          
+
   deploy-production:
     name: 🎆 Deploy to Production
     runs-on: ubuntu-latest
@@ -147,18 +147,18 @@ jobs:
     steps:
       - name: 📋 Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: 📊 Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: website-build-${{ github.sha }}
           path: website/dist/
-          
+
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          
+
       - name: 🚀 Install Nitric CLI
         run: |
           echo "🚀 Installing Nitric CLI..."
@@ -166,7 +166,7 @@ jobs:
           export PATH="$HOME/.nitric/bin:$PATH"
           nitric version
           echo "✅ Nitric CLI installed successfully"
-          
+
       - name: 🚀 Production Deployment
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -177,7 +177,7 @@ jobs:
           export PATH="$HOME/.nitric/bin:$PATH"
           echo "✅ Production deployment ready"
           echo "🔗 Configure DNS: CNAME www.scarmonit.com → CDN hostname"
-          
+
   performance-validation:
     name: 📊 Performance Validation
     runs-on: ubuntu-latest
@@ -185,7 +185,7 @@ jobs:
     steps:
       - name: 📋 Checkout Code
         uses: actions/checkout@v4
-        
+
       - name: 🕰️ Validate Performance Targets
         run: |
           echo "📊 Validating Priority 1 performance targets..."
@@ -196,7 +196,7 @@ jobs:
           echo "✅ SSL: HTTPS redirect enabled"
           echo "✅ Security: Complete header protection"
           echo "🏆 ALL PRIORITY 1 TARGETS ACHIEVED"
-          
+
   notify-completion:
     name: 📢 Deployment Completion
     runs-on: ubuntu-latest
@@ -211,7 +211,7 @@ jobs:
           echo "✅ 404 error handling active"
           echo "✅ Build system with minification operational"
           echo "🚀 All systems production-ready!"
-          
+
       - name: ⚠️ Failure Notification
         if: needs.build-and-test.result == 'failure'
         run: |

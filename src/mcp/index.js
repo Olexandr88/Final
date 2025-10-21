@@ -19,13 +19,13 @@ const server = {
           properties: {
             to: { type: 'string' },
             intent: { type: 'string' },
-            payload: { type: 'object' }
+            payload: { type: 'object' },
           },
-          required: ['to', 'intent', 'payload']
-        }
-      }
-    }
-  }
+          required: ['to', 'intent', 'payload'],
+        },
+      },
+    },
+  },
 };
 
 function handleInitialize() {
@@ -34,8 +34,8 @@ function handleInitialize() {
     capabilities: server.capabilities,
     serverInfo: {
       name: server.name,
-      version: server.version
-    }
+      version: server.version,
+    },
   };
 }
 
@@ -44,8 +44,8 @@ function handleToolsList() {
     tools: Object.entries(server.capabilities.tools).map(([name, spec]) => ({
       name,
       description: spec.description,
-      inputSchema: spec.inputSchema
-    }))
+      inputSchema: spec.inputSchema,
+    })),
   };
 }
 
@@ -61,10 +61,10 @@ function handleToolsCall(params) {
             status: 'sent',
             to: args.to,
             intent: args.intent,
-            timestamp: new Date().toISOString()
-          })
-        }
-      ]
+            timestamp: new Date().toISOString(),
+          }),
+        },
+      ],
     };
   }
 
@@ -100,7 +100,7 @@ process.stdin.on('data', (chunk) => {
 
       const response = {
         jsonrpc: '2.0',
-        result
+        result,
       };
 
       if (request.id !== undefined) {
@@ -110,10 +110,12 @@ process.stdin.on('data', (chunk) => {
       console.log(JSON.stringify(response));
     } catch (error) {
       console.error('MCP Error:', error);
-      console.log(JSON.stringify({
-        jsonrpc: '2.0',
-        error: { message: error.message }
-      }));
+      console.log(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          error: { message: error.message },
+        })
+      );
     }
   }
 });

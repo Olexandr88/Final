@@ -99,7 +99,7 @@ export class HooksSystem extends EventEmitter {
         results.push({
           hook: hook.name,
           success: true,
-          result
+          result,
         });
 
         this.emit('hook:executed', { hook, context, result });
@@ -107,7 +107,7 @@ export class HooksSystem extends EventEmitter {
         results.push({
           hook: hook.name,
           success: false,
-          error: error.message
+          error: error.message,
         });
 
         this.emit('hook:error', { hook, context, error });
@@ -138,11 +138,11 @@ export class HooksSystem extends EventEmitter {
   }
 
   listHooks() {
-    return Array.from(this.hooks.values()).map(h => ({
+    return Array.from(this.hooks.values()).map((h) => ({
       name: h.name,
       event: h.event,
       enabled: h.enabled,
-      async: h.async
+      async: h.async,
     }));
   }
 
@@ -155,7 +155,7 @@ export class HooksSystem extends EventEmitter {
           return await execAsync(`prettier --write "${context.filePath}"`);
         }
       },
-      filter: (context) => context.filePath && !context.filePath.includes('node_modules')
+      filter: (context) => context.filePath && !context.filePath.includes('node_modules'),
     });
 
     this.registerHook({
@@ -166,7 +166,7 @@ export class HooksSystem extends EventEmitter {
           return await execAsync('npm test');
         }
       },
-      enabled: false
+      enabled: false,
     });
 
     this.registerHook({
@@ -175,10 +175,10 @@ export class HooksSystem extends EventEmitter {
       action: async (context) => {
         const dangerousPatterns = [/rm\s+-rf\s+\//, /del\s+\/s/, /rmdir\s+\/s/];
 
-        if (dangerousPatterns.some(p => p.test(context.command))) {
+        if (dangerousPatterns.some((p) => p.test(context.command))) {
           throw new Error('Blocked unsafe deletion command');
         }
-      }
+      },
     });
 
     this.registerHook({
@@ -186,7 +186,7 @@ export class HooksSystem extends EventEmitter {
       event: 'pre-bash',
       action: async (context) => {
         console.log(`[HOOK] Executing command: ${context.command}`);
-      }
+      },
     });
 
     this.registerHook({
@@ -196,11 +196,11 @@ export class HooksSystem extends EventEmitter {
         const { stdout } = await execAsync('git diff --cached --name-only');
         const files = stdout.trim().split('\n').filter(Boolean);
 
-        const hasSecrets = files.some(f => f === '.env' || f.includes('credentials'));
+        const hasSecrets = files.some((f) => f === '.env' || f.includes('credentials'));
         if (hasSecrets) {
           throw new Error('Blocked commit with potential secrets');
         }
-      }
+      },
     });
 
     this.registerHook({
@@ -209,7 +209,7 @@ export class HooksSystem extends EventEmitter {
       action: async () => {
         return await execAsync('npm run lint');
       },
-      enabled: false
+      enabled: false,
     });
 
     return this.listHooks();

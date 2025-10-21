@@ -25,7 +25,7 @@ export class PromptRefiner extends EventEmitter {
       refined: prompt,
       subAgent: subAgent.name,
       transformations: [],
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     refinement.refined = this.addSubAgentContext(refinement.refined, subAgent);
@@ -74,26 +74,38 @@ export class PromptRefiner extends EventEmitter {
   }
 
   addReviewGuidance(prompt) {
-    return prompt + '\n\nProvide detailed analysis covering:\n- Code quality\n- Security concerns\n- Performance issues\n- Best practices violations';
+    return (
+      prompt +
+      '\n\nProvide detailed analysis covering:\n- Code quality\n- Security concerns\n- Performance issues\n- Best practices violations'
+    );
   }
 
   addTestingGuidance(prompt) {
-    return prompt + '\n\nEnsure tests:\n- Cover edge cases\n- Follow TDD principles\n- Are maintainable\n- Have clear assertions';
+    return (
+      prompt +
+      '\n\nEnsure tests:\n- Cover edge cases\n- Follow TDD principles\n- Are maintainable\n- Have clear assertions'
+    );
   }
 
   addDesignGuidance(prompt) {
-    return prompt + '\n\nConsider:\n- Accessibility (WCAG)\n- Responsive design\n- Visual hierarchy\n- User experience';
+    return (
+      prompt +
+      '\n\nConsider:\n- Accessibility (WCAG)\n- Responsive design\n- Visual hierarchy\n- User experience'
+    );
   }
 
   addDebuggingGuidance(prompt) {
-    return prompt + '\n\nApproach:\n1. Reproduce the issue\n2. Identify root cause\n3. Propose fix\n4. Verify solution';
+    return (
+      prompt +
+      '\n\nApproach:\n1. Reproduce the issue\n2. Identify root cause\n3. Propose fix\n4. Verify solution'
+    );
   }
 
   adjustVerbosity(prompt, level) {
     const verbosityNotes = {
       concise: '\n\n[Respond concisely with key points only]',
       balanced: '\n\n[Provide clear, balanced explanation]',
-      detailed: '\n\n[Provide comprehensive, detailed analysis]'
+      detailed: '\n\n[Provide comprehensive, detailed analysis]',
     };
 
     return prompt + (verbosityNotes[level] || '');
@@ -122,7 +134,7 @@ export class PromptRefiner extends EventEmitter {
       original: response,
       filtered: response,
       modifications: [],
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     if (!this.filteringEnabled) {
@@ -158,11 +170,13 @@ export class PromptRefiner extends EventEmitter {
     const keyPoints = [];
 
     for (const line of lines) {
-      if (line.trim().startsWith('-') ||
+      if (
+        line.trim().startsWith('-') ||
         line.trim().startsWith('*') ||
         line.trim().startsWith('1.') ||
         line.includes('IMPORTANT') ||
-        line.includes('NOTE')) {
+        line.includes('NOTE')
+      ) {
         keyPoints.push(line);
       }
     }
@@ -178,12 +192,12 @@ export class PromptRefiner extends EventEmitter {
     const tonePatterns = {
       professional: {
         friendly: /great|awesome|cool/gi,
-        formal: 'appropriate'
+        formal: 'appropriate',
       },
       friendly: {
         formal: /furthermore|henceforth|pursuant/gi,
-        casual: 'also'
-      }
+        casual: 'also',
+      },
     };
 
     return response;
@@ -205,7 +219,7 @@ export class PromptRefiner extends EventEmitter {
       subAgentId,
       output,
       timestamp: Date.now(),
-      unfiltered: true
+      unfiltered: true,
     };
 
     this.emit('raw-output:captured', captured);

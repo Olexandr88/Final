@@ -11,14 +11,14 @@ export const ErrorTypes = {
   VALIDATION: 'VALIDATION',
   AUTHENTICATION: 'AUTHENTICATION',
   RESOURCE: 'RESOURCE',
-  UNKNOWN: 'UNKNOWN'
+  UNKNOWN: 'UNKNOWN',
 };
 
 export const ErrorSeverity = {
-  CRITICAL: 'CRITICAL',  // System cannot continue
-  HIGH: 'HIGH',          // Major functionality impaired
-  MEDIUM: 'MEDIUM',      // Degraded performance
-  LOW: 'LOW'             // Minor issue, system operational
+  CRITICAL: 'CRITICAL', // System cannot continue
+  HIGH: 'HIGH', // Major functionality impaired
+  MEDIUM: 'MEDIUM', // Degraded performance
+  LOW: 'LOW', // Minor issue, system operational
 };
 
 export class AppError extends Error {
@@ -41,7 +41,7 @@ export class AppError extends Error {
       metadata: this.metadata,
       timestamp: this.timestamp,
       recoverable: this.recoverable,
-      stack: this.stack
+      stack: this.stack,
     };
   }
 }
@@ -68,7 +68,7 @@ export class ErrorHandler {
         try {
           logger.info(`Retry attempt ${attempt}/${maxRetries} for network error`);
           const delay = baseDelay * Math.pow(2, attempt - 1);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
 
           if (context.retryCallback) {
             await context.retryCallback();
@@ -117,14 +117,12 @@ export class ErrorHandler {
   }
 
   removeListener(callback) {
-    this.listeners = this.listeners.filter(l => l !== callback);
+    this.listeners = this.listeners.filter((l) => l !== callback);
   }
 
   async handle(error, context = {}) {
     // Classify error
-    const appError = error instanceof AppError
-      ? error
-      : this._classifyError(error);
+    const appError = error instanceof AppError ? error : this._classifyError(error);
 
     // Store error
     this.errors.push(appError);
@@ -140,11 +138,11 @@ export class ErrorHandler {
     logger.error(appError.message, {
       type: appError.type,
       severity: appError.severity,
-      metadata: appError.metadata
+      metadata: appError.metadata,
     });
 
     // Notify listeners
-    this.listeners.forEach(listener => {
+    this.listeners.forEach((listener) => {
       try {
         listener(appError);
       } catch (err) {
@@ -179,8 +177,12 @@ export class ErrorHandler {
     const message = error.message?.toLowerCase() || '';
 
     // Network errors
-    if (message.includes('econnrefused') || message.includes('network') ||
-        message.includes('fetch failed') || message.includes('socket')) {
+    if (
+      message.includes('econnrefused') ||
+      message.includes('network') ||
+      message.includes('fetch failed') ||
+      message.includes('socket')
+    ) {
       type = ErrorTypes.NETWORK;
       severity = ErrorSeverity.HIGH;
     }
@@ -200,15 +202,14 @@ export class ErrorHandler {
       severity = ErrorSeverity.HIGH;
     }
     // Resource errors
-    else if (message.includes('memory') || message.includes('space') ||
-             message.includes('limit')) {
+    else if (message.includes('memory') || message.includes('space') || message.includes('limit')) {
       type = ErrorTypes.RESOURCE;
       severity = ErrorSeverity.CRITICAL;
     }
 
     return new AppError(error.message, type, severity, {
       originalError: error.name,
-      stack: error.stack
+      stack: error.stack,
     });
   }
 
@@ -216,16 +217,16 @@ export class ErrorHandler {
     let results = [...this.errors];
 
     if (filter.type) {
-      results = results.filter(e => e.type === filter.type);
+      results = results.filter((e) => e.type === filter.type);
     }
 
     if (filter.severity) {
-      results = results.filter(e => e.severity === filter.severity);
+      results = results.filter((e) => e.severity === filter.severity);
     }
 
     if (filter.since) {
       const sinceTime = new Date(filter.since).getTime();
-      results = results.filter(e => new Date(e.timestamp).getTime() >= sinceTime);
+      results = results.filter((e) => new Date(e.timestamp).getTime() >= sinceTime);
     }
 
     return results;
@@ -250,7 +251,7 @@ export class ErrorHandler {
       byType: typeCounts,
       bySeverity: severityCounts,
       mostFrequent,
-      recentErrors: this.errors.slice(-10)
+      recentErrors: this.errors.slice(-10),
     };
   }
 

@@ -32,12 +32,12 @@ describe('Event Store - CQRS Architecture', () => {
       data: {
         pid: process.pid,
         cwd: process.cwd(),
-        startTime: Date.now()
+        startTime: Date.now(),
       },
       metadata: {
         commandType: 'CreateSession',
-        userId: 'test-user'
-      }
+        userId: 'test-user',
+      },
     };
 
     const stored = await eventStore.appendEvent(event);
@@ -55,14 +55,14 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionCreated',
-      data: { pid: 123 }
+      data: { pid: 123 },
     });
 
     const event2 = await eventStore.appendEvent({
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionUpdated',
-      data: { currentTask: 'testing' }
+      data: { currentTask: 'testing' },
     });
 
     assert.strictEqual(event1.version, 1);
@@ -76,21 +76,21 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionCreated',
-      data: { pid: 456 }
+      data: { pid: 456 },
     });
 
     await eventStore.appendEvent({
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionUpdated',
-      data: { currentTask: 'task1' }
+      data: { currentTask: 'task1' },
     });
 
     await eventStore.appendEvent({
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionUpdated',
-      data: { currentTask: 'task2' }
+      data: { currentTask: 'task2' },
     });
 
     const stream = await eventStore.getEventStream('Session', aggregateId);
@@ -109,7 +109,7 @@ describe('Event Store - CQRS Architecture', () => {
         aggregateType: 'Session',
         aggregateId,
         eventType: 'SessionUpdated',
-        data: { counter: i }
+        data: { counter: i },
       });
     }
 
@@ -125,14 +125,14 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId: 'session-5',
       eventType: 'SessionCreated',
-      data: { pid: 789 }
+      data: { pid: 789 },
     });
 
     await eventStore.appendEvent({
       aggregateType: 'Lock',
       aggregateId: 'lock-1',
       eventType: 'LockAcquired',
-      data: { resourcePath: '/test/resource' }
+      data: { resourcePath: '/test/resource' },
     });
 
     const sessionEvents = await eventStore.getEventsByType('SessionCreated');
@@ -152,7 +152,7 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateId: 'session-6',
       eventType: 'SessionCreated',
       data: { pid: 999 },
-      correlationId
+      correlationId,
     });
 
     await eventStore.appendEvent({
@@ -160,7 +160,7 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateId: 'lock-2',
       eventType: 'LockAcquired',
       data: { resourcePath: '/test' },
-      correlationId
+      correlationId,
     });
 
     const correlated = await eventStore.getEventsByCorrelation(correlationId);
@@ -177,7 +177,7 @@ describe('Event Store - CQRS Architecture', () => {
       pid: 111,
       cwd: '/test/path',
       startTime: Date.now(),
-      currentTask: 'snapshot test'
+      currentTask: 'snapshot test',
     };
 
     await eventStore.saveSnapshot('Session', aggregateId, 10, state);
@@ -212,14 +212,14 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionCreated',
-      data: { pid: 222 }
+      data: { pid: 222 },
     });
 
     await eventStore.appendEvent({
       aggregateType: 'Session',
       aggregateId,
       eventType: 'SessionUpdated',
-      data: { currentTask: 'replay test' }
+      data: { currentTask: 'replay test' },
     });
 
     const replayed = [];
@@ -243,13 +243,13 @@ describe('Event Store - CQRS Architecture', () => {
           aggregateType: 'Session',
           aggregateId,
           eventType: 'SessionUpdated',
-          data: { counter: i }
+          data: { counter: i },
         })
       );
     }
 
     const results = await Promise.all(promises);
-    const versions = results.map(r => r.version).sort((a, b) => a - b);
+    const versions = results.map((r) => r.version).sort((a, b) => a - b);
 
     // Should have sequential versions
     assert.strictEqual(versions[0], 1);
@@ -261,7 +261,7 @@ describe('Event Store - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId: 'immutable-test',
       eventType: 'SessionCreated',
-      data: { pid: 333 }
+      data: { pid: 333 },
     });
 
     const stream = await eventStore.getEventStream('Session', 'immutable-test');

@@ -18,7 +18,7 @@ try {
   const testStart = Date.now();
   execSync('npm test -- --test-timeout=5000 2>&1 | head -20', {
     encoding: 'utf-8',
-    timeout: 10000
+    timeout: 10000,
   });
   const testTime = Date.now() - testStart;
 
@@ -40,7 +40,9 @@ try {
 
   if (parseInt(zombies) > 30) {
     warnings.push(`High Node.js process count: ${zombies}`);
-    fixes.push('Run: powershell -ExecutionPolicy Bypass -File scripts/ai-process-cleaner.ps1 -Kill');
+    fixes.push(
+      'Run: powershell -ExecutionPolicy Bypass -File scripts/ai-process-cleaner.ps1 -Kill'
+    );
   } else {
     console.log(`  ✓ Process count healthy: ${zombies}`);
   }

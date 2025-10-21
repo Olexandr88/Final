@@ -5,11 +5,13 @@
 Complete A2A MCP integration system with:
 
 ### 1. **Unified CLI Tool** (`src/cli/a2a-cli.js`)
+
 - **Commands**: `a2a start|stop|status|deploy|logs|agents`
 - **Components**: bridge, ollama, claude, analyzer, mcp-continue, mcp-jules, all
 - **Features**: Health checks, graceful shutdown, process management
 
 ### 2. **Admin Dashboard** (`electron/a2a-admin-dashboard.html`)
+
 - Real-time WebSocket metrics from AI Bridge
 - Connected agents monitoring
 - Message throughput charts (Chart.js)
@@ -17,6 +19,7 @@ Complete A2A MCP integration system with:
 - Control panel for starting/stopping components
 
 ### 3. **Deployment Targets**
+
 - PM2 (process manager)
 - Docker (containerization)
 - Railway (cloud hosting)
@@ -54,6 +57,7 @@ a2a start bridge
 ```
 
 Starts AI Bridge on ports:
+
 - WebSocket: `ws://localhost:65028`
 - HTTP: `http://localhost:65029`
 
@@ -80,6 +84,7 @@ a2a status
 ```
 
 Output:
+
 ```
 ━━━ A2A System Status ━━━
 
@@ -141,6 +146,7 @@ a2a agents
 ```
 
 Output (table format):
+
 ```
 ┌─────────┬───────────────────────────┬──────────┬──────────┬─────┬──────────┬───────────┐
 │ (index) │            ID             │   Role   │ Health % │ Sent│ Received │ Last Seen │
@@ -161,6 +167,7 @@ a2a deploy pm2
 ```
 
 Uses existing `ecosystem.config.cjs` to run:
+
 - AI Bridge (port 65028/65029)
 - Ollama Agent
 - Claude Agent
@@ -174,6 +181,7 @@ a2a deploy docker
 ```
 
 Builds Docker image using `Dockerfile`:
+
 - Multi-stage build for optimized size
 - Health checks for AI Bridge
 - Exposes ports 65028, 65029, 11434
@@ -196,17 +204,20 @@ a2a deploy vercel
 ## 🎛️ Admin Dashboard Features
 
 ### Real-Time Metrics
+
 - **System Status**: AI Bridge online/offline, Ollama status
 - **Performance**: Messages/second, memory usage, uptime
 - **Agents**: Connected agents with health scores
 - **Messages**: Recent message history with type/timestamp
 
 ### Visualizations
+
 - **Throughput Chart**: Live message throughput graph (Chart.js)
 - **Agent Cards**: Visual representation of each agent's status
 - **Status Indicators**: Pulsing dots for component health
 
 ### Controls
+
 - **Start Bridge**: Launch AI Bridge
 - **Start Agents**: Launch Ollama/Claude agents
 - **Stop All**: Graceful shutdown of all components
@@ -214,6 +225,7 @@ a2a deploy vercel
 - **Docs**: Link to GitHub documentation
 
 ### Auto-Refresh
+
 Dashboard refreshes every **5 seconds** automatically.
 
 ---
@@ -233,6 +245,7 @@ a2a start mcp-jules
 ### Available MCP Tools
 
 **Continue-Ollama MCP** (6 tools):
+
 1. `list_models` - Auto-detect Ollama models
 2. `select_model` - Switch active model
 3. `autocomplete` - Code completion (streaming)
@@ -241,6 +254,7 @@ a2a start mcp-jules
 6. `refactor_code` - Code refactoring
 
 **MCP Servers in Project**:
+
 - `continue-ollama-server.js` - Continue extension integration
 - `jules-mcp-server.js` - Jules AI integration
 - `mcp-server.js` - Generic MCP server
@@ -278,14 +292,15 @@ NODE_ENV=production
 Edit `src/ai-bridge.js`:
 
 ```javascript
-const DEFAULT_HISTORY_LIMIT = 50;  // Message history size
-const MAX_QUEUE_PER_CLIENT = 50;   // Max queued messages
-const WS_COMPRESSION_THRESHOLD = 4096;  // 4KB
+const DEFAULT_HISTORY_LIMIT = 50; // Message history size
+const MAX_QUEUE_PER_CLIENT = 50; // Max queued messages
+const WS_COMPRESSION_THRESHOLD = 4096; // 4KB
 ```
 
 ### Agent Configuration
 
 Each agent in `src/agents/`:
+
 - `a2a-ollama-agent.js` - Ollama configuration
 - `a2a-claude-agent.js` - Claude configuration
 - `code-analyzer-agent.js` - Analyzer configuration
@@ -308,6 +323,7 @@ Health Score: 100%
 ### Optimization Features
 
 **AI Bridge**:
+
 - Message compression (>4KB auto-compressed)
 - Connection pooling (HTTP keep-alive)
 - Circuit breakers (prevent cascade failures)
@@ -315,6 +331,7 @@ Health Score: 100%
 - Circular buffer for history (memory-efficient)
 
 **Agents**:
+
 - Auto-reconnect with exponential backoff
 - Message deduplication
 - Health monitoring (heartbeat every 3 min)
@@ -364,6 +381,7 @@ a2a stop all
 ## 📚 Additional Resources
 
 ### Documentation
+
 - **Integration Guide**: `docs/A2A_MCP_INTEGRATION_GUIDE.md`
 - **API Reference**: `docs/A2A_API_REFERENCE.md`
 - **Deployment Guide**: `docs/DEPLOYMENT_GUIDE.md`
@@ -373,31 +391,37 @@ a2a stop all
 ### Package Scripts (150+ available)
 
 **AI Bridge**:
+
 - `npm run bridge:start` - Start AI Bridge
 - `npm run bridge:diagnostic` - Run diagnostics
 
 **Agents**:
+
 - `npm run agent:ollama` - Start Ollama agent
 - `npm run agent:claude` - Start Claude agent
 - `npm run agent:analyzer` - Start analyzer
 
 **MCP**:
+
 - `npm run mcp:continue` - Continue MCP server
 - `npm run mcp:jules` - Jules MCP server
 - `npm run mcp:debug` - MCP debug mode
 
 **System**:
+
 - `npm run system:start` - Start bridge + agents
 - `npm run system:full` - Start everything
 - `npm run system:monitor` - System monitoring
 
 **Deployment**:
+
 - `npm run deploy` - Auto-deploy
 - `npm run deploy:railway` - Deploy to Railway
 - `npm run deploy:cloudflare` - Deploy to Cloudflare
 - `npm run deploy:vercel` - Deploy to Vercel
 
 **Monitoring**:
+
 - `npm run health:check` - Health check
 - `npm run health:monitor` - Live monitoring
 - `npm run monitor:live` - Real-time dashboard
@@ -411,6 +435,7 @@ a2a stop all
 **Problem**: Port 65028/65029 already in use
 
 **Solution**:
+
 ```bash
 # Check what's using the port
 netstat -ano | findstr "65028"
@@ -427,6 +452,7 @@ npm run dev:kill-bridge
 **Problem**: WebSocket connection refused
 
 **Check**:
+
 1. Is AI Bridge running? `a2a status`
 2. Correct BRIDGE_WS? `echo $BRIDGE_WS` or `echo %BRIDGE_WS%`
 3. Firewall blocking? Check Windows Firewall
@@ -437,6 +463,7 @@ npm run dev:kill-bridge
 **Problem**: Ollama status shows "Offline"
 
 **Solution**:
+
 ```bash
 # Start Ollama service
 ollama serve
@@ -453,6 +480,7 @@ ollama list
 **Problem**: Admin dashboard shows "Loading..."
 
 **Check**:
+
 1. AI Bridge running? `curl http://localhost:65029/api/status`
 2. CORS issues? Check browser console
 3. Proxy/firewall blocking? Test with `curl`
@@ -462,6 +490,7 @@ ollama list
 **Problem**: `a2a: command not found`
 
 **Solution**:
+
 ```bash
 # Link CLI globally
 cd C:\Users\scarm

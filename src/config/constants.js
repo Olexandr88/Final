@@ -13,7 +13,7 @@ export const NETWORK = {
   WEBSOCKET_TIMEOUT_MS: 30000,
   HTTP_REQUEST_TIMEOUT_MS: 5000,
   PING_INTERVAL_MS: 30000,
-  PONG_TIMEOUT_MS: 10000
+  PONG_TIMEOUT_MS: 10000,
 };
 
 // Performance & Resource Management
@@ -30,7 +30,7 @@ export const PERFORMANCE = {
   HEALTH_CHECK_DEBOUNCE_MS: 3000,
   BRIDGE_STARTUP_DELAY_MS: 3000,
   AGENT_STARTUP_STAGGER_MS: 800,
-  BRIDGE_RECONNECT_DELAY_MS: 5000
+  BRIDGE_RECONNECT_DELAY_MS: 5000,
 };
 
 // Agent Configuration
@@ -40,7 +40,7 @@ export const AGENTS = {
   RESTART_RESET_WINDOW_MS: 300000, // 5 minutes
   GRACEFUL_SHUTDOWN_TIMEOUT_MS: 5000,
   HEARTBEAT_HEALTHY_THRESHOLD_MS: 5000,
-  HEARTBEAT_WARNING_THRESHOLD_MS: 30000
+  HEARTBEAT_WARNING_THRESHOLD_MS: 30000,
 };
 
 // Message Queue & History
@@ -50,7 +50,7 @@ export const MESSAGING = {
   MAX_TOTAL_QUEUED: 1000,
   CLIENT_TTL_MS: 600000, // 10 minutes
   MAX_PAYLOAD_SIZE_BYTES: 2 * 1024 * 1024, // 2MB
-  MESSAGE_PREVIEW_LENGTH: 80
+  MESSAGE_PREVIEW_LENGTH: 80,
 };
 
 // LLM Configuration
@@ -65,12 +65,12 @@ export const LLM = {
     DEFAULT_NUM_THREAD: 4,
     REQUEST_TIMEOUT_MS: 30000,
     MAX_RETRIES: 2,
-    RETRY_DELAY_MS: 1000
+    RETRY_DELAY_MS: 1000,
   },
   CACHE: {
     MAX_SIZE: 100,
-    TTL_MS: 300000 // 5 minutes
-  }
+    TTL_MS: 300000, // 5 minutes
+  },
 };
 
 // UI & Display
@@ -85,7 +85,7 @@ export const UI = {
   VIRTUAL_SCROLL_ITEM_HEIGHT: 50,
   VIRTUAL_SCROLL_BUFFER: 5,
   RENDER_THROTTLE_MS: 100,
-  CACHE_RESPONSE_TTL_MS: 5000
+  CACHE_RESPONSE_TTL_MS: 5000,
 };
 
 // Security
@@ -93,14 +93,14 @@ export const SECURITY = {
   RATE_LIMIT_WINDOW_MS: 60000,
   RATE_LIMIT_MAX_REQUESTS: 120,
   ALLOWED_ORIGINS: ['*'],
-  TOKEN_AUTH_ENABLED: false
+  TOKEN_AUTH_ENABLED: false,
 };
 
 // System Metadata
 export const SYSTEM = {
   VERSION: '1.2.0',
   APP_NAME: 'A2A Control Center',
-  BRIDGE_VERSION: '1.1.0'
+  BRIDGE_VERSION: '1.1.0',
 };
 
 export default {
@@ -111,5 +111,5 @@ export default {
   LLM,
   UI,
   SECURITY,
-  SYSTEM
+  SYSTEM,
 };

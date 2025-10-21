@@ -19,6 +19,7 @@ The LLM Framework now uses **connection pooling** for all SQLite database operat
 ### If You Use `selection-store.js`
 
 **OLD CODE (no longer works):**
+
 ```javascript
 import { saveSelection, getLatestSelections } from './src/selection-store.js';
 
@@ -27,6 +28,7 @@ const selections = getLatestSelections(10);
 ```
 
 **NEW CODE (required):**
+
 ```javascript
 import { saveSelection, getLatestSelections } from './src/selection-store.js';
 
@@ -41,6 +43,7 @@ const selections = await getLatestSelections(10);
 ### If You Use `SessionManager`
 
 **OLD CODE:**
+
 ```javascript
 const manager = new SessionManager();
 manager.register();
@@ -49,6 +52,7 @@ process.on('exit', () => manager.cleanup());
 ```
 
 **NEW CODE:**
+
 ```javascript
 const manager = new SessionManager();
 manager.register();
@@ -72,9 +76,9 @@ import { DatabasePool } from './src/utils/database-pool.js';
 
 ```javascript
 const pool = new DatabasePool('path/to/database.db', {
-  poolSize: 10,        // Number of connections (default: 10)
-  maxWaitTime: 5000,   // Timeout in ms (default: 5000)
-  enableWAL: true      // Enable WAL mode (default: true)
+  poolSize: 10, // Number of connections (default: 10)
+  maxWaitTime: 5000, // Timeout in ms (default: 5000)
+  enableWAL: true, // Enable WAL mode (default: true)
 });
 ```
 
@@ -125,9 +129,7 @@ for (const user of users) {
 }
 
 // GOOD - Parallel (fast!)
-await Promise.all(
-  users.map(user => saveUser(user))
-);
+await Promise.all(users.map((user) => saveUser(user)));
 ```
 
 ### Pattern 2: Error Handling
@@ -162,35 +164,38 @@ if (!pool.isHealthy()) {
 ## Configuration Tips
 
 ### For Read-Heavy Workloads
+
 ```javascript
 const pool = new DatabasePool(dbPath, {
-  poolSize: 15,  // More connections for parallel reads
-  enableWAL: true
+  poolSize: 15, // More connections for parallel reads
+  enableWAL: true,
 });
 ```
 
 ### For Write-Heavy Workloads
+
 ```javascript
 const pool = new DatabasePool(dbPath, {
-  poolSize: 5,   // Fewer connections to reduce contention
+  poolSize: 5, // Fewer connections to reduce contention
   enableWAL: true,
   pragmas: {
-    'synchronous': 'NORMAL'  // Faster writes
-  }
+    synchronous: 'NORMAL', // Faster writes
+  },
 });
 ```
 
 ### For High-Load Production
+
 ```javascript
 const pool = new DatabasePool(dbPath, {
   poolSize: 20,
-  maxWaitTime: 10000,  // Longer timeout
+  maxWaitTime: 10000, // Longer timeout
   enableWAL: true,
   pragmas: {
-    'cache_size': -64000,      // 64MB cache
-    'temp_store': 'memory',    // Temp in RAM
-    'mmap_size': 268435456     // 256MB mmap
-  }
+    cache_size: -64000, // 64MB cache
+    temp_store: 'memory', // Temp in RAM
+    mmap_size: 268435456, // 256MB mmap
+  },
 });
 ```
 
@@ -203,9 +208,11 @@ const pool = new DatabasePool(dbPath, {
 **Problem:** Pool is exhausted (all connections in use)
 
 **Solutions:**
+
 1. Increase pool size:
+
    ```javascript
-   poolSize: 20  // Instead of 10
+   poolSize: 20; // Instead of 10
    ```
 
 2. Reduce concurrent operations
@@ -216,6 +223,7 @@ const pool = new DatabasePool(dbPath, {
 **Problem:** Forgot to `await` an async function
 
 **Solution:**
+
 ```javascript
 // WRONG
 const result = myAsyncFunction();
@@ -229,6 +237,7 @@ const result = await myAsyncFunction();
 **Problem:** Not enough connections for the load
 
 **Solutions:**
+
 1. Increase pool size
 2. Optimize slow queries
 3. Add caching layer
@@ -263,7 +272,7 @@ const result = await myAsyncFunction();
 // src/selection-store.js
 const pool = new DatabasePool(DB_PATH, {
   poolSize: 15,
-  enableWAL: true
+  enableWAL: true,
 });
 
 export async function saveSelection({ url, title, selected_text }) {
@@ -285,7 +294,7 @@ class SessionManager {
   constructor() {
     this.pool = new DatabasePool(this.dbPath, {
       poolSize: 10,
-      enableWAL: true
+      enableWAL: true,
     });
   }
 
@@ -303,12 +312,12 @@ class SessionManager {
 
 ## Performance Benchmarks
 
-| Operation | Before Pool | After Pool | Improvement |
-|-----------|-------------|------------|-------------|
-| Single Insert | 50ms | 1ms | 50x faster |
-| 10 Concurrent Reads | 500ms | 50ms | 10x faster |
-| 100 Sequential Writes | 5000ms | 500ms | 10x faster |
-| Pool Connection Reuse | 0% | 100% | ♾️ better |
+| Operation             | Before Pool | After Pool | Improvement |
+| --------------------- | ----------- | ---------- | ----------- |
+| Single Insert         | 50ms        | 1ms        | 50x faster  |
+| 10 Concurrent Reads   | 500ms       | 50ms       | 10x faster  |
+| 100 Sequential Writes | 5000ms      | 500ms      | 10x faster  |
+| Pool Connection Reuse | 0%          | 100%       | ♾️ better   |
 
 ---
 

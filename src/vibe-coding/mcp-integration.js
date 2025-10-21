@@ -19,19 +19,22 @@ export class MCPIntegration {
   async initClient(serverName, command, args = []) {
     const transport = new StdioClientTransport({
       command,
-      args
+      args,
     });
 
-    const client = new Client({
-      name: `vibe-coding-${serverName}`,
-      version: '1.0.0'
-    }, {
-      capabilities: {
-        resources: {},
-        tools: {},
-        prompts: {}
+    const client = new Client(
+      {
+        name: `vibe-coding-${serverName}`,
+        version: '1.0.0',
+      },
+      {
+        capabilities: {
+          resources: {},
+          tools: {},
+          prompts: {},
+        },
       }
-    });
+    );
 
     await client.connect(transport);
     this.clients.set(serverName, client);
@@ -45,11 +48,10 @@ export class MCPIntegration {
    */
   async initCodebaseServer(projectPath) {
     try {
-      const client = await this.initClient(
-        'codebase',
-        'node',
-        ['./mcp-servers/codebase-server.js', projectPath]
-      );
+      const client = await this.initClient('codebase', 'node', [
+        './mcp-servers/codebase-server.js',
+        projectPath,
+      ]);
 
       // List available resources
       const resources = await client.listResources();
@@ -92,7 +94,7 @@ export class MCPIntegration {
 
     const result = await client.callTool('dependencies', {
       file: filePath,
-      depth: 3
+      depth: 3,
     });
 
     return result.content;
@@ -105,16 +107,16 @@ export class MCPIntegration {
     const serverMap = {
       'google-drive': {
         command: 'node',
-        args: ['./mcp-servers/google-drive-server.js']
+        args: ['./mcp-servers/google-drive-server.js'],
       },
-      'figma': {
+      figma: {
         command: 'node',
-        args: ['./mcp-servers/figma-server.js']
+        args: ['./mcp-servers/figma-server.js'],
       },
-      'github': {
+      github: {
         command: 'node',
-        args: ['./mcp-servers/github-server.js']
-      }
+        args: ['./mcp-servers/github-server.js'],
+      },
     };
 
     const serverConfig = serverMap[type];
@@ -142,13 +144,13 @@ export class MCPIntegration {
     }
 
     const result = await this.clients.get('figma').callTool('fetch-design', {
-      url: figmaUrl
+      url: figmaUrl,
     });
 
     return {
       components: result.content.components,
       styles: result.content.styles,
-      assets: result.content.assets
+      assets: result.content.assets,
     };
   }
 
@@ -162,7 +164,7 @@ export class MCPIntegration {
     }
 
     const result = await client.callTool('fetch-doc', {
-      fileId: driveFileId
+      fileId: driveFileId,
     });
 
     return result.content;
@@ -179,7 +181,7 @@ export class MCPIntegration {
 
     const result = await client.callTool('analyze-structure', {
       includeTests: true,
-      includeDocs: true
+      includeDocs: true,
     });
 
     return {
@@ -187,7 +189,7 @@ export class MCPIntegration {
       directories: result.content.directories,
       languages: result.content.languages,
       frameworks: result.content.frameworks,
-      entryPoints: result.content.entryPoints
+      entryPoints: result.content.entryPoints,
     };
   }
 
@@ -203,7 +205,7 @@ export class MCPIntegration {
     const result = await client.callTool('semantic-search', {
       query,
       limit: options.limit || 10,
-      fileTypes: options.fileTypes || ['js', 'ts', 'jsx', 'tsx']
+      fileTypes: options.fileTypes || ['js', 'ts', 'jsx', 'tsx'],
     });
 
     return result.content.results;
@@ -221,14 +223,14 @@ export class MCPIntegration {
     const result = await client.callTool('insights', {
       analyzePatterns: true,
       analyzeConventions: true,
-      analyzeArchitecture: true
+      analyzeArchitecture: true,
     });
 
     return {
       patterns: result.content.patterns,
       conventions: result.content.conventions,
       architecture: result.content.architecture,
-      recommendations: result.content.recommendations
+      recommendations: result.content.recommendations,
     };
   }
 
@@ -255,8 +257,10 @@ export class MCPIntegration {
   getStats() {
     return {
       activeClients: Array.from(this.clients.keys()),
-      totalResources: Array.from(this.resources.values())
-        .reduce((sum, r) => sum + (r.resources?.length || 0), 0)
+      totalResources: Array.from(this.resources.values()).reduce(
+        (sum, r) => sum + (r.resources?.length || 0),
+        0
+      ),
     };
   }
 }

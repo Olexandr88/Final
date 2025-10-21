@@ -3,9 +3,9 @@ name: Optimized Secrets Integration & Validation
 # Enhanced workflow with parallel execution and silent validation
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       validation_level:
@@ -36,7 +36,7 @@ jobs:
     steps:
       - name: 📦 Checkout
         uses: actions/checkout@v4
-      
+
       - name: 🔍 Context Analysis
         id: context
         run: |
@@ -44,13 +44,13 @@ jobs:
           echo "Repository: ${{ github.repository }}"
           echo "Actor: ${{ github.actor }}"
           echo "Ref: ${{ github.ref }}"
-          
+
           IS_EXTERNAL_PR="false"
           if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.head.repo.full_name }}" != "${{ github.repository }}" ]; then
             IS_EXTERNAL_PR="true"
           fi
           echo "is_external_pr=$IS_EXTERNAL_PR" >> $GITHUB_OUTPUT
-      
+
       - name: ✅ Validate ${{ matrix.secret }}
         run: |
           case "${{ matrix.secret }}" in
@@ -118,17 +118,17 @@ jobs:
     steps:
       - name: 📦 Checkout
         uses: actions/checkout@v4
-        
+
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          
+
       - name: 🔍 Health Assessment
         run: |
           echo "🔍 Performing repository health check..."
-          
+
           # Check package.json structure
           if [ -f "package.json" ]; then
             echo "✅ package.json found"
@@ -137,14 +137,14 @@ jobs:
           else
             echo "❌ package.json missing"
           fi
-          
+
           # Check lock file
           if [ -f "package-lock.json" ]; then
             echo "✅ package-lock.json found"
           else
             echo "⚠️ package-lock.json missing"
           fi
-          
+
           # Check essential directories
           for dir in src examples scripts .github; do
             if [ -d "$dir" ]; then
@@ -153,11 +153,11 @@ jobs:
               echo "⚠️ $dir/ directory missing"
             fi
           done
-          
+
           # Check workflow files
           WORKFLOWS=$(find .github/workflows -name "*.yml" -o -name "*.yaml" 2>/dev/null | wc -l)
           echo "🔄 Workflows found: $WORKFLOWS"
-          
+
           # Dependencies check
           if [ -f "package.json" ]; then
             npm ci --prefer-offline --no-audit --silent 2>/dev/null || {
@@ -175,17 +175,17 @@ jobs:
     steps:
       - name: 📦 Checkout
         uses: actions/checkout@v4
-        
+
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          
+
       - name: 📥 Install Dependencies
         run: |
           npm ci --prefer-offline --no-audit --silent || npm install --silent
-          
+
       - name: 🏗️ Build Check
         run: |
           if npm run build --if-present; then
@@ -193,7 +193,7 @@ jobs:
           else
             echo "⚠️ Build failed or not configured"
           fi
-          
+
       - name: 🧪 Test Execution
         run: |
           if npm test --if-present; then
@@ -223,7 +223,7 @@ jobs:
           echo "| Repository Health | ${{ needs.repo-health.result }} | 🏥 Structure validated |" >> $GITHUB_STEP_SUMMARY
           echo "| Test Suite | ${{ needs.test-suite.result }} | 🧪 Execution verified |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ needs.secret-validation.result }}" = "success" ] && [ "${{ needs.repo-health.result }}" = "success" ]; then
             echo "### ✅ All validations passed" >> $GITHUB_STEP_SUMMARY
             echo "Repository is secure and optimized." >> $GITHUB_STEP_SUMMARY
@@ -231,7 +231,7 @@ jobs:
             echo "### ⚠️ Some validations need attention" >> $GITHUB_STEP_SUMMARY
             echo "Review individual job results for details." >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Optimization Features:**" >> $GITHUB_STEP_SUMMARY
           echo "- ⚡ Parallel secret validation" >> $GITHUB_STEP_SUMMARY

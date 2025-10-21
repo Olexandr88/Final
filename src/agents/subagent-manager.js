@@ -36,7 +36,7 @@ export class SubAgentManager extends EventEmitter {
       contextWindow: [],
       tokenCount: 0,
       createdAt: Date.now(),
-      status: 'idle'
+      status: 'idle',
     };
 
     this.agents.set(agentId, agent);
@@ -69,7 +69,7 @@ export class SubAgentManager extends EventEmitter {
       prompt,
       context,
       startedAt: Date.now(),
-      status: 'running'
+      status: 'running',
     };
 
     this.emit('task:started', { taskId, agentId, prompt });
@@ -108,8 +108,9 @@ export class SubAgentManager extends EventEmitter {
    * Delegate task to appropriate sub-agent based on domain
    */
   async delegate(task, domain) {
-    const matchingAgents = Array.from(this.agents.values())
-      .filter(agent => agent.expertise.toLowerCase().includes(domain.toLowerCase()));
+    const matchingAgents = Array.from(this.agents.values()).filter((agent) =>
+      agent.expertise.toLowerCase().includes(domain.toLowerCase())
+    );
 
     if (matchingAgents.length === 0) {
       throw new Error(`No agent found for domain: ${domain}`);
@@ -131,8 +132,8 @@ export class SubAgentManager extends EventEmitter {
         ...context,
         expertise: agent.expertise,
         availableTools: agent.tools,
-        contextWindow: this.contextWindows.get(agent.id).slice(-10) // Last 10 interactions
-      }
+        contextWindow: this.contextWindows.get(agent.id).slice(-10), // Last 10 interactions
+      },
     };
   }
 
@@ -146,7 +147,7 @@ export class SubAgentManager extends EventEmitter {
       agentId: agent.id,
       expertise: agent.expertise,
       response: `Task processed by ${agent.name}`,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -158,7 +159,7 @@ export class SubAgentManager extends EventEmitter {
     context.push({
       prompt,
       result,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     // Maintain context window size
@@ -195,7 +196,7 @@ export class SubAgentManager extends EventEmitter {
       status: agent.status,
       totalInteractions: context.length,
       createdAt: agent.createdAt,
-      isActive: this.activeAgents.has(agentId)
+      isActive: this.activeAgents.has(agentId),
     };
   }
 
@@ -234,50 +235,56 @@ export function createSpecializedAgents() {
   manager.createAgent({
     name: 'code-reviewer',
     expertise: 'code review, security, best practices',
-    systemPrompt: 'You are a senior code reviewer. Analyze code for quality, ' +
+    systemPrompt:
+      'You are a senior code reviewer. Analyze code for quality, ' +
       'security vulnerabilities, performance issues, and adherence to best practices. ' +
       'Provide detailed, actionable feedback.',
-    tools: ['read', 'grep', 'glob', 'bash']
+    tools: ['read', 'grep', 'glob', 'bash'],
   });
 
   // Planner Agent
   manager.createAgent({
     name: 'planner',
     expertise: 'architecture, planning, design',
-    systemPrompt: 'You are a technical architect. Break down complex requirements into clear, actionable steps. Design scalable, maintainable solutions.',
-    tools: ['read', 'glob', 'grep']
+    systemPrompt:
+      'You are a technical architect. Break down complex requirements into clear, actionable steps. Design scalable, maintainable solutions.',
+    tools: ['read', 'glob', 'grep'],
   });
 
   // UI Designer Agent
   manager.createAgent({
     name: 'ui-designer',
     expertise: 'UI/UX, frontend, design',
-    systemPrompt: 'You are a UI/UX specialist. Create beautiful, accessible user interfaces. Follow design best practices and modern patterns.',
-    tools: ['read', 'write', 'edit', 'bash']
+    systemPrompt:
+      'You are a UI/UX specialist. Create beautiful, accessible user interfaces. Follow design best practices and modern patterns.',
+    tools: ['read', 'write', 'edit', 'bash'],
   });
 
   // Test Writer Agent
   manager.createAgent({
     name: 'test-writer',
     expertise: 'testing, TDD, quality assurance',
-    systemPrompt: 'You are a testing specialist. Write comprehensive test suites with high coverage. Follow TDD principles.',
-    tools: ['read', 'write', 'edit', 'bash']
+    systemPrompt:
+      'You are a testing specialist. Write comprehensive test suites with high coverage. Follow TDD principles.',
+    tools: ['read', 'write', 'edit', 'bash'],
   });
 
   // Documentation Agent
   manager.createAgent({
     name: 'documentation-writer',
     expertise: 'documentation, technical writing',
-    systemPrompt: 'You are a technical documentation specialist. Create clear, concise documentation for code, APIs, and systems.',
-    tools: ['read', 'write', 'glob', 'grep']
+    systemPrompt:
+      'You are a technical documentation specialist. Create clear, concise documentation for code, APIs, and systems.',
+    tools: ['read', 'write', 'glob', 'grep'],
   });
 
   // Debugging Agent
   manager.createAgent({
     name: 'debugger',
     expertise: 'debugging, troubleshooting, error analysis',
-    systemPrompt: 'You are a debugging specialist. Analyze errors, trace issues, and provide solutions. Use systematic debugging approaches.',
-    tools: ['read', 'grep', 'bash', 'edit']
+    systemPrompt:
+      'You are a debugging specialist. Analyze errors, trace issues, and provide solutions. Use systematic debugging approaches.',
+    tools: ['read', 'grep', 'bash', 'edit'],
   });
 
   return manager;

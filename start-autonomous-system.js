@@ -16,8 +16,8 @@ async function main() {
   const args = process.argv.slice(2);
 
   // Parse arguments
-  const numAgents = parseInt(args.find(arg => arg.startsWith('--agents'))?.split('=')[1] || '1');
-  const model = args.find(arg => arg.startsWith('--model'))?.split('=')[1] || 'llama3.1';
+  const numAgents = parseInt(args.find((arg) => arg.startsWith('--agents'))?.split('=')[1] || '1');
+  const model = args.find((arg) => arg.startsWith('--model'))?.split('=')[1] || 'llama3.1';
   const skipBridge = args.includes('--skip-bridge');
   const skipFactory = args.includes('--skip-factory');
 
@@ -26,13 +26,13 @@ async function main() {
     numAgents,
     model,
     skipBridge,
-    skipFactory
+    skipFactory,
   });
 
   // Initialize coordinator
   const coordinator = new AutonomousCoordinator({
     autoStartBridge: !skipBridge,
-    autoStartMetaFactory: !skipFactory
+    autoStartMetaFactory: !skipFactory,
   });
 
   // Handle graceful shutdown
@@ -56,7 +56,7 @@ async function main() {
     for (let i = 0; i < numAgents; i++) {
       const agentId = await coordinator.spawnAutonomousAgent({
         model,
-        agentId: `ollama-agent-${i + 1}`
+        agentId: `ollama-agent-${i + 1}`,
       });
 
       if (agentId) {
@@ -65,7 +65,7 @@ async function main() {
       }
 
       // Stagger agent starts to avoid race conditions
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     // 3. Display system status
@@ -82,7 +82,7 @@ async function main() {
     logger.info(`  File Locks: ${status.locks.file.totalLocks}`);
 
     logger.info('\nRunning Processes:');
-    status.processes.forEach(proc => {
+    status.processes.forEach((proc) => {
       logger.info(`  - ${proc.id} (${proc.type}) - uptime: ${Math.floor(proc.uptime / 1000)}s`);
     });
 
@@ -96,24 +96,19 @@ async function main() {
       logger.info('\n🎬 Running demo workflow...');
 
       // Example: Execute a file operation with automatic locking
-      await coordinator.executeFileOperation(
-        'write',
-        './demo-file.txt',
-        async () => {
-          const fs = await import('fs/promises');
-          await fs.writeFile('./demo-file.txt', `Demo from ${coordinator.sessionId}\n`, 'utf-8');
-          logger.info('✅ Demo file written with automatic locking');
-        }
-      );
+      await coordinator.executeFileOperation('write', './demo-file.txt', async () => {
+        const fs = await import('fs/promises');
+        await fs.writeFile('./demo-file.txt', `Demo from ${coordinator.sessionId}\n`, 'utf-8');
+        logger.info('✅ Demo file written with automatic locking');
+      });
     }
 
     // Keep process alive
     await new Promise(() => {}); // Run forever until Ctrl+C
-
   } catch (error) {
     logger.error('Failed to start autonomous system', {
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
     await coordinator.shutdown();
     process.exit(1);

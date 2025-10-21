@@ -14,7 +14,11 @@ import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-const CONFIG_PATH = join(process.env.HOME || process.env.USERPROFILE, '.claude', 'vibe-coding-config.json');
+const CONFIG_PATH = join(
+  process.env.HOME || process.env.USERPROFILE,
+  '.claude',
+  'vibe-coding-config.json'
+);
 
 /**
  * Global Vibe Coding System Instance
@@ -44,8 +48,8 @@ export class VibeCodeSystem {
           productionValidator: { enabled: true, runOnCommit: true },
           workflowOrchestrator: { enabled: true },
           subAgents: { enabled: true, autoRegister: [] },
-          hooks: { enabled: true, autoFormat: true }
-        }
+          hooks: { enabled: true, autoFormat: true },
+        },
       };
     }
     return this.config;
@@ -62,7 +66,7 @@ export class VibeCodeSystem {
 
     const results = {
       enabled: true,
-      components: {}
+      components: {},
     };
 
     // Initialize CLAUDE.md Memory
@@ -88,7 +92,7 @@ export class VibeCodeSystem {
     if (this.config.components.workflowOrchestrator?.enabled) {
       this.workflow = new WorkflowOrchestrator({
         projectRoot: projectPath,
-        logger: console
+        logger: console,
       });
       results.components.workflowOrchestrator = 'initialized';
     }
@@ -127,36 +131,36 @@ export class VibeCodeSystem {
         expertise: 'REST API documentation and specification research',
         systemPrompt: 'Expert in finding and documenting REST API specifications',
         tools: ['read', 'websearch', 'webfetch'],
-        readonly: true
+        readonly: true,
       },
       'db-schema-designer': {
         name: 'db-schema-designer',
         expertise: 'Database architecture, normalization, performance',
         systemPrompt: 'Expert database architect focused on normalization and performance',
         tools: ['read', 'write'],
-        readonly: false
+        readonly: false,
       },
       'test-writer': {
         name: 'test-writer',
         expertise: 'TDD, test coverage, edge case identification',
         systemPrompt: 'Testing expert who writes comprehensive test suites',
         tools: ['read', 'write'],
-        readonly: false
+        readonly: false,
       },
       'code-reviewer': {
         name: 'code-reviewer',
         expertise: 'Code quality, security vulnerabilities, performance',
         systemPrompt: 'Strict code reviewer providing honest, critical feedback',
         tools: ['read', 'grep', 'glob'],
-        readonly: true
+        readonly: true,
       },
       'security-auditor': {
         name: 'security-auditor',
         expertise: 'Security vulnerabilities, defensive coding',
         systemPrompt: 'Security expert identifying vulnerabilities and recommending fixes',
         tools: ['read', 'grep', 'bash'],
-        readonly: true
-      }
+        readonly: true,
+      },
     };
 
     const config = agentConfigs[type];
@@ -172,7 +176,7 @@ export class VibeCodeSystem {
 
     const results = await this.validator.validate({
       rootDir: process.cwd(),
-      files
+      files,
     });
 
     const minScore = this.config.components.productionValidator.minScore || 80;
@@ -182,7 +186,7 @@ export class VibeCodeSystem {
       score: results.score || 100,
       minScore,
       canCommit: (results.score || 100) >= minScore,
-      results
+      results,
     };
   }
 
@@ -211,8 +215,8 @@ export class VibeCodeSystem {
         validator: !!this.validator,
         workflow: !!this.workflow,
         agents: !!this.agents,
-        hooks: !!this.hooks
-      }
+        hooks: !!this.hooks,
+      },
     };
   }
 }
@@ -222,14 +226,17 @@ export const vibeCode = new VibeCodeSystem();
 
 // Auto-initialize if imported
 if (process.env.VIBE_CODING_AUTO_INIT !== 'false') {
-  vibeCode.init().then(results => {
-    if (results.enabled) {
-      console.log('🚀 Vibe Coding System initialized');
-      console.log('Components:', Object.keys(results.components).join(', '));
-    }
-  }).catch(err => {
-    console.error('Failed to initialize Vibe Coding:', err.message);
-  });
+  vibeCode
+    .init()
+    .then((results) => {
+      if (results.enabled) {
+        console.log('🚀 Vibe Coding System initialized');
+        console.log('Components:', Object.keys(results.components).join(', '));
+      }
+    })
+    .catch((err) => {
+      console.error('Failed to initialize Vibe Coding:', err.message);
+    });
 }
 
 export default vibeCode;

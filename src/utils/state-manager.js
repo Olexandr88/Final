@@ -19,21 +19,21 @@ export class StateManager {
       bridge: {
         autoStart: false,
         lastStarted: null,
-        wasRunning: false
+        wasRunning: false,
       },
       agents: {
         ollama: { autoStart: false, lastStarted: null, wasRunning: false },
         analyzer: { autoStart: false, lastStarted: null, wasRunning: false },
-        claude: { autoStart: false, lastStarted: null, wasRunning: false }
+        claude: { autoStart: false, lastStarted: null, wasRunning: false },
       },
       preferences: {
         logLevel: 'INFO',
         metricsInterval: 10000,
         autoReconnect: true,
-        maxRetries: 5
+        maxRetries: 5,
       },
       lastShutdown: null,
-      version: '1.0.0'
+      version: '1.0.0',
     };
     this.loaded = false;
   }
@@ -50,7 +50,7 @@ export class StateManager {
           ...loaded,
           bridge: { ...this.state.bridge, ...loaded.bridge },
           agents: { ...this.state.agents, ...loaded.agents },
-          preferences: { ...this.state.preferences, ...loaded.preferences }
+          preferences: { ...this.state.preferences, ...loaded.preferences },
         };
 
         this.loaded = true;
@@ -108,7 +108,9 @@ export class StateManager {
   }
 
   shouldAutoStartAgent(agentType) {
-    return this.state.agents[agentType]?.autoStart || this.state.agents[agentType]?.wasRunning || false;
+    return (
+      this.state.agents[agentType]?.autoStart || this.state.agents[agentType]?.wasRunning || false
+    );
   }
 
   getRunningAgents() {
@@ -137,7 +139,7 @@ export class StateManager {
     // Consider graceful if shutdown was within last 5 minutes
     const shutdownTime = new Date(this.state.lastShutdown).getTime();
     const now = Date.now();
-    return (now - shutdownTime) < (5 * 60 * 1000);
+    return now - shutdownTime < 5 * 60 * 1000;
   }
 
   // Full state access
@@ -151,16 +153,16 @@ export class StateManager {
       agents: {
         ollama: { autoStart: false, lastStarted: null, wasRunning: false },
         analyzer: { autoStart: false, lastStarted: null, wasRunning: false },
-        claude: { autoStart: false, lastStarted: null, wasRunning: false }
+        claude: { autoStart: false, lastStarted: null, wasRunning: false },
       },
       preferences: {
         logLevel: 'INFO',
         metricsInterval: 10000,
         autoReconnect: true,
-        maxRetries: 5
+        maxRetries: 5,
       },
       lastShutdown: null,
-      version: '1.0.0'
+      version: '1.0.0',
     };
   }
 }

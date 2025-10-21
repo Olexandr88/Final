@@ -18,8 +18,8 @@ class ApiTestWorkflow1Agent {
   constructor() {
     this.agentId = AGENT_ID;
     this.ws = null;
-    this.capabilities = ["rest_test","graphql_test","load_test"];
-    this.intents = ["api.test","api.validate","api.report"];
+    this.capabilities = ['rest_test', 'graphql_test', 'load_test'];
+    this.intents = ['api.test', 'api.validate', 'api.report'];
   }
 
   async connect() {
@@ -31,17 +31,19 @@ class ApiTestWorkflow1Agent {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'Tests API endpoints',
-      labels: ['auto-generated', 'specialized', 'api-test-workflow-1'],
-      tools: this.capabilities,
-      intents: this.intents,
-      maxConcurrentTasks: 3
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'Tests API endpoints',
+        labels: ['auto-generated', 'specialized', 'api-test-workflow-1'],
+        tools: this.capabilities,
+        intents: this.intents,
+        maxConcurrentTasks: 3,
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info(`✅ ${this.agentId} ready\n`);
 
     this.setupHandlers();
@@ -80,29 +82,32 @@ class ApiTestWorkflow1Agent {
       // Auto-generated agent logic
       const result = await this.processTask(intent, payload);
 
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: `${intent}.result`,
-          replyTo: id,
-          payload: result
-        }
-      }));
-
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: `${intent}.result`,
+            replyTo: id,
+            payload: result,
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Error processing task:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: 'agent.error',
-          replyTo: id,
-          payload: { error: error.message }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: 'agent.error',
+            replyTo: id,
+            payload: { error: error.message },
+          },
+        })
+      );
     }
   }
 
@@ -117,7 +122,7 @@ class ApiTestWorkflow1Agent {
       timestamp: new Date().toISOString(),
       payload,
       capabilities: this.capabilities,
-      message: `Task processed by auto-generated agent`
+      message: `Task processed by auto-generated agent`,
     };
 
     return result;
@@ -126,7 +131,7 @@ class ApiTestWorkflow1Agent {
 
 // Start agent
 const agent = new ApiTestWorkflow1Agent();
-agent.connect().catch(err => {
+agent.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

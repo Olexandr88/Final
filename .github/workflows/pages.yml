@@ -2,7 +2,7 @@ name: Deploy Projects Dashboard to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'docs/**'
       - 'Projects.json'
@@ -36,7 +36,7 @@ jobs:
         run: |
           # Create docs directory
           mkdir -p docs
-          
+
           # Copy all website files to docs for GitHub Pages
           if [ -d "website" ]; then
             echo "Copying website files to docs..."
@@ -45,7 +45,7 @@ jobs:
             echo "No website directory found, creating minimal structure..."
             mkdir -p docs/js docs/css
           fi
-          
+
           # Copy and enhance Projects.json
           if [ -f "Projects.json" ]; then
             echo "Processing Projects.json..."
@@ -92,7 +92,7 @@ jobs:
           else
             echo "⚠️  No Projects.json found"
           fi
-          
+
           # Create optimized index.html redirect
           cat > docs/index.html << 'EOF'
           <!DOCTYPE html>
@@ -137,7 +137,7 @@ jobs:
           </body>
           </html>
           EOF
-          
+
           echo "📁 Built docs directory structure:"
           find docs -type f -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" | head -20
           echo "✅ Dashboard build complete!"

@@ -15,7 +15,7 @@ describe('Comet Automation Agent', () => {
     try {
       agent = new CometAutomationAgent({
         agentId: 'comet-test-agent',
-        autoReconnect: false
+        autoReconnect: false,
       });
       await agent.ensureCometRunning();
     } catch (error) {
@@ -65,7 +65,7 @@ describe('Comet Automation Agent', () => {
 
     const testMessage = JSON.stringify({
       type: 'comet:navigate',
-      data: { url: 'https://example.com' }
+      data: { url: 'https://example.com' },
     });
 
     // Should not throw during message handling (async operations may fail if CDP not connected)
@@ -106,7 +106,7 @@ describe('Comet API Endpoints', () => {
       const response = await fetch(`${BASE_URL}/navigate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
 
       if (response.status === 400) {
@@ -124,7 +124,7 @@ describe('Comet API Endpoints', () => {
       const response = await fetch(`${BASE_URL}/execute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
 
       if (response.status === 400) {
@@ -142,7 +142,7 @@ describe('Comet API Endpoints', () => {
       const response = await fetch(`${BASE_URL}/extract`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
 
       if (response.status === 400) {
@@ -160,7 +160,7 @@ describe('Comet API Endpoints', () => {
       const response = await fetch(`${BASE_URL}/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       });
 
       if (response.status === 400) {

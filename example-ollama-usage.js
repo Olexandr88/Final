@@ -9,7 +9,7 @@ import { fileLockManager } from './src/coordination/file-lock-manager.js';
 
 console.log('📚 EXAMPLE USAGE SCRIPTS\n');
 console.log('These examples show how to use the EXISTING autonomous system');
-console.log('='  .repeat(70) + '\n');
+console.log('='.repeat(70) + '\n');
 
 // ============================================================================
 // EXAMPLE 1: Direct Tool Execution (Simple)
@@ -23,14 +23,14 @@ async function example1_DirectToolExecution() {
     file_read: true,
     file_write: true,
     command_exec: true,
-    git_operations: true
+    git_operations: true,
   });
 
   console.log('✅ Available tools:', executor.getAvailableTools().join(', '));
 
   // Read a file
   const readResult = await executor.executeTool('read', {
-    file_path: 'package.json'
+    file_path: 'package.json',
   });
 
   console.log('✅ Read package.json');
@@ -83,7 +83,7 @@ async function example3_WithLockHelper() {
     const executor = new ToolExecutor(agentId, { file_write: true });
     await executor.executeTool('write', {
       file_path: filePath,
-      content: 'This was written safely with automatic locking'
+      content: 'This was written safely with automatic locking',
     });
 
     console.log('✅ File written, lock will auto-release');
@@ -100,7 +100,7 @@ console.log('-'.repeat(70));
 
 async function example4_GitOperations() {
   const executor = new ToolExecutor('git-example', {
-    git_operations: true
+    git_operations: true,
   });
 
   // Get git status
@@ -122,13 +122,13 @@ console.log('-'.repeat(70));
 
 async function example5_CommandExecution() {
   const executor = new ToolExecutor('cmd-example', {
-    command_exec: true
+    command_exec: true,
   });
 
   // Run a safe command
   const result = await executor.executeTool('bash', {
     command: 'echo',
-    args: ['Hello from autonomous tool executor!']
+    args: ['Hello from autonomous tool executor!'],
   });
 
   console.log('✅ Command output:', result.result.stdout);
@@ -146,7 +146,7 @@ async function example6_MonitorLocks() {
   console.log('✅ Active locks:', activeLocks.length);
 
   if (activeLocks.length > 0) {
-    activeLocks.forEach(lock => {
+    activeLocks.forEach((lock) => {
       console.log('   -', lock.filePath, 'locked by', lock.agentId);
     });
   } else {
@@ -169,14 +169,14 @@ console.log('-'.repeat(70));
 async function example7_MetricsTracking() {
   const executor = new ToolExecutor('metrics-example', {
     file_read: true,
-    file_write: true
+    file_write: true,
   });
 
   // Perform some operations
   await executor.executeTool('read', { file_path: 'package.json' });
   await executor.executeTool('write', {
     file_path: './metrics-test.txt',
-    content: 'Test'
+    content: 'Test',
   });
 
   // Get metrics
@@ -202,7 +202,7 @@ async function runAllExamples() {
     await example6_MonitorLocks();
     await example7_MetricsTracking();
 
-    console.log('='  .repeat(70));
+    console.log('='.repeat(70));
     console.log('✅ ALL EXAMPLES COMPLETED SUCCESSFULLY\n');
     console.log('Key Takeaways:');
     console.log('1. Use ToolExecutor for direct tool access');
@@ -214,7 +214,6 @@ async function runAllExamples() {
     console.log('- standalone-ollama-executor.js (standalone mode)');
     console.log('- start-autonomous-system.js (full system)');
     console.log('- Any custom agent implementations\n');
-
   } catch (error) {
     console.error('❌ Error running examples:', error.message);
     process.exit(1);
@@ -233,5 +232,5 @@ export {
   example4_GitOperations,
   example5_CommandExecution,
   example6_MonitorLocks,
-  example7_MetricsTracking
+  example7_MetricsTracking,
 };

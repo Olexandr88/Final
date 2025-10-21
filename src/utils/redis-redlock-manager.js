@@ -27,7 +27,7 @@ class RedisRedlockManager extends EventEmitter {
     this.redisNodes = options.redisNodes || [
       { host: 'localhost', port: 6379 },
       { host: 'localhost', port: 6380 },
-      { host: 'localhost', port: 6381 }
+      { host: 'localhost', port: 6381 },
     ];
 
     // Redlock configuration
@@ -48,12 +48,12 @@ class RedisRedlockManager extends EventEmitter {
       },
       reconnectOnError: (err) => {
         const targetErrors = ['READONLY', 'ECONNRESET', 'ETIMEDOUT'];
-        if (targetErrors.some(e => err.message.includes(e))) {
+        if (targetErrors.some((e) => err.message.includes(e))) {
           return true; // Reconnect
         }
         return false;
       },
-      ...options.clientOptions
+      ...options.clientOptions,
     };
 
     // State tracking
@@ -67,7 +67,7 @@ class RedisRedlockManager extends EventEmitter {
       locksExpired: 0,
       renewals: 0,
       totalAcquireTime: 0,
-      errors: 0
+      errors: 0,
     };
 
     this.initialized = false;
@@ -85,25 +85,27 @@ class RedisRedlockManager extends EventEmitter {
 
     try {
       logger.info('[RedisRedlock] Initializing Redis connections...', {
-        nodes: this.redisNodes.length
+        nodes: this.redisNodes.length,
       });
 
       // Create Redis clients for each node
       for (const nodeConfig of this.redisNodes) {
         const client = new Redis({
           ...nodeConfig,
-          ...this.clientOptions
+          ...this.clientOptions,
         });
 
         // Event handlers
         client.on('connect', () => {
-          logger.info(`[RedisRedlock] Connected to Redis node ${nodeConfig.host}:${nodeConfig.port}`);
+          logger.info(
+            `[RedisRedlock] Connected to Redis node ${nodeConfig.host}:${nodeConfig.port}`
+          );
           this.emit('node-connect', nodeConfig);
         });
 
         client.on('error', (err) => {
           logger.error(`[RedisRedlock] Redis node error ${nodeConfig.host}:${nodeConfig.port}`, {
-            error: err.message
+            error: err.message,
           });
           this.metrics.errors++;
           this.emit('node-error', { node: nodeConfig, error: err });
@@ -118,16 +120,17 @@ class RedisRedlockManager extends EventEmitter {
       }
 
       // Wait for at least majority of nodes to be ready
-      const readyPromises = this.redisClients.map(client =>
-        new Promise((resolve) => {
-          if (client.status === 'ready') {
-            resolve(true);
-          } else {
-            client.once('ready', () => resolve(true));
-            // Timeout after 5 seconds
-            setTimeout(() => resolve(false), 5000);
-          }
-        })
+      const readyPromises = this.redisClients.map(
+        (client) =>
+          new Promise((resolve) => {
+            if (client.status === 'ready') {
+              resolve(true);
+            } else {
+              client.once('ready', () => resolve(true));
+              // Timeout after 5 seconds
+              setTimeout(() => resolve(false), 5000);
+            }
+          })
       );
 
       const readyResults = await Promise.all(readyPromises);
@@ -143,22 +146,19 @@ class RedisRedlockManager extends EventEmitter {
       logger.info(`[RedisRedlock] ${readyCount}/${this.redisNodes.length} Redis nodes ready`);
 
       // Initialize Redlock
-      this.redlock = new Redlock(
-        this.redisClients,
-        {
-          driftFactor: this.driftFactor,
-          retryCount: this.retryCount,
-          retryDelay: this.retryDelay,
-          retryJitter: this.retryJitter,
-          automaticExtensionThreshold: this.automaticExtensionThreshold
-        }
-      );
+      this.redlock = new Redlock(this.redisClients, {
+        driftFactor: this.driftFactor,
+        retryCount: this.retryCount,
+        retryDelay: this.retryDelay,
+        retryJitter: this.retryJitter,
+        automaticExtensionThreshold: this.automaticExtensionThreshold,
+      });
 
       // Redlock event handlers
       this.redlock.on('clientError', (err, details) => {
         logger.error('[RedisRedlock] Redlock client error', {
           error: err.message,
-          details
+          details,
         });
         this.metrics.errors++;
       });
@@ -171,7 +171,6 @@ class RedisRedlockManager extends EventEmitter {
 
       // Start health check interval
       this._startHealthCheck();
-
     } catch (error) {
       logger.error('[RedisRedlock] Initialization failed', { error: error.message });
       throw error;
@@ -211,7 +210,7 @@ class RedisRedlockManager extends EventEmitter {
         acquiredAt: Date.now(),
         ttl: lockTTL,
         acquireTime,
-        renewalTimer: null
+        renewalTimer: null,
       };
 
       this.activeLocks.set(lockKey, lockInfo);
@@ -228,14 +227,14 @@ class RedisRedlockManager extends EventEmitter {
       logger.info('[RedisRedlock] Lock acquired', {
         resourcePath,
         acquireTime: acquireTime.toFixed(2),
-        ttl: lockTTL
+        ttl: lockTTL,
       });
 
       this.emit('lock-acquired', {
         resourcePath,
         lockKey,
         acquireTime,
-        ttl: lockTTL
+        ttl: lockTTL,
       });
 
       return {
@@ -244,9 +243,8 @@ class RedisRedlockManager extends EventEmitter {
         acquiredAt: lockInfo.acquiredAt,
         ttl: lockTTL,
         acquireTime,
-        release: () => this.releaseLock(resourcePath)
+        release: () => this.releaseLock(resourcePath),
       };
-
     } catch (error) {
       const acquireTime = performance.now() - startTime;
       this.metrics.locksFailed++;
@@ -254,14 +252,14 @@ class RedisRedlockManager extends EventEmitter {
       logger.error('[RedisRedlock] Failed to acquire lock', {
         resourcePath,
         error: error.message,
-        attemptTime: acquireTime.toFixed(2)
+        attemptTime: acquireTime.toFixed(2),
       });
 
       this.emit('lock-failed', {
         resourcePath,
         lockKey,
         error: error.message,
-        attemptTime: acquireTime
+        attemptTime: acquireTime,
       });
 
       throw new Error(`Failed to acquire lock for ${resourcePath}: ${error.message}`);
@@ -301,19 +299,18 @@ class RedisRedlockManager extends EventEmitter {
 
       logger.info('[RedisRedlock] Lock released', {
         resourcePath,
-        duration: lockDuration
+        duration: lockDuration,
       });
 
       this.emit('lock-released', {
         resourcePath,
         lockKey,
-        duration: lockDuration
+        duration: lockDuration,
       });
-
     } catch (error) {
       logger.error('[RedisRedlock] Failed to release lock', {
         resourcePath,
-        error: error.message
+        error: error.message,
       });
 
       // Remove from tracking anyway to prevent leaks
@@ -349,26 +346,25 @@ class RedisRedlockManager extends EventEmitter {
       logger.debug('[RedisRedlock] Lock extended', {
         resourcePath,
         extension,
-        newTTL: lockInfo.ttl
+        newTTL: lockInfo.ttl,
       });
 
       this.emit('lock-extended', {
         resourcePath,
         lockKey,
         extension,
-        newTTL: lockInfo.ttl
+        newTTL: lockInfo.ttl,
       });
 
       return {
         resourcePath,
         newTTL: lockInfo.ttl,
-        extension
+        extension,
       };
-
     } catch (error) {
       logger.error('[RedisRedlock] Failed to extend lock', {
         resourcePath,
-        error: error.message
+        error: error.message,
       });
 
       // Lock may have expired, clean up
@@ -414,7 +410,7 @@ class RedisRedlockManager extends EventEmitter {
       } catch (error) {
         logger.error('[RedisRedlock] Auto-renewal failed', {
           resourcePath: lockInfo.resourcePath,
-          error: error.message
+          error: error.message,
         });
 
         // Clear the timer and remove lock
@@ -424,7 +420,7 @@ class RedisRedlockManager extends EventEmitter {
 
         this.emit('lock-expired', {
           resourcePath: lockInfo.resourcePath,
-          lockKey: lockInfo.lockKey
+          lockKey: lockInfo.lockKey,
         });
       }
     }, renewalInterval);
@@ -452,7 +448,7 @@ class RedisRedlockManager extends EventEmitter {
 
         const results = await Promise.all(healthChecks);
 
-        const healthyCount = results.filter(r => r.healthy).length;
+        const healthyCount = results.filter((r) => r.healthy).length;
         const requiredQuorum = Math.floor(this.redisNodes.length / 2) + 1;
 
         const wasHealthy = this.healthy;
@@ -467,17 +463,15 @@ class RedisRedlockManager extends EventEmitter {
         }
 
         // Calculate average latency
-        const avgLatency = results
-          .filter(r => r.healthy)
-          .reduce((sum, r) => sum + r.latency, 0) / healthyCount;
+        const avgLatency =
+          results.filter((r) => r.healthy).reduce((sum, r) => sum + r.latency, 0) / healthyCount;
 
         this.emit('health-check', {
           healthy: this.healthy,
           healthyNodes: healthyCount,
           totalNodes: this.redisNodes.length,
-          avgLatency: avgLatency.toFixed(2)
+          avgLatency: avgLatency.toFixed(2),
         });
-
       } catch (error) {
         logger.error('[RedisRedlock] Health check error', { error: error.message });
       }
@@ -504,7 +498,7 @@ class RedisRedlockManager extends EventEmitter {
       acquiredAt: lockInfo.acquiredAt,
       ttl: lockInfo.ttl,
       age: Date.now() - lockInfo.acquiredAt,
-      autoRenew: lockInfo.renewalTimer !== null
+      autoRenew: lockInfo.renewalTimer !== null,
     };
   }
 
@@ -525,13 +519,13 @@ class RedisRedlockManager extends EventEmitter {
    * @returns {Array<Object>}
    */
   listLocks() {
-    return Array.from(this.activeLocks.values()).map(lockInfo => ({
+    return Array.from(this.activeLocks.values()).map((lockInfo) => ({
       resourcePath: lockInfo.resourcePath,
       lockKey: lockInfo.lockKey,
       acquiredAt: lockInfo.acquiredAt,
       ttl: lockInfo.ttl,
       age: Date.now() - lockInfo.acquiredAt,
-      autoRenew: lockInfo.renewalTimer !== null
+      autoRenew: lockInfo.renewalTimer !== null,
     }));
   }
 
@@ -541,18 +535,24 @@ class RedisRedlockManager extends EventEmitter {
    * @returns {Object}
    */
   getMetrics() {
-    const avgAcquireTime = this.metrics.locksAcquired > 0
-      ? this.metrics.totalAcquireTime / this.metrics.locksAcquired
-      : 0;
+    const avgAcquireTime =
+      this.metrics.locksAcquired > 0
+        ? this.metrics.totalAcquireTime / this.metrics.locksAcquired
+        : 0;
 
     return {
       ...this.metrics,
       avgAcquireTime: avgAcquireTime.toFixed(2),
       activeLocks: this.activeLocks.size,
-      successRate: this.metrics.locksAcquired > 0
-        ? ((this.metrics.locksAcquired / (this.metrics.locksAcquired + this.metrics.locksFailed)) * 100).toFixed(2)
-        : 0,
-      healthy: this.healthy
+      successRate:
+        this.metrics.locksAcquired > 0
+          ? (
+              (this.metrics.locksAcquired /
+                (this.metrics.locksAcquired + this.metrics.locksFailed)) *
+              100
+            ).toFixed(2)
+          : 0,
+      healthy: this.healthy,
     };
   }
 
@@ -565,7 +565,7 @@ class RedisRedlockManager extends EventEmitter {
     if (!this.initialized) {
       return {
         healthy: false,
-        initialized: false
+        initialized: false,
       };
     }
 
@@ -580,20 +580,20 @@ class RedisRedlockManager extends EventEmitter {
             node: this.redisNodes[index],
             healthy: true,
             latency: latency.toFixed(2),
-            status: client.status
+            status: client.status,
           };
         } catch (error) {
           return {
             node: this.redisNodes[index],
             healthy: false,
             error: error.message,
-            status: client.status
+            status: client.status,
           };
         }
       })
     );
 
-    const healthyCount = nodeHealthChecks.filter(n => n.healthy).length;
+    const healthyCount = nodeHealthChecks.filter((n) => n.healthy).length;
     const requiredQuorum = Math.floor(this.redisNodes.length / 2) + 1;
 
     return {
@@ -604,7 +604,7 @@ class RedisRedlockManager extends EventEmitter {
       totalNodes: this.redisNodes.length,
       requiredQuorum,
       hasQuorum: healthyCount >= requiredQuorum,
-      metrics: this.getMetrics()
+      metrics: this.getMetrics(),
     };
   }
 
@@ -631,7 +631,7 @@ class RedisRedlockManager extends EventEmitter {
       } catch (err) {
         logger.error('[RedisRedlock] Error releasing lock during cleanup', {
           lockKey,
-          error: err.message
+          error: err.message,
         });
       }
     }
@@ -640,7 +640,7 @@ class RedisRedlockManager extends EventEmitter {
     this.activeLocks.clear();
 
     // Quit all Redis clients
-    const quitPromises = this.redisClients.map(client => client.quit());
+    const quitPromises = this.redisClients.map((client) => client.quit());
     await Promise.allSettled(quitPromises);
 
     this.redisClients = [];

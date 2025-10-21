@@ -14,13 +14,15 @@ export class CometAutomationAgent extends EventEmitter {
     super();
 
     this.config = {
-      cometPath: config.cometPath || 'C:\\Users\\scarm\\AppData\\Local\\Perplexity\\Comet\\Application\\comet.exe',
+      cometPath:
+        config.cometPath ||
+        'C:\\Users\\scarm\\AppData\\Local\\Perplexity\\Comet\\Application\\comet.exe',
       debugPort: config.debugPort || 9222,
       bridgeWS: config.bridgeWS || process.env.BRIDGE_WS || 'ws://localhost:65028',
       agentId: config.agentId || 'comet-assistant-1',
       autoReconnect: config.autoReconnect !== false,
       reconnectDelay: config.reconnectDelay || 5000,
-      ...config
+      ...config,
     };
 
     this.bridgeConnection = null;
@@ -34,7 +36,7 @@ export class CometAutomationAgent extends EventEmitter {
       'dom-interaction',
       'data-extraction',
       'screenshot-capture',
-      'network-monitoring'
+      'network-monitoring',
     ];
   }
 
@@ -99,8 +101,7 @@ export class CometAutomationAgent extends EventEmitter {
       });
 
       // Wait for Comet to start
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
+      await new Promise((resolve) => setTimeout(resolve, 3000));
     } catch (error) {
       logger.error('Error ensuring Comet is running', { error: error.message });
       throw new Error(`Failed to start Comet: ${error.message}`);
@@ -127,8 +128,8 @@ export class CometAutomationAgent extends EventEmitter {
               agentId: this.config.agentId,
               name: 'Comet Assistant',
               capabilities: this.capabilities,
-              status: 'active'
-            }
+              status: 'active',
+            },
           });
 
           this.isConnected = true;
@@ -161,7 +162,6 @@ export class CometAutomationAgent extends EventEmitter {
             reject(new Error('Bridge connection timeout'));
           }
         }, 10000);
-
       } catch (error) {
         logger.error('Failed to connect to bridge', { error: error.message });
         reject(error);
@@ -205,7 +205,6 @@ export class CometAutomationAgent extends EventEmitter {
           this.emit('cdp:disconnected');
         });
       });
-
     } catch (error) {
       logger.error('Failed to connect to Comet CDP', { error: error.message });
       throw new Error(`CDP connection failed: ${error.message}`);
@@ -276,14 +275,16 @@ export class CometAutomationAgent extends EventEmitter {
     }
 
     try {
-      this.bridgeConnection.send(JSON.stringify({
-        ...message,
-        metadata: {
-          agentId: this.config.agentId,
-          timestamp: Date.now(),
-          ...message.metadata
-        }
-      }));
+      this.bridgeConnection.send(
+        JSON.stringify({
+          ...message,
+          metadata: {
+            agentId: this.config.agentId,
+            timestamp: Date.now(),
+            ...message.metadata,
+          },
+        })
+      );
     } catch (error) {
       logger.error('Error sending to bridge', { error: error.message });
     }
@@ -335,7 +336,7 @@ export class CometAutomationAgent extends EventEmitter {
 
       this.sendToBridge({
         type: 'comet:navigation:complete',
-        data: { url, frameId: result.frameId }
+        data: { url, frameId: result.frameId },
       });
 
       return result;
@@ -354,12 +355,12 @@ export class CometAutomationAgent extends EventEmitter {
 
       const result = await this.sendCDPCommand('Runtime.evaluate', {
         expression: script,
-        returnByValue: true
+        returnByValue: true,
       });
 
       this.sendToBridge({
         type: 'comet:script:executed',
-        data: { result: result.result.value }
+        data: { result: result.result.value },
       });
 
       return result.result.value;
@@ -391,7 +392,7 @@ export class CometAutomationAgent extends EventEmitter {
 
       this.sendToBridge({
         type: 'comet:data:extracted',
-        data: { selector, results: data }
+        data: { selector, results: data },
       });
 
       return data;
@@ -409,12 +410,12 @@ export class CometAutomationAgent extends EventEmitter {
       logger.info('Taking screenshot');
 
       const result = await this.sendCDPCommand('Page.captureScreenshot', {
-        format: 'png'
+        format: 'png',
       });
 
       this.sendToBridge({
         type: 'comet:screenshot:captured',
-        data: { screenshot: result.data }
+        data: { screenshot: result.data },
       });
 
       return result.data;
@@ -435,14 +436,14 @@ export class CometAutomationAgent extends EventEmitter {
       await this.navigate(`https://www.perplexity.ai/search?q=${encodeURIComponent(query)}`);
 
       // Wait for results (simplified - real implementation would wait for specific elements)
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Extract results
       const results = await this.extractData('.search-result, [data-search-result]');
 
       this.sendToBridge({
         type: 'comet:search:complete',
-        data: { query, results }
+        data: { query, results },
       });
 
       return results;
@@ -486,7 +487,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.error('❌ Agent error:', error.message);
   });
 
-  agent.initialize().catch(error => {
+  agent.initialize().catch((error) => {
     console.error('Failed to initialize agent:', error);
     process.exit(1);
   });

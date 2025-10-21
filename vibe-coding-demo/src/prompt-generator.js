@@ -13,17 +13,29 @@ class PromptGenerator {
 ## Intent
 ${intent}
 
-${constraints.length > 0 ? `## Constraints
-${constraints.map(c => `- ${c}`).join('\n')}
-` : ''}
+${
+  constraints.length > 0
+    ? `## Constraints
+${constraints.map((c) => `- ${c}`).join('\n')}
+`
+    : ''
+}
 
-${context ? `## Context
+${
+  context
+    ? `## Context
 ${context}
-` : ''}
+`
+    : ''
+}
 
-${steps.length > 0 ? `## Implementation Steps
+${
+  steps.length > 0
+    ? `## Implementation Steps
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
-` : ''}
+`
+    : ''
+}
 
 Please implement this feature following the constraints above.
 `.trim();
@@ -40,13 +52,21 @@ ${feature}
 ## Visual Style
 ${vibe}
 
-${references.length > 0 ? `## Design References
-${references.map(r => `- ${r}`).join('\n')}
-` : ''}
+${
+  references.length > 0
+    ? `## Design References
+${references.map((r) => `- ${r}`).join('\n')}
+`
+    : ''
+}
 
-${constraints.length > 0 ? `## Requirements
-${constraints.map(c => `- ${c}`).join('\n')}
-` : ''}
+${
+  constraints.length > 0
+    ? `## Requirements
+${constraints.map((c) => `- ${c}`).join('\n')}
+`
+    : ''
+}
 
 Implement this UI component with the specified vibe. Use the design references as inspiration.
 After implementation, take a screenshot and verify it matches the design intent.
@@ -62,11 +82,15 @@ After implementation, take a screenshot and verify it matches the design intent.
 ${feature}
 
 ## Acceptance Criteria
-${acceptance.map(a => `- ${a}`).join('\n')}
+${acceptance.map((a) => `- ${a}`).join('\n')}
 
-${edgeCases.length > 0 ? `## Edge Cases to Handle
-${edgeCases.map(e => `- ${e}`).join('\n')}
-` : ''}
+${
+  edgeCases.length > 0
+    ? `## Edge Cases to Handle
+${edgeCases.map((e) => `- ${e}`).join('\n')}
+`
+    : ''
+}
 
 ## TDD Workflow
 1. First, write failing tests for all acceptance criteria
@@ -88,13 +112,17 @@ Follow strict TDD. Write tests first, then implementation.
 ${file}
 
 ## Refactoring Goals
-${goals.map(g => `- ${g}`).join('\n')}
+${goals.map((g) => `- ${g}`).join('\n')}
 
-${keepBehavior ? `
+${
+  keepBehavior
+    ? `
 ## Critical Requirement
 ⚠️ Maintain existing behavior - do NOT change functionality.
 All existing tests must continue to pass after refactoring.
-` : ''}
+`
+    : ''
+}
 
 ## Approach
 1. Review current implementation
@@ -114,7 +142,7 @@ Refactor the code to achieve the goals while maintaining stability.
       'test-specialist': `Delegate to test-specialist sub-agent: ${task}\n\nEnsure comprehensive test coverage and TDD approach.`,
       'ui-designer': `Use ui-designer sub-agent for: ${task}\n\nRequest visual validation with screenshots.`,
       'security-specialist': `Delegate to security-specialist for: ${task}\n\nRequest full vulnerability assessment.`,
-      'debugger': `Use debugger sub-agent to systematically fix: ${task}\n\nRequest root cause analysis.`
+      debugger: `Use debugger sub-agent to systematically fix: ${task}\n\nRequest root cause analysis.`,
     };
 
     return prompts[agentType] || `Use ${agentType} sub-agent for: ${task}`;
@@ -180,24 +208,57 @@ if (require.main === module) {
   const type = process.argv[2];
 
   const examples = {
-    structured: () => console.log(PromptGenerator.structured({
-      intent: 'Add user authentication with email/password',
-      constraints: ['Use bcrypt for password hashing', 'JWT for sessions', 'Follow existing auth patterns'],
-      steps: ['Create User model', 'Implement registration endpoint', 'Implement login endpoint', 'Add auth middleware'],
-      context: 'Express.js API with MongoDB'
-    })),
-    ui: () => console.log(PromptGenerator.ui({
-      feature: 'Dashboard with analytics cards',
-      vibe: 'Modern SaaS dashboard, minimalistic, flat design with subtle shadows',
-      references: ['https://dribbble.com/tags/dashboard', 'Stripe dashboard', 'Vercel dashboard'],
-      constraints: ['Mobile responsive', 'Dark mode support', 'Accessible (WCAG AA)']
-    })),
-    tdd: () => console.log(PromptGenerator.tdd({
-      feature: 'Shopping cart functionality',
-      acceptance: ['Add items to cart', 'Remove items', 'Update quantities', 'Calculate total with tax'],
-      edgeCases: ['Empty cart', 'Negative quantities', 'Out of stock items']
-    })),
-    delegate: () => console.log(PromptGenerator.delegateToAgent('code-reviewer', 'Review the authentication module for security issues'))
+    structured: () =>
+      console.log(
+        PromptGenerator.structured({
+          intent: 'Add user authentication with email/password',
+          constraints: [
+            'Use bcrypt for password hashing',
+            'JWT for sessions',
+            'Follow existing auth patterns',
+          ],
+          steps: [
+            'Create User model',
+            'Implement registration endpoint',
+            'Implement login endpoint',
+            'Add auth middleware',
+          ],
+          context: 'Express.js API with MongoDB',
+        })
+      ),
+    ui: () =>
+      console.log(
+        PromptGenerator.ui({
+          feature: 'Dashboard with analytics cards',
+          vibe: 'Modern SaaS dashboard, minimalistic, flat design with subtle shadows',
+          references: [
+            'https://dribbble.com/tags/dashboard',
+            'Stripe dashboard',
+            'Vercel dashboard',
+          ],
+          constraints: ['Mobile responsive', 'Dark mode support', 'Accessible (WCAG AA)'],
+        })
+      ),
+    tdd: () =>
+      console.log(
+        PromptGenerator.tdd({
+          feature: 'Shopping cart functionality',
+          acceptance: [
+            'Add items to cart',
+            'Remove items',
+            'Update quantities',
+            'Calculate total with tax',
+          ],
+          edgeCases: ['Empty cart', 'Negative quantities', 'Out of stock items'],
+        })
+      ),
+    delegate: () =>
+      console.log(
+        PromptGenerator.delegateToAgent(
+          'code-reviewer',
+          'Review the authentication module for security issues'
+        )
+      ),
   };
 
   if (examples[type]) {

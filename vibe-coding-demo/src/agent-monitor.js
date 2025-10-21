@@ -26,7 +26,7 @@ class AgentMonitor {
       filteredLength: filteredOutput.length,
       filtering: analysis,
       rawOutput,
-      filteredOutput
+      filteredOutput,
     };
 
     this.saveLog(agent, record);
@@ -43,7 +43,7 @@ class AgentMonitor {
     const analysis = {
       detected: false,
       severity: 'none',
-      changes: []
+      changes: [],
     };
 
     // Length difference
@@ -57,9 +57,19 @@ class AgentMonitor {
 
     // Content analysis
     const criticalKeywords = [
-      'bug', 'error', 'issue', 'problem', 'warning',
-      'security', 'vulnerability', 'critical', 'fail',
-      'broken', 'incorrect', 'wrong', 'bad'
+      'bug',
+      'error',
+      'issue',
+      'problem',
+      'warning',
+      'security',
+      'vulnerability',
+      'critical',
+      'fail',
+      'broken',
+      'incorrect',
+      'wrong',
+      'bad',
     ];
 
     const rawCritical = this.countKeywords(raw, criticalKeywords);
@@ -78,11 +88,11 @@ class AgentMonitor {
       /major\s+issue/gi,
       /not\s+recommended/gi,
       /avoid/gi,
-      /dangerous/gi
+      /dangerous/gi,
     ];
 
-    const rawNegative = negativePatterns.filter(p => p.test(raw)).length;
-    const filteredNegative = negativePatterns.filter(p => p.test(filtered)).length;
+    const rawNegative = negativePatterns.filter((p) => p.test(raw)).length;
+    const filteredNegative = negativePatterns.filter((p) => p.test(filtered)).length;
 
     if (rawNegative > filteredNegative) {
       analysis.detected = true;
@@ -103,7 +113,7 @@ class AgentMonitor {
   countKeywords(text, keywords) {
     let count = 0;
     const lowerText = text.toLowerCase();
-    keywords.forEach(keyword => {
+    keywords.forEach((keyword) => {
       const regex = new RegExp(keyword, 'gi');
       const matches = lowerText.match(regex);
       if (matches) count += matches.length;
@@ -128,7 +138,7 @@ class AgentMonitor {
     console.warn(`Agent: ${record.agent}`);
     console.warn(`Severity: ${record.filtering.severity.toUpperCase()}`);
     console.warn(`Changes:`);
-    record.filtering.changes.forEach(change => {
+    record.filtering.changes.forEach((change) => {
       console.warn(`  - ${change}`);
     });
     console.warn('\n⚡ Recommendation: Review raw sub-agent output for critical feedback\n');
@@ -140,9 +150,10 @@ class AgentMonitor {
       return { totalLogs: 0, filteringIncidents: 0 };
     }
 
-    const logs = fs.readdirSync(this.logDir)
-      .filter(f => f.endsWith('.json'))
-      .map(f => {
+    const logs = fs
+      .readdirSync(this.logDir)
+      .filter((f) => f.endsWith('.json'))
+      .map((f) => {
         try {
           return JSON.parse(fs.readFileSync(path.join(this.logDir, f), 'utf8'));
         } catch {
@@ -151,23 +162,24 @@ class AgentMonitor {
       })
       .filter(Boolean);
 
-    const filteringIncidents = logs.filter(log => log.filtering?.detected);
+    const filteringIncidents = logs.filter((log) => log.filtering?.detected);
 
     const report = {
       totalLogs: logs.length,
       filteringIncidents: filteringIncidents.length,
-      filteringRate: logs.length > 0 ? (filteringIncidents.length / logs.length * 100).toFixed(1) : 0,
+      filteringRate:
+        logs.length > 0 ? ((filteringIncidents.length / logs.length) * 100).toFixed(1) : 0,
       bySeverity: {
-        high: filteringIncidents.filter(i => i.filtering.severity === 'high').length,
-        medium: filteringIncidents.filter(i => i.filtering.severity === 'medium').length,
-        low: filteringIncidents.filter(i => i.filtering.severity === 'low').length
+        high: filteringIncidents.filter((i) => i.filtering.severity === 'high').length,
+        medium: filteringIncidents.filter((i) => i.filtering.severity === 'medium').length,
+        low: filteringIncidents.filter((i) => i.filtering.severity === 'low').length,
       },
-      incidents: filteringIncidents.map(i => ({
+      incidents: filteringIncidents.map((i) => ({
         agent: i.agent,
         timestamp: i.timestamp,
         severity: i.filtering.severity,
-        changes: i.filtering.changes
-      }))
+        changes: i.filtering.changes,
+      })),
     };
 
     return report;
@@ -182,9 +194,11 @@ class AgentMonitor {
     // Scenario 1: Heavy filtering
     const scenario1 = {
       agent: 'code-reviewer',
-      rawOutput: 'Critical security vulnerability found in authentication module. The password hashing is poorly designed and uses MD5 which is broken. This is a serious bug that must be fixed immediately. Additionally, there are 5 other major issues with input validation that could lead to SQL injection.',
-      filteredOutput: 'The authentication module looks good overall. Just some minor improvements needed for security best practices.',
-      timestamp: new Date().toISOString()
+      rawOutput:
+        'Critical security vulnerability found in authentication module. The password hashing is poorly designed and uses MD5 which is broken. This is a serious bug that must be fixed immediately. Additionally, there are 5 other major issues with input validation that could lead to SQL injection.',
+      filteredOutput:
+        'The authentication module looks good overall. Just some minor improvements needed for security best practices.',
+      timestamp: new Date().toISOString(),
     };
 
     console.log('Scenario 1: Code Review with Heavy Filtering');
@@ -193,9 +207,11 @@ class AgentMonitor {
     // Scenario 2: No filtering
     const scenario2 = {
       agent: 'test-specialist',
-      rawOutput: 'Test suite is comprehensive with 95% coverage. All tests passing. Good use of mocking and edge case handling.',
-      filteredOutput: 'Test suite is comprehensive with 95% coverage. All tests passing. Good use of mocking and edge case handling.',
-      timestamp: new Date().toISOString()
+      rawOutput:
+        'Test suite is comprehensive with 95% coverage. All tests passing. Good use of mocking and edge case handling.',
+      filteredOutput:
+        'Test suite is comprehensive with 95% coverage. All tests passing. Good use of mocking and edge case handling.',
+      timestamp: new Date().toISOString(),
     };
 
     console.log('\nScenario 2: Test Review with No Filtering');

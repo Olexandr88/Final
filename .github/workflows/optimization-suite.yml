@@ -1,9 +1,9 @@
 name: Complete Optimization Workflow
 on:
   push:
-    branches: [ "feat/bridge-demo-hardened", "main" ]
+    branches: ['feat/bridge-demo-hardened', 'main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
   workflow_dispatch:
     inputs:
       optimization_type:
@@ -35,7 +35,7 @@ jobs:
           npm ci
       - name: Run hardened bridge demo
         env:
-          NODE_OPTIONS: "--experimental-modules"
+          NODE_OPTIONS: '--experimental-modules'
         run: |
           echo "Running hardened bridge demo..."
           node examples/bridge-demo-hardened.js | tee bridge-results.json

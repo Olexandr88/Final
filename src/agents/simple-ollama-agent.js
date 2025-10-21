@@ -66,15 +66,17 @@ class SimpleOllamaAgent {
 
   register() {
     logger.info(`📝 Registering ${this.agentId}`);
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'ollama-assistant',
-      labels: ['ollama', 'ai', 'assistant'],
-      tools: ['query', 'chat'],
-      intents: ['ai.query', 'code.analyze', 'file.read'],
-      maxConcurrentTasks: 3
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'ollama-assistant',
+        labels: ['ollama', 'ai', 'assistant'],
+        tools: ['query', 'chat'],
+        intents: ['ai.query', 'code.analyze', 'file.read'],
+        maxConcurrentTasks: 3,
+      })
+    );
   }
 
   async handleMessage(envelope) {
@@ -92,14 +94,13 @@ class SimpleOllamaAgent {
       this.sendResponse(from, id, {
         response: response.text,
         model: MODEL,
-        status: 'success'
+        status: 'success',
       });
-
     } catch (error) {
       logger.error('Error handling message', { error: error.message });
       this.sendResponse(from, id, {
         error: error.message,
-        status: 'error'
+        status: 'error',
       });
     }
   }
@@ -109,16 +110,16 @@ class SimpleOllamaAgent {
       const postData = JSON.stringify({
         model: MODEL,
         messages: [{ role: 'user', content: message }],
-        stream: false
+        stream: false,
       });
 
       const options = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
+          'Content-Length': Buffer.byteLength(postData),
         },
-        timeout: 60000
+        timeout: 60000,
       };
 
       logger.info(`🦙 Calling Ollama (${MODEL}): ${message.slice(0, 50)}...`);
@@ -126,7 +127,7 @@ class SimpleOllamaAgent {
       const req = http.request(new URL('/api/chat', OLLAMA_URL), options, (res) => {
         let data = '';
 
-        res.on('data', chunk => data += chunk);
+        res.on('data', (chunk) => (data += chunk));
 
         res.on('end', () => {
           try {
@@ -155,16 +156,18 @@ class SimpleOllamaAgent {
   }
 
   sendResponse(to, replyTo, payload) {
-    this.ws.send(JSON.stringify({
-      type: 'envelope',
-      envelope: {
-        from: this.agentId,
-        to,
-        intent: 'ai.response',
-        replyTo,
-        payload
-      }
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'envelope',
+        envelope: {
+          from: this.agentId,
+          to,
+          intent: 'ai.response',
+          replyTo,
+          payload,
+        },
+      })
+    );
 
     logger.info(`📤 Sent response to ${to}`);
   }
@@ -174,7 +177,7 @@ class SimpleOllamaAgent {
 if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
   const agent = new SimpleOllamaAgent();
 
-  agent.connect().catch(error => {
+  agent.connect().catch((error) => {
     logger.error('Failed to start agent', { error: error.message });
     process.exit(1);
   });
@@ -182,7 +185,7 @@ if (import.meta.url === `file://${process.argv[1]?.replace(/\\/g, '/')}`) {
   logger.info(`🚀 Simple Ollama Agent starting`, {
     agentId: AGENT_ID,
     model: MODEL,
-    bridgeUrl: BRIDGE_WS
+    bridgeUrl: BRIDGE_WS,
   });
 }
 

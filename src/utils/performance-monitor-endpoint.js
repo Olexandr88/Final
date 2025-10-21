@@ -13,13 +13,13 @@ export class PerformanceMonitorEndpoint {
       requests: 0,
       errors: 0,
       avgResponseTime: 0,
-      responseTimes: []
+      responseTimes: [],
     };
 
     this.systemMetrics = {
       cpuHistory: [],
       memoryHistory: [],
-      maxHistoryLength: 60 // Keep last 60 data points
+      maxHistoryLength: 60, // Keep last 60 data points
     };
 
     // Start periodic system metrics collection
@@ -39,14 +39,14 @@ export class PerformanceMonitorEndpoint {
     let totalIdle = 0;
     let totalTick = 0;
 
-    cpus.forEach(cpu => {
+    cpus.forEach((cpu) => {
       for (const type in cpu.times) {
         totalTick += cpu.times[type];
       }
       totalIdle += cpu.times.idle;
     });
 
-    const cpuUsage = 100 - ~~(100 * totalIdle / totalTick);
+    const cpuUsage = 100 - ~~((100 * totalIdle) / totalTick);
 
     // Memory usage
     const memoryUsage = (usedMemory / totalMemory) * 100;
@@ -54,12 +54,12 @@ export class PerformanceMonitorEndpoint {
     // Store in history
     this.systemMetrics.cpuHistory.push({
       timestamp: Date.now(),
-      value: cpuUsage
+      value: cpuUsage,
     });
 
     this.systemMetrics.memoryHistory.push({
       timestamp: Date.now(),
-      value: memoryUsage
+      value: memoryUsage,
     });
 
     // Trim history
@@ -87,8 +87,7 @@ export class PerformanceMonitorEndpoint {
 
     // Calculate average
     this.metrics.avgResponseTime =
-      this.metrics.responseTimes.reduce((a, b) => a + b, 0) /
-      this.metrics.responseTimes.length;
+      this.metrics.responseTimes.reduce((a, b) => a + b, 0) / this.metrics.responseTimes.length;
   }
 
   /**
@@ -108,7 +107,7 @@ export class PerformanceMonitorEndpoint {
         cpuCount: os.cpus().length,
         totalMemory: os.totalmem(),
         freeMemory: os.freemem(),
-        loadAverage: os.loadavg()
+        loadAverage: os.loadavg(),
       },
       process: {
         pid: process.pid,
@@ -117,25 +116,26 @@ export class PerformanceMonitorEndpoint {
           heapTotal: processMemory.heapTotal,
           heapUsed: processMemory.heapUsed,
           external: processMemory.external,
-          arrayBuffers: processMemory.arrayBuffers
+          arrayBuffers: processMemory.arrayBuffers,
         },
         cpuUsage: process.cpuUsage(),
-        uptime: Math.floor(process.uptime())
+        uptime: Math.floor(process.uptime()),
       },
       application: {
         requests: this.metrics.requests,
         errors: this.metrics.errors,
-        errorRate: this.metrics.requests > 0
-          ? ((this.metrics.errors / this.metrics.requests) * 100).toFixed(2) + '%'
-          : '0%',
+        errorRate:
+          this.metrics.requests > 0
+            ? ((this.metrics.errors / this.metrics.requests) * 100).toFixed(2) + '%'
+            : '0%',
         avgResponseTime: Math.round(this.metrics.avgResponseTime),
         p95ResponseTime: this._calculatePercentile(this.metrics.responseTimes, 95),
-        p99ResponseTime: this._calculatePercentile(this.metrics.responseTimes, 99)
+        p99ResponseTime: this._calculatePercentile(this.metrics.responseTimes, 99),
       },
       trends: {
         cpu: this.systemMetrics.cpuHistory,
-        memory: this.systemMetrics.memoryHistory
-      }
+        memory: this.systemMetrics.memoryHistory,
+      },
     };
   }
 
@@ -155,7 +155,8 @@ export class PerformanceMonitorEndpoint {
    */
   getHealthStatus() {
     const metrics = this.getMetrics();
-    const memoryUsagePercent = (metrics.process.memoryUsage.heapUsed / metrics.process.memoryUsage.heapTotal) * 100;
+    const memoryUsagePercent =
+      (metrics.process.memoryUsage.heapUsed / metrics.process.memoryUsage.heapTotal) * 100;
     const errorRate = parseFloat(metrics.application.errorRate);
 
     let status = 'healthy';
@@ -188,8 +189,8 @@ export class PerformanceMonitorEndpoint {
       metrics: {
         memoryUsage: memoryUsagePercent.toFixed(2) + '%',
         errorRate: metrics.application.errorRate,
-        avgResponseTime: metrics.application.avgResponseTime + 'ms'
-      }
+        avgResponseTime: metrics.application.avgResponseTime + 'ms',
+      },
     };
   }
 

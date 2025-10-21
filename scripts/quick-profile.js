@@ -35,9 +35,9 @@ class QuickProfiler {
       usage: cpus.map((cpu, i) => {
         const total = Object.values(cpu.times).reduce((a, b) => a + b, 0);
         const idle = cpu.times.idle;
-        const usage = ((total - idle) / total * 100).toFixed(2);
+        const usage = (((total - idle) / total) * 100).toFixed(2);
         return { core: i, usage: parseFloat(usage) };
-      })
+      }),
     };
   }
 
@@ -56,7 +56,7 @@ class QuickProfiler {
       usedPercent: ((used / total) * 100).toFixed(2),
       totalGB: (total / 1024 / 1024 / 1024).toFixed(2),
       usedGB: (used / 1024 / 1024 / 1024).toFixed(2),
-      freeGB: (free / 1024 / 1024 / 1024).toFixed(2)
+      freeGB: (free / 1024 / 1024 / 1024).toFixed(2),
     };
   }
 
@@ -68,24 +68,26 @@ class QuickProfiler {
       if (isWindows) {
         const { stdout } = await execAsync('tasklist /FO CSV /NH | sort /R');
         const lines = stdout.split('\n').slice(0, limit);
-        return lines.map(line => {
+        return lines.map((line) => {
           const parts = line.replace(/"/g, '').split(',');
           return {
             name: parts[0],
             pid: parts[1],
-            mem: parts[4]
+            mem: parts[4],
           };
         });
       } else {
-        const { stdout } = await execAsync(`ps aux --sort=-rss | head -${limit + 1} | tail -${limit}`);
-        return stdout.split('\n').map(line => {
+        const { stdout } = await execAsync(
+          `ps aux --sort=-rss | head -${limit + 1} | tail -${limit}`
+        );
+        return stdout.split('\n').map((line) => {
           const parts = line.trim().split(/\s+/);
           return {
             user: parts[0],
             pid: parts[1],
             cpu: parts[2],
             mem: parts[3],
-            command: parts[10]
+            command: parts[10],
           };
         });
       }
@@ -105,7 +107,7 @@ class QuickProfiler {
     const sample = {
       timestamp,
       cpu,
-      memory
+      memory,
     };
 
     this.samples.push(sample);
@@ -126,7 +128,9 @@ class QuickProfiler {
     console.log('💻 CPU');
     console.log('─'.repeat(70));
     console.log(`Cores: ${sample.cpu.cores} @ ${sample.cpu.speed} MHz`);
-    console.log(`Load Average: ${sample.cpu.loadAvg1m.toFixed(2)}, ${sample.cpu.loadAvg5m.toFixed(2)}, ${sample.cpu.loadAvg15m.toFixed(2)}`);
+    console.log(
+      `Load Average: ${sample.cpu.loadAvg1m.toFixed(2)}, ${sample.cpu.loadAvg5m.toFixed(2)}, ${sample.cpu.loadAvg15m.toFixed(2)}`
+    );
 
     // Display CPU bar chart
     sample.cpu.usage.forEach(({ core, usage }) => {
@@ -162,7 +166,7 @@ class QuickProfiler {
       const sample = await this.sample();
       this.displayStats(sample);
 
-      if (duration && (Date.now() - startTime) > duration) {
+      if (duration && Date.now() - startTime > duration) {
         clearInterval(interval);
         this.generateReport();
       }
@@ -180,7 +184,7 @@ class QuickProfiler {
     if (!duration) {
       await new Promise(() => {}); // Forever
     } else {
-      await new Promise(resolve => setTimeout(resolve, duration));
+      await new Promise((resolve) => setTimeout(resolve, duration));
     }
   }
 
@@ -196,14 +200,16 @@ class QuickProfiler {
     console.log('\n\n📊 Performance Summary');
     console.log('═'.repeat(70));
 
-    const cpuAvgs = this.samples.map(s =>
-      s.cpu.usage.reduce((sum, c) => sum + c.usage, 0) / s.cpu.usage.length
+    const cpuAvgs = this.samples.map(
+      (s) => s.cpu.usage.reduce((sum, c) => sum + c.usage, 0) / s.cpu.usage.length
     );
-    const memUsages = this.samples.map(s => parseFloat(s.memory.usedPercent));
+    const memUsages = this.samples.map((s) => parseFloat(s.memory.usedPercent));
 
     console.log('\n🎯 Averages:');
     console.log(`CPU Usage: ${(cpuAvgs.reduce((a, b) => a + b, 0) / cpuAvgs.length).toFixed(2)}%`);
-    console.log(`Memory Usage: ${(memUsages.reduce((a, b) => a + b, 0) / memUsages.length).toFixed(2)}%`);
+    console.log(
+      `Memory Usage: ${(memUsages.reduce((a, b) => a + b, 0) / memUsages.length).toFixed(2)}%`
+    );
 
     console.log('\n📈 Peaks:');
     console.log(`Max CPU: ${Math.max(...cpuAvgs).toFixed(2)}%`);
@@ -216,7 +222,9 @@ class QuickProfiler {
     console.log('\n⏱️  Sample Statistics:');
     console.log(`Total Samples: ${this.samples.length}`);
     console.log(`Duration: ${((Date.now() - this.startTime) / 1000).toFixed(2)}s`);
-    console.log(`Sample Rate: ${(this.samples.length / ((Date.now() - this.startTime) / 1000)).toFixed(2)} samples/sec`);
+    console.log(
+      `Sample Rate: ${(this.samples.length / ((Date.now() - this.startTime) / 1000)).toFixed(2)} samples/sec`
+    );
   }
 
   /**
@@ -231,7 +239,9 @@ class QuickProfiler {
     console.log('\n💻 CPU:');
     console.log(`  Cores: ${sample.cpu.cores}`);
     console.log(`  Model: ${sample.cpu.model}`);
-    console.log(`  Load: ${sample.cpu.loadAvg1m.toFixed(2)}, ${sample.cpu.loadAvg5m.toFixed(2)}, ${sample.cpu.loadAvg15m.toFixed(2)}`);
+    console.log(
+      `  Load: ${sample.cpu.loadAvg1m.toFixed(2)}, ${sample.cpu.loadAvg5m.toFixed(2)}, ${sample.cpu.loadAvg15m.toFixed(2)}`
+    );
     const avgCpu = sample.cpu.usage.reduce((sum, c) => sum + c.usage, 0) / sample.cpu.usage.length;
     console.log(`  Avg Usage: ${avgCpu.toFixed(2)}%`);
 

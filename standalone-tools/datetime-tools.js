@@ -41,7 +41,7 @@ export class DateTimeTools {
             success: true,
             operation,
             original: date.toISOString(),
-            result: this._formatDate(date, value || 'YYYY-MM-DD')
+            result: this._formatDate(date, value || 'YYYY-MM-DD'),
           };
 
         default:
@@ -53,12 +53,12 @@ export class DateTimeTools {
         operation,
         original: date.toISOString(),
         result: result.toISOString(),
-        formatted: this._formatDate(result, 'YYYY-MM-DD HH:mm:ss')
+        formatted: this._formatDate(result, 'YYYY-MM-DD HH:mm:ss'),
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -83,7 +83,7 @@ export class DateTimeTools {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false
+        hour12: false,
       });
 
       const toFormatter = new Intl.DateTimeFormat('en-US', {
@@ -94,24 +94,24 @@ export class DateTimeTools {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-        hour12: false
+        hour12: false,
       });
 
       return {
         success: true,
         original: {
           time: fromFormatter.format(date),
-          timezone: fromZone
+          timezone: fromZone,
         },
         converted: {
           time: toFormatter.format(date),
-          timezone: toZone
-        }
+          timezone: toZone,
+        },
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -129,14 +129,14 @@ export class DateTimeTools {
       utc: now.toUTCString(),
       local: now.toLocaleString(),
       date: now.toDateString(),
-      time: now.toTimeString()
+      time: now.toTimeString(),
     };
 
     return {
       success: true,
       format,
       result: formats[format] || formats.iso,
-      all: formats
+      all: formats,
     };
   }
 
@@ -163,13 +163,13 @@ export class DateTimeTools {
           hour: date.getHours(),
           minute: date.getMinutes(),
           second: date.getSeconds(),
-          dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'long' })
-        }
+          dayOfWeek: date.toLocaleDateString('en-US', { weekday: 'long' }),
+        },
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -213,7 +213,7 @@ export class DateTimeTools {
       minutes: diff / (1000 * 60),
       hours: diff / (1000 * 60 * 60),
       days: diff / (1000 * 60 * 60 * 24),
-      weeks: diff / (1000 * 60 * 60 * 24 * 7)
+      weeks: diff / (1000 * 60 * 60 * 24 * 7),
     };
 
     return {
@@ -223,7 +223,7 @@ export class DateTimeTools {
       end: date2.toISOString(),
       difference: units[unit] || units.days,
       unit: unit || 'days',
-      all: units
+      all: units,
     };
   }
 
@@ -231,12 +231,12 @@ export class DateTimeTools {
     const pad = (n) => String(n).padStart(2, '0');
 
     const replacements = {
-      'YYYY': date.getFullYear(),
-      'MM': pad(date.getMonth() + 1),
-      'DD': pad(date.getDate()),
-      'HH': pad(date.getHours()),
-      'mm': pad(date.getMinutes()),
-      'ss': pad(date.getSeconds())
+      YYYY: date.getFullYear(),
+      MM: pad(date.getMonth() + 1),
+      DD: pad(date.getDate()),
+      HH: pad(date.getHours()),
+      mm: pad(date.getMinutes()),
+      ss: pad(date.getSeconds()),
     };
 
     let result = format;
@@ -272,12 +272,12 @@ export class UtilityTools {
         success: true,
         version,
         count,
-        results: count === 1 ? results[0] : results
+        results: count === 1 ? results[0] : results,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -292,7 +292,7 @@ export class UtilityTools {
         alpha: 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
         alphanumeric: '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
         hex: '0123456789abcdef',
-        custom: charset
+        custom: charset,
       };
 
       const chars = charsets[charset] || charsets.alphanumeric;
@@ -306,12 +306,12 @@ export class UtilityTools {
         success: true,
         length,
         charset,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -320,14 +320,14 @@ export class UtilityTools {
    * Sleep/delay utility
    */
   static async sleep(milliseconds) {
-    return new Promise(resolve => setTimeout(resolve, milliseconds));
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
   }
 
   // Helper methods
   static _uuidV4() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -341,9 +341,9 @@ export class UtilityTools {
       if (i < 8) {
         r = (timestamp + Math.random() * 16) % 16 | 0;
       } else {
-        r = Math.random() * 16 | 0;
+        r = (Math.random() * 16) | 0;
       }
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
   }
@@ -351,18 +351,18 @@ export class UtilityTools {
 
 // CLI Interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [,, command, ...args] = process.argv;
+  const [, , command, ...args] = process.argv;
 
   const commands = {
     'date-calc': () => {
       const [operation, date, value, unit] = args;
       console.log(JSON.stringify(DateTimeTools.dateCalc(operation, date, value, unit), null, 2));
     },
-    'timezone': () => {
+    timezone: () => {
       const [time, fromZone, toZone] = args;
       console.log(JSON.stringify(DateTimeTools.timezoneConvert(time, fromZone, toZone), null, 2));
     },
-    'now': () => {
+    now: () => {
       const [format] = args;
       console.log(JSON.stringify(DateTimeTools.getCurrentTime(format), null, 2));
     },
@@ -370,20 +370,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       const [date] = args;
       console.log(JSON.stringify(DateTimeTools.parseDate(date), null, 2));
     },
-    'uuid': () => {
+    uuid: () => {
       const [version, count] = args;
-      console.log(JSON.stringify(UtilityTools.generateUUID({
-        version,
-        count: count ? parseInt(count) : 1
-      }), null, 2));
+      console.log(
+        JSON.stringify(
+          UtilityTools.generateUUID({
+            version,
+            count: count ? parseInt(count) : 1,
+          }),
+          null,
+          2
+        )
+      );
     },
     'random-string': () => {
       const [length, charset] = args;
-      console.log(JSON.stringify(UtilityTools.randomString(
-        length ? parseInt(length) : 16,
-        charset
-      ), null, 2));
-    }
+      console.log(
+        JSON.stringify(UtilityTools.randomString(length ? parseInt(length) : 16, charset), null, 2)
+      );
+    },
   };
 
   if (commands[command]) {

@@ -9,11 +9,7 @@ export function autonomouslyGenerated() {
     message: 'This code was implemented by an autonomous agent',
     timestamp: Date.now(),
     proof: 'Agent executed file write tool without human approval',
-    capabilities: [
-      'Code generation',
-      'File creation',
-      'Autonomous execution'
-    ]
+    capabilities: ['Code generation', 'File creation', 'Autonomous execution'],
   };
 }
 

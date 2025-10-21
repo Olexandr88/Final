@@ -7,7 +7,11 @@
 
 import { SessionManagerCQRS } from '../../src/architecture/session-manager-cqrs.js';
 import RedisRedlockManager from '../../src/utils/redis-redlock-manager.js';
-import { getPrismaClient, healthCheck, disconnectPrisma } from '../../src/database/prisma-client.js';
+import {
+  getPrismaClient,
+  healthCheck,
+  disconnectPrisma,
+} from '../../src/database/prisma-client.js';
 import { performance } from 'perf_hooks';
 import fs from 'fs';
 import path from 'path';
@@ -20,7 +24,7 @@ class LoadTester {
       events: { total: 0, successful: 0, failed: 0, avgTime: 0 },
       queries: { total: 0, successful: 0, failed: 0, avgTime: 0 },
       memoryLeaks: [],
-      errors: []
+      errors: [],
     };
     this.managers = [];
     this.lockManager = null;
@@ -34,9 +38,9 @@ class LoadTester {
       redisNodes: [
         { host: 'localhost', port: 6379 },
         { host: 'localhost', port: 6380 },
-        { host: 'localhost', port: 6381 }
+        { host: 'localhost', port: 6381 },
       ],
-      lockTTL: 10000
+      lockTTL: 10000,
     });
 
     try {
@@ -79,7 +83,7 @@ class LoadTester {
     try {
       if (fs.existsSync(archDir)) {
         const files = fs.readdirSync(archDir);
-        files.forEach(file => {
+        files.forEach((file) => {
           const filePath = path.join(archDir, file);
           try {
             if (fs.statSync(filePath).isFile()) {
@@ -280,7 +284,7 @@ class LoadTester {
       snapshots.push({
         iteration: i,
         heapUsed: memAfter.heapUsed - memBefore.heapUsed,
-        external: memAfter.external - memBefore.external
+        external: memAfter.external - memBefore.external,
       });
 
       // Force garbage collection if available
@@ -293,7 +297,9 @@ class LoadTester {
     const avgGrowth = snapshots.reduce((sum, s) => sum + s.heapUsed, 0) / snapshots.length;
     const leakDetected = avgGrowth > 10 * 1024 * 1024; // 10MB threshold
 
-    console.log(`  ${leakDetected ? '⚠' : '✓'} Average heap growth: ${(avgGrowth / 1024 / 1024).toFixed(2)}MB`);
+    console.log(
+      `  ${leakDetected ? '⚠' : '✓'} Average heap growth: ${(avgGrowth / 1024 / 1024).toFixed(2)}MB`
+    );
     console.log(`  📊 Memory snapshots: ${snapshots.length}`);
 
     if (leakDetected) {
@@ -378,7 +384,7 @@ class LoadTester {
     if (this.results.errors.length > 0) {
       console.log('Errors:');
       const errorSummary = {};
-      this.results.errors.forEach(e => {
+      this.results.errors.forEach((e) => {
         errorSummary[e.error] = (errorSummary[e.error] || 0) + 1;
       });
       Object.entries(errorSummary).forEach(([error, count]) => {
@@ -390,11 +396,17 @@ class LoadTester {
     console.log('='.repeat(60) + '\n');
 
     // Overall assessment
-    const totalOps = this.results.sessions.total + this.results.locks.total +
-                     this.results.events.total + this.results.queries.total;
-    const totalSuccess = this.results.sessions.successful + this.results.locks.successful +
-                        this.results.events.successful + this.results.queries.successful;
-    const successRate = (totalSuccess / totalOps * 100).toFixed(2);
+    const totalOps =
+      this.results.sessions.total +
+      this.results.locks.total +
+      this.results.events.total +
+      this.results.queries.total;
+    const totalSuccess =
+      this.results.sessions.successful +
+      this.results.locks.successful +
+      this.results.events.successful +
+      this.results.queries.successful;
+    const successRate = ((totalSuccess / totalOps) * 100).toFixed(2);
 
     console.log(`Overall Success Rate: ${successRate}%`);
 
@@ -417,7 +429,7 @@ class LoadTester {
         () => this.testEventAppends(10000),
         () => this.testQueryThroughput(5000),
         () => this.testMemoryLeaks(),
-        () => this.testDistributedLocks()
+        () => this.testDistributedLocks(),
       ];
 
       let allPassed = true;
@@ -432,7 +444,6 @@ class LoadTester {
       await this.cleanup();
 
       process.exit(finalResult ? 0 : 1);
-
     } catch (error) {
       console.error('❌ Load test failed with error:', error);
       await this.cleanup();

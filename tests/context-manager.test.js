@@ -52,10 +52,7 @@ describe('ContextManager', () => {
     });
 
     it('should set correct state file path', () => {
-      assert.strictEqual(
-        contextManager.stateFile,
-        path.join(STATE_DIR, `${TEST_SESSION_ID}.json`)
-      );
+      assert.strictEqual(contextManager.stateFile, path.join(STATE_DIR, `${TEST_SESSION_ID}.json`));
     });
   });
 
@@ -127,7 +124,7 @@ describe('ContextManager', () => {
       contextManager.updateTokenCount(1);
 
       // Give async compression time to complete
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Token count should be reduced (20% of 160000 = 32000)
       assert.ok(contextManager.tokenCount < 160000);
@@ -141,7 +138,7 @@ describe('ContextManager', () => {
       contextManager.updateTokenCount(1);
 
       // Give async handoff time to complete
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // Check handoff file was created
       const handoffFiles = await getFilesInDir(HANDOFF_DIR);
@@ -189,7 +186,13 @@ describe('ContextManager', () => {
       const filesModified = ['file1.js', 'file2.js'];
       const decisions = [{ timestamp: new Date().toISOString(), decision: 'Test decision' }];
 
-      await contextManager.saveState(currentTask, criticalState, nextSteps, filesModified, decisions);
+      await contextManager.saveState(
+        currentTask,
+        criticalState,
+        nextSteps,
+        filesModified,
+        decisions
+      );
 
       // Verify file exists
       const fileExists = fsSync.existsSync(contextManager.stateFile);
@@ -213,13 +216,7 @@ describe('ContextManager', () => {
     it('should include context metadata in saved state', async () => {
       contextManager.tokenCount = 150000;
 
-      await contextManager.saveState(
-        { description: 'Test' },
-        {},
-        [],
-        [],
-        []
-      );
+      await contextManager.saveState({ description: 'Test' }, {}, [], [], []);
 
       const content = await fs.readFile(contextManager.stateFile, 'utf-8');
       const state = JSON.parse(content);
@@ -283,7 +280,7 @@ describe('ContextManager', () => {
     it('should load previously saved state', async () => {
       const testState = {
         description: 'Test task',
-        progress: 75
+        progress: 75,
       };
 
       contextManager.tokenCount = 120000;
@@ -329,14 +326,11 @@ describe('ContextManager', () => {
     it('should default to 0 tokens if context not in state', async () => {
       const minimalState = {
         sessionId: TEST_SESSION_ID,
-        role: TEST_ROLE
+        role: TEST_ROLE,
       };
 
       await fs.mkdir(STATE_DIR, { recursive: true });
-      await fs.writeFile(
-        contextManager.stateFile,
-        JSON.stringify(minimalState)
-      );
+      await fs.writeFile(contextManager.stateFile, JSON.stringify(minimalState));
 
       await contextManager.loadState();
       assert.strictEqual(contextManager.tokenCount, 0);
@@ -379,10 +373,7 @@ describe('ContextManager', () => {
 
       const historyPath = path.join(HISTORY_DIR, TEST_SESSION_ID);
       const files = await getFilesInDir(historyPath);
-      const summaryContent = await fs.readFile(
-        path.join(historyPath, files[0]),
-        'utf-8'
-      );
+      const summaryContent = await fs.readFile(path.join(historyPath, files[0]), 'utf-8');
 
       assert.ok(summaryContent.includes(TEST_SESSION_ID));
       assert.ok(summaryContent.includes(TEST_ROLE));
@@ -394,7 +385,7 @@ describe('ContextManager', () => {
       contextManager.tokenCount = 170000;
       await contextManager.compressContext();
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       contextManager.tokenCount = 170000;
       await contextManager.compressContext();
@@ -509,7 +500,7 @@ describe('ContextManager', () => {
   describe('createCheckpoint()', () => {
     it('should create checkpoint when conditions met', async () => {
       // Force checkpoint by setting lastCheckpoint to old time
-      contextManager.lastCheckpoint = Date.now() - (31 * 60 * 1000); // 31 minutes ago
+      contextManager.lastCheckpoint = Date.now() - 31 * 60 * 1000; // 31 minutes ago
       contextManager.tokenCount = 100000;
 
       await contextManager.saveState({}, {}, [], [], []);
@@ -532,7 +523,7 @@ describe('ContextManager', () => {
     });
 
     it('should update lastCheckpoint after creation', async () => {
-      const oldCheckpoint = Date.now() - (31 * 60 * 1000);
+      const oldCheckpoint = Date.now() - 31 * 60 * 1000;
       contextManager.lastCheckpoint = oldCheckpoint;
       contextManager.tokenCount = 100000;
 
@@ -543,7 +534,7 @@ describe('ContextManager', () => {
     });
 
     it('should include full state in checkpoint', async () => {
-      contextManager.lastCheckpoint = Date.now() - (31 * 60 * 1000);
+      contextManager.lastCheckpoint = Date.now() - 31 * 60 * 1000;
       contextManager.tokenCount = 120000;
 
       await contextManager.saveState(
@@ -556,10 +547,7 @@ describe('ContextManager', () => {
       await contextManager.createCheckpoint();
 
       const files = await getFilesInDir(CHECKPOINT_DIR);
-      const checkpointContent = await fs.readFile(
-        path.join(CHECKPOINT_DIR, files[0]),
-        'utf-8'
-      );
+      const checkpointContent = await fs.readFile(path.join(CHECKPOINT_DIR, files[0]), 'utf-8');
       const checkpoint = JSON.parse(checkpointContent);
 
       assert.strictEqual(checkpoint.sessionId, TEST_SESSION_ID);
@@ -716,7 +704,7 @@ describe('ContextManager', () => {
     it('should maintain consistency across multiple operations', async () => {
       // Multiple saves
       for (let i = 0; i < 5; i++) {
-        contextManager.tokenCount = 100000 + (i * 10000);
+        contextManager.tokenCount = 100000 + i * 10000;
         await contextManager.saveState(
           { description: `Task ${i}`, progress: i * 20 },
           {},
@@ -734,18 +722,18 @@ describe('ContextManager', () => {
 
     it('should handle rapid token updates with threshold transitions', async () => {
       const updates = [
-        50000,   // healthy
-        50000,   // healthy (100k)
-        50000,   // healthy (150k)
-        10000,   // warning (160k) - triggers compression
-        10000,   // healthy after compression (~32k)
-        50000,   // healthy (82k)
-        100000   // warning (182k)
+        50000, // healthy
+        50000, // healthy (100k)
+        50000, // healthy (150k)
+        10000, // warning (160k) - triggers compression
+        10000, // healthy after compression (~32k)
+        50000, // healthy (82k)
+        100000, // warning (182k)
       ];
 
       for (const update of updates) {
         contextManager.updateTokenCount(update);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
       }
 
       // Should have compressed at least once

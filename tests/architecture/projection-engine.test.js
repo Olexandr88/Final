@@ -24,7 +24,7 @@ describe('Projection Engine - CQRS Architecture', () => {
     await queryHandlers.cleanup();
 
     try {
-      [eventDbPath, queryDbPath].forEach(dbPath => {
+      [eventDbPath, queryDbPath].forEach((dbPath) => {
         if (fs.existsSync(dbPath)) fs.unlinkSync(dbPath);
         if (fs.existsSync(dbPath + '-shm')) fs.unlinkSync(dbPath + '-shm');
         if (fs.existsSync(dbPath + '-wal')) fs.unlinkSync(dbPath + '-wal');
@@ -43,8 +43,8 @@ describe('Projection Engine - CQRS Architecture', () => {
         pid: 100,
         cwd: '/test/path',
         startTime: Date.now(),
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     await projectionEngine.projectEvent(event);
@@ -65,8 +65,8 @@ describe('Projection Engine - CQRS Architecture', () => {
         pid: 200,
         cwd: '/test',
         startTime: Date.now(),
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     await projectionEngine.projectEvent(createEvent);
@@ -77,8 +77,8 @@ describe('Projection Engine - CQRS Architecture', () => {
       eventType: 'SessionUpdated',
       data: {
         currentTask: 'projection test',
-        lastHeartbeat: Date.now()
-      }
+        lastHeartbeat: Date.now(),
+      },
     });
 
     await projectionEngine.projectEvent(updateEvent);
@@ -97,8 +97,8 @@ describe('Projection Engine - CQRS Architecture', () => {
         pid: 300,
         cwd: '/test',
         startTime: Date.now(),
-        status: 'active'
-      }
+        status: 'active',
+      },
     });
 
     await projectionEngine.projectEvent(createEvent);
@@ -109,8 +109,8 @@ describe('Projection Engine - CQRS Architecture', () => {
       eventType: 'SessionTerminated',
       data: {
         reason: 'test',
-        terminatedAt: Date.now()
-      }
+        terminatedAt: Date.now(),
+      },
     });
 
     await projectionEngine.projectEvent(terminateEvent);
@@ -128,8 +128,8 @@ describe('Projection Engine - CQRS Architecture', () => {
         sessionId: 'proj-session-1',
         resourcePath: '/test/resource',
         lockType: 'write',
-        acquiredAt: Date.now()
-      }
+        acquiredAt: Date.now(),
+      },
     });
 
     await projectionEngine.projectEvent(event);
@@ -150,8 +150,8 @@ describe('Projection Engine - CQRS Architecture', () => {
         sessionId: 'proj-session-1',
         resourcePath: '/test/resource2',
         lockType: 'read',
-        acquiredAt: Date.now()
-      }
+        acquiredAt: Date.now(),
+      },
     });
 
     await projectionEngine.projectEvent(acquireEvent);
@@ -161,8 +161,8 @@ describe('Projection Engine - CQRS Architecture', () => {
       aggregateId: 'proj-lock-2',
       eventType: 'LockReleased',
       data: {
-        releasedAt: Date.now()
-      }
+        releasedAt: Date.now(),
+      },
     });
 
     await projectionEngine.projectEvent(releaseEvent);
@@ -178,21 +178,26 @@ describe('Projection Engine - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId: 'rebuild-session-1',
       eventType: 'SessionCreated',
-      data: { pid: 111, cwd: '/test', startTime: Date.now(), status: 'active' }
+      data: { pid: 111, cwd: '/test', startTime: Date.now(), status: 'active' },
     });
 
     await eventStore.appendEvent({
       aggregateType: 'Session',
       aggregateId: 'rebuild-session-2',
       eventType: 'SessionCreated',
-      data: { pid: 222, cwd: '/test', startTime: Date.now(), status: 'active' }
+      data: { pid: 222, cwd: '/test', startTime: Date.now(), status: 'active' },
     });
 
     await eventStore.appendEvent({
       aggregateType: 'Lock',
       aggregateId: 'rebuild-lock-1',
       eventType: 'LockAcquired',
-      data: { sessionId: 'rebuild-session-1', resourcePath: '/rebuild', lockType: 'write', acquiredAt: Date.now() }
+      data: {
+        sessionId: 'rebuild-session-1',
+        resourcePath: '/rebuild',
+        lockType: 'write',
+        acquiredAt: Date.now(),
+      },
     });
 
     // Rebuild projections
@@ -217,7 +222,7 @@ describe('Projection Engine - CQRS Architecture', () => {
       aggregateId: 'error-session',
       data: null, // This will cause an error
       version: 1,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     // Should not throw, just log error
@@ -236,9 +241,10 @@ describe('Projection Engine - CQRS Architecture', () => {
         aggregateType: 'Session',
         aggregateId: sessionId,
         eventType: i === 1 ? 'SessionCreated' : 'SessionUpdated',
-        data: i === 1
-          ? { pid: 999, cwd: '/test', startTime: Date.now(), status: 'active' }
-          : { currentTask: `task-${i}`, lastHeartbeat: Date.now() }
+        data:
+          i === 1
+            ? { pid: 999, cwd: '/test', startTime: Date.now(), status: 'active' }
+            : { currentTask: `task-${i}`, lastHeartbeat: Date.now() },
       });
 
       await projectionEngine.projectEvent(event);
@@ -257,18 +263,18 @@ describe('Projection Engine - CQRS Architecture', () => {
       aggregateType: 'Session',
       aggregateId: 'partial-session-1',
       eventType: 'SessionCreated',
-      data: { pid: 111, cwd: '/test', startTime: Date.now(), status: 'active' }
+      data: { pid: 111, cwd: '/test', startTime: Date.now(), status: 'active' },
     });
 
     // Wait to ensure different timestamp
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     // Create events after timestamp
     await eventStore.appendEvent({
       aggregateType: 'Session',
       aggregateId: 'partial-session-2',
       eventType: 'SessionCreated',
-      data: { pid: 222, cwd: '/test', startTime: Date.now(), status: 'active' }
+      data: { pid: 222, cwd: '/test', startTime: Date.now(), status: 'active' },
     });
 
     // Rebuild from timestamp
@@ -288,9 +294,10 @@ describe('Projection Engine - CQRS Architecture', () => {
         aggregateType: 'Session',
         aggregateId: sessionId,
         eventType: i === 1 ? 'SessionCreated' : 'SessionUpdated',
-        data: i === 1
-          ? { pid: 777, cwd: '/test', startTime: Date.now(), status: 'active' }
-          : { currentTask: `ver-${i}`, lastHeartbeat: Date.now() }
+        data:
+          i === 1
+            ? { pid: 777, cwd: '/test', startTime: Date.now(), status: 'active' }
+            : { currentTask: `ver-${i}`, lastHeartbeat: Date.now() },
       });
 
       await projectionEngine.projectEvent(event);

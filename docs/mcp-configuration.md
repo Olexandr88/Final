@@ -45,9 +45,11 @@ The configuration has been added to the existing MCP server list under the key `
 The MCP server exposes the following tools to Claude Code:
 
 ### 1. `analyze_code`
+
 Analyze code for bugs, security issues, and quality metrics.
 
 **Input Schema**:
+
 ```typescript
 {
   code: string;           // Source code to analyze
@@ -61,9 +63,11 @@ Analyze code for bugs, security issues, and quality metrics.
 ---
 
 ### 2. `run_tests`
+
 Execute test suite and return results.
 
 **Input Schema**:
+
 ```typescript
 {
   pattern?: string;      // Test file pattern (default: "tests")
@@ -77,9 +81,11 @@ Execute test suite and return results.
 ---
 
 ### 3. `get_context`
+
 Retrieve session context and state information.
 
 **Input Schema**:
+
 ```typescript
 {
   sessionId?: string;       // Session ID (uses current if not provided)
@@ -92,9 +98,11 @@ Retrieve session context and state information.
 ---
 
 ### 4. `execute_command`
+
 Execute shell commands safely with timeout and validation.
 
 **Input Schema**:
+
 ```typescript
 {
   command: string;       // Shell command to execute
@@ -109,9 +117,11 @@ Execute shell commands safely with timeout and validation.
 ---
 
 ### 5. `read_file`
+
 Read file contents with encoding support.
 
 **Input Schema**:
+
 ```typescript
 {
   filepath: string;      // Absolute or relative file path
@@ -125,9 +135,11 @@ Read file contents with encoding support.
 ---
 
 ### 6. `write_file`
+
 Write content to file with backup and validation.
 
 **Input Schema**:
+
 ```typescript
 {
   filepath: string;         // Absolute or relative file path
@@ -154,6 +166,7 @@ The following environment variables are configured:
 ## Starting the MCP Server
 
 ### Manual Start (for testing):
+
 ```bash
 # Standard mode
 npm run mcp:start
@@ -167,6 +180,7 @@ node src/mcp/index.js --debug
 ```
 
 ### Automatic Start:
+
 Claude Code will automatically start the MCP server when needed using the stdio transport. No manual startup is required when using Claude Code.
 
 ## Verification
@@ -218,6 +232,7 @@ npm run system:start
 ### Issue: MCP server not connecting
 
 **Solution**:
+
 1. Check that Node.js is in PATH
 2. Verify `src/mcp/index.js` exists
 3. Check `.claude\mcp.json` syntax is valid JSON
@@ -226,6 +241,7 @@ npm run system:start
 ### Issue: Tools not appearing
 
 **Solution**:
+
 1. Ensure `disabled: false` in configuration
 2. Check environment variables are set
 3. Review Claude Code logs for errors
@@ -234,6 +250,7 @@ npm run system:start
 ### Issue: Commands timing out
 
 **Solution**:
+
 1. Increase timeout values in `.claude\mcp.json`
 2. Check system performance
 3. Verify AI Bridge is running if needed
@@ -241,6 +258,7 @@ npm run system:start
 ### Issue: Permission errors
 
 **Solution**:
+
 1. Check file permissions on project directory
 2. Verify Node.js has necessary permissions
 3. Run Claude Code with appropriate privileges

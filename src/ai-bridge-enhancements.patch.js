@@ -29,23 +29,23 @@ app.post('/api/batch-send', (req, res) => {
   }
 
   try {
-    const envelopes = messages.map(msg => ({
+    const envelopes = messages.map((msg) => ({
       from: msg.from || 'batch-api',
       to: msg.to,
       intent: msg.intent || 'agent.message',
       payload: msg.payload,
-      taskId: msg.taskId
+      taskId: msg.taskId,
     }));
 
     const results = bridge.acceptEnvelopeBatch(envelopes);
-    const successful = results.filter(r => r.success).length;
+    const successful = results.filter((r) => r.success).length;
 
     res.status(202).json({
       success: true,
       processed: results.length,
       successful,
       failed: results.length - successful,
-      results
+      results,
     });
   } catch (error) {
     logger.error(`[Bridge] Error in batch send:`, error);
@@ -67,7 +67,7 @@ app.get('/api/export/metrics', (req, res) => {
     `Errors,${stats.errors},${timestamp}`,
     `Uptime (seconds),${stats.uptime},${timestamp}`,
     `History Size,${stats.historySize},${timestamp}`,
-    `History Limit,${historyLimit},${timestamp}`
+    `History Limit,${historyLimit},${timestamp}`,
   ];
 
   res.setHeader('Content-Type', 'text/csv');

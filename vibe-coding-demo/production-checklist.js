@@ -35,7 +35,7 @@ class ProductionChecker {
 
       const content = fs.readFileSync(gitignore, 'utf8');
       const required = ['.env', 'node_modules', '*.log'];
-      const missing = required.filter(item => !content.includes(item));
+      const missing = required.filter((item) => !content.includes(item));
 
       if (missing.length > 0) {
         return `Missing in .gitignore: ${missing.join(', ')}`;
@@ -49,7 +49,8 @@ class ProductionChecker {
         /secret\s*=\s*["'][^"']+["']/i,
       ];
 
-      for (const file of jsFiles.slice(0, 50)) { // Check first 50 files
+      for (const file of jsFiles.slice(0, 50)) {
+        // Check first 50 files
         const content = fs.readFileSync(file, 'utf8');
         for (const pattern of secretPatterns) {
           if (pattern.test(content)) {
@@ -126,8 +127,9 @@ class ProductionChecker {
       if (!fs.existsSync(pkg)) return 'No package.json';
 
       const pkgData = JSON.parse(fs.readFileSync(pkg, 'utf8'));
-      const hasESLint = pkgData.devDependencies &&
-                       (pkgData.devDependencies.eslint || pkgData.devDependencies.prettier);
+      const hasESLint =
+        pkgData.devDependencies &&
+        (pkgData.devDependencies.eslint || pkgData.devDependencies.prettier);
 
       if (!hasESLint) {
         return 'No linter configured';
@@ -167,7 +169,7 @@ class ProductionChecker {
       }
 
       const required = ['install', 'usage', 'test'];
-      const missing = required.filter(section => !content.toLowerCase().includes(section));
+      const missing = required.filter((section) => !content.toLowerCase().includes(section));
 
       if (missing.length > 0) {
         return `README missing sections: ${missing.join(', ')}`;
@@ -215,7 +217,7 @@ class ProductionChecker {
     try {
       const result = execSync(`find . -name "${pattern}" -type f`, {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
       return result.trim().split('\n').filter(Boolean);
     } catch {
@@ -263,7 +265,7 @@ class ProductionChecker {
     let failed = 0;
     let errors = 0;
 
-    this.results.forEach(result => {
+    this.results.forEach((result) => {
       const icon = result.status === 'PASS' ? '✓' : '✗';
       const color = result.status === 'PASS' ? '\x1b[32m' : '\x1b[31m';
       const reset = '\x1b[0m';
@@ -280,10 +282,12 @@ class ProductionChecker {
     });
 
     console.log('\n' + '='.repeat(60));
-    console.log(`Total: ${this.results.length} | Passed: ${passed} | Failed: ${failed} | Errors: ${errors}`);
+    console.log(
+      `Total: ${this.results.length} | Passed: ${passed} | Failed: ${failed} | Errors: ${errors}`
+    );
     console.log('='.repeat(60) + '\n');
 
-    const score = (passed / this.results.length * 100).toFixed(0);
+    const score = ((passed / this.results.length) * 100).toFixed(0);
     console.log(`Production Readiness Score: ${score}%`);
 
     if (score >= 90) {
@@ -301,7 +305,7 @@ class ProductionChecker {
 // CLI
 if (require.main === module) {
   const checker = new ProductionChecker(process.argv[2] || process.cwd());
-  checker.runAll().then(ready => {
+  checker.runAll().then((ready) => {
     process.exit(ready ? 0 : 1);
   });
 }

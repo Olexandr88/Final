@@ -25,32 +25,26 @@ async function orchestrateFileOperations() {
   try {
     // 3. Call the 'write_file' tool
     console.log('\n--- Writing a file via FileOperationServer ---');
-    const writeResult = await mcpIntegration.callTool(
-      'FileOperationServer',
-      'write_file',
-      { filepath: tempFilePath, content: fileContent }
-    );
+    const writeResult = await mcpIntegration.callTool('FileOperationServer', 'write_file', {
+      filepath: tempFilePath,
+      content: fileContent,
+    });
     console.log('File Write Result:', writeResult);
 
     // 4. Call the 'read_file' tool
     console.log('\n--- Reading a file via FileOperationServer ---');
-    const readResult = await mcpIntegration.callTool(
-      'FileOperationServer',
-      'read_file',
-      { filepath: tempFilePath }
-    );
+    const readResult = await mcpIntegration.callTool('FileOperationServer', 'read_file', {
+      filepath: tempFilePath,
+    });
     console.log('File Read Result:', readResult);
-
   } catch (error) {
     console.error('Orchestration Error:', error);
   } finally {
     // 5. Call the 'delete_file' tool (cleanup)
     console.log('\n--- Deleting a file via FileOperationServer ---');
-    const deleteResult = await mcpIntegration.callTool(
-      'FileOperationServer',
-      'delete_file',
-      { filepath: tempFilePath }
-    );
+    const deleteResult = await mcpIntegration.callTool('FileOperationServer', 'delete_file', {
+      filepath: tempFilePath,
+    });
     console.log('File Delete Result:', deleteResult);
 
     // 6. Disconnect from the server

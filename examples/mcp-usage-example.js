@@ -17,7 +17,7 @@ async function demonstrateMCPTools() {
   const server = new MCPServer({
     name: 'example-mcp',
     version: '1.0.0',
-    debug: true
+    debug: true,
   });
 
   try {
@@ -35,19 +35,19 @@ console.log(user);
 
     const analysisResult = await server._handleAnalyzeCode({
       code: codeToAnalyze,
-      filepath: 'example.js'
+      filepath: 'example.js',
     });
 
     logger.info('Analysis Result:', {
       qualityScore: analysisResult.metrics.qualityScore,
       totalIssues: analysisResult.issues.total,
       errors: analysisResult.issues.errors,
-      warnings: analysisResult.issues.warnings
+      warnings: analysisResult.issues.warnings,
     });
 
     if (analysisResult.details.length > 0) {
       logger.info('Issues found:');
-      analysisResult.details.forEach(issue => {
+      analysisResult.details.forEach((issue) => {
         logger.info(`  Line ${issue.line}: [${issue.severity}] ${issue.message}`);
       });
     }
@@ -55,7 +55,7 @@ console.log(user);
     // Example 2: Execute command
     logger.info('\n=== Example 2: Command Execution ===');
     const commandResult = await server._handleExecuteCommand({
-      command: 'node --version'
+      command: 'node --version',
     });
 
     if (commandResult.success) {
@@ -67,14 +67,14 @@ console.log(user);
     // Example 3: Get session context
     logger.info('\n=== Example 3: Session Context ===');
     const contextResult = await server._handleGetContext({
-      includeHistory: false
+      includeHistory: false,
     });
 
     logger.info('Session Info:', {
       sessionId: contextResult.session.id.slice(0, 8),
       pid: contextResult.session.pid,
       status: contextResult.session.status,
-      uptime: Math.round(contextResult.session.uptime / 1000) + 's'
+      uptime: Math.round(contextResult.session.uptime / 1000) + 's',
     });
 
     // Example 4: File operations
@@ -84,14 +84,14 @@ console.log(user);
     const writeResult = await server._handleWriteFile({
       filepath: 'example-output.txt',
       content: 'Hello from MCP Server!\nTimestamp: ' + new Date().toISOString(),
-      createBackup: false
+      createBackup: false,
     });
 
     logger.info('File written:', writeResult.filepath);
 
     // Read file
     const readResult = await server._handleReadFile({
-      filepath: writeResult.filepath
+      filepath: writeResult.filepath,
     });
 
     logger.info('File content:', readResult.content);
@@ -102,14 +102,14 @@ console.log(user);
       const testResult = await server._handleRunTests({
         pattern: 'tests/mcp-server.test.js',
         timeout: 10000,
-        parallel: false
+        parallel: false,
       });
 
       if (testResult.success) {
         logger.info('Test Results:', {
           passed: testResult.passed,
           failed: testResult.failed,
-          duration: testResult.duration + 'ms'
+          duration: testResult.duration + 'ms',
         });
       } else {
         logger.warn('Tests failed:', testResult.error);

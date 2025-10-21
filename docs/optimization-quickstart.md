@@ -21,12 +21,14 @@ Add these optimized scripts to your `package.json`:
 ### Step 2: Run Windows Optimizations (2 minutes)
 
 **Windows (PowerShell as Administrator):**
+
 ```powershell
 cd C:\Users\scarm
 npm run optimize:windows
 ```
 
 This script will:
+
 - Configure network stack for optimal TCP performance
 - Set up Windows Defender exclusions for node_modules
 - Configure environment variables (UV_THREADPOOL_SIZE=8)
@@ -42,6 +44,7 @@ npm run benchmark
 ```
 
 Expected output:
+
 ```
 🚀 Starting Comprehensive Benchmark Suite...
 
@@ -79,6 +82,7 @@ ENABLE_PERFORMANCE_MONITORING=true
 ```
 
 Update your start script:
+
 ```json
 "start:prod": "node -r dotenv/config src/ai-bridge.js dotenv_config_path=.env.production"
 ```
@@ -88,25 +92,28 @@ Update your start script:
 Replace `src/utils/worker-pool.js` with the optimized version from the guide:
 
 **Key improvements:**
+
 - Resource limits per worker (512MB max)
 - Idle worker termination after 60 seconds
 - Priority-based task queue
 - Automatic worker recovery on crashes
 
 **Before:**
+
 ```javascript
 // Old: Basic worker pool
 const pool = new WorkerPool(workerPath);
 ```
 
 **After:**
+
 ```javascript
 // Optimized: Resource-aware worker pool
 const pool = new OptimizedWorkerPool(workerPath, {
   poolSize: Math.max(2, cpus().length - 1),
   maxQueueSize: 1000,
   workerTimeout: 30000,
-  idleTimeout: 60000
+  idleTimeout: 60000,
 });
 ```
 
@@ -120,9 +127,9 @@ import { GCOptimizer } from './utils/gc-optimizer.js';
 
 // Initialize at startup
 const gcOptimizer = new GCOptimizer({
-  heapThreshold: 0.75,      // Trigger GC at 75% heap usage
-  forceGCInterval: 300000,  // Force GC every 5 minutes
-  monitoring: true
+  heapThreshold: 0.75, // Trigger GC at 75% heap usage
+  forceGCInterval: 300000, // Force GC every 5 minutes
+  monitoring: true,
 });
 
 // Monitor heap statistics
@@ -142,8 +149,8 @@ import { ProductionMonitor } from './monitoring/production-monitor.js';
 const monitor = new ProductionMonitor({
   samplingInterval: 10000,
   memoryThreshold: 0.85,
-  cpuThreshold: 0.80,
-  eventLoopThreshold: 100
+  cpuThreshold: 0.8,
+  eventLoopThreshold: 100,
 });
 
 monitor.on('alert', (alert) => {
@@ -245,11 +252,13 @@ node --prof-process isolate-*.log > v8-analysis.txt
 ### Issue: High Memory Usage Persists
 
 **Diagnosis:**
+
 ```bash
 node --expose-gc --trace-gc src/ai-bridge.js
 ```
 
 **Solution:**
+
 - Increase GC frequency: Lower `heapThreshold` to 0.65
 - Check for memory leaks with heap snapshots
 - Review cache sizes and eviction policies
@@ -257,12 +266,14 @@ node --expose-gc --trace-gc src/ai-bridge.js
 ### Issue: Worker Pool Timeouts
 
 **Diagnosis:**
+
 ```javascript
 console.log(workerPool.getMetrics());
 // Check: queuedTasks, activeWorkers, avgExecutionTime
 ```
 
 **Solution:**
+
 - Increase `workerTimeout` if tasks legitimately take longer
 - Add more workers: `poolSize: cpus().length` (no -1)
 - Implement task prioritization
@@ -270,11 +281,13 @@ console.log(workerPool.getMetrics());
 ### Issue: Event Loop Lag
 
 **Diagnosis:**
+
 ```bash
 node --trace-warnings src/ai-bridge.js
 ```
 
 **Solution:**
+
 - Move CPU-intensive work to worker threads
 - Reduce synchronous file operations
 - Batch database queries
@@ -285,12 +298,14 @@ node --trace-warnings src/ai-bridge.js
 ## 📝 Optimization Checklist
 
 ### Immediate (0-5 minutes)
+
 - [ ] Add NODE_OPTIONS to package.json
 - [ ] Set UV_THREADPOOL_SIZE=8
 - [ ] Run Windows optimization script
 - [ ] Run baseline benchmark
 
 ### Short-term (5-30 minutes)
+
 - [ ] Create .env.production with optimized flags
 - [ ] Implement GCOptimizer
 - [ ] Replace WorkerPool with OptimizedWorkerPool
@@ -298,6 +313,7 @@ node --trace-warnings src/ai-bridge.js
 - [ ] Re-run benchmark and compare
 
 ### Medium-term (1-3 hours)
+
 - [ ] Implement AdvancedConnectionPool
 - [ ] Add process lifecycle management
 - [ ] Configure Windows Defender exclusions
@@ -305,6 +321,7 @@ node --trace-warnings src/ai-bridge.js
 - [ ] Create automated alerting
 
 ### Long-term (1 week)
+
 - [ ] Analyze heap snapshots for memory leaks
 - [ ] Fine-tune GC parameters based on workload
 - [ ] Optimize worker pool size for production load
@@ -316,17 +333,20 @@ node --trace-warnings src/ai-bridge.js
 ## 🎓 Learning Resources
 
 ### Official Documentation
+
 - [Node.js Performance Guide](https://nodejs.org/en/docs/guides/simple-profiling/)
 - [V8 Engine Optimization](https://v8.dev/docs)
 - [libuv Threadpool](http://docs.libuv.org/en/v1.x/threadpool.html)
 
 ### Recommended Tools
+
 - **clinic.js**: Comprehensive profiling suite
 - **0x**: Flamegraph profiler
 - **autocannon**: HTTP benchmarking
 - **hyperfine**: Command-line benchmarking
 
 ### Installation
+
 ```bash
 npm install -g clinic 0x autocannon hyperfine
 ```
@@ -336,27 +356,35 @@ npm install -g clinic 0x autocannon hyperfine
 ## 💡 Pro Tips
 
 ### 1. Profile First, Optimize Second
+
 Always run benchmarks before and after optimizations. Don't guess - measure!
 
 ### 2. Start Conservative
+
 Begin with moderate settings and increase gradually:
+
 - Start with UV_THREADPOOL_SIZE=4, increase to 8 if I/O-bound
 - Start with heapThreshold=0.75, lower to 0.65 if memory pressure persists
 
 ### 3. Monitor in Production
+
 Set up real-time monitoring alerts:
+
 - Memory usage > 85%
 - Event loop latency > 100ms p95
 - GC pause time > 50ms
 
 ### 4. Test Under Load
+
 Benchmark with realistic production workloads:
+
 ```bash
 # Simulate 1000 concurrent connections
 autocannon -c 1000 -d 60 http://localhost:65028
 ```
 
 ### 5. Document Everything
+
 Keep a performance log of optimizations and their impact.
 
 ---
@@ -365,19 +393,20 @@ Keep a performance log of optimizations and their impact.
 
 Watch for these indicators that optimizations need adjustment:
 
-| Metric | Warning Level | Critical Level | Action |
-|--------|--------------|----------------|--------|
-| Heap Usage | > 75% | > 90% | Trigger GC, investigate leaks |
-| Event Loop Lag | > 50ms p95 | > 100ms p95 | Move work to workers |
-| Worker Queue | > 500 | > 1000 | Add more workers |
-| GC Pause | > 50ms | > 100ms | Reduce heap size |
-| CPU Usage | > 80% | > 95% | Scale horizontally |
+| Metric         | Warning Level | Critical Level | Action                        |
+| -------------- | ------------- | -------------- | ----------------------------- |
+| Heap Usage     | > 75%         | > 90%          | Trigger GC, investigate leaks |
+| Event Loop Lag | > 50ms p95    | > 100ms p95    | Move work to workers          |
+| Worker Queue   | > 500         | > 1000         | Add more workers              |
+| GC Pause       | > 50ms        | > 100ms        | Reduce heap size              |
+| CPU Usage      | > 80%         | > 95%          | Scale horizontally            |
 
 ---
 
 ## 📞 Support
 
 For optimization assistance:
+
 - GitHub Issues: https://github.com/Scarmonit/LLM/issues
 - Documentation: `docs/devops-optimization-guide.md`
 - Maintainer: scarmonit@gmail.com

@@ -23,7 +23,8 @@ LLM/
 │   ├── config/              # Configuration constants
 │   ├── context/             # Context management
 │   ├── hooks/               # Hook system for lifecycle events
-│   ├── integrations/        # External service integrations
+│   ├── integrations/        # External service integrations (Python A2A MCP client)
+│   │   └── python-a2a-mcp-client.py  # Python async/parallel A2A client
 │   ├── mcp/                 # Model Context Protocol
 │   ├── optimization/        # Performance optimization modules
 │   ├── proxy/               # Proxy server configurations
@@ -33,25 +34,30 @@ LLM/
 │   ├── ai-bridge.js         # WebSocket hub for multi-agent coordination
 │   ├── claude-client.js     # Claude API client
 │   └── session-manager.js   # Session coordination
-├── tests/                   # Test suite (node:test framework)
+├── tests/                   # Test suite (node:test + pytest)
 │   ├── integration/         # Integration tests
-│   └── *.test.js           # Unit tests
+│   ├── *.test.js           # JavaScript unit tests
+│   └── python-a2a-mcp-client.test.py  # Python A2A client tests
+├── docs/                    # Documentation
+│   └── PYTHON_A2A_MCP_INTEGRATION.md  # Python integration guide
 ├── scripts/                 # Automation and deployment scripts
 ├── electron/               # Electron app for GUI
 ├── .github/workflows/      # CI/CD pipelines
+├── requirements-python-a2a.txt  # Python dependencies
 └── .env                    # Environment configuration (DO NOT COMMIT)
 ```
 
 ### Tech Stack
 
-- **Runtime**: Node.js 18+ (ESM modules)
+- **Runtime**: Node.js 18+ (ESM modules), Python 3.8+ (async integrations)
 - **LLM Providers**: Anthropic Claude (Sonnet 4.5), Ollama (local), Jules API
 - **WebSocket**: ws library for real-time agent coordination
 - **Database**: SQLite (better-sqlite3), PostgreSQL support
 - **Vector Store**: ChromaDB for RAG
-- **Testing**: Node.js native test runner (`node:test`)
+- **Testing**: Node.js native test runner (`node:test`), Python pytest
 - **Packaging**: Electron for desktop GUI
 - **Type Safety**: JSDoc annotations (TypeScript definitions available)
+- **Python Integration**: asyncio, uvloop, concurrent.futures, multiprocessing, trio, twisted, eventlet, gevent
 
 ---
 
@@ -80,6 +86,11 @@ npm run agent:ollama        # Start Ollama agent
 npm run agent:claude        # Start Claude agent
 npm run agent:analyzer      # Start code analyzer agent
 npm run system:start        # Start bridge + agents concurrently
+
+# Python A2A MCP Client
+python src/integrations/python-a2a-mcp-client.py  # Run Python A2A client
+python -m pytest tests/python-a2a-mcp-client.test.py -v  # Run Python tests
+pip install -r requirements-python-a2a.txt  # Install Python dependencies
 
 # Build & Deploy
 npm run build               # Production build
@@ -180,6 +191,7 @@ The AI Bridge (`src/ai-bridge.js`) is the central WebSocket hub coordinating mul
 - **Message Routing**: Bridge routes messages between agents based on type
 
 **Creating New Agents**:
+
 1. Extend base agent pattern from `src/agents/`
 2. Implement `connect()`, `handleMessage()`, `sendMessage()` methods
 3. Register with bridge via WebSocket connection
@@ -196,6 +208,7 @@ The project includes aggressive optimization systems:
 - **Metrics Collection**: Real-time performance tracking
 
 **Critical Files**:
+
 - `src/optimization/optimization-orchestrator.js`
 - `src/ai-bridge-metrics.js`
 - `scripts/performance-optimizer.js`
@@ -208,6 +221,55 @@ Multi-session support with context isolation:
 - **Lock Manager**: `src/lock-manager.js` (prevents race conditions)
 - **State Persistence**: `.claude-sessions/` directory
 
+### Python A2A MCP Integration
+
+The framework now includes a comprehensive Python client for A2A (Agent-to-Agent) communication with the AI Bridge:
+
+**Key Features**:
+
+- **asyncio**: Standard async I/O for event loops
+- **uvloop**: 2-4x performance boost (Linux/macOS)
+- **concurrent.futures**: Thread and process pool executors
+- **multiprocessing**: Heavy CPU-bound task support
+- **trio/twisted/eventlet/gevent**: Alternative async runtimes
+
+**Architecture**:
+
+- **BaseA2AMCPClient**: Core async WebSocket client
+- **ExecutorMixin**: Adds parallel thread/process execution
+- **MultiprocessingMixin**: Adds multiprocessing pool support
+- **A2AMCPClient**: Full-featured client combining all capabilities
+
+**Files**:
+
+- `src/integrations/python-a2a-mcp-client.py` - Main Python client
+- `tests/python-a2a-mcp-client.test.py` - Comprehensive test suite
+- `docs/PYTHON_A2A_MCP_INTEGRATION.md` - Full documentation
+- `requirements-python-a2a.txt` - Python dependencies
+
+**Usage Example**:
+
+```python
+from src.integrations.python_a2a_mcp_client import A2AMCPClient, A2AEnvelope
+
+async def main():
+    client = A2AMCPClient(
+        bridge_url="ws://localhost:65028",
+        client_id="python-agent",
+        tools=["data-processing", "ml-inference"]
+    )
+
+    # Send message to JavaScript agent
+    envelope = A2AEnvelope(
+        intent="task.execute",
+        to_agent="ollama-agent-1",
+        payload={"data": [1, 2, 3, 4, 5]}
+    )
+    await client.send_envelope(envelope)
+```
+
+**See [PYTHON_A2A_MCP_INTEGRATION.md](docs/PYTHON_A2A_MCP_INTEGRATION.md) for complete documentation.**
+
 ---
 
 ## Anti-Patterns (MUST AVOID)
@@ -215,12 +277,14 @@ Multi-session support with context isolation:
 ### ❌ Direct File System Access in Agents
 
 **WRONG**:
+
 ```javascript
 import fs from 'fs';
 const data = fs.readFileSync('/path/to/file');
 ```
 
 **RIGHT**:
+
 ```javascript
 import { readFile } from '../utils/file-utils.js';
 const data = await readFile('/path/to/file');
@@ -233,12 +297,14 @@ const data = await readFile('/path/to/file');
 ### ❌ Hardcoded Configuration
 
 **WRONG**:
+
 ```javascript
 const PORT = 3000;
 const API_KEY = 'sk-abc123';
 ```
 
 **RIGHT**:
+
 ```javascript
 import { PORT, API_KEY } from './config/constants.js';
 ```
@@ -250,6 +316,7 @@ import { PORT, API_KEY } from './config/constants.js';
 ### ❌ Unhandled Promise Rejections
 
 **WRONG**:
+
 ```javascript
 async function fetchData() {
   const result = await api.call(); // No error handling!
@@ -258,6 +325,7 @@ async function fetchData() {
 ```
 
 **RIGHT**:
+
 ```javascript
 async function fetchData() {
   try {
@@ -277,11 +345,13 @@ async function fetchData() {
 ### ❌ Console.log for Debugging
 
 **WRONG**:
+
 ```javascript
 console.log('Debug info:', data);
 ```
 
 **RIGHT**:
+
 ```javascript
 import { logger } from './utils/logger.js';
 logger.debug('Debug info', { data });
@@ -294,11 +364,13 @@ logger.debug('Debug info', { data });
 ### ❌ Synchronous Operations in Event Loop
 
 **WRONG**:
+
 ```javascript
 const data = fs.readFileSync('large-file.json');
 ```
 
 **RIGHT**:
+
 ```javascript
 const data = await fs.promises.readFile('large-file.json', 'utf-8');
 ```
@@ -310,6 +382,7 @@ const data = await fs.promises.readFile('large-file.json', 'utf-8');
 ### ❌ Massive Monolithic Functions
 
 **WRONG**:
+
 ```javascript
 async function doEverything() {
   // 500 lines of mixed concerns
@@ -317,6 +390,7 @@ async function doEverything() {
 ```
 
 **RIGHT**:
+
 ```javascript
 async function orchestrate() {
   const data = await fetchData();
@@ -374,7 +448,7 @@ import { z } from 'zod';
 const MessageSchema = z.object({
   type: z.string(),
   data: z.unknown(),
-  metadata: z.object({}).optional()
+  metadata: z.object({}).optional(),
 });
 
 function handleMessage(rawMessage) {
@@ -392,7 +466,7 @@ import rateLimit from 'express-rate-limit';
 
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 100 // 100 requests per minute
+  max: 100, // 100 requests per minute
 });
 
 app.use('/api/', limiter);
@@ -453,6 +527,7 @@ Follow Conventional Commits:
 **Types**: feat, fix, docs, style, refactor, test, chore
 
 **Examples**:
+
 ```
 feat(ai-bridge): add message compression for large payloads
 fix(tests): resolve timing issues in a2a-control-center tests
@@ -541,6 +616,7 @@ npm run deploy
 ```
 
 This runs `scripts/deploy-auto.js` which:
+
 1. Runs tests
 2. Builds production assets
 3. Performs health checks
@@ -704,4 +780,4 @@ LOG_LEVEL=debug npm run start:bridge
 
 ---
 
-*This CLAUDE.md file is the source of truth for all development work. When in doubt, refer here. Update this document as the project evolves.*
+_This CLAUDE.md file is the source of truth for all development work. When in doubt, refer here. Update this document as the project evolves._

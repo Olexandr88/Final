@@ -25,26 +25,30 @@ async function connectAndWaitForResponse(requestEnvelope, expectedIntent, timeou
 
     ws.on('open', () => {
       // Register
-      ws.send(JSON.stringify({
-        type: 'register',
-        clientId,
-        role: 'cli',
-        labels: ['interactive'],
-        intents: ['code.analysis', 'code.fixed']
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'register',
+          clientId,
+          role: 'cli',
+          labels: ['interactive'],
+          intents: ['code.analysis', 'code.fixed'],
+        })
+      );
 
       // Send request after a brief delay to ensure registration
       setTimeout(() => {
         console.log(`📤 Sending ${requestEnvelope.intent} request...`);
-        ws.send(JSON.stringify({
-          type: 'envelope',
-          envelope: {
-            ...requestEnvelope,
-            from: clientId,  // Use the same clientId we registered with
-            taskId,
-            timestamp: new Date().toISOString()
-          }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'envelope',
+            envelope: {
+              ...requestEnvelope,
+              from: clientId, // Use the same clientId we registered with
+              taskId,
+              timestamp: new Date().toISOString(),
+            },
+          })
+        );
       }, 500);
     });
 
@@ -75,7 +79,9 @@ async function connectAndWaitForResponse(requestEnvelope, expectedIntent, timeou
             ws.close();
             resolve(envelope);
           } else if (envelope.taskId === taskId) {
-            console.log(`   (ignoring unexpected intent: ${envelope.intent}, expected: ${expectedIntent})`);
+            console.log(
+              `   (ignoring unexpected intent: ${envelope.intent}, expected: ${expectedIntent})`
+            );
           }
         }
       } catch (err) {
@@ -108,14 +114,17 @@ program
       const code = await fs.promises.readFile(file, 'utf8');
       console.log(`🔍 Analyzing ${file}...\n`);
 
-      const response = await connectAndWaitForResponse({
-        intent: 'code.analyze',
-        from: 'cli',
-        payload: {
-          code,
-          filepath: file
-        }
-      }, 'code.analysis_result');
+      const response = await connectAndWaitForResponse(
+        {
+          intent: 'code.analyze',
+          from: 'cli',
+          payload: {
+            code,
+            filepath: file,
+          },
+        },
+        'code.analysis_result'
+      );
 
       if (!response.payload || !response.payload.analysis) {
         console.error(`❌ Invalid response format:`, JSON.stringify(response, null, 2));
@@ -142,15 +151,18 @@ program
         // Alternative format from analyzer agent
         console.log(`   Quality Score: ${analysis.quality_score || 'N/A'}`);
         if (analysis.bugs) console.log(`   Bugs: ${analysis.bugs.length}`);
-        if (analysis.security_issues) console.log(`   Security: ${analysis.security_issues.length}`);
-        if (analysis.performance_issues) console.log(`   Performance: ${analysis.performance_issues.length}\n`);
+        if (analysis.security_issues)
+          console.log(`   Security: ${analysis.security_issues.length}`);
+        if (analysis.performance_issues)
+          console.log(`   Performance: ${analysis.performance_issues.length}\n`);
       }
 
       // Display issues if available
       if (analysis.issues && analysis.issues.length > 0) {
         console.log(`🐛 Found ${analysis.issues.length} issue(s):\n`);
         analysis.issues.forEach((issue, idx) => {
-          const icon = issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : 'ℹ️';
+          const icon =
+            issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : 'ℹ️';
           console.log(`${icon} Line ${issue.line}: ${issue.message}`);
           console.log(`   ${issue.code}`);
           if (issue.fix) {
@@ -162,17 +174,17 @@ program
         // Show alternative format issues
         if (analysis.bugs?.length > 0) {
           console.log(`🐛 Bugs:\n`);
-          analysis.bugs.forEach(bug => console.log(`   - ${bug}`));
+          analysis.bugs.forEach((bug) => console.log(`   - ${bug}`));
           console.log();
         }
         if (analysis.security_issues?.length > 0) {
           console.log(`🔒 Security Issues:\n`);
-          analysis.security_issues.forEach(issue => console.log(`   - ${issue}`));
+          analysis.security_issues.forEach((issue) => console.log(`   - ${issue}`));
           console.log();
         }
         if (analysis.performance_issues?.length > 0) {
           console.log(`⚡ Performance Issues:\n`);
-          analysis.performance_issues.forEach(issue => console.log(`   - ${issue}`));
+          analysis.performance_issues.forEach((issue) => console.log(`   - ${issue}`));
           console.log();
         }
       } else {
@@ -207,9 +219,9 @@ program
             code,
             language,
             filePath: file,
-            issues
-          }
-        })
+            issues,
+          },
+        }),
       });
 
       if (!res.ok) {
@@ -235,7 +247,7 @@ program
       const files = await glob(options.pattern, {
         cwd: dir,
         absolute: true,
-        ignore: ['**/node_modules/**', '**/dist/**', '**/.git/**']
+        ignore: ['**/node_modules/**', '**/dist/**', '**/.git/**'],
       });
 
       console.log(`Found ${files.length} files\n`);
@@ -254,9 +266,9 @@ program
             payload: {
               code: code.slice(0, 5000), // Limit size
               language,
-              filePath: file
-            }
-          })
+              filePath: file,
+            },
+          }),
         });
 
         console.log(`📤 Queued: ${path.basename(file)}`);
@@ -280,13 +292,13 @@ program
       console.log('\n🤖 AI Code Assistant Status\n');
       console.log(`Connected agents: ${data.agents.length}\n`);
 
-      data.agents.forEach(agent => {
+      data.agents.forEach((agent) => {
         console.log(`  • ${agent.id} (${agent.role})`);
         console.log(`    Skills: ${agent.skills?.join(', ') || 'none'}\n`);
       });
 
       const expected = ['code-analyzer', 'code-fixer'];
-      const missing = expected.filter(id => !data.agents.find(a => a.id === id));
+      const missing = expected.filter((id) => !data.agents.find((a) => a.id === id));
 
       if (missing.length > 0) {
         console.log(`⚠️  Missing agents: ${missing.join(', ')}\n`);

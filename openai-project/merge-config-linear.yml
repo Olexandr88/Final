@@ -1,0 +1,13 @@
+# MoE Expert Merge: llama2-smart + deepseek-coder
+# Method: Linear interpolation - fastest, predictable
+
+models:
+  - model: llama2-uncensored
+    parameters:
+      weight: 0.65 # 65% chat personality
+  - model: deepseek-ai/deepseek-coder-6.7b-instruct
+    parameters:
+      weight: 0.35 # 35% coding skills
+
+merge_method: linear
+dtype: float16

@@ -41,7 +41,7 @@ class ProxyConfig {
       default:
         configDir = path.join(os.homedir(), '.obfuscation-proxy');
     }
-    
+
     this.cache.set('configDir', configDir);
     return configDir;
   }
@@ -76,22 +76,24 @@ class ProxyConfig {
       blockList: [], // List of blocked domains
       rateLimit: {
         windowMs: 15 * 60 * 1000, // 15 minutes
-        max: 100 // Limit each IP to 100 requests per windowMs
+        max: 100, // Limit each IP to 100 requests per windowMs
       },
 
       // Chrome simulation headers (latest Chrome 120)
       chromeHeaders: {
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         acceptLanguage: 'en-US,en;q=0.9',
         acceptEncoding: 'gzip, deflate, br, zstd', // Added zstd for latest Chrome
-        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         secChUa: '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         secChUaMobile: '?0',
         secChUaPlatform: '"Windows"',
         secFetchDest: 'document',
         secFetchMode: 'navigate',
         secFetchSite: 'none',
-        secFetchUser: '?1'
+        secFetchUser: '?1',
       },
 
       // Platform-specific settings
@@ -99,27 +101,27 @@ class ProxyConfig {
         windows: {
           autoStart: false,
           systemProxy: false,
-          processAffinity: 'auto' // CPU core optimization
+          processAffinity: 'auto', // CPU core optimization
         },
         macos: {
           autoStart: false,
           systemProxy: false,
-          processAffinity: 'auto'
+          processAffinity: 'auto',
         },
         linux: {
           autoStart: false,
           systemProxy: false,
-          processAffinity: 'auto'
+          processAffinity: 'auto',
         },
         android: {
           wifiOnly: false,
           batteryOptimization: true,
-          lowMemoryMode: true
+          lowMemoryMode: true,
         },
         ios: {
           wifiOnly: false,
           backgroundMode: true,
-          lowMemoryMode: true
+          lowMemoryMode: true,
         },
       },
 
@@ -131,7 +133,7 @@ class ProxyConfig {
         randomPadding: true,
         mimicProtocol: 'https',
         headerObfuscation: true, // New feature
-        payloadScrambling: true // New feature
+        payloadScrambling: true, // New feature
       },
 
       // Traffic shaping (optimized)
@@ -141,20 +143,23 @@ class ProxyConfig {
         maxDelay: 50, // Reduced for better performance
         burstLimit: 20, // Increased burst capacity
         randomizeTimings: true,
-        adaptiveShaping: true // New adaptive feature
+        adaptiveShaping: true, // New adaptive feature
       },
 
       // DNS settings (enhanced)
       dns: {
         servers: [
-          '1.1.1.1', '1.0.0.1', // Cloudflare (fastest)
-          '8.8.8.8', '8.8.4.4', // Google
-          '9.9.9.9', '149.112.112.112' // Quad9 (security focused)
+          '1.1.1.1',
+          '1.0.0.1', // Cloudflare (fastest)
+          '8.8.8.8',
+          '8.8.4.4', // Google
+          '9.9.9.9',
+          '149.112.112.112', // Quad9 (security focused)
         ],
         dohEnabled: true, // Enable DNS over HTTPS by default
         cacheTTL: 600, // 10 minutes (increased)
         failover: true, // Auto-failover between servers
-        parallelQueries: true // Query multiple servers in parallel
+        parallelQueries: true, // Query multiple servers in parallel
       },
 
       // Monitoring and metrics (new)
@@ -162,8 +167,8 @@ class ProxyConfig {
         enabled: true,
         metricsInterval: 30000, // 30 seconds
         healthChecks: true,
-        performanceLogging: process.env.NODE_ENV !== 'production'
-      }
+        performanceLogging: process.env.NODE_ENV !== 'production',
+      },
     };
 
     this.cache.set('defaultConfig', defaultConfig);
@@ -211,7 +216,10 @@ class ProxyConfig {
     }
 
     // Connection limits
-    if (config.maxConnections && (!Number.isInteger(config.maxConnections) || config.maxConnections < 1)) {
+    if (
+      config.maxConnections &&
+      (!Number.isInteger(config.maxConnections) || config.maxConnections < 1)
+    ) {
       errors.push('maxConnections must be a positive integer');
     }
 
@@ -232,7 +240,7 @@ class ProxyConfig {
     return {
       valid: errors.length === 0,
       errors,
-      warnings
+      warnings,
     };
   }
 
@@ -241,7 +249,7 @@ class ProxyConfig {
    */
   mergeConfig(userConfig = {}) {
     const defaultConfig = this.getPlatformConfig();
-    
+
     const merged = {
       ...defaultConfig,
       ...userConfig,
@@ -264,7 +272,7 @@ class ProxyConfig {
       monitoring: {
         ...defaultConfig.monitoring,
         ...(userConfig.monitoring || {}),
-      }
+      },
     };
 
     // Auto-optimize based on environment
@@ -282,7 +290,7 @@ class ProxyConfig {
   getPresetConfig(preset) {
     const baseConfig = this.getDefaultConfig();
     const cacheKey = `preset_${preset}`;
-    
+
     if (this.cache.has(cacheKey)) {
       return this.cache.get(cacheKey);
     }
@@ -300,7 +308,7 @@ class ProxyConfig {
           randomPadding: true,
           keyRotationInterval: 250, // Very frequent rotation
           headerObfuscation: true,
-          payloadScrambling: true
+          payloadScrambling: true,
         },
         trafficShaping: {
           ...baseConfig.trafficShaping,
@@ -308,13 +316,13 @@ class ProxyConfig {
           randomizeTimings: true,
           adaptiveShaping: true,
           minDelay: 20,
-          maxDelay: 200
+          maxDelay: 200,
         },
         dns: {
           ...baseConfig.dns,
           dohEnabled: true,
-          parallelQueries: false // Sequential for stealth
-        }
+          parallelQueries: false, // Sequential for stealth
+        },
       },
 
       // High-performance configuration
@@ -330,7 +338,7 @@ class ProxyConfig {
           enabled: true,
           algorithm: 'xor-rotation', // Faster algorithm
           randomPadding: false,
-          keyRotationInterval: 2000 // Less frequent
+          keyRotationInterval: 2000, // Less frequent
         },
         trafficShaping: {
           ...baseConfig.trafficShaping,
@@ -339,8 +347,8 @@ class ProxyConfig {
         dns: {
           ...baseConfig.dns,
           parallelQueries: true,
-          cacheTTL: 3600 // Longer caching
-        }
+          cacheTTL: 3600, // Longer caching
+        },
       },
 
       // Development/testing configuration
@@ -362,8 +370,8 @@ class ProxyConfig {
           ...baseConfig.monitoring,
           enabled: true,
           performanceLogging: true,
-          metricsInterval: 10000 // More frequent in dev
-        }
+          metricsInterval: 10000, // More frequent in dev
+        },
       },
 
       // Low-resource configuration (for mobile/embedded)
@@ -377,28 +385,28 @@ class ProxyConfig {
           enabled: true,
           algorithm: 'xor-rotation',
           randomPadding: false,
-          keyRotationInterval: 5000
+          keyRotationInterval: 5000,
         },
         trafficShaping: {
           ...baseConfig.trafficShaping,
           enabled: true,
           minDelay: 10,
           maxDelay: 100,
-          burstLimit: 5
+          burstLimit: 5,
         },
         dns: {
           ...baseConfig.dns,
           servers: ['1.1.1.1', '8.8.8.8'], // Only 2 servers
           parallelQueries: false,
-          cacheTTL: 300
+          cacheTTL: 300,
         },
         monitoring: {
           enabled: false,
           metricsInterval: 60000,
           healthChecks: true,
-          performanceLogging: false
-        }
-      }
+          performanceLogging: false,
+        },
+      },
     };
 
     const config = presets[preset] || baseConfig;
@@ -419,7 +427,7 @@ class ProxyConfig {
   getCacheStats() {
     return {
       size: this.cache.size,
-      keys: Array.from(this.cache.keys())
+      keys: Array.from(this.cache.keys()),
     };
   }
 }

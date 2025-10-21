@@ -30,7 +30,7 @@ export class AgentSupervisor extends EventEmitter {
       cwd = process.cwd(),
       autoRestart = true,
       maxRestarts = AGENTS.MAX_RESTART_ATTEMPTS,
-      restartDelay = AGENTS.RESTART_BACKOFF_BASE_MS
+      restartDelay = AGENTS.RESTART_BACKOFF_BASE_MS,
     } = config;
 
     if (!id || !command) {
@@ -50,7 +50,7 @@ export class AgentSupervisor extends EventEmitter {
       cwd,
       autoRestart,
       maxRestarts,
-      restartDelay
+      restartDelay,
     };
 
     this._spawnAgent(agentConfig);
@@ -71,7 +71,7 @@ export class AgentSupervisor extends EventEmitter {
       cwd,
       stdio: ['ignore', 'pipe', 'pipe'],
       shell: false,
-      detached: false
+      detached: false,
     });
 
     const agentData = {
@@ -82,8 +82,8 @@ export class AgentSupervisor extends EventEmitter {
       health: {
         status: 'starting',
         lastHeartbeat: Date.now(),
-        pid: proc.pid
-      }
+        pid: proc.pid,
+      },
     };
 
     this.agents.set(id, agentData);
@@ -176,7 +176,7 @@ export class AgentSupervisor extends EventEmitter {
       this._spawnAgent({
         ...config,
         restarts: currentRestarts + 1,
-        lastRestart: Date.now()
+        lastRestart: Date.now(),
       });
 
       this.emit('agentRestarted', { id, attempt: currentRestarts + 1 });
@@ -254,7 +254,7 @@ export class AgentSupervisor extends EventEmitter {
       ...health,
       status,
       timeSinceHeartbeat,
-      restartCount: this.restartCounts.get(id) || 0
+      restartCount: this.restartCounts.get(id) || 0,
     };
   }
 

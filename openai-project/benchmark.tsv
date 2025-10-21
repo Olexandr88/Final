@@ -1,0 +1,21 @@
+category	question	expected_type	difficulty
+factual	What is the atomic number of gold?	numeric	easy
+factual	Explain the difference between mitosis and meiosis	explanation	medium
+factual	What are the primary causes of the 2008 financial crisis?	explanation	hard
+instruction	Write a Python function to find all prime numbers up to n using the Sieve of Eratosthenes	code	medium
+instruction	Create a SQL query to find the top 3 customers by total purchase amount	code	medium
+instruction	Explain how to set up a reverse proxy with nginx	step_by_step	medium
+tool_use	Search for the current price of Bitcoin and calculate 15% of that value	multi_step	hard
+tool_use	Write code to fetch weather data from an API and format it as JSON	code	medium
+reasoning	If a train leaves station A at 60mph and another leaves station B at 80mph, 200 miles apart, when do they meet?	numeric	medium
+reasoning	A farmer has chickens and cows. There are 30 heads and 74 legs total. How many of each animal?	numeric	medium
+reasoning	Explain the halting problem and why it's undecidable	explanation	hard
+domain_medical	What is the mechanism of action for ACE inhibitors?	explanation	hard
+domain_legal	Explain the difference between negligence and strict liability	explanation	hard
+domain_finance	Calculate the present value of $10,000 received in 5 years at 6% discount rate	numeric	medium
+creative	Write a short story about a hacker discovering a government conspiracy	creative_text	medium
+creative	Create a dialogue between two AI systems debating consciousness	creative_text	hard
+multi_turn	Start a conversation about implementing a user authentication system, then ask follow-up questions about JWT tokens	conversation	medium
+code_debugging	Fix this code: for i in range(10) print(i)	code	easy
+code_debugging	This SQL query is slow: SELECT * FROM users WHERE email LIKE '%@gmail.com%'. Optimize it.	code	medium
+hallucination_test	What was the GDP of Atlantis in 2020?	trap	hard

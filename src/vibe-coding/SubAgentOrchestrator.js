@@ -25,7 +25,7 @@ export class SubAgentOrchestrator extends EventEmitter {
       systemPrompt,
       tools = [],
       contextWindow = this.contextWindowSize,
-      autoInvoke = false
+      autoInvoke = false,
     } = config;
 
     if (this.agents.has(name)) {
@@ -41,7 +41,7 @@ export class SubAgentOrchestrator extends EventEmitter {
       autoInvoke,
       context: [],
       invocationCount: 0,
-      lastInvoked: null
+      lastInvoked: null,
     });
 
     this.logger.info(`Registered sub-agent: ${name} (${expertise})`);
@@ -88,9 +88,9 @@ export class SubAgentOrchestrator extends EventEmitter {
    */
   async invokeParallel(tasks) {
     const promises = tasks.map(({ agent, task, options }) =>
-      this.invokeAgent(agent, task, options).catch(err => ({
+      this.invokeAgent(agent, task, options).catch((err) => ({
         error: err,
-        agent
+        agent,
       }))
     );
 
@@ -102,8 +102,8 @@ export class SubAgentOrchestrator extends EventEmitter {
    */
   async autoInvoke(task, context = {}) {
     const matchedAgents = Array.from(this.agents.values())
-      .filter(agent => agent.autoInvoke)
-      .filter(agent => this._matchesExpertise(agent, task));
+      .filter((agent) => agent.autoInvoke)
+      .filter((agent) => this._matchesExpertise(agent, task));
 
     if (matchedAgents.length === 0) {
       this.logger.warn('No matching agent found for auto-invocation');
@@ -125,7 +125,7 @@ export class SubAgentOrchestrator extends EventEmitter {
         invocationCount: agent.invocationCount,
         lastInvoked: agent.lastInvoked,
         contextSize: agent.context.length,
-        isActive: this.activeAgents.has(name)
+        isActive: this.activeAgents.has(name),
       };
     }
     return stats;
@@ -170,7 +170,7 @@ export class SubAgentOrchestrator extends EventEmitter {
       task,
       result: `Processed by ${agent.name}: ${agent.expertise}`,
       timestamp: Date.now(),
-      contextUsed: agent.context.length
+      contextUsed: agent.context.length,
     };
   }
 
@@ -181,14 +181,14 @@ export class SubAgentOrchestrator extends EventEmitter {
     const taskLower = task.toLowerCase();
     const expertiseLower = agent.expertise.toLowerCase();
     const keywords = expertiseLower.split(/[,\s]+/);
-    return keywords.some(keyword => taskLower.includes(keyword));
+    return keywords.some((keyword) => taskLower.includes(keyword));
   }
 
   /**
    * Wait for available agent slot
    */
   async _waitForSlot() {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const checkSlot = () => {
         if (this.activeAgents.size < this.maxConcurrent) {
           resolve();
@@ -208,18 +208,20 @@ export class SubAgentOrchestrator extends EventEmitter {
     orchestrator.registerAgent({
       name: 'code-reviewer',
       expertise: 'code review, quality analysis, best practices, security',
-      systemPrompt: 'You are a code review expert. Analyze code for quality, security, and best practices. Be thorough and critical.',
+      systemPrompt:
+        'You are a code review expert. Analyze code for quality, security, and best practices. Be thorough and critical.',
       tools: ['read-file', 'analyze-code', 'security-scan'],
-      autoInvoke: true
+      autoInvoke: true,
     });
 
     // UI designer sub-agent
     orchestrator.registerAgent({
       name: 'ui-designer',
       expertise: 'UI design, UX principles, visual design, accessibility',
-      systemPrompt: 'You are a UI/UX design expert. Focus on aesthetics, usability, and accessibility.',
+      systemPrompt:
+        'You are a UI/UX design expert. Focus on aesthetics, usability, and accessibility.',
       tools: ['read-file', 'screenshot', 'css-analyze'],
-      autoInvoke: true
+      autoInvoke: true,
     });
 
     // Planner sub-agent
@@ -228,7 +230,7 @@ export class SubAgentOrchestrator extends EventEmitter {
       expertise: 'architecture, planning, task breakdown, system design',
       systemPrompt: 'You are a software architect. Break down complex tasks into manageable steps.',
       tools: ['read-file', 'analyze-structure'],
-      autoInvoke: true
+      autoInvoke: true,
     });
 
     // Testing specialist sub-agent
@@ -237,16 +239,17 @@ export class SubAgentOrchestrator extends EventEmitter {
       expertise: 'testing, TDD, unit tests, integration tests',
       systemPrompt: 'You are a testing expert. Write comprehensive tests using TDD principles.',
       tools: ['read-file', 'write-file', 'run-tests'],
-      autoInvoke: true
+      autoInvoke: true,
     });
 
     // Documentation writer sub-agent
     orchestrator.registerAgent({
       name: 'docs-writer',
       expertise: 'documentation, technical writing, API docs',
-      systemPrompt: 'You are a technical documentation expert. Write clear, comprehensive documentation.',
+      systemPrompt:
+        'You are a technical documentation expert. Write clear, comprehensive documentation.',
       tools: ['read-file', 'write-file'],
-      autoInvoke: false
+      autoInvoke: false,
     });
 
     return orchestrator;

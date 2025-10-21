@@ -17,7 +17,7 @@ const BENCHMARK_DB_PATH = path.join(__dirname, '..', 'data', 'benchmark.db');
 const ITERATIONS = {
   simple: 1000,
   complex: 500,
-  bulk: 100
+  bulk: 100,
 };
 
 // Color output
@@ -27,7 +27,7 @@ const colors = {
   red: '\x1b[31m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 class ORMBenchmark {
@@ -98,7 +98,7 @@ class ORMBenchmark {
     // Initialize Prisma client
     this.prisma = new PrismaClient({
       datasources: { db: { url: `file:${BENCHMARK_DB_PATH}` } },
-      log: [] // Disable logging for benchmarks
+      log: [], // Disable logging for benchmarks
     });
 
     console.log(`${colors.green}✓ Database initialized with optimized schema${colors.reset}`);
@@ -139,7 +139,7 @@ class ORMBenchmark {
       p95,
       p99,
       min,
-      max
+      max,
     };
   }
 
@@ -152,17 +152,21 @@ class ORMBenchmark {
     const rawResult = await this.benchmark(
       'Raw SQL Insert (Session)',
       () => {
-        this.db.prepare(`
+        this.db
+          .prepare(
+            `
           INSERT INTO sessions (id, pid, start_time, last_heartbeat, status, cwd)
           VALUES (?, ?, ?, ?, ?, ?)
-        `).run(
-          `raw-session-${counter++}`,
-          process.pid,
-          BigInt(Date.now()),
-          BigInt(Date.now()),
-          'active',
-          process.cwd()
-        );
+        `
+          )
+          .run(
+            `raw-session-${counter++}`,
+            process.pid,
+            BigInt(Date.now()),
+            BigInt(Date.now()),
+            'active',
+            process.cwd()
+          );
       },
       ITERATIONS.simple
     );
@@ -179,8 +183,8 @@ class ORMBenchmark {
             startTime: BigInt(Date.now()),
             lastHeartbeat: BigInt(Date.now()),
             status: 'active',
-            cwd: process.cwd()
-          }
+            cwd: process.cwd(),
+          },
         });
       },
       ITERATIONS.simple
@@ -195,16 +199,31 @@ class ORMBenchmark {
 
     // Setup test data
     const testSessionId = 'complex-test-session';
-    this.db.prepare(`
+    this.db
+      .prepare(
+        `
       INSERT OR REPLACE INTO sessions (id, pid, start_time, last_heartbeat, status, cwd)
       VALUES (?, ?, ?, ?, ?, ?)
-    `).run(testSessionId, process.pid, BigInt(Date.now()), BigInt(Date.now()), 'active', process.cwd());
+    `
+      )
+      .run(
+        testSessionId,
+        process.pid,
+        BigInt(Date.now()),
+        BigInt(Date.now()),
+        'active',
+        process.cwd()
+      );
 
     for (let i = 0; i < 10; i++) {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         INSERT INTO locks (resource_path, session_id, acquired_at, lock_type)
         VALUES (?, ?, ?, ?)
-      `).run(`/file-${i}.js`, testSessionId, BigInt(Date.now()), 'read');
+      `
+        )
+        .run(`/file-${i}.js`, testSessionId, BigInt(Date.now()), 'read');
     }
 
     // Raw SQL Query (manual JOIN)
@@ -212,7 +231,9 @@ class ORMBenchmark {
       'Raw SQL Query (Session + Locks)',
       () => {
         const session = this.db.prepare('SELECT * FROM sessions WHERE id = ?').get(testSessionId);
-        const locks = this.db.prepare('SELECT * FROM locks WHERE session_id = ?').all(testSessionId);
+        const locks = this.db
+          .prepare('SELECT * FROM locks WHERE session_id = ?')
+          .all(testSessionId);
         return { ...session, locks };
       },
       ITERATIONS.complex
@@ -224,7 +245,7 @@ class ORMBenchmark {
       async () => {
         return this.prisma.session.findUnique({
           where: { id: testSessionId },
-          include: { locks: true }
+          include: { locks: true },
         });
       },
       ITERATIONS.complex
@@ -239,27 +260,35 @@ class ORMBenchmark {
 
     // Setup test data (100 selections)
     for (let i = 0; i < 100; i++) {
-      this.db.prepare(`
+      this.db
+        .prepare(
+          `
         INSERT INTO selections (url, title, selected_text, source)
         VALUES (?, ?, ?, ?)
-      `).run(
-        `https://example.com/page-${i}`,
-        `Test Page ${i}`,
-        `This is test content number ${i} with some searchable keywords`,
-        'benchmark'
-      );
+      `
+        )
+        .run(
+          `https://example.com/page-${i}`,
+          `Test Page ${i}`,
+          `This is test content number ${i} with some searchable keywords`,
+          'benchmark'
+        );
     }
 
     // Raw SQL Search
     const rawResult = await this.benchmark(
       'Raw SQL Search (LIKE query)',
       () => {
-        return this.db.prepare(`
+        return this.db
+          .prepare(
+            `
           SELECT * FROM selections
           WHERE selected_text LIKE ? OR title LIKE ? OR url LIKE ?
           ORDER BY created_at DESC
           LIMIT 50
-        `).all('%test%', '%test%', '%test%');
+        `
+          )
+          .all('%test%', '%test%', '%test%');
       },
       ITERATIONS.complex
     );
@@ -273,11 +302,11 @@ class ORMBenchmark {
             OR: [
               { selectedText: { contains: 'test' } },
               { title: { contains: 'test' } },
-              { url: { contains: 'test' } }
-            ]
+              { url: { contains: 'test' } },
+            ],
           },
           take: 50,
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'desc' },
         });
       },
       ITERATIONS.complex
@@ -307,12 +336,14 @@ class ORMBenchmark {
           }
         });
 
-        const data = Array(BULK_SIZE).fill(null).map((_, i) => ({
-          url: `https://bulk.com/${i}`,
-          title: `Bulk ${i}`,
-          text: `Bulk content ${i}`,
-          source: 'benchmark'
-        }));
+        const data = Array(BULK_SIZE)
+          .fill(null)
+          .map((_, i) => ({
+            url: `https://bulk.com/${i}`,
+            title: `Bulk ${i}`,
+            text: `Bulk content ${i}`,
+            source: 'benchmark',
+          }));
 
         insertMany(data);
       },
@@ -323,16 +354,18 @@ class ORMBenchmark {
     const ormResult = await this.benchmark(
       `Prisma ORM Bulk Insert (${BULK_SIZE} rows)`,
       async () => {
-        const data = Array(BULK_SIZE).fill(null).map((_, i) => ({
-          url: `https://bulk-orm.com/${i}`,
-          title: `Bulk ORM ${i}`,
-          selectedText: `Bulk ORM content ${i}`,
-          source: 'benchmark'
-        }));
+        const data = Array(BULK_SIZE)
+          .fill(null)
+          .map((_, i) => ({
+            url: `https://bulk-orm.com/${i}`,
+            title: `Bulk ORM ${i}`,
+            selectedText: `Bulk ORM content ${i}`,
+            source: 'benchmark',
+          }));
 
         await this.prisma.selection.createMany({
           data,
-          skipDuplicates: true
+          skipDuplicates: true,
         });
       },
       ITERATIONS.bulk
@@ -353,16 +386,24 @@ class ORMBenchmark {
       () => {
         this.db.prepare('BEGIN TRANSACTION').run();
         try {
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             UPDATE sessions SET status = 'stale'
             WHERE last_heartbeat < ?
-          `).run(cutoffTime);
+          `
+            )
+            .run(cutoffTime);
 
-          this.db.prepare(`
+          this.db
+            .prepare(
+              `
             DELETE FROM locks WHERE session_id IN (
               SELECT id FROM sessions WHERE status = 'stale'
             )
-          `).run();
+          `
+            )
+            .run();
 
           this.db.prepare('COMMIT').run();
         } catch (err) {
@@ -380,11 +421,11 @@ class ORMBenchmark {
         await this.prisma.$transaction([
           this.prisma.session.updateMany({
             where: { lastHeartbeat: { lt: cutoffTime } },
-            data: { status: 'stale' }
+            data: { status: 'stale' },
           }),
           this.prisma.lock.deleteMany({
-            where: { session: { status: 'stale' } }
-          })
+            where: { session: { status: 'stale' } },
+          }),
         ]);
       },
       ITERATIONS.complex
@@ -395,12 +436,16 @@ class ORMBenchmark {
   }
 
   printComparison(name, rawResult, ormResult) {
-    const overhead = ((ormResult.avg - rawResult.avg) / rawResult.avg * 100);
+    const overhead = ((ormResult.avg - rawResult.avg) / rawResult.avg) * 100;
     const isAcceptable = overhead < 100; // 100% overhead threshold
 
     console.log(`${name}:`);
-    console.log(`  Raw SQL:    avg=${rawResult.avg.toFixed(2)}ms  median=${rawResult.median.toFixed(2)}ms  p95=${rawResult.p95.toFixed(2)}ms  p99=${rawResult.p99.toFixed(2)}ms`);
-    console.log(`  Prisma ORM: avg=${ormResult.avg.toFixed(2)}ms  median=${ormResult.median.toFixed(2)}ms  p95=${ormResult.p95.toFixed(2)}ms  p99=${ormResult.p99.toFixed(2)}ms`);
+    console.log(
+      `  Raw SQL:    avg=${rawResult.avg.toFixed(2)}ms  median=${rawResult.median.toFixed(2)}ms  p95=${rawResult.p95.toFixed(2)}ms  p99=${rawResult.p99.toFixed(2)}ms`
+    );
+    console.log(
+      `  Prisma ORM: avg=${ormResult.avg.toFixed(2)}ms  median=${ormResult.median.toFixed(2)}ms  p95=${ormResult.p95.toFixed(2)}ms  p99=${ormResult.p99.toFixed(2)}ms`
+    );
 
     const statusColor = isAcceptable ? colors.green : colors.red;
     const status = isAcceptable ? '✓ PASS' : '✗ FAIL';
@@ -423,7 +468,7 @@ class ORMBenchmark {
       { key: 'complexQuery', name: 'Complex Query', threshold: 100 },
       { key: 'search', name: 'Search Query', threshold: 100 },
       { key: 'bulkInsert', name: 'Bulk Insert', threshold: 75 },
-      { key: 'transaction', name: 'Transaction', threshold: 100 }
+      { key: 'transaction', name: 'Transaction', threshold: 100 },
     ];
 
     let allPassed = true;
@@ -432,7 +477,7 @@ class ORMBenchmark {
       const result = this.results[category.key];
       if (!result) continue;
 
-      const overhead = ((result.orm.avg - result.raw.avg) / result.raw.avg * 100);
+      const overhead = ((result.orm.avg - result.raw.avg) / result.raw.avg) * 100;
       const passed = overhead <= category.threshold;
       allPassed = allPassed && passed;
 
@@ -440,8 +485,12 @@ class ORMBenchmark {
       const status = passed ? '✓' : '✗';
 
       console.log(`${statusColor}${status} ${category.name}:${colors.reset}`);
-      console.log(`  Raw SQL:    ${result.raw.avg.toFixed(2)}ms avg (median: ${result.raw.median.toFixed(2)}ms, p95: ${result.raw.p95.toFixed(2)}ms)`);
-      console.log(`  Prisma ORM: ${result.orm.avg.toFixed(2)}ms avg (median: ${result.orm.median.toFixed(2)}ms, p95: ${result.orm.p95.toFixed(2)}ms)`);
+      console.log(
+        `  Raw SQL:    ${result.raw.avg.toFixed(2)}ms avg (median: ${result.raw.median.toFixed(2)}ms, p95: ${result.raw.p95.toFixed(2)}ms)`
+      );
+      console.log(
+        `  Prisma ORM: ${result.orm.avg.toFixed(2)}ms avg (median: ${result.orm.median.toFixed(2)}ms, p95: ${result.orm.p95.toFixed(2)}ms)`
+      );
       console.log(`  Overhead:   +${overhead.toFixed(1)}% (threshold: ${category.threshold}%)\n`);
     }
 

@@ -10,60 +10,60 @@ permissions:
 jobs:
   fix-lockfile:
     runs-on: ubuntu-latest
-    
+
     steps:
-    - uses: actions/checkout@v5
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
-    
-    - name: Use Node.js
-      uses: actions/setup-node@v5
-      with:
-        node-version: '20.x'
-    
-    - name: Remove old package-lock.json
-      run: rm -f package-lock.json
-    
-    - name: Generate new package-lock.json
-      run: npm install
-    
-    - name: Check for changes
-      id: verify-changed-files
-      run: |
-        if [ -n "$(git status --porcelain)" ]; then
-          echo "changed=true" >> $GITHUB_OUTPUT
-          echo "Changes detected in package-lock.json"
-          git status --short
-        else
-          echo "changed=false" >> $GITHUB_OUTPUT
-          echo "No changes detected"
-        fi
-    
-    - name: Create Pull Request for lockfile fix
-      if: steps.verify-changed-files.outputs.changed == 'true'
-      uses: peter-evans/create-pull-request@v6
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        commit-message: 'fix: regenerate package-lock.json to sync with package.json [skip ci]'
-        title: 'fix: Regenerate package-lock.json'
-        body: |
-          ## Package Lock Fix
-          
-          This PR regenerates the `package-lock.json` file to synchronize with `package.json` and resolve any conflicts or inconsistencies.
-          
-          ### Changes
-          - Regenerated package-lock.json from scratch
-          - Resolved dependency version conflicts
-          - Ensured lock file consistency with package.json
-          
-          **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          
-          This PR was created to comply with branch protection rules that require changes via pull request.
-        branch: fix-lockfile-${{ github.run_id }}
-        base: main
-        delete-branch: true
-        labels: |
-          automated
-          lockfile
-          bugfix
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Use Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '20.x'
+
+      - name: Remove old package-lock.json
+        run: rm -f package-lock.json
+
+      - name: Generate new package-lock.json
+        run: npm install
+
+      - name: Check for changes
+        id: verify-changed-files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected in package-lock.json"
+            git status --short
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes detected"
+          fi
+
+      - name: Create Pull Request for lockfile fix
+        if: steps.verify-changed-files.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'fix: regenerate package-lock.json to sync with package.json [skip ci]'
+          title: 'fix: Regenerate package-lock.json'
+          body: |
+            ## Package Lock Fix
+
+            This PR regenerates the `package-lock.json` file to synchronize with `package.json` and resolve any conflicts or inconsistencies.
+
+            ### Changes
+            - Regenerated package-lock.json from scratch
+            - Resolved dependency version conflicts
+            - Ensured lock file consistency with package.json
+
+            **Workflow Run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            This PR was created to comply with branch protection rules that require changes via pull request.
+          branch: fix-lockfile-${{ github.run_id }}
+          base: main
+          delete-branch: true
+          labels: |
+            automated
+            lockfile
+            bugfix

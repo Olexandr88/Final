@@ -33,9 +33,18 @@ class LockManager {
   async _initializeDistributedLocks(redisConfig = {}) {
     try {
       const defaultRedisNodes = [
-        { host: process.env.REDIS_HOST_1 || 'localhost', port: parseInt(process.env.REDIS_PORT_1 || '6379') },
-        { host: process.env.REDIS_HOST_2 || 'localhost', port: parseInt(process.env.REDIS_PORT_2 || '6380') },
-        { host: process.env.REDIS_HOST_3 || 'localhost', port: parseInt(process.env.REDIS_PORT_3 || '6381') }
+        {
+          host: process.env.REDIS_HOST_1 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_1 || '6379'),
+        },
+        {
+          host: process.env.REDIS_HOST_2 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_2 || '6380'),
+        },
+        {
+          host: process.env.REDIS_HOST_3 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_3 || '6381'),
+        },
       ];
 
       this.distributedLockManager = new RedisRedlockManager({
@@ -43,7 +52,7 @@ class LockManager {
         lockTTL: redisConfig.lockTTL || 10000,
         retryCount: redisConfig.retryCount || 3,
         retryDelay: redisConfig.retryDelay || 200,
-        ...redisConfig
+        ...redisConfig,
       });
 
       await this.distributedLockManager.initialize();
@@ -52,7 +61,9 @@ class LockManager {
 
       // Set up event listeners
       this.distributedLockManager.on('unhealthy', () => {
-        console.warn('[LockManager] Distributed lock system unhealthy, falling back to local locks');
+        console.warn(
+          '[LockManager] Distributed lock system unhealthy, falling back to local locks'
+        );
         this.useDistributed = false;
       });
 
@@ -60,9 +71,11 @@ class LockManager {
         console.log('[LockManager] Distributed lock system healthy');
         this.useDistributed = true;
       });
-
     } catch (error) {
-      console.error('[LockManager] Failed to initialize distributed locks, using local locks:', error.message);
+      console.error(
+        '[LockManager] Failed to initialize distributed locks, using local locks:',
+        error.message
+      );
       this.useDistributed = false;
       this.distributedLockManager = null;
     }
@@ -107,10 +120,14 @@ class LockManager {
       const now = Date.now();
 
       // Record lock in database for tracking
-      this.sessionManager.db.prepare(`
+      this.sessionManager.db
+        .prepare(
+          `
         INSERT INTO locks (resource_path, session_id, acquired_at, lock_type)
         VALUES (?, ?, ?, ?)
-      `).run(resourcePath, sessionId, now, lockType);
+      `
+        )
+        .run(resourcePath, sessionId, now, lockType);
 
       // Store lock info
       const lockInfo = {
@@ -119,16 +136,17 @@ class LockManager {
         distributed: true,
         lock,
         acquiredAt: now,
-        release: () => this.distributedLockManager.releaseLock(resourcePath)
+        release: () => this.distributedLockManager.releaseLock(resourcePath),
       };
 
       this.locks.set(resourcePath, lockInfo);
 
       return lockInfo;
-
     } catch (error) {
       // If distributed lock fails, fall back to local
-      console.warn(`[LockManager] Distributed lock failed for ${resourcePath}, falling back to local: ${error.message}`);
+      console.warn(
+        `[LockManager] Distributed lock failed for ${resourcePath}, falling back to local: ${error.message}`
+      );
       return this._acquireLocalLock(resourcePath, lockType, timeout);
     }
   }
@@ -159,10 +177,10 @@ class LockManager {
       retries: {
         retries: 3,
         minTimeout: 500,
-        maxTimeout: 2000
+        maxTimeout: 2000,
       },
       stale: 30000, // Consider lock stale after 30 seconds
-      realpath: false
+      realpath: false,
     };
 
     try {
@@ -175,10 +193,14 @@ class LockManager {
 
           // Record lock in database
           const now = Date.now();
-          this.sessionManager.db.prepare(`
+          this.sessionManager.db
+            .prepare(
+              `
             INSERT INTO locks (resource_path, session_id, acquired_at, lock_type)
             VALUES (?, ?, ?, ?)
-          `).run(resourcePath, sessionId, now, lockType);
+          `
+            )
+            .run(resourcePath, sessionId, now, lockType);
 
           // Store lock info
           const lockInfo = {
@@ -186,7 +208,7 @@ class LockManager {
             lockType,
             distributed: false,
             release,
-            acquiredAt: now
+            acquiredAt: now,
           };
           this.locks.set(lockKey, lockInfo);
 
@@ -196,7 +218,7 @@ class LockManager {
             throw err;
           }
           // Wait a bit before retrying
-          await new Promise(resolve => setTimeout(resolve, 500));
+          await new Promise((resolve) => setTimeout(resolve, 500));
         }
       }
 
@@ -204,8 +226,8 @@ class LockManager {
       const lockHolder = this._getLockHolder(resourcePath);
       throw new Error(
         `Timeout acquiring lock for ${resourcePath}. ` +
-        `Lock held by session: ${lockHolder?.session_id || 'unknown'} ` +
-        `(PID: ${lockHolder?.pid || 'unknown'})`
+          `Lock held by session: ${lockHolder?.session_id || 'unknown'} ` +
+          `(PID: ${lockHolder?.pid || 'unknown'})`
       );
     } catch (err) {
       throw new Error(`Failed to acquire lock for ${resourcePath}: ${err.message}`);
@@ -230,10 +252,14 @@ class LockManager {
 
       // Remove from database
       const sessionId = this.sessionManager.getCurrentSessionId();
-      this.sessionManager.db.prepare(`
+      this.sessionManager.db
+        .prepare(
+          `
         DELETE FROM locks
         WHERE resource_path = ? AND session_id = ?
-      `).run(resourcePath, sessionId);
+      `
+        )
+        .run(resourcePath, sessionId);
 
       // Remove from local tracking
       this.locks.delete(lockKey);
@@ -255,11 +281,11 @@ class LockManager {
    */
   getStats() {
     const stats = {
-      localLocks: Array.from(this.locks.values()).filter(l => !l.distributed).length,
-      distributedLocks: Array.from(this.locks.values()).filter(l => l.distributed).length,
+      localLocks: Array.from(this.locks.values()).filter((l) => !l.distributed).length,
+      distributedLocks: Array.from(this.locks.values()).filter((l) => l.distributed).length,
       totalLocks: this.locks.size,
       distributedEnabled: this.useDistributed,
-      distributedHealthy: this.distributedLockManager?.healthy || false
+      distributedHealthy: this.distributedLockManager?.healthy || false,
     };
 
     if (this.distributedLockManager) {
@@ -277,7 +303,7 @@ class LockManager {
     const status = {
       healthy: true,
       localLocks: this.locks.size,
-      distributedEnabled: this.useDistributed
+      distributedEnabled: this.useDistributed,
     };
 
     if (this.useDistributed && this.distributedLockManager) {
@@ -304,14 +330,18 @@ class LockManager {
   }
 
   _getLockHolder(resourcePath) {
-    const lock = this.sessionManager.db.prepare(`
+    const lock = this.sessionManager.db
+      .prepare(
+        `
       SELECT l.*, s.pid
       FROM locks l
       JOIN sessions s ON l.session_id = s.id
       WHERE l.resource_path = ?
       ORDER BY l.acquired_at DESC
       LIMIT 1
-    `).get(resourcePath);
+    `
+      )
+      .get(resourcePath);
 
     return lock;
   }
@@ -341,12 +371,16 @@ class LockManager {
     const sessionId = this.sessionManager.getCurrentSessionId();
     if (!sessionId) return [];
 
-    const locks = this.sessionManager.db.prepare(`
+    const locks = this.sessionManager.db
+      .prepare(
+        `
       SELECT resource_path, lock_type, acquired_at
       FROM locks
       WHERE session_id = ?
       ORDER BY acquired_at DESC
-    `).all(sessionId);
+    `
+      )
+      .all(sessionId);
 
     return locks;
   }

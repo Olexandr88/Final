@@ -21,7 +21,7 @@ export class TextTools {
           matches.push({
             match: match[0],
             index: match.index,
-            groups: match.slice(1)
+            groups: match.slice(1),
           });
         }
       } else {
@@ -30,7 +30,7 @@ export class TextTools {
           matches.push({
             match: match[0],
             index: match.index,
-            groups: match.slice(1)
+            groups: match.slice(1),
           });
         }
       }
@@ -38,12 +38,12 @@ export class TextTools {
       return {
         success: true,
         matches,
-        count: matches.length
+        count: matches.length,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -60,12 +60,12 @@ export class TextTools {
         success: true,
         original: text,
         result,
-        changed: text !== result
+        changed: text !== result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -87,12 +87,12 @@ export class TextTools {
         success: true,
         algorithm,
         hash,
-        length: hash.length
+        length: hash.length,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -106,21 +106,21 @@ export class TextTools {
 
       switch (format) {
         case 'base64':
-          result = operation === 'encode'
-            ? Buffer.from(text).toString('base64')
-            : Buffer.from(text, 'base64').toString('utf-8');
+          result =
+            operation === 'encode'
+              ? Buffer.from(text).toString('base64')
+              : Buffer.from(text, 'base64').toString('utf-8');
           break;
 
         case 'hex':
-          result = operation === 'encode'
-            ? Buffer.from(text).toString('hex')
-            : Buffer.from(text, 'hex').toString('utf-8');
+          result =
+            operation === 'encode'
+              ? Buffer.from(text).toString('hex')
+              : Buffer.from(text, 'hex').toString('utf-8');
           break;
 
         case 'url':
-          result = operation === 'encode'
-            ? encodeURIComponent(text)
-            : decodeURIComponent(text);
+          result = operation === 'encode' ? encodeURIComponent(text) : decodeURIComponent(text);
           break;
 
         case 'html':
@@ -150,12 +150,12 @@ export class TextTools {
         operation,
         format,
         original: text,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -172,7 +172,10 @@ export class TextTools {
     }
 
     if (metrics.includes('all') || metrics.includes('words')) {
-      results.words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+      results.words = text
+        .trim()
+        .split(/\s+/)
+        .filter((w) => w.length > 0).length;
     }
 
     if (metrics.includes('all') || metrics.includes('lines')) {
@@ -180,21 +183,23 @@ export class TextTools {
     }
 
     if (metrics.includes('all') || metrics.includes('sentences')) {
-      results.sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0).length;
+      results.sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0).length;
     }
 
     if (metrics.includes('all') || metrics.includes('paragraphs')) {
-      results.paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0).length;
+      results.paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 0).length;
     }
 
     if (metrics.includes('all') || metrics.includes('readingTime')) {
       const wordsPerMinute = 200;
-      results.readingTimeMinutes = Math.ceil((results.words || text.trim().split(/\s+/).length) / wordsPerMinute);
+      results.readingTimeMinutes = Math.ceil(
+        (results.words || text.trim().split(/\s+/).length) / wordsPerMinute
+      );
     }
 
     return {
       success: true,
-      metrics: results
+      metrics: results,
     };
   }
 
@@ -220,7 +225,7 @@ export class TextTools {
           diff.push({
             line: i + 1,
             old: line1,
-            new: line2
+            new: line2,
           });
         }
       }
@@ -230,14 +235,14 @@ export class TextTools {
       success: true,
       format,
       differences: diff,
-      identical: diff.length === 0
+      identical: diff.length === 0,
     };
   }
 }
 
 // CLI Interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [,, command, ...args] = process.argv;
+  const [, , command, ...args] = process.argv;
 
   const commands = {
     'regex-match': () => {
@@ -246,28 +251,32 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     },
     'regex-replace': () => {
       const [text, pattern, replacement, flags] = args;
-      console.log(JSON.stringify(TextTools.regexReplace(text, pattern, replacement, flags), null, 2));
+      console.log(
+        JSON.stringify(TextTools.regexReplace(text, pattern, replacement, flags), null, 2)
+      );
     },
-    'hash': () => {
+    hash: () => {
       const [text, algorithm] = args;
       console.log(JSON.stringify(TextTools.hashText(text, algorithm), null, 2));
     },
-    'encode': () => {
+    encode: () => {
       const [text, format] = args;
       console.log(JSON.stringify(TextTools.encodeDecode(text, 'encode', format), null, 2));
     },
-    'decode': () => {
+    decode: () => {
       const [text, format] = args;
       console.log(JSON.stringify(TextTools.encodeDecode(text, 'decode', format), null, 2));
     },
-    'analyze': () => {
+    analyze: () => {
       const [text, ...metrics] = args;
-      console.log(JSON.stringify(TextTools.analyzeText(text, metrics.length ? metrics : ['all']), null, 2));
+      console.log(
+        JSON.stringify(TextTools.analyzeText(text, metrics.length ? metrics : ['all']), null, 2)
+      );
     },
-    'diff': () => {
+    diff: () => {
       const [text1, text2, format] = args;
       console.log(JSON.stringify(TextTools.diffText(text1, text2, format), null, 2));
-    }
+    },
   };
 
   if (commands[command]) {

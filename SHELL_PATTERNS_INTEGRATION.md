@@ -9,57 +9,57 @@
 
 ### Network Operations
 
-| Block | Pattern | Implemented In | Command |
-|-------|---------|----------------|---------|
-| #29 | `lsof -P -i -n` | network-debug.js | `npm run net:listening` |
-| #30 | `lsof -i tcp:443` | network-debug.js | `port-kill` |
-| #34 | `lsof -Pni4 \| grep LISTEN` | network-debug.js | `listening` |
-| #73 | `kill -9 $(lsof -i :<port>)` | network-debug.js | `port-kill` |
-| #154 | `curl -Iks https://...` | network-debug.js | `http-headers` |
-| #158 | `curl ipinfo.io` | network-analyzer.js | `public-ip` |
-| #180-192 | `tcpdump` patterns | network-analyzer.js | Documentation |
-| #225 | `netstat \| awk ESTABLISHED` | network-debug.js | `established` |
-| #229 | `host google.com 9.9.9.9` | network-debug.js | `dns-resolve` |
-| #231-235 | `dig` commands | network-analyzer.js | `dns-lookup` |
+| Block    | Pattern                      | Implemented In      | Command                 |
+| -------- | ---------------------------- | ------------------- | ----------------------- |
+| #29      | `lsof -P -i -n`              | network-debug.js    | `npm run net:listening` |
+| #30      | `lsof -i tcp:443`            | network-debug.js    | `port-kill`             |
+| #34      | `lsof -Pni4 \| grep LISTEN`  | network-debug.js    | `listening`             |
+| #73      | `kill -9 $(lsof -i :<port>)` | network-debug.js    | `port-kill`             |
+| #154     | `curl -Iks https://...`      | network-debug.js    | `http-headers`          |
+| #158     | `curl ipinfo.io`             | network-analyzer.js | `public-ip`             |
+| #180-192 | `tcpdump` patterns           | network-analyzer.js | Documentation           |
+| #225     | `netstat \| awk ESTABLISHED` | network-debug.js    | `established`           |
+| #229     | `host google.com 9.9.9.9`    | network-debug.js    | `dns-resolve`           |
+| #231-235 | `dig` commands               | network-analyzer.js | `dns-lookup`            |
 
 ### Process Management
 
-| Block | Pattern | Implemented In | Command |
-|-------|---------|----------------|---------|
-| #39 | `ps awwfux \| less -S` | process-manager.js | `tree` |
-| #40 | `ps hax -o user \| uniq -c` | process-manager.js | `by-user` |
-| #57 | `top -p $(pgrep)` | process-manager.js | `top-cpu` |
-| #87 | `pwdx <pid>` | process-manager.js | `cwd` |
+| Block | Pattern                     | Implemented In     | Command   |
+| ----- | --------------------------- | ------------------ | --------- |
+| #39   | `ps awwfux \| less -S`      | process-manager.js | `tree`    |
+| #40   | `ps hax -o user \| uniq -c` | process-manager.js | `by-user` |
+| #57   | `top -p $(pgrep)`           | process-manager.js | `top-cpu` |
+| #87   | `pwdx <pid>`                | process-manager.js | `cwd`     |
 
 ### File Operations
 
-| Block | Pattern | Implemented In | Command |
-|-------|---------|----------------|---------|
-| #42 | `find / -mmin 60` | file-operations.js | `find-recent` |
-| #43 | `find / -type f -size +20M` | file-operations.js | `find-large` |
-| #44 | `find -exec md5sum` | file-operations.js | `find-duplicates` |
-| #51 | `find -depth -empty` | file-operations.js | `empty-dirs` |
-| #98 | `du \| sort -r -n \| awk` | file-operations.js | `disk-usage` |
-| #273 | `grep -rn "pattern"` | file-operations.js | `search-content` |
-| #287 | Perl line counting | file-operations.js | `count-lines` |
+| Block | Pattern                     | Implemented In     | Command           |
+| ----- | --------------------------- | ------------------ | ----------------- |
+| #42   | `find / -mmin 60`           | file-operations.js | `find-recent`     |
+| #43   | `find / -type f -size +20M` | file-operations.js | `find-large`      |
+| #44   | `find -exec md5sum`         | file-operations.js | `find-duplicates` |
+| #51   | `find -depth -empty`        | file-operations.js | `empty-dirs`      |
+| #98   | `du \| sort -r -n \| awk`   | file-operations.js | `disk-usage`      |
+| #273  | `grep -rn "pattern"`        | file-operations.js | `search-content`  |
+| #287  | Perl line counting          | file-operations.js | `count-lines`     |
 
 ### SSL/TLS Operations
 
-| Block | Pattern | Implemented In | Command |
-|-------|---------|----------------|---------|
-| #100-105 | `openssl s_client` | ssl-helper.js | `check-cert` |
-| #106-111 | `openssl genrsa` | ssl-helper.js | `gen-key` |
-| #112-115 | `openssl req` | ssl-helper.js | `gen-csr` |
-| #123-125 | `openssl x509` | ssl-helper.js | `gen-self-signed` |
-| #133-138 | Certificate verification | ssl-helper.js | `verify-cert` |
+| Block    | Pattern                  | Implemented In | Command           |
+| -------- | ------------------------ | -------------- | ----------------- |
+| #100-105 | `openssl s_client`       | ssl-helper.js  | `check-cert`      |
+| #106-111 | `openssl genrsa`         | ssl-helper.js  | `gen-key`         |
+| #112-115 | `openssl req`            | ssl-helper.js  | `gen-csr`         |
+| #123-125 | `openssl x509`           | ssl-helper.js  | `gen-self-signed` |
+| #133-138 | Certificate verification | ssl-helper.js  | `verify-cert`     |
 
 ### Development Utilities
 
-| Block | Pattern | Implemented In | Command |
-|-------|---------|----------------|---------|
-| #7 | History analysis | dev-helper.js | Documentation |
-| #48 | `cp filename{,.orig}` | Documentation | Pattern reference |
-| #67 | `mkd() { mkdir -p }` | Documentation | Pattern reference |
+| Block | Pattern               | Implemented In | Command           |
+| ----- | --------------------- | -------------- | ----------------- |
+| #7    | History analysis      | dev-helper.js  | Documentation     |
+| #48   | `cp filename{,.orig}` | Documentation  | Pattern reference |
+| #67   | `mkd() { mkdir -p }`  | Documentation  | Pattern reference |
 
 ---
 
@@ -78,6 +78,7 @@ node scripts/network-debug.js http-headers example.com
 ```
 
 **Windows Adaptations**:
+
 - `lsof` → `netstat -ano`
 - `kill -9` → `taskkill /F /PID`
 - `host` → `nslookup`
@@ -96,6 +97,7 @@ npm run net:summary            # Connection summary
 ```
 
 **Advanced Features**:
+
 - Multiple DNS resolvers (8.8.8.8, 1.1.1.1, 9.9.9.9)
 - Port range scanning
 - Real-time connection monitoring
@@ -116,6 +118,7 @@ node scripts/process-manager.js cwd 12345
 ```
 
 **Windows Adaptations**:
+
 - `ps` → `Get-Process` PowerShell
 - `top` → `tasklist /V`
 - `pwdx` → `Get-Process -Id X | Select Path`
@@ -135,6 +138,7 @@ node scripts/ssl-helper.js verify-cert cert.pem key.pem
 ```
 
 **OpenSSL Operations**:
+
 - Certificate inspection
 - Private key generation
 - CSR creation
@@ -156,6 +160,7 @@ npm run file:search "TODO" . js
 ```
 
 **Windows Adaptations**:
+
 - `find` → `Get-ChildItem -Recurse`
 - `md5sum` → `Get-FileHash -Algorithm MD5`
 - `du` → PowerShell file size calculations
@@ -186,6 +191,7 @@ npm run diag:advanced          # Interactive menu
 ```
 
 **Diagnostic Modes**:
+
 1. Network connectivity tests
 2. Process analysis
 3. File system health
@@ -229,16 +235,16 @@ npm run diag:advanced          # Interactive menu
 
 ### Commands by Category
 
-| Category | Shell Patterns | Implemented | Coverage |
-|----------|----------------|-------------|----------|
-| Network | 40 patterns | 15 commands | 38% |
-| Process | 15 patterns | 9 commands | 60% |
-| File Ops | 25 patterns | 9 commands | 36% |
-| SSL/TLS | 30 patterns | 11 commands | 37% |
-| Text Processing | 45 patterns | Documented | Reference |
-| SSH | 15 patterns | Documented | Reference |
-| Git | 3 patterns | Documented | Reference |
-| **Total** | **288 patterns** | **68 commands** | **~24%** |
+| Category        | Shell Patterns   | Implemented     | Coverage  |
+| --------------- | ---------------- | --------------- | --------- |
+| Network         | 40 patterns      | 15 commands     | 38%       |
+| Process         | 15 patterns      | 9 commands      | 60%       |
+| File Ops        | 25 patterns      | 9 commands      | 36%       |
+| SSL/TLS         | 30 patterns      | 11 commands     | 37%       |
+| Text Processing | 45 patterns      | Documented      | Reference |
+| SSH             | 15 patterns      | Documented      | Reference |
+| Git             | 3 patterns       | Documented      | Reference |
+| **Total**       | **288 patterns** | **68 commands** | **~24%**  |
 
 **Note**: The 24% coverage represents direct command implementations. Many additional patterns are referenced in documentation or used as inspiration for cross-platform adaptations.
 
@@ -264,6 +270,7 @@ md5sum           → Get-FileHash -Algorithm MD5
 ### Node.js Wrappers
 
 All shell patterns wrapped in Node.js utilities:
+
 - Error handling
 - Cross-platform compatibility
 - Structured output (JSON where appropriate)

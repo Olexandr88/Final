@@ -24,7 +24,7 @@ async function testDirectToolExecution() {
   const agent = new AutonomousClaudeAgent({
     clientId: 'test-direct-agent',
     role: 'test',
-    extendedThinking: false // No API calls for this test
+    extendedThinking: false, // No API calls for this test
   });
 
   await agent._initialize();
@@ -49,7 +49,7 @@ Capabilities demonstrated:
 - Autonomous decision making
 - Code execution
 - Resource management
-`
+`,
   });
 
   console.log(`   ✅ File created: ${writeResult.result.file_path}`);
@@ -59,7 +59,7 @@ Capabilities demonstrated:
   // Test 1b: File Read (Verify file exists)
   console.log('Test 1b: Autonomous File Read (Verification)');
   const readResult = await agent.toolExecutor.executeTool('read', {
-    file_path: `autonomous-demo-${timestamp}.txt`
+    file_path: `autonomous-demo-${timestamp}.txt`,
   });
 
   console.log(`   ✅ File read successfully`);
@@ -70,17 +70,23 @@ Capabilities demonstrated:
   // Test 1c: Glob (File discovery)
   console.log('Test 1c: Autonomous File Discovery');
   const globResult = await agent.toolExecutor.executeTool('glob', {
-    pattern: 'src/agents/*.js'
+    pattern: 'src/agents/*.js',
   });
 
   console.log(`   ✅ Found ${globResult.result.count} agent files`);
-  console.log(`   📂 Sample files:`, globResult.result.files.slice(0, 3).map(f => `\n      - ${f}`).join(''));
+  console.log(
+    `   📂 Sample files:`,
+    globResult.result.files
+      .slice(0, 3)
+      .map((f) => `\n      - ${f}`)
+      .join('')
+  );
   console.log(`   ⏱️  Duration: ${globResult.duration}ms\n`);
 
   // Test 1d: Bash execution
   console.log('Test 1d: Autonomous Command Execution');
   const bashResult = await agent.toolExecutor.executeTool('bash', {
-    command: 'echo "Autonomous command executed successfully"'
+    command: 'echo "Autonomous command executed successfully"',
   });
 
   console.log(`   ✅ Command executed`);
@@ -90,7 +96,7 @@ Capabilities demonstrated:
   // Test 1e: Git operations
   console.log('Test 1e: Autonomous Git Operations');
   const gitResult = await agent.toolExecutor.executeTool('git_status', {
-    cwd: process.cwd()
+    cwd: process.cwd(),
   });
 
   console.log(`   ✅ Git status retrieved`);
@@ -117,7 +123,7 @@ async function testCodeImplementation() {
 
   const agent = new AutonomousClaudeAgent({
     clientId: 'implementation-agent',
-    role: 'developer'
+    role: 'developer',
   });
 
   await agent._initialize();
@@ -147,7 +153,7 @@ export default autonomouslyGenerated;
 
   const implementResult = await agent.toolExecutor.executeTool('write', {
     file_path: `autonomous-implementation-${timestamp}.js`,
-    content: codeImplementation
+    content: codeImplementation,
   });
 
   console.log(`✅ Code implemented autonomously`);
@@ -160,7 +166,13 @@ export default autonomouslyGenerated;
     const module = await import(`./autonomous-implementation-${timestamp}.js`);
     const result = module.autonomouslyGenerated();
     console.log('✅ Code verification: Implementation is valid and executable');
-    console.log(`   🔧 Execution result:`, JSON.stringify(result, null, 2).split('\n').map(l => `\n      ${l}`).join(''));
+    console.log(
+      `   🔧 Execution result:`,
+      JSON.stringify(result, null, 2)
+        .split('\n')
+        .map((l) => `\n      ${l}`)
+        .join('')
+    );
   } catch (err) {
     console.log(`❌ Code verification failed: ${err.message}`);
   }
@@ -176,7 +188,7 @@ async function testMultiStepWorkflow() {
 
   const agent = new AutonomousClaudeAgent({
     clientId: 'workflow-agent',
-    role: 'orchestrator'
+    role: 'orchestrator',
   });
 
   await agent._initialize();
@@ -186,7 +198,7 @@ async function testMultiStepWorkflow() {
   // Step 1: Discover agent files
   console.log('Step 1: File Discovery');
   const step1 = await agent.toolExecutor.executeTool('glob', {
-    pattern: 'src/agents/autonomous-*.js'
+    pattern: 'src/agents/autonomous-*.js',
   });
   console.log(`   ✅ Found ${step1.result.count} autonomous agent files\n`);
 
@@ -194,7 +206,7 @@ async function testMultiStepWorkflow() {
   console.log('Step 2: Code Analysis');
   if (step1.result.files.length > 0) {
     const step2 = await agent.toolExecutor.executeTool('read', {
-      file_path: step1.result.files[0]
+      file_path: step1.result.files[0],
     });
     console.log(`   ✅ Analyzed: ${step1.result.files[0]}`);
     console.log(`   📊 Lines of code: ${step2.result.lines}\n`);
@@ -217,14 +229,14 @@ This demonstrates multi-step autonomous task execution.
 
   const step3 = await agent.toolExecutor.executeTool('write', {
     file_path: `workflow-report-${timestamp}.txt`,
-    content: report
+    content: report,
   });
   console.log(`   ✅ Report created: ${step3.result.file_path}\n`);
 
   // Step 4: Execute verification command
   console.log('Step 4: Verification');
   const step4 = await agent.toolExecutor.executeTool('bash', {
-    command: `find /c /v "" workflow-report-${timestamp}.txt`
+    command: `find /c /v "" workflow-report-${timestamp}.txt`,
   });
   console.log(`   ✅ Report verified: ${step4.result.stdout.trim()}\n`);
 
@@ -306,7 +318,6 @@ This is NOT just text generation - this is ACTUAL CODE EXECUTION.
     console.log(`💾 Complete proof saved to: AUTONOMY-PROOF-${timestamp}.txt\n`);
 
     console.log('═══════════════════════════════════════════════════════════\n');
-
   } catch (error) {
     console.error('❌ Test failed:', error.message);
     console.error(error.stack);

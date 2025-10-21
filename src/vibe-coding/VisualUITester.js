@@ -36,7 +36,7 @@ export class VisualUITester {
       url,
       viewport = { width: 1920, height: 1080 },
       filename = `screenshot-${Date.now()}.png`,
-      waitFor = null
+      waitFor = null,
     } = options;
 
     const screenshotPath = path.join(this.screenshotDir, filename);
@@ -49,14 +49,10 @@ export class VisualUITester {
       timestamp: Date.now(),
       dimensions: viewport,
       // In real implementation, this would be actual image data
-      data: `Screenshot of ${url} at ${viewport.width}x${viewport.height}`
+      data: `Screenshot of ${url} at ${viewport.width}x${viewport.height}`,
     };
 
-    await fs.writeFile(
-      screenshotPath,
-      JSON.stringify(screenshot, null, 2),
-      'utf-8'
-    );
+    await fs.writeFile(screenshotPath, JSON.stringify(screenshot, null, 2), 'utf-8');
 
     this.logger.info(`Screenshot captured: ${screenshotPath}`);
     return screenshot;
@@ -77,7 +73,7 @@ export class VisualUITester {
         differences,
         screenshot: screenshotPath,
         spec: specPath,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     } catch (error) {
       this.logger.error('Failed to compare screenshot to spec', error);
@@ -89,18 +85,13 @@ export class VisualUITester {
    * Perform visual regression test
    */
   async runVisualRegression(testName, options = {}) {
-    const {
-      url,
-      viewport,
-      baseline = null,
-      threshold = 0.1
-    } = options;
+    const { url, viewport, baseline = null, threshold = 0.1 } = options;
 
     // Capture current screenshot
     const current = await this.captureScreenshot({
       url,
       viewport,
-      filename: `${testName}-current.png`
+      filename: `${testName}-current.png`,
     });
 
     // Compare with baseline if exists
@@ -115,7 +106,7 @@ export class VisualUITester {
           threshold,
           current: current.path,
           baseline: baselinePath,
-          issues: comparison.issues
+          issues: comparison.issues,
         };
       }
     }
@@ -123,7 +114,7 @@ export class VisualUITester {
     return {
       passed: true,
       current: current.path,
-      baseline: baseline || null
+      baseline: baseline || null,
     };
   }
 
@@ -131,12 +122,7 @@ export class VisualUITester {
    * Analyze UI against design system rules
    */
   async analyzeDesign(screenshotPath, rules = {}) {
-    const {
-      colorPalette = [],
-      spacing = [],
-      typography = {},
-      accessibility = true
-    } = rules;
+    const { colorPalette = [], spacing = [], typography = {}, accessibility = true } = rules;
 
     const violations = [];
 
@@ -168,7 +154,7 @@ export class VisualUITester {
       compliant: violations.length === 0,
       violations,
       screenshot: screenshotPath,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -184,14 +170,11 @@ export class VisualUITester {
       difference: comparison.difference,
       issues: comparison.issues,
       timestamp: Date.now(),
-      summary: this._generateDiffSummary(comparison)
+      summary: this._generateDiffSummary(comparison),
     };
 
     // Save report
-    const reportPath = path.join(
-      this.screenshotDir,
-      `diff-report-${Date.now()}.json`
-    );
+    const reportPath = path.join(this.screenshotDir, `diff-report-${Date.now()}.json`);
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
 
     this.logger.info(`Diff report generated: ${reportPath}`);
@@ -226,7 +209,7 @@ export class VisualUITester {
         type: 'color',
         expected: spec.colors,
         actual: screenshot.colors || [],
-        severity: 'medium'
+        severity: 'medium',
       });
     }
 
@@ -236,7 +219,7 @@ export class VisualUITester {
         type: 'spacing',
         expected: spec.spacing,
         actual: screenshot.spacing || {},
-        severity: 'low'
+        severity: 'low',
       });
     }
 
@@ -246,11 +229,11 @@ export class VisualUITester {
         type: 'layout',
         expected: spec.layout,
         actual: screenshot.layout || {},
-        severity: 'high'
+        severity: 'high',
       });
     }
 
-    return differences.filter(d => d.expected !== d.actual);
+    return differences.filter((d) => d.expected !== d.actual);
   }
 
   /**
@@ -264,14 +247,14 @@ export class VisualUITester {
         {
           type: 'color',
           location: { x: 100, y: 200 },
-          description: 'Button color mismatch: #2563EB vs #3B82F6'
+          description: 'Button color mismatch: #2563EB vs #3B82F6',
         },
         {
           type: 'spacing',
           location: { x: 150, y: 300 },
-          description: 'Card spacing: 12px vs 16px'
-        }
-      ]
+          description: 'Card spacing: 12px vs 16px',
+        },
+      ],
     };
   }
 
@@ -285,8 +268,8 @@ export class VisualUITester {
         type: 'color',
         severity: 'medium',
         description: 'Non-palette color detected: #FF5733',
-        location: { element: 'button.primary' }
-      }
+        location: { element: 'button.primary' },
+      },
     ];
   }
 
@@ -313,8 +296,8 @@ export class VisualUITester {
         type: 'accessibility',
         severity: 'high',
         description: 'Missing alt text on image',
-        wcag: 'WCAG 2.1 Level A'
-      }
+        wcag: 'WCAG 2.1 Level A',
+      },
     ];
   }
 
@@ -328,7 +311,7 @@ export class VisualUITester {
       issuesByType: comparison.issues.reduce((acc, issue) => {
         acc[issue.type] = (acc[issue.type] || 0) + 1;
         return acc;
-      }, {})
+      }, {}),
     };
   }
 }

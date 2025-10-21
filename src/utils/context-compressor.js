@@ -71,11 +71,7 @@ export class ContextCompressor {
    * Create session summary
    */
   async createSessionSummary(session, options = {}) {
-    const {
-      includeCode = true,
-      includeErrors = true,
-      includeDecisions = true
-    } = options;
+    const { includeCode = true, includeErrors = true, includeDecisions = true } = options;
 
     const summary = {
       sessionId: session.id,
@@ -87,16 +83,13 @@ export class ContextCompressor {
         decisions: includeDecisions ? await this.extractDecisions(session) : [],
         errors: includeErrors ? await this.extractErrors(session) : [],
         codeChanges: includeCode ? await this.extractCodeChanges(session) : [],
-        nextSteps: await this.extractNextSteps(session)
+        nextSteps: await this.extractNextSteps(session),
       },
-      stats: this.calculateStats(session)
+      stats: this.calculateStats(session),
     };
 
     // Save summary
-    const summaryPath = path.join(
-      this.summaryDir,
-      `summary-${session.id}-${Date.now()}.json`
-    );
+    const summaryPath = path.join(this.summaryDir, `summary-${session.id}-${Date.now()}.json`);
 
     await fs.writeJson(summaryPath, summary, { spaces: 2 });
 
@@ -118,7 +111,7 @@ export class ContextCompressor {
               type: 'file-modification',
               file: tool.params.file_path,
               action: tool.name,
-              timestamp: message.timestamp
+              timestamp: message.timestamp,
             });
           }
         }
@@ -131,7 +124,7 @@ export class ContextCompressor {
           changes.push({
             type: 'feature-complete',
             description: match[1],
-            timestamp: message.timestamp
+            timestamp: message.timestamp,
           });
         }
       }
@@ -151,7 +144,7 @@ export class ContextCompressor {
       const decisionPatterns = [
         /decided to (.+?)(?:\.|$)/i,
         /chose (.+?) because/i,
-        /will use (.+?) for/i
+        /will use (.+?) for/i,
       ];
 
       for (const pattern of decisionPatterns) {
@@ -161,7 +154,7 @@ export class ContextCompressor {
             decisions.push({
               decision: match[1],
               timestamp: message.timestamp,
-              context: message.content.substring(0, 200)
+              context: message.content.substring(0, 200),
             });
           }
         }
@@ -179,15 +172,16 @@ export class ContextCompressor {
 
     for (const message of session.messages || []) {
       // Look for error indicators
-      if (message.content?.toLowerCase().includes('error') ||
-        message.content?.toLowerCase().includes('failed')) {
-
+      if (
+        message.content?.toLowerCase().includes('error') ||
+        message.content?.toLowerCase().includes('failed')
+      ) {
         const errorMatch = message.content.match(/error:?\s*(.+?)(?:\n|$)/i);
         if (errorMatch) {
           errors.push({
             error: errorMatch[1],
             timestamp: message.timestamp,
-            resolved: await this.checkIfResolved(errorMatch[1], session.messages, message)
+            resolved: await this.checkIfResolved(errorMatch[1], session.messages, message),
           });
         }
       }
@@ -204,8 +198,10 @@ export class ContextCompressor {
     const laterMessages = messages.slice(errorIndex + 1);
 
     for (const msg of laterMessages) {
-      if (msg.content?.toLowerCase().includes('fixed') ||
-        msg.content?.toLowerCase().includes('resolved')) {
+      if (
+        msg.content?.toLowerCase().includes('fixed') ||
+        msg.content?.toLowerCase().includes('resolved')
+      ) {
         return true;
       }
     }
@@ -227,14 +223,14 @@ export class ContextCompressor {
               file: tool.params.file_path,
               type: 'edit',
               description: this.summarizeEdit(tool.params),
-              timestamp: message.timestamp
+              timestamp: message.timestamp,
             });
           } else if (tool.name === 'Write') {
             changes.push({
               file: tool.params.file_path,
               type: 'create',
               description: 'New file created',
-              timestamp: message.timestamp
+              timestamp: message.timestamp,
             });
           }
         }
@@ -288,7 +284,7 @@ export class ContextCompressor {
       messageCount: session.messages?.length || 0,
       toolUses: this.countToolUses(session),
       filesModified: this.countFilesModified(session),
-      tokensUsed: this.estimateSize(session.messages || [])
+      tokensUsed: this.estimateSize(session.messages || []),
     };
   }
 
@@ -342,7 +338,7 @@ export class ContextCompressor {
    */
   async loadSummary(summaryId) {
     const files = await fs.readdir(this.summaryDir);
-    const summaryFile = files.find(f => f.includes(summaryId));
+    const summaryFile = files.find((f) => f.includes(summaryId));
 
     if (!summaryFile) {
       throw new Error(`Summary ${summaryId} not found`);
@@ -358,7 +354,7 @@ export class ContextCompressor {
     const files = await fs.readdir(this.summaryDir);
     const summaries = [];
 
-    for (const file of files.filter(f => f.endsWith('.json'))) {
+    for (const file of files.filter((f) => f.endsWith('.json'))) {
       const summary = await fs.readJson(path.join(this.summaryDir, file));
       summaries.push(summary);
     }
@@ -377,13 +373,10 @@ export class ContextCompressor {
       label,
       timestamp: new Date(),
       summary,
-      resumeContext: await this.buildResumeContext(session)
+      resumeContext: await this.buildResumeContext(session),
     };
 
-    const checkpointPath = path.join(
-      this.summaryDir,
-      `checkpoint-${checkpoint.id}.json`
-    );
+    const checkpointPath = path.join(this.summaryDir, `checkpoint-${checkpoint.id}.json`);
 
     await fs.writeJson(checkpointPath, checkpoint, { spaces: 2 });
 
@@ -398,7 +391,7 @@ export class ContextCompressor {
       keyChanges: await this.extractKeyChanges(session),
       activeFiles: this.getActiveFiles(session),
       pendingTasks: await this.extractNextSteps(session),
-      context: this.summarizeContext(session)
+      context: this.summarizeContext(session),
     };
   }
 
@@ -429,7 +422,9 @@ export class ContextCompressor {
     const summary = [];
 
     const stats = this.calculateStats(session);
-    summary.push(`Session involved ${stats.messageCount} messages and ${stats.filesModified} files.`);
+    summary.push(
+      `Session involved ${stats.messageCount} messages and ${stats.filesModified} files.`
+    );
 
     // Add more context as needed
 

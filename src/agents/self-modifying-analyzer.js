@@ -21,7 +21,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       requireVerification: true,
       preventSyntaxErrors: true,
       preventBreakingChanges: true,
-      preserveExports: true
+      preserveExports: true,
     };
   }
 
@@ -44,7 +44,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
 
     // Analyze current state
     const analysis = this.analyzeWithContext(code, filePath, {
-      source: 'self-modification'
+      source: 'self-modification',
     });
 
     // Generate modifications based on issues
@@ -56,7 +56,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       currentAnalysis: analysis,
       proposedModifications: modifications,
       safetyStatus: this.checkSafety(modifications),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -66,7 +66,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
   generateModifications(code, analysis, options = {}) {
     const modifications = [];
 
-    analysis.issues?.forEach(issue => {
+    analysis.issues?.forEach((issue) => {
       switch (issue.type) {
         case 'var-usage':
           modifications.push({
@@ -76,7 +76,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
             original: 'var',
             replacement: 'let',
             description: 'Replace var with let',
-            safe: true
+            safe: true,
           });
           break;
 
@@ -87,7 +87,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
               line: issue.line,
               severity: issue.severity,
               description: 'Remove console.log statement',
-              safe: true
+              safe: true,
             });
           }
           break;
@@ -100,7 +100,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
             original: issue.fix?.operator?.replace('=', '') || '==',
             replacement: issue.fix?.operator || '===',
             description: 'Use strict equality',
-            safe: true
+            safe: true,
           });
           break;
 
@@ -111,7 +111,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
             severity: issue.severity,
             description: `Refactor function (complexity: ${issue.complexity})`,
             safe: false, // Requires manual review
-            suggestion: 'Extract helper functions to reduce complexity'
+            suggestion: 'Extract helper functions to reduce complexity',
           });
           break;
 
@@ -122,7 +122,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
             severity: issue.severity,
             description: `Split long function (${issue.length} lines)`,
             safe: false, // Requires manual review
-            suggestion: 'Break function into smaller, focused functions'
+            suggestion: 'Break function into smaller, focused functions',
           });
           break;
       }
@@ -145,20 +145,18 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       return {
         success: false,
         reason: 'Safe mode: Only self-modifications allowed',
-        applied: []
+        applied: [],
       };
     }
 
     // Filter to only safe modifications unless forced
-    const safeModifications = options.force
-      ? modifications
-      : modifications.filter(m => m.safe);
+    const safeModifications = options.force ? modifications : modifications.filter((m) => m.safe);
 
     if (safeModifications.length === 0) {
       return {
         success: true,
         reason: 'No safe modifications to apply',
-        applied: []
+        applied: [],
       };
     }
 
@@ -166,7 +164,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       return {
         success: false,
         reason: `Too many modifications (${safeModifications.length} > ${this.safetyChecks.maxModificationsPerRun})`,
-        applied: []
+        applied: [],
       };
     }
 
@@ -192,7 +190,10 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
             break;
 
           case 'remove-console':
-            lines[mod.line - 1] = lines[mod.line - 1].replace(/console\.log\([^)]*\);?/, '// console.log removed');
+            lines[mod.line - 1] = lines[mod.line - 1].replace(
+              /console\.log\([^)]*\);?/,
+              '// console.log removed'
+            );
             applied.push(mod);
             break;
 
@@ -226,7 +227,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
           success: false,
           reason: 'Modifications would cause syntax error',
           error: error.message,
-          applied: []
+          applied: [],
         };
       }
     }
@@ -240,7 +241,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       timestamp: Date.now(),
       modificationsApplied: applied.length,
       isSelfModification: isSelf,
-      backup: this.backupEnabled ? this.getBackupPath(filePath) : null
+      backup: this.backupEnabled ? this.getBackupPath(filePath) : null,
     });
 
     return {
@@ -248,7 +249,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       filePath,
       applied,
       backupPath: this.backupEnabled ? this.getBackupPath(filePath) : null,
-      modifiedLines: applied.map(m => m.line)
+      modifiedLines: applied.map((m) => m.line),
     };
   }
 
@@ -297,7 +298,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
    * Check safety of modifications
    */
   checkSafety(modifications) {
-    const safeCount = modifications.filter(m => m.safe).length;
+    const safeCount = modifications.filter((m) => m.safe).length;
     const unsafeCount = modifications.length - safeCount;
 
     return {
@@ -305,7 +306,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       safeModifications: safeCount,
       unsafeModifications: unsafeCount,
       canAutoApply: unsafeCount === 0 && safeCount <= this.safetyChecks.maxModificationsPerRun,
-      requiresReview: unsafeCount > 0
+      requiresReview: unsafeCount > 0,
     };
   }
 
@@ -315,7 +316,7 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
   async improveSelf(options = {}) {
     logger.info('🤖 Starting self-improvement process...\n');
 
-    const selfFiles = Array.from(this.selfFilePaths).filter(f => fs.existsSync(f));
+    const selfFiles = Array.from(this.selfFilePaths).filter((f) => fs.existsSync(f));
     const results = [];
 
     for (const filePath of selfFiles) {
@@ -331,7 +332,9 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
         }
 
         logger.info(`Found ${proposal.proposedModifications.length} potential improvements`);
-        logger.info(`Safe: ${proposal.safetyStatus.safeModifications}, Unsafe: ${proposal.safetyStatus.unsafeModifications}`);
+        logger.info(
+          `Safe: ${proposal.safetyStatus.safeModifications}, Unsafe: ${proposal.safetyStatus.unsafeModifications}`
+        );
 
         // Apply if safe and auto-apply enabled
         if (proposal.safetyStatus.canAutoApply && options.autoApply) {
@@ -355,14 +358,14 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
           results.push({
             filePath,
             requiresReview: true,
-            proposal
+            proposal,
           });
         }
       } catch (error) {
         logger.error(`❌ Error processing ${filePath}:`, error.message);
         results.push({
           filePath,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -371,10 +374,10 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
       processedFiles: selfFiles.length,
       results,
       summary: {
-        successful: results.filter(r => r.success).length,
-        failed: results.filter(r => r.error).length,
-        requiresReview: results.filter(r => r.requiresReview).length
-      }
+        successful: results.filter((r) => r.success).length,
+        failed: results.filter((r) => r.error).length,
+        requiresReview: results.filter((r) => r.requiresReview).length,
+      },
     };
   }
 
@@ -385,8 +388,8 @@ class SelfModifyingAnalyzer extends ContextAwareAnalyzer {
     return {
       totalModifications: this.modifications.length,
       modifications: this.modifications,
-      selfModifications: this.modifications.filter(m => m.isSelfModification).length,
-      recentModifications: this.modifications.slice(-10)
+      selfModifications: this.modifications.filter((m) => m.isSelfModification).length,
+      recentModifications: this.modifications.slice(-10),
     };
   }
 }

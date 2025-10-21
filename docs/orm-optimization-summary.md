@@ -1,4 +1,5 @@
 # ORM Optimization Summary
+
 ## Quick Reference Guide for Production Deployment
 
 **Project**: LLM Multi-Provider Framework
@@ -26,6 +27,7 @@ KEY INSIGHT: Percentages misleading - absolute overhead is 0.3-3.7ms (negligible
 ### Decision: PROCEED ✅
 
 **Rationale**:
+
 - Absolute performance impact negligible (<5ms)
 - 70%+ development time savings
 - Type safety eliminates runtime errors
@@ -37,6 +39,7 @@ KEY INSIGHT: Percentages misleading - absolute overhead is 0.3-3.7ms (negligible
 ## Key Optimizations Implemented
 
 ### 1. Optimized Prisma Schema
+
 ```prisma
 // Added composite indexes for common query patterns
 @@index([status, lastHeartbeat])        // Session cleanup queries
@@ -52,6 +55,7 @@ acquiredAt    BigInt   @map("acquired_at")
 **Impact**: 60-70% faster queries on indexed columns
 
 ### 2. Enhanced Prisma Client
+
 - Performance monitoring (query count, avg duration, slow queries)
 - Automatic retry logic (exponential backoff for SQLITE_BUSY)
 - Health check endpoint
@@ -60,6 +64,7 @@ acquiredAt    BigInt   @map("acquired_at")
 **Impact**: 99.9% success rate under concurrent load
 
 ### 3. Connection Pooling
+
 - Database pool size: 10 connections
 - Max wait time: 5 seconds
 - Automatic connection reuse
@@ -67,6 +72,7 @@ acquiredAt    BigInt   @map("acquired_at")
 **Impact**: 120x faster connection reuse, 10x throughput
 
 ### 4. Feature Flag System
+
 ```bash
 # .env configuration
 ENABLE_ORM=true                   # Master switch
@@ -83,6 +89,7 @@ ORM_ROLLOUT_PERCENTAGE=10         # Gradual rollout (0-100%)
 ## Deployment Roadmap
 
 ### Phase 1: SelectionStore (Week 1)
+
 ```bash
 # .env
 ENABLE_ORM=true
@@ -95,6 +102,7 @@ ORM_ROLLOUT_PERCENTAGE=10
 **Rollback Trigger**: Error rate >1% OR P95 >50ms
 
 ### Phase 2: SessionManager (Week 2-3)
+
 ```bash
 ORM_SESSION_MANAGER=true
 ORM_ROLLOUT_PERCENTAGE=25
@@ -105,6 +113,7 @@ ORM_ROLLOUT_PERCENTAGE=25
 **Rollback Trigger**: Data inconsistencies OR memory >500MB
 
 ### Phase 3: LockManager (Week 4)
+
 ```bash
 ORM_LOCK_MANAGER=true
 ORM_ROLLOUT_PERCENTAGE=50
@@ -115,6 +124,7 @@ ORM_ROLLOUT_PERCENTAGE=50
 **Rollback Trigger**: Deadlocks >0 OR acquisition time >100ms
 
 ### Phase 4: Full Rollout (Week 5-6)
+
 ```bash
 ENABLE_ORM=true
 ORM_ROLLOUT_PERCENTAGE=100
@@ -127,6 +137,7 @@ ORM_ROLLOUT_PERCENTAGE=100
 ## Quick Commands
 
 ### Installation
+
 ```bash
 # 1. Install Prisma
 npm install prisma @prisma/client
@@ -142,6 +153,7 @@ node examples/orm-migration-demo.js
 ```
 
 ### Benchmarking
+
 ```bash
 # Run full benchmark suite (30-60 seconds)
 node scripts/benchmark-orm-performance.js
@@ -154,6 +166,7 @@ node scripts/benchmark-orm-performance.js
 ```
 
 ### Monitoring
+
 ```bash
 # Check Prisma metrics
 node -e "import('./src/database/prisma-client.js').then(m => console.log(m.getPrismaMetrics()))"
@@ -171,6 +184,7 @@ npm run health:check
 ```
 
 ### Rollback
+
 ```bash
 # Instant rollback
 export ENABLE_ORM=false
@@ -186,12 +200,12 @@ npm run health:check
 
 ### Absolute Latency (What Matters)
 
-| Workload Scenario | Raw SQL | Prisma ORM | Overhead | Impact |
-|-------------------|---------|------------|----------|--------|
-| 10 inserts/sec | 1ms | 37.9ms | +36.9ms | Negligible |
-| 100 queries/sec | 3ms | 32ms | +29ms | Acceptable |
-| 50 searches/sec | 4ms | 27.5ms | +23.5ms | Acceptable |
-| **Daily total** (10k ops) | **60s** | **97s** | **+37s** | **0.04% overhead** |
+| Workload Scenario         | Raw SQL | Prisma ORM | Overhead | Impact             |
+| ------------------------- | ------- | ---------- | -------- | ------------------ |
+| 10 inserts/sec            | 1ms     | 37.9ms     | +36.9ms  | Negligible         |
+| 100 queries/sec           | 3ms     | 32ms       | +29ms    | Acceptable         |
+| 50 searches/sec           | 4ms     | 27.5ms     | +23.5ms  | Acceptable         |
+| **Daily total** (10k ops) | **60s** | **97s**    | **+37s** | **0.04% overhead** |
 
 ### Percentile Analysis (Under Load)
 
@@ -219,6 +233,7 @@ Search Query (500 iterations):
 ## Index Optimization Report
 
 ### Before Optimization
+
 ```sql
 CREATE INDEX idx_sessions_status ON sessions(status);
 CREATE INDEX idx_locks_resource ON locks(resource_path);
@@ -227,11 +242,13 @@ CREATE INDEX idx_selections_created_at ON selections(created_at DESC);
 ```
 
 **Query Performance**:
+
 - Stale session cleanup: 2.4ms
 - Lock acquisition check: 1.2ms
 - Recent selections: 3.1ms
 
 ### After Optimization
+
 ```sql
 -- Composite indexes for common query patterns
 CREATE INDEX idx_sessions_status_heartbeat ON sessions(status, last_heartbeat);
@@ -241,6 +258,7 @@ CREATE INDEX idx_selections_source_time ON selections(source, created_at DESC);
 ```
 
 **Query Performance**:
+
 - Stale session cleanup: **0.8ms** (67% faster)
 - Lock acquisition check: **0.4ms** (67% faster)
 - Recent selections: **1.1ms** (65% faster)
@@ -338,13 +356,13 @@ db.transaction(() => {
 
 ### Rollback Triggers
 
-| Metric | Threshold | Action |
-|--------|-----------|--------|
-| P95 Latency | >50ms | Immediate rollback |
-| Error Rate | >1% | Immediate rollback |
-| Memory Usage | >500MB | Investigate, rollback if increasing |
-| Connection Pool | 90% utilization | Monitor, prepare rollback |
-| Slow Queries | >100/day | Optimize, consider hybrid |
+| Metric          | Threshold       | Action                              |
+| --------------- | --------------- | ----------------------------------- |
+| P95 Latency     | >50ms           | Immediate rollback                  |
+| Error Rate      | >1%             | Immediate rollback                  |
+| Memory Usage    | >500MB          | Investigate, rollback if increasing |
+| Connection Pool | 90% utilization | Monitor, prepare rollback           |
+| Slow Queries    | >100/day        | Optimize, consider hybrid           |
 
 ---
 
@@ -352,21 +370,21 @@ db.transaction(() => {
 
 ### Annual Savings (1 Developer)
 
-| Task | Time Saved/Year | Cost Savings |
-|------|----------------|--------------|
-| Query Development | 120 hours | $12,000 |
-| Type Safety (fewer bugs) | 80 hours | $8,000 |
-| Schema Refactoring | 40 hours | $4,000 |
-| **Total** | **240 hours** | **$24,000** |
+| Task                     | Time Saved/Year | Cost Savings |
+| ------------------------ | --------------- | ------------ |
+| Query Development        | 120 hours       | $12,000      |
+| Type Safety (fewer bugs) | 80 hours        | $8,000       |
+| Schema Refactoring       | 40 hours        | $4,000       |
+| **Total**                | **240 hours**   | **$24,000**  |
 
 ### Performance Cost
 
-| Metric | Value |
-|--------|-------|
-| Daily operations | 10,000 |
-| Average overhead | 3.7ms/op |
-| Daily total overhead | 37 seconds |
-| **Percentage of day** | **0.04%** |
+| Metric                | Value      |
+| --------------------- | ---------- |
+| Daily operations      | 10,000     |
+| Average overhead      | 3.7ms/op   |
+| Daily total overhead  | 37 seconds |
+| **Percentage of day** | **0.04%**  |
 
 ### ROI Calculation
 
@@ -383,6 +401,7 @@ VERDICT: STRONG POSITIVE ROI
 ## PostgreSQL Migration Path
 
 ### Current State (SQLite)
+
 ```prisma
 datasource db {
   provider = "sqlite"
@@ -391,6 +410,7 @@ datasource db {
 ```
 
 ### Future State (PostgreSQL)
+
 ```prisma
 datasource db {
   provider = "postgresql"
@@ -399,6 +419,7 @@ datasource db {
 ```
 
 ### Migration Commands
+
 ```bash
 # 1. Update schema.prisma (change provider)
 # 2. Update .env
@@ -448,12 +469,14 @@ npx prisma migrate deploy
 **Symptoms**: P95 >50ms, slow application
 
 **Diagnosis**:
+
 ```javascript
 const metrics = getPrismaMetrics();
 console.log(metrics.recentSlowQueries);
 ```
 
 **Solutions**:
+
 1. Check slow query log
 2. Add missing indexes
 3. Use raw SQL for complex queries
@@ -464,11 +487,13 @@ console.log(metrics.recentSlowQueries);
 **Symptoms**: Memory >500MB, increasing over time
 
 **Diagnosis**:
+
 ```bash
 node --inspect scripts/memory-profiler.js
 ```
 
 **Solutions**:
+
 1. Use `select` instead of fetching all fields
 2. Implement pagination for large result sets
 3. Close connections properly
@@ -479,12 +504,14 @@ node --inspect scripts/memory-profiler.js
 **Symptoms**: "Connection pool timeout" errors
 
 **Diagnosis**:
+
 ```javascript
 const poolStats = pool.getStats();
 console.log(`Active: ${poolStats.active}/${poolStats.poolSize}`);
 ```
 
 **Solutions**:
+
 1. Increase pool size: `poolSize: 20`
 2. Reduce operation time
 3. Implement connection timeout

@@ -24,7 +24,7 @@ app.use(cors({ origin: true, credentials: true }));
 const perfMonitor = new PerformanceMonitor({
   enableFileLogging: process.env.NODE_ENV === 'production',
   samplingInterval: 15000,
-  memoryThreshold: 0.85
+  memoryThreshold: 0.85,
 });
 perfMonitor.start();
 
@@ -63,12 +63,12 @@ app.post('/api/deploy', async (req, res) => {
   try {
     const { repoUrl, project } = req.body || {};
     if (!repoUrl) return res.status(400).json({ error: 'repoUrl is required' });
-    
+
     if (deployProject) {
       const out = await deployProject({ repoUrl, project });
       return res.json({ ok: true, ...out, message: out?.message || 'Deployment started' });
     }
-    
+
     // Fallback: forward to existing deploy-project API
     const deployResponse = await fetch('http://localhost:' + PORT + '/api/deploy-project', {
       method: 'POST',
@@ -76,19 +76,23 @@ app.post('/api/deploy', async (req, res) => {
       body: JSON.stringify({
         repoUrl,
         name: project?.name || project?.title || 'Auto Deploy',
-        description: project?.description || 'Deployed from Projects Dashboard'
-      })
+        description: project?.description || 'Deployed from Projects Dashboard',
+      }),
     });
-    
+
     if (deployResponse.ok) {
       const result = await deployResponse.json();
-      return res.json({ ok: true, ...result, message: result?.message || 'Deployment started via API' });
+      return res.json({
+        ok: true,
+        ...result,
+        message: result?.message || 'Deployment started via API',
+      });
     }
-    
+
     // Final fallback if not wired yet:
-    return res.status(501).json({ 
+    return res.status(501).json({
       error: 'Deployment API not fully wired. Check api/deploy-project.js implementation.',
-      hint: 'The endpoint exists but may need configuration or the Nitric service may be unavailable.'
+      hint: 'The endpoint exists but may need configuration or the Nitric service may be unavailable.',
     });
   } catch (e) {
     console.error('Deploy error:', e);
@@ -109,7 +113,7 @@ const initializeBrowserHistory = async () => {
     console.log('✅ Real browser history tool loaded');
   } catch (importError) {
     console.log('⚠️  Using mock implementation');
-    
+
     class MockBrowserHistoryTool {
       constructor(config = {}) {
         this.config = config;
@@ -121,27 +125,27 @@ const initializeBrowserHistory = async () => {
             title: 'LLM Repository - Optimized Performance System',
             visitTime: Date.now(),
             visitCount: 5,
-            browser: 'chrome'
+            browser: 'chrome',
           },
           {
             url: 'https://www.perplexity.ai',
             title: 'Perplexity AI - Advanced Search',
             visitTime: Date.now() - 3600000,
             visitCount: 3,
-            browser: 'chrome'
+            browser: 'chrome',
           },
           {
             url: 'https://fly.io/dashboard',
             title: 'Fly.io Dashboard - Deployment Management',
             visitTime: Date.now() - 7200000,
             visitCount: 2,
-            browser: 'chrome'
-          }
+            browser: 'chrome',
+          },
         ].slice(0, count);
       }
       destroy() {}
     }
-    
+
     BrowserHistoryTool = MockBrowserHistoryTool;
     tool = new BrowserHistoryTool();
   }
@@ -156,21 +160,21 @@ let agentStats = {
   activeAgents: 2,
   completedTasks: 156,
   averageResponseTime: 1.2,
-  errorRate: 0.03
+  errorRate: 0.03,
 };
 
 // Metrics
 let metrics = {
   requests: 0,
   errors: 0,
-  uptime: Date.now()
+  uptime: Date.now(),
 };
 
 // Routes
 app.get('/', (req, res) => {
   metrics.requests++;
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   res.json({
     name: 'LLM AI Bridge Server',
     version: '2.5.1',
@@ -180,7 +184,7 @@ app.get('/', (req, res) => {
       aiDashboard: true,
       browserHistory: isRealHistory ? 'real' : 'mock',
       performanceMonitoring: true,
-      projectDeployment: true
+      projectDeployment: true,
     },
     endpoints: {
       dashboard: '/knowledge-dashboard.html',
@@ -191,15 +195,15 @@ app.get('/', (req, res) => {
         agents: '/api/dashboard/agents',
         deploy: '/api/deploy',
         deployProject: '/api/deploy-project',
-        deployStatus: '/api/deploy-project/:id/status'
-      }
+        deployStatus: '/api/deploy-project/:id/status',
+      },
     },
     metrics: {
       totalRequests: metrics.requests,
       errors: metrics.errors,
-      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests).toFixed(4) : 0
+      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests).toFixed(4) : 0,
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -210,7 +214,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: Math.floor((Date.now() - metrics.uptime) / 1000),
     memory: process.memoryUsage(),
-    cpu: process.cpuUsage()
+    cpu: process.cpuUsage(),
   });
 });
 
@@ -218,7 +222,7 @@ app.get('/health', (req, res) => {
 app.get('/api/status', (req, res) => {
   metrics.requests++;
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   res.json({
     status: 'operational',
     version: '2.5.1',
@@ -227,21 +231,21 @@ app.get('/api/status', (req, res) => {
       browserHistory: isRealHistory ? 'active' : 'mock',
       aiDashboard: 'active',
       performanceMonitoring: 'active',
-      projectDeployment: 'active'
+      projectDeployment: 'active',
     },
     metrics: {
       requests: metrics.requests,
       errors: metrics.errors,
-      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests).toFixed(4) : 0
+      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests).toFixed(4) : 0,
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 // Dashboard stats
 app.get('/api/dashboard/stats', (req, res) => {
   metrics.requests++;
-  
+
   res.json({
     success: true,
     data: {
@@ -252,16 +256,16 @@ app.get('/api/dashboard/stats', (req, res) => {
       performanceScore: 95.2,
       memoryUsage: Math.round((process.memoryUsage().heapUsed / 1024 / 1024) * 100) / 100,
       requestsToday: metrics.requests,
-      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests).toFixed(4) : 0
+      errorRate: metrics.requests > 0 ? (metrics.errors / metrics.requests).toFixed(4) : 0,
     },
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
 // AI Agents status
 app.get('/api/dashboard/agents', (req, res) => {
   metrics.requests++;
-  
+
   res.json({
     success: true,
     data: agentStats,
@@ -272,7 +276,7 @@ app.get('/api/dashboard/agents', (req, res) => {
         status: 'active',
         currentTask: 'Project Deployment',
         performance: 98.5,
-        lastActivity: new Date().toISOString()
+        lastActivity: new Date().toISOString(),
       },
       {
         id: 'deployment-agent-1',
@@ -280,7 +284,7 @@ app.get('/api/dashboard/agents', (req, res) => {
         status: 'active',
         currentTask: 'Nitric Integration',
         performance: 97.2,
-        lastActivity: new Date(Date.now() - 120000).toISOString()
+        lastActivity: new Date(Date.now() - 120000).toISOString(),
       },
       {
         id: 'monitor-agent-1',
@@ -288,7 +292,7 @@ app.get('/api/dashboard/agents', (req, res) => {
         status: 'idle',
         currentTask: 'System Monitoring',
         performance: 99.1,
-        lastActivity: new Date(Date.now() - 60000).toISOString()
+        lastActivity: new Date(Date.now() - 60000).toISOString(),
       },
       {
         id: 'security-agent-1',
@@ -296,10 +300,10 @@ app.get('/api/dashboard/agents', (req, res) => {
         status: 'idle',
         currentTask: 'Code Analysis',
         performance: 96.8,
-        lastActivity: new Date(Date.now() - 300000).toISOString()
-      }
+        lastActivity: new Date(Date.now() - 300000).toISOString(),
+      },
     ],
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -307,22 +311,22 @@ app.get('/api/dashboard/agents', (req, res) => {
 app.get('/history', async (req, res) => {
   metrics.requests++;
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   try {
     const count = parseInt(req.query.count) || 50;
     const results = await tool.getRecentHistory(count);
-    
+
     res.json({
       success: true,
       count: results.length,
       data: results,
-      implementation: isRealHistory ? 'real' : 'mock'
+      implementation: isRealHistory ? 'real' : 'mock',
     });
   } catch (error) {
     metrics.errors++;
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -332,33 +336,34 @@ app.get('/search', async (req, res) => {
   metrics.requests++;
   const query = req.query.query;
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   if (!query) {
     return res.status(400).json({
       success: false,
-      error: 'Query parameter is required'
+      error: 'Query parameter is required',
     });
   }
-  
+
   try {
     const allResults = await tool.getRecentHistory(1000);
-    const results = allResults.filter(item => 
-      item.title.toLowerCase().includes(query.toLowerCase()) ||
-      item.url.toLowerCase().includes(query.toLowerCase())
+    const results = allResults.filter(
+      (item) =>
+        item.title.toLowerCase().includes(query.toLowerCase()) ||
+        item.url.toLowerCase().includes(query.toLowerCase())
     );
-    
+
     res.json({
       success: true,
       query: query,
       count: results.length,
       data: results,
-      implementation: isRealHistory ? 'real' : 'mock'
+      implementation: isRealHistory ? 'real' : 'mock',
     });
   } catch (error) {
     metrics.errors++;
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 });
@@ -370,7 +375,7 @@ app.use((error, req, res, next) => {
   res.status(500).json({
     success: false,
     error: 'Internal server error',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -382,19 +387,19 @@ app.use((req, res) => {
     path: req.path,
     method: req.method,
     availableEndpoints: [
-      '/', 
-      '/health', 
-      '/api/status', 
-      '/api/dashboard/stats', 
+      '/',
+      '/health',
+      '/api/status',
+      '/api/dashboard/stats',
       '/api/dashboard/agents',
       '/api/deploy',
       '/api/deploy-project',
       '/api/deploy-project/:id/status',
-      '/history', 
+      '/history',
       '/search',
       '/projects.json',
-      '/projects-dashboard.html'
-    ]
+      '/projects-dashboard.html',
+    ],
   });
 });
 
@@ -412,7 +417,7 @@ process.on('SIGINT', gracefulShutdown);
 // Start server
 const server = app.listen(PORT, '0.0.0.0', () => {
   const isRealHistory = tool.constructor.name !== 'MockBrowserHistoryTool';
-  
+
   console.log(`LLM AI Bridge server listening at http://0.0.0.0:${PORT}`);
   console.log('🚀 AI DASHBOARD ENABLED - Real-time agent monitoring');
   console.log('📊 Browser History:', isRealHistory ? 'Real SQLite Access' : 'Mock Implementation');

@@ -27,11 +27,11 @@ class MCPServer extends EventEmitter {
         properties: {
           code: { type: 'string', description: 'Code to analyze' },
           language: { type: 'string', description: 'Programming language' },
-          focus: { type: 'string', description: 'Analysis focus (security, performance, quality)' }
+          focus: { type: 'string', description: 'Analysis focus (security, performance, quality)' },
         },
-        required: ['code']
+        required: ['code'],
       },
-      handler: this._analyzeCode.bind(this)
+      handler: this._analyzeCode.bind(this),
     });
 
     // Context management tools
@@ -42,11 +42,11 @@ class MCPServer extends EventEmitter {
         properties: {
           action: { type: 'string', enum: ['save', 'load', 'clear', 'compress'] },
           key: { type: 'string', description: 'Context key' },
-          data: { type: 'object', description: 'Context data' }
+          data: { type: 'object', description: 'Context data' },
         },
-        required: ['action']
+        required: ['action'],
       },
-      handler: this._manageContext.bind(this)
+      handler: this._manageContext.bind(this),
     });
 
     // Session coordination tools
@@ -57,11 +57,11 @@ class MCPServer extends EventEmitter {
         properties: {
           action: { type: 'string', enum: ['create', 'join', 'leave', 'status'] },
           sessionId: { type: 'string', description: 'Session identifier' },
-          agentId: { type: 'string', description: 'Agent identifier' }
+          agentId: { type: 'string', description: 'Agent identifier' },
         },
-        required: ['action']
+        required: ['action'],
       },
-      handler: this._coordinateSession.bind(this)
+      handler: this._coordinateSession.bind(this),
     });
 
     // Performance monitoring
@@ -71,10 +71,10 @@ class MCPServer extends EventEmitter {
         type: 'object',
         properties: {
           metric: { type: 'string', description: 'Metric to monitor (memory, cpu, latency)' },
-          duration: { type: 'number', description: 'Monitoring duration in seconds' }
-        }
+          duration: { type: 'number', description: 'Monitoring duration in seconds' },
+        },
       },
-      handler: this._monitorPerformance.bind(this)
+      handler: this._monitorPerformance.bind(this),
     });
   }
 
@@ -91,9 +91,9 @@ class MCPServer extends EventEmitter {
       metrics: {
         lines: code.split('\n').length,
         complexity: this._estimateComplexity(code),
-        patterns: this._detectPatterns(code)
+        patterns: this._detectPatterns(code),
       },
-      suggestions: []
+      suggestions: [],
     };
 
     if (focus === 'security') {
@@ -142,7 +142,7 @@ class MCPServer extends EventEmitter {
       sessionId: sessionId || 'default',
       agentId: agentId || 'mcp-server',
       timestamp: Date.now(),
-      status: 'active'
+      status: 'active',
     };
   }
 
@@ -155,13 +155,13 @@ class MCPServer extends EventEmitter {
     const metrics = {
       memory: process.memoryUsage(),
       uptime: process.uptime(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     return {
       metric,
       duration,
-      data: metrics
+      data: metrics,
     };
   }
 
@@ -177,7 +177,7 @@ class MCPServer extends EventEmitter {
       conditionals,
       loops,
       functions,
-      cyclomatic: 1 + conditionals + loops
+      cyclomatic: 1 + conditionals + loops,
     };
   }
 
@@ -230,7 +230,7 @@ class MCPServer extends EventEmitter {
         } catch (error) {
           const errorResponse = {
             error: error.message,
-            stack: error.stack
+            stack: error.stack,
           };
           process.stdout.write(JSON.stringify(errorResponse) + '\n');
         }
@@ -254,8 +254,8 @@ class MCPServer extends EventEmitter {
         tools: Array.from(this.tools.entries()).map(([name, def]) => ({
           name,
           description: def.description,
-          parameters: def.parameters
-        }))
+          parameters: def.parameters,
+        })),
       };
     }
 

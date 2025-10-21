@@ -17,7 +17,7 @@ function run(cmd) {
 
 function analyzeRepo() {
   console.log('📊 Git Repository Analysis\n');
-  console.log('=' .repeat(70));
+  console.log('='.repeat(70));
 
   // Basic info
   const branch = run('git branch --show-current');
@@ -32,14 +32,17 @@ function analyzeRepo() {
   console.log('\n📅 Recent Activity (last 10 commits):');
   const log = run('git log --oneline -10');
   if (log) {
-    log.split('\n').forEach(line => console.log(`  ${line}`));
+    log.split('\n').forEach((line) => console.log(`  ${line}`));
   }
 
   // Contributors
   console.log('\n👥 Contributors:');
   const authors = run('git shortlog -sn --all');
   if (authors) {
-    authors.split('\n').slice(0, 5).forEach(line => console.log(`  ${line}`));
+    authors
+      .split('\n')
+      .slice(0, 5)
+      .forEach((line) => console.log(`  ${line}`));
   }
 
   // Current changes
@@ -48,7 +51,7 @@ function analyzeRepo() {
     console.log('\n📝 Uncommitted changes:');
     const lines = status.split('\n');
     console.log(`  ${lines.length} files modified`);
-    lines.slice(0, 10).forEach(line => console.log(`  ${line}`));
+    lines.slice(0, 10).forEach((line) => console.log(`  ${line}`));
   } else {
     console.log('\n✅ Working tree clean');
   }
@@ -72,9 +75,12 @@ function analyzeRepo() {
   console.log('\n🔀 Recent branches:');
   const branches = run('git branch -a --sort=-committerdate');
   if (branches) {
-    branches.split('\n').slice(0, 5).forEach(line => {
-      console.log(`  ${line.trim()}`);
-    });
+    branches
+      .split('\n')
+      .slice(0, 5)
+      .forEach((line) => {
+        console.log(`  ${line.trim()}`);
+      });
   }
 
   // Package info

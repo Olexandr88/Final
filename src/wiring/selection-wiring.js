@@ -11,7 +11,11 @@ import TabSelectionManager from '../selection/tab-selection-manager.js';
 
   bridge.on('envelopeProcessed', async (envelope) => {
     try {
-      if (envelope.intent === 'selected.text' && envelope.payload?.text && envelope.context?.tabId) {
+      if (
+        envelope.intent === 'selected.text' &&
+        envelope.payload?.text &&
+        envelope.context?.tabId
+      ) {
         const result = await selectionManager.handleTextSelection(
           envelope.context.tabId,
           envelope.payload.text,
@@ -24,7 +28,7 @@ import TabSelectionManager from '../selection/tab-selection-manager.js';
             to: envelope.from,
             from: 'selection.manager',
             context: { tabId: envelope.context.tabId },
-            payload: result
+            payload: result,
           });
         }
       }
@@ -40,7 +44,7 @@ import TabSelectionManager from '../selection/tab-selection-manager.js';
             to: envelope.from,
             from: 'selection.manager',
             context: { tabId: envelope.context.tabId },
-            payload: optimization
+            payload: optimization,
           });
         }
       }
@@ -51,7 +55,7 @@ import TabSelectionManager from '../selection/tab-selection-manager.js';
           intent: 'selection.error',
           to: envelope.from,
           from: 'selection.manager',
-          payload: { message: error.message }
+          payload: { message: error.message },
         });
       }
     }

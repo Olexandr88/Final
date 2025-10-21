@@ -32,19 +32,23 @@ vibe-coding-demo/
 ## 🎯 Key Features Demonstrated
 
 ### 1. Sub-Agents
+
 Specialized AI assistants for different tasks, each with:
+
 - Custom system prompts
 - Specific tool access
 - Independent context windows (100k tokens each)
 - Domain expertise
 
 **Example usage:**
+
 ```bash
 # In Claude Code chat:
 "Use the code-reviewer sub-agent to check my recent changes"
 ```
 
 ### 2. Hooks
+
 Automated workflows that run at specific events:
 
 - **Post-Edit Format**: Auto-formats files after Claude edits them
@@ -53,7 +57,9 @@ Automated workflows that run at specific events:
 - **Post-Subagent Monitor**: Detects output filtering
 
 ### 3. Visual UI Testing
+
 Iterative UI design workflow:
+
 1. Claude generates UI code
 2. Renders in headless browser
 3. Takes screenshot
@@ -61,19 +67,23 @@ Iterative UI design workflow:
 5. Iterates until perfect
 
 **Demo:**
+
 ```bash
 npm run demo:ui
 ```
 
 ### 4. Production Readiness
+
 Automated checklist to ensure projects meet production standards:
 
 **Run the checker:**
+
 ```bash
 npm run production-check
 ```
 
 **Checks include:**
+
 - ✅ Secrets management (.env, .gitignore)
 - ✅ Dependency security (npm audit)
 - ✅ Test suite & coverage (90%+ target)
@@ -86,30 +96,36 @@ npm run production-check
 ## 📚 Core Principles from the Series
 
 ### 1. Communicate the "Vibe"
+
 Describe the outcome or feel, not implementation details:
+
 ```
 ❌ "Create a function that loops through users and filters by role"
 ✅ "Implement user role filtering with a vibe similar to GitHub's team permissions"
 ```
 
 ### 2. Context Management
+
 - Reset context between major tasks
 - Summarize work before starting new sessions
 - Keep CLAUDE.md concise and tested
 
 ### 3. Stay in the Loop
+
 - Review diffs that Claude produces
 - Ask it to explain non-trivial changes
 - Use sub-agents for double-checking
 - Act as a tech lead reviewing junior dev code
 
 ### 4. Test-Driven Development
+
 - Write tests BEFORE implementation
 - Always run tests yourself
 - Use hooks to automatically run tests
 - Never trust "All tests passed" without proof
 
 ### 5. Sub-Agent Awareness
+
 - Main agent "beautifies" sub-agent output
 - Critical feedback may be filtered
 - Monitor sub-agent transcripts for important tasks
@@ -125,26 +141,31 @@ npm install
 ## 🧪 Usage
 
 ### Run Tests
+
 ```bash
 npm test
 ```
 
 ### Check Production Readiness
+
 ```bash
 npm run production-check
 ```
 
 ### Visual UI Testing Demo
+
 ```bash
 npm run demo:ui
 ```
 
 ### Format Code
+
 ```bash
 npm run format
 ```
 
 ### Full Validation
+
 ```bash
 npm run validate
 ```
@@ -160,22 +181,27 @@ npm run validate
 ## 📖 Common Mistakes to Avoid
 
 ### 1. Losing Context in Long Sessions
+
 **Problem**: AI becomes confused after extensive back-and-forth
 **Solution**: Reset context, create summaries, start fresh sessions
 
 ### 2. Skipping Testing
+
 **Problem**: Trusting AI output without verification
 **Solution**: TDD approach, automated test hooks, manual verification
 
 ### 3. Over-reliance on AI
+
 **Problem**: Approving every action without review
 **Solution**: Review diffs, act as tech lead, use sub-agents for checks
 
 ### 4. Neglecting Security
+
 **Problem**: Hardcoded secrets, missing .gitignore entries
 **Solution**: Use production checklist, automated security hooks
 
 ### 5. MVP ≠ Production
+
 **Problem**: Treating AI-generated code as production-ready
 **Solution**: Polish, optimize, document, audit before deployment
 

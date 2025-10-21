@@ -34,13 +34,13 @@ export class CommandHandlers {
         pid: command.pid,
         cwd: command.cwd || process.cwd(),
         startTime: Date.now(),
-        status: 'active'
+        status: 'active',
       },
       metadata: {
         commandType: 'CreateSession',
-        userId: command.userId || 'system'
+        userId: command.userId || 'system',
       },
-      correlationId
+      correlationId,
     });
 
     return sessionId;
@@ -68,12 +68,12 @@ export class CommandHandlers {
       eventType: 'SessionUpdated',
       data: {
         currentTask: command.currentTask,
-        lastHeartbeat: Date.now()
+        lastHeartbeat: Date.now(),
       },
       metadata: {
-        commandType: 'UpdateSession'
+        commandType: 'UpdateSession',
       },
-      correlationId: command.correlationId
+      correlationId: command.correlationId,
     });
   }
 
@@ -98,12 +98,12 @@ export class CommandHandlers {
         sessionId: command.sessionId,
         resourcePath: command.resourcePath,
         lockType: command.lockType || 'write',
-        acquiredAt: Date.now()
+        acquiredAt: Date.now(),
       },
       metadata: {
-        commandType: 'AcquireLock'
+        commandType: 'AcquireLock',
       },
-      correlationId: command.correlationId
+      correlationId: command.correlationId,
     });
 
     return lockId;
@@ -130,12 +130,12 @@ export class CommandHandlers {
       aggregateId: command.lockId,
       eventType: 'LockReleased',
       data: {
-        releasedAt: Date.now()
+        releasedAt: Date.now(),
       },
       metadata: {
-        commandType: 'ReleaseLock'
+        commandType: 'ReleaseLock',
       },
-      correlationId: command.correlationId
+      correlationId: command.correlationId,
     });
   }
 
@@ -155,12 +155,12 @@ export class CommandHandlers {
       eventType: 'SessionTerminated',
       data: {
         reason: command.reason || 'manual',
-        terminatedAt: Date.now()
+        terminatedAt: Date.now(),
       },
       metadata: {
-        commandType: 'TerminateSession'
+        commandType: 'TerminateSession',
       },
-      correlationId: command.correlationId
+      correlationId: command.correlationId,
     });
   }
 }

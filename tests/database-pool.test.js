@@ -24,7 +24,7 @@ describe('DatabasePool', () => {
     // Create pool
     pool = new DatabasePool(TEST_DB_PATH, {
       poolSize: 5,
-      enableWAL: true
+      enableWAL: true,
     });
   });
 
@@ -128,7 +128,7 @@ describe('DatabasePool', () => {
   it('should timeout when pool is exhausted', async () => {
     const smallPool = new DatabasePool(TEST_DB_PATH, {
       poolSize: 2,
-      maxWaitTime: 1000
+      maxWaitTime: 1000,
     });
 
     try {
@@ -144,7 +144,7 @@ describe('DatabasePool', () => {
           });
         },
         {
-          message: /timeout/i
+          message: /timeout/i,
         }
       );
 

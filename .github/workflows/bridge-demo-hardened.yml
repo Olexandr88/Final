@@ -1,9 +1,9 @@
 name: Bridge Demo Hardened CI
 on:
   push:
-    branches: [ "feat/bridge-demo-hardened" ]
+    branches: ['feat/bridge-demo-hardened']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
 jobs:
   test:
     runs-on: ubuntu-latest

@@ -8,7 +8,7 @@ chrome.runtime.onInstalled.addListener(() => {
     if (!cfg.serverUrl) {
       chrome.storage.sync.set({
         serverUrl: 'http://localhost:8080',
-        apiToken: ''
+        apiToken: '',
       });
     }
   });
@@ -27,9 +27,9 @@ async function postSelection(serverUrl, apiToken, payload) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Api-Token': apiToken || ''
+        'X-Api-Token': apiToken || '',
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -55,8 +55,8 @@ chrome.action.onClicked.addListener(async (tab) => {
       target: { tabId: tab.id },
       func: () => ({
         selection: window.getSelection ? String(window.getSelection()) : '',
-        pageText: document.body ? document.body.innerText.slice(0, 5000) : ''
-      })
+        pageText: document.body ? document.body.innerText.slice(0, 5000) : '',
+      }),
     });
 
     const selectedText = result?.selection?.trim() || '';
@@ -71,16 +71,12 @@ chrome.action.onClicked.addListener(async (tab) => {
     const { serverUrl, apiToken } = await chrome.storage.sync.get(['serverUrl', 'apiToken']);
 
     // Send to server
-    const success = await postSelection(
-      serverUrl || 'http://localhost:8080',
-      apiToken || '',
-      {
-        url: tab.url || '',
-        title: tab.title || '',
-        selectedText,
-        source: 'extension'
-      }
-    );
+    const success = await postSelection(serverUrl || 'http://localhost:8080', apiToken || '', {
+      url: tab.url || '',
+      title: tab.title || '',
+      selectedText,
+      source: 'extension',
+    });
 
     if (success) {
       console.log('Selection captured successfully');

@@ -24,7 +24,7 @@ export class RedisBridge extends EventEmitter {
       retryDelay: config.retryDelay || 5000,
       batchSize: config.batchSize || 10,
       blockTime: config.blockTime || 5000,
-      ...config
+      ...config,
     };
 
     // Redis clients (separate for pub/sub/consume)
@@ -39,7 +39,7 @@ export class RedisBridge extends EventEmitter {
       messagesPersisted: 0,
       dlqMessages: 0,
       errors: 0,
-      startTime: Date.now()
+      startTime: Date.now(),
     };
 
     // Channel subscriptions
@@ -84,7 +84,7 @@ export class RedisBridge extends EventEmitter {
       await Promise.all([
         this.publisher.connect(),
         this.subscriber.connect(),
-        this.consumer.connect()
+        this.consumer.connect(),
       ]);
 
       logger.info('[Redis Bridge] Connected to Redis');
@@ -108,15 +108,12 @@ export class RedisBridge extends EventEmitter {
    */
   async initializeConsumerGroup() {
     try {
-      await this.consumer.xGroupCreate(
-        this.config.streamName,
-        this.config.consumerGroup,
-        '0',
-        { MKSTREAM: true }
-      );
+      await this.consumer.xGroupCreate(this.config.streamName, this.config.consumerGroup, '0', {
+        MKSTREAM: true,
+      });
       logger.info('[Redis Bridge] Consumer group created', {
         stream: this.config.streamName,
-        group: this.config.consumerGroup
+        group: this.config.consumerGroup,
       });
     } catch (error) {
       if (error.message.includes('BUSYGROUP')) {
@@ -140,7 +137,7 @@ export class RedisBridge extends EventEmitter {
         await this.publisher.publish(`agent:${envelope.to}`, message);
         logger.debug('[Redis Bridge] Published to agent channel', {
           to: envelope.to,
-          id: envelope.id
+          id: envelope.id,
         });
       } else {
         // Broadcast to all agents
@@ -153,7 +150,7 @@ export class RedisBridge extends EventEmitter {
         await this.publisher.publish(`agent:intent:${envelope.intent}`, message);
         logger.debug('[Redis Bridge] Published to intent channel', {
           intent: envelope.intent,
-          id: envelope.id
+          id: envelope.id,
         });
       }
 
@@ -188,8 +185,8 @@ export class RedisBridge extends EventEmitter {
           TRIM: {
             strategy: 'MAXLEN',
             threshold: this.config.maxStreamLength,
-            strategyModifier: '~'
-          }
+            strategyModifier: '~',
+          },
         }
       );
 
@@ -218,7 +215,7 @@ export class RedisBridge extends EventEmitter {
 
       logger.debug('[Redis Bridge] Message persisted', {
         id: envelope.id,
-        streamId
+        streamId,
       });
 
       return streamId;
@@ -281,7 +278,7 @@ export class RedisBridge extends EventEmitter {
           [{ key: this.config.streamName, id: '>' }],
           {
             COUNT: this.config.batchSize,
-            BLOCK: this.config.blockTime
+            BLOCK: this.config.blockTime,
           }
         );
 
@@ -295,7 +292,6 @@ export class RedisBridge extends EventEmitter {
 
         // Process pending messages (unacknowledged)
         await this.processPendingMessages();
-
       } catch (error) {
         logger.error('[Redis Bridge] Stream consumer error:', error);
         this.stats.errors++;
@@ -323,21 +319,16 @@ export class RedisBridge extends EventEmitter {
       this.emit('messageConsumed', { messageId, envelope });
 
       // Acknowledge message
-      await this.consumer.xAck(
-        this.config.streamName,
-        this.config.consumerGroup,
-        messageId
-      );
+      await this.consumer.xAck(this.config.streamName, this.config.consumerGroup, messageId);
 
       logger.debug('[Redis Bridge] Message processed and acknowledged', {
         messageId,
-        envelopeId: envelope.id
+        envelopeId: envelope.id,
       });
-
     } catch (error) {
       logger.error('[Redis Bridge] Message processing failed:', {
         messageId,
-        error: error.message
+        error: error.message,
       });
 
       // Track retry attempts
@@ -347,18 +338,14 @@ export class RedisBridge extends EventEmitter {
       if (attempts + 1 >= this.config.maxRetries) {
         // Move to DLQ after max retries
         await this.moveToDLQ(messageId, message, error, attempts + 1);
-        await this.consumer.xAck(
-          this.config.streamName,
-          this.config.consumerGroup,
-          messageId
-        );
+        await this.consumer.xAck(this.config.streamName, this.config.consumerGroup, messageId);
         this.retryAttempts.delete(messageId);
       } else {
         // Will be retried in next pending check
         logger.warn('[Redis Bridge] Message will be retried', {
           messageId,
           attempts: attempts + 1,
-          maxRetries: this.config.maxRetries
+          maxRetries: this.config.maxRetries,
         });
       }
     }
@@ -378,7 +365,11 @@ export class RedisBridge extends EventEmitter {
       );
 
       if (pending && pending.messages && pending.messages.length > 0) {
-        for (const { id: messageId, consumer: consumerId, millisecondsSinceLastDelivery } of pending.messages) {
+        for (const {
+          id: messageId,
+          consumer: consumerId,
+          millisecondsSinceLastDelivery,
+        } of pending.messages) {
           // Only process if message is old enough (retry delay)
           if (millisecondsSinceLastDelivery > this.config.retryDelay) {
             // Claim the message
@@ -419,14 +410,10 @@ export class RedisBridge extends EventEmitter {
         attempts: attempts.toString(),
         timestamp: new Date().toISOString(),
         consumerGroup: this.config.consumerGroup,
-        consumerId: this.config.consumerId
+        consumerId: this.config.consumerId,
       };
 
-      await this.publisher.xAdd(
-        this.config.dlqStream,
-        '*',
-        dlqEntry
-      );
+      await this.publisher.xAdd(this.config.dlqStream, '*', dlqEntry);
 
       this.stats.dlqMessages++;
       this.emit('dlqMessage', dlqEntry);
@@ -434,7 +421,7 @@ export class RedisBridge extends EventEmitter {
       logger.warn('[Redis Bridge] Message moved to DLQ', {
         messageId,
         error: error.message,
-        attempts
+        attempts,
       });
     } catch (dlqError) {
       logger.error('[Redis Bridge] Failed to move message to DLQ:', dlqError);
@@ -447,23 +434,13 @@ export class RedisBridge extends EventEmitter {
    */
   async getHistory(options = {}) {
     try {
-      const {
-        stream = this.config.streamName,
-        limit = 100,
-        start = '-',
-        end = '+'
-      } = options;
+      const { stream = this.config.streamName, limit = 100, start = '-', end = '+' } = options;
 
-      const messages = await this.consumer.xRange(
-        stream,
-        start,
-        end,
-        { COUNT: limit }
-      );
+      const messages = await this.consumer.xRange(stream, start, end, { COUNT: limit });
 
       return messages.map(({ id, message }) => ({
         streamId: id,
-        ...JSON.parse(message.data)
+        ...JSON.parse(message.data),
       }));
     } catch (error) {
       logger.error('[Redis Bridge] Get history failed:', error);
@@ -477,12 +454,9 @@ export class RedisBridge extends EventEmitter {
    */
   async getDLQMessages(limit = 100) {
     try {
-      const messages = await this.consumer.xRange(
-        this.config.dlqStream,
-        '-',
-        '+',
-        { COUNT: limit }
-      );
+      const messages = await this.consumer.xRange(this.config.dlqStream, '-', '+', {
+        COUNT: limit,
+      });
 
       return messages.map(({ id, message }) => ({
         dlqId: id,
@@ -490,7 +464,7 @@ export class RedisBridge extends EventEmitter {
         originalMessage: JSON.parse(message.originalMessage),
         error: message.error,
         attempts: parseInt(message.attempts, 10),
-        timestamp: message.timestamp
+        timestamp: message.timestamp,
       }));
     } catch (error) {
       logger.error('[Redis Bridge] Get DLQ messages failed:', error);
@@ -505,11 +479,7 @@ export class RedisBridge extends EventEmitter {
   async retryDLQMessage(dlqId) {
     try {
       // Get message from DLQ
-      const [dlqMessage] = await this.consumer.xRange(
-        this.config.dlqStream,
-        dlqId,
-        dlqId
-      );
+      const [dlqMessage] = await this.consumer.xRange(this.config.dlqStream, dlqId, dlqId);
 
       if (!dlqMessage) {
         throw new Error(`DLQ message not found: ${dlqId}`);
@@ -558,7 +528,7 @@ export class RedisBridge extends EventEmitter {
 
       return {
         pendingCount: pending.pending,
-        consumers: pending.consumers || []
+        consumers: pending.consumers || [],
       };
     } catch (error) {
       logger.error('[Redis Bridge] Get consumer lag failed:', error);
@@ -577,7 +547,7 @@ export class RedisBridge extends EventEmitter {
       uptime,
       messagesPerSecond: this.stats.messagesPublished / uptime,
       subscriptions: this.subscriptions.size,
-      retryTracking: this.retryAttempts.size
+      retryTracking: this.retryAttempts.size,
     };
   }
 
@@ -594,22 +564,22 @@ export class RedisBridge extends EventEmitter {
         status: 'healthy',
         redis: {
           connected: ping === 'PONG',
-          url: this.config.redisUrl
+          url: this.config.redisUrl,
         },
         stream: {
           name: this.config.streamName,
           consumerGroup: this.config.consumerGroup,
-          lag: lag.pendingCount
+          lag: lag.pendingCount,
         },
         dlq: {
-          depth: dlqInfo
+          depth: dlqInfo,
         },
-        stats: this.getStats()
+        stats: this.getStats(),
       };
     } catch (error) {
       return {
         status: 'unhealthy',
-        error: error.message
+        error: error.message,
       };
     }
   }

@@ -19,7 +19,7 @@ await fs.mkdir(WORKSPACE, { recursive: true });
  */
 async function sendTask(role, taskDescription, context = {}) {
   // Get current history size before sending
-  const historyBefore = await fetch(`${BRIDGE_URL}/history`).then(r => r.json());
+  const historyBefore = await fetch(`${BRIDGE_URL}/history`).then((r) => r.json());
   const messageCountBefore = historyBefore.history?.length || 0;
 
   // Send the task
@@ -30,9 +30,9 @@ async function sendTask(role, taskDescription, context = {}) {
       to: OLLAMA_AGENT,
       intent: 'ai.query',
       payload: {
-        message: buildRolePrompt(role, taskDescription, context)
-      }
-    })
+        message: buildRolePrompt(role, taskDescription, context),
+      },
+    }),
   });
 
   if (!sendResponse.ok) {
@@ -46,14 +46,13 @@ async function sendTask(role, taskDescription, context = {}) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     await wait(pollInterval);
 
-    const historyAfter = await fetch(`${BRIDGE_URL}/history`).then(r => r.json());
+    const historyAfter = await fetch(`${BRIDGE_URL}/history`).then((r) => r.json());
     const messages = historyAfter.history || [];
 
     // Look for new ai.response message from ollama-agent
-    const newResponses = messages.slice(messageCountBefore).filter(msg =>
-      msg.intent === 'ai.response' &&
-      msg.from === OLLAMA_AGENT
-    );
+    const newResponses = messages
+      .slice(messageCountBefore)
+      .filter((msg) => msg.intent === 'ai.response' && msg.from === OLLAMA_AGENT);
 
     if (newResponses.length > 0) {
       // Return the most recent response
@@ -62,8 +61,8 @@ async function sendTask(role, taskDescription, context = {}) {
         response: response.payload?.response || 'No response generated',
         metadata: {
           timestamp: response.timestamp,
-          model: response.payload?.model
-        }
+          model: response.payload?.model,
+        },
       };
     }
   }
@@ -80,7 +79,7 @@ function buildRolePrompt(role, taskDescription, context) {
 
 TASK: ${taskDescription}
 
-${context.requirements ? `REQUIREMENTS:\n${context.requirements.map(r => `- ${r}`).join('\n')}\n` : ''}
+${context.requirements ? `REQUIREMENTS:\n${context.requirements.map((r) => `- ${r}`).join('\n')}\n` : ''}
 
 Provide a comprehensive architecture document including:
 1. **System Overview** - High-level architecture diagram (ASCII/text)
@@ -99,7 +98,7 @@ Be specific, detailed, and production-ready. Use industry best practices.`,
 TASK: ${taskDescription}
 
 ${context.architecture ? `ARCHITECTURE REFERENCE:\n${context.architecture}\n` : ''}
-${context.requirements ? `REQUIREMENTS:\n${context.requirements.map(r => `- ${r}`).join('\n')}\n` : ''}
+${context.requirements ? `REQUIREMENTS:\n${context.requirements.map((r) => `- ${r}`).join('\n')}\n` : ''}
 
 Provide production-ready implementation including:
 1. **Core Implementation** - Complete, working code with proper error handling
@@ -118,7 +117,7 @@ Write clean, maintainable, well-tested code. Follow SOLID principles.`,
 TASK: ${taskDescription}
 
 ${context.implementation ? `IMPLEMENTATION REFERENCE:\n${context.implementation}\n` : ''}
-${context.requirements ? `REQUIREMENTS:\n${context.requirements.map(r => `- ${r}`).join('\n')}\n` : ''}
+${context.requirements ? `REQUIREMENTS:\n${context.requirements.map((r) => `- ${r}`).join('\n')}\n` : ''}
 
 Provide a comprehensive test suite including:
 1. **Unit Tests** - Test individual functions/methods
@@ -130,7 +129,7 @@ Provide a comprehensive test suite including:
 7. **CI/CD Integration** - How to run tests automatically
 8. **Quality Metrics** - Success criteria, performance targets
 
-Create thorough, maintainable tests with high coverage. Use industry-standard testing frameworks.`
+Create thorough, maintainable tests with high coverage. Use industry-standard testing frameworks.`,
   };
 
   return rolePrompts[role] || taskDescription;
@@ -154,7 +153,7 @@ async function saveDeliverable(role, content, taskName) {
  * Wait for specified milliseconds
  */
 function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -174,7 +173,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
     architecture: null,
     implementation: null,
     tests: null,
-    deliverables: []
+    deliverables: [],
   };
 
   try {
@@ -206,7 +205,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
 
     const devResult = await sendTask('developer', projectDescription, {
       requirements,
-      architecture: results.architecture.substring(0, 1000) // First 1000 chars for context
+      architecture: results.architecture.substring(0, 1000), // First 1000 chars for context
     });
     const devContent = devResult.response || 'No implementation generated';
     results.implementation = devContent;
@@ -228,7 +227,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
 
     const testResult = await sendTask('tester', projectDescription, {
       requirements,
-      implementation: results.implementation.substring(0, 1000) // First 1000 chars for context
+      implementation: results.implementation.substring(0, 1000), // First 1000 chars for context
     });
     const testContent = testResult.response || 'No tests generated';
     results.tests = testContent;
@@ -245,7 +244,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
     console.log('📦 Deliverables:');
-    results.deliverables.forEach(file => {
+    results.deliverables.forEach((file) => {
       console.log(`   - ${path.basename(file)}`);
     });
     console.log('');
@@ -253,7 +252,6 @@ async function executeWorkflow(projectDescription, requirements = []) {
     console.log('');
 
     return results;
-
   } catch (error) {
     console.error('');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -272,38 +270,32 @@ async function executeWorkflow(projectDescription, requirements = []) {
  * Example 1: Real-time Notification System
  */
 async function exampleRealtimeNotifications() {
-  await executeWorkflow(
-    'Real-time Notification System for Multi-Tenant SaaS Application',
-    [
-      'WebSocket-based real-time delivery',
-      'Support for 100K+ concurrent connections',
-      'Multi-channel delivery (email, SMS, push, in-app)',
-      'Notification templates and personalization',
-      'Delivery tracking and analytics',
-      'Retry logic with exponential backoff',
-      'Rate limiting per tenant',
-      'Priority queue management'
-    ]
-  );
+  await executeWorkflow('Real-time Notification System for Multi-Tenant SaaS Application', [
+    'WebSocket-based real-time delivery',
+    'Support for 100K+ concurrent connections',
+    'Multi-channel delivery (email, SMS, push, in-app)',
+    'Notification templates and personalization',
+    'Delivery tracking and analytics',
+    'Retry logic with exponential backoff',
+    'Rate limiting per tenant',
+    'Priority queue management',
+  ]);
 }
 
 /**
  * Example 2: API Rate Limiter
  */
 async function exampleRateLimiter() {
-  await executeWorkflow(
-    'Distributed API Rate Limiting Middleware',
-    [
-      'Token bucket algorithm implementation',
-      'Redis-backed distributed state',
-      'Per-user and per-API-key limits',
-      'Configurable time windows (second, minute, hour, day)',
-      'Burst allowance support',
-      'Real-time metrics and monitoring',
-      'Graceful degradation',
-      'Express/Fastify middleware integration'
-    ]
-  );
+  await executeWorkflow('Distributed API Rate Limiting Middleware', [
+    'Token bucket algorithm implementation',
+    'Redis-backed distributed state',
+    'Per-user and per-API-key limits',
+    'Configurable time windows (second, minute, hour, day)',
+    'Burst allowance support',
+    'Real-time metrics and monitoring',
+    'Graceful degradation',
+    'Express/Fastify middleware integration',
+  ]);
 }
 
 /**

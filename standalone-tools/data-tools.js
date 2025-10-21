@@ -26,12 +26,12 @@ export class DataTools {
       return {
         success: true,
         query,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -76,12 +76,12 @@ export class DataTools {
       return {
         success: true,
         operation,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -92,10 +92,15 @@ export class DataTools {
   static csvToJson(csvString, hasHeader = true) {
     try {
       const lines = csvString.trim().split('\n');
-      const headers = hasHeader ? lines.shift().split(',').map(h => h.trim()) : null;
+      const headers = hasHeader
+        ? lines
+            .shift()
+            .split(',')
+            .map((h) => h.trim())
+        : null;
 
       const result = lines.map((line, index) => {
-        const values = line.split(',').map(v => v.trim());
+        const values = line.split(',').map((v) => v.trim());
 
         if (hasHeader) {
           return headers.reduce((obj, header, i) => {
@@ -111,12 +116,12 @@ export class DataTools {
         success: true,
         hasHeader,
         rowCount: result.length,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -132,34 +137,32 @@ export class DataTools {
       if (array.length === 0) {
         return {
           success: true,
-          result: ''
+          result: '',
         };
       }
 
       const headers = Object.keys(array[0]);
-      const rows = array.map(obj =>
-        headers.map(header => {
-          const value = obj[header];
-          return typeof value === 'string' && value.includes(',')
-            ? `"${value}"`
-            : value;
-        }).join(',')
+      const rows = array.map((obj) =>
+        headers
+          .map((header) => {
+            const value = obj[header];
+            return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+          })
+          .join(',')
       );
 
-      const csv = includeHeader
-        ? [headers.join(','), ...rows].join('\n')
-        : rows.join('\n');
+      const csv = includeHeader ? [headers.join(','), ...rows].join('\n') : rows.join('\n');
 
       return {
         success: true,
         rowCount: array.length,
         columnCount: headers.length,
-        result: csv
+        result: csv,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -180,9 +183,7 @@ export class DataTools {
         const bVal = b[key];
 
         if (typeof aVal === 'string') {
-          return order === 'asc'
-            ? aVal.localeCompare(bVal)
-            : bVal.localeCompare(aVal);
+          return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         }
 
         return order === 'asc' ? aVal - bVal : bVal - aVal;
@@ -192,12 +193,12 @@ export class DataTools {
         success: true,
         key,
         order,
-        result: sorted
+        result: sorted,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -214,9 +215,8 @@ export class DataTools {
       }
 
       // Parse filter function string if provided
-      const filter = typeof filterFn === 'string'
-        ? new Function('item', `return ${filterFn}`)
-        : filterFn;
+      const filter =
+        typeof filterFn === 'string' ? new Function('item', `return ${filterFn}`) : filterFn;
 
       const filtered = data.filter(filter);
 
@@ -224,12 +224,12 @@ export class DataTools {
         success: true,
         originalCount: data.length,
         filteredCount: filtered.length,
-        result: filtered
+        result: filtered,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -252,14 +252,14 @@ export class DataTools {
 
 // CLI Interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [,, command, ...args] = process.argv;
+  const [, , command, ...args] = process.argv;
 
   const commands = {
-    'query': () => {
+    query: () => {
       const [json, query] = args;
       console.log(JSON.stringify(DataTools.jsonQuery(json, query), null, 2));
     },
-    'transform': () => {
+    transform: () => {
       const [json, operation] = args;
       console.log(JSON.stringify(DataTools.jsonTransform(json, operation), null, 2));
     },
@@ -271,14 +271,14 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       const [json, includeHeader] = args;
       console.log(JSON.stringify(DataTools.jsonToCsv(json, includeHeader !== 'false'), null, 2));
     },
-    'sort': () => {
+    sort: () => {
       const [json, key, order] = args;
       console.log(JSON.stringify(DataTools.sortJson(json, key, order), null, 2));
     },
-    'filter': () => {
+    filter: () => {
       const [json, filterFn] = args;
       console.log(JSON.stringify(DataTools.filterJson(json, filterFn), null, 2));
-    }
+    },
   };
 
   if (commands[command]) {

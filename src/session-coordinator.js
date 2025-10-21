@@ -37,9 +37,10 @@ class SessionCoordinator {
     try {
       // Use RWLock methods if available, otherwise fall back to legacy withLock
       if (this.useRWLocks) {
-        const lockMethod = operationType === 'read'
-          ? this.lockManager.withReadLock.bind(this.lockManager)
-          : this.lockManager.withWriteLock.bind(this.lockManager);
+        const lockMethod =
+          operationType === 'read'
+            ? this.lockManager.withReadLock.bind(this.lockManager)
+            : this.lockManager.withWriteLock.bind(this.lockManager);
 
         return await lockMethod(absolutePath, async () => {
           this.sessionManager.updateTask(`${operationType}: ${path.basename(filePath)}`);
@@ -147,7 +148,7 @@ class SessionCoordinator {
       return output;
     }
 
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       const isCurrent = session.id === currentSessionId;
       const marker = isCurrent ? '→' : ' ';
       const uptime = Math.floor(session.uptime / 1000);
@@ -177,7 +178,7 @@ class SessionCoordinator {
       return output;
     }
 
-    locks.forEach(lock => {
+    locks.forEach((lock) => {
       const age = Math.floor((Date.now() - lock.acquired_at) / 1000);
       output += `• ${lock.resource_path}\n`;
       output += `  Type: ${lock.lock_type}\n`;
@@ -204,7 +205,7 @@ class SessionCoordinator {
       lockedBy: lockInfo.session_id,
       lockType: lockInfo.lock_type,
       pid: lockInfo.pid,
-      age: Date.now() - lockInfo.acquired_at
+      age: Date.now() - lockInfo.acquired_at,
     };
   }
 }

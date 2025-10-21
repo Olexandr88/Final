@@ -12,7 +12,7 @@ describe('Ollama Client Tests', () => {
   beforeAll(() => {
     client = new OllamaClient({
       model: 'gemma3:latest',
-      timeout: 60000
+      timeout: 60000,
     });
   });
 
@@ -34,7 +34,7 @@ describe('Ollama Client Tests', () => {
       const result = await client.generate('What is 2+2?', {
         model: 'gemma3:latest',
         temperature: 0.1,
-        max_tokens: 50
+        max_tokens: 50,
       });
 
       if (result.success) {
@@ -51,7 +51,7 @@ describe('Ollama Client Tests', () => {
     test('should handle generation with custom options', async () => {
       const result = await client.generate('Count to 3', {
         temperature: 0.1,
-        max_tokens: 20
+        max_tokens: 20,
       });
 
       if (result.success) {
@@ -68,13 +68,13 @@ describe('Ollama Client Tests', () => {
     test('should handle chat messages', async () => {
       const messages = [
         { role: 'system', content: 'You are a helpful assistant.' },
-        { role: 'user', content: 'What is the capital of France? One word.' }
+        { role: 'user', content: 'What is the capital of France? One word.' },
       ];
 
       const result = await client.chat(messages, {
         model: 'gemma3:latest',
         temperature: 0.1,
-        max_tokens: 10
+        max_tokens: 10,
       });
 
       if (result.success) {
@@ -90,19 +90,21 @@ describe('Ollama Client Tests', () => {
       const messages = [
         { role: 'user', content: 'My name is Alice' },
         { role: 'assistant', content: 'Nice to meet you, Alice!' },
-        { role: 'user', content: 'What is my name?' }
+        { role: 'user', content: 'What is my name?' },
       ];
 
       const result = await client.chat(messages, {
         temperature: 0.1,
-        max_tokens: 20
+        max_tokens: 20,
       });
 
       if (result.success) {
         assert.ok(result.message.content);
         // Should remember the name from context
-        assert.ok(result.message.content.toLowerCase().includes('alice') ||
-                  result.message.content.toLowerCase().includes('your name'));
+        assert.ok(
+          result.message.content.toLowerCase().includes('alice') ||
+            result.message.content.toLowerCase().includes('your name')
+        );
       } else {
         assert.ok(result.error);
       }
@@ -126,7 +128,7 @@ describe('Ollama Client Tests', () => {
   describe('Error Handling', () => {
     test('should handle invalid model gracefully', async () => {
       const result = await client.generate('Test', {
-        model: 'nonexistent-model-xyz'
+        model: 'nonexistent-model-xyz',
       });
 
       assert.strictEqual(result.success, false);

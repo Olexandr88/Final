@@ -44,7 +44,10 @@ describe('OllamaModelDetector', () => {
       const model = models[0];
       assert.ok(typeof model.capabilities === 'object', 'Capabilities should be object');
       assert.ok(typeof model.capabilities.chat === 'boolean', 'Should have chat capability');
-      assert.ok(typeof model.capabilities.completion === 'boolean', 'Should have completion capability');
+      assert.ok(
+        typeof model.capabilities.completion === 'boolean',
+        'Should have completion capability'
+      );
       assert.ok(typeof model.capabilities.code === 'boolean', 'Should have code capability');
     }
   });
@@ -56,7 +59,7 @@ describe('OllamaModelDetector', () => {
     await detector.detectModels(); // Should use cache
     const secondCall = Date.now();
 
-    assert.ok((secondCall - firstCall) < 100, 'Second call should be much faster (cached)');
+    assert.ok(secondCall - firstCall < 100, 'Second call should be much faster (cached)');
   });
 
   it('should clear cache', () => {
@@ -131,7 +134,7 @@ describe('MCP Server Integration (Mock)', () => {
     // Mock test - would require actual server instance
     const mockModels = [
       { name: 'llama3:latest', capabilities: { chat: true, code: false } },
-      { name: 'codellama:latest', capabilities: { chat: true, code: true } }
+      { name: 'codellama:latest', capabilities: { chat: true, code: true } },
     ];
 
     assert.ok(Array.isArray(mockModels), 'Should return models array');
@@ -144,7 +147,7 @@ describe('MCP Server Integration (Mock)', () => {
       prefix: 'function add(a, b) {',
       suffix: '}',
       language: 'javascript',
-      maxTokens: 50
+      maxTokens: 50,
     };
 
     assert.ok(mockRequest.prefix, 'Should have prefix');
@@ -155,7 +158,7 @@ describe('MCP Server Integration (Mock)', () => {
     // Mock chat test
     const mockRequest = {
       message: 'Hello, how are you?',
-      sessionId: 'test-session-123'
+      sessionId: 'test-session-123',
     };
 
     assert.ok(mockRequest.message, 'Should have message');

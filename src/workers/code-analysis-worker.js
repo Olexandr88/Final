@@ -18,15 +18,16 @@ function analyzeCode(code, language) {
       functions: 0,
       classes: 0,
       imports: 0,
-      exports: 0
+      exports: 0,
     },
     patterns: [],
-    issues: []
+    issues: [],
   };
 
   try {
     // Extract functions
-    const functionRegex = /function\s+([\w]+)\s*\(|const\s+([\w]+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/g;
+    const functionRegex =
+      /function\s+([\w]+)\s*\(|const\s+([\w]+)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/g;
     let match;
     const functions = [];
     while ((match = functionRegex.exec(code)) !== null) {
@@ -68,7 +69,7 @@ function analyzeCode(code, language) {
       result.patterns.push({
         type: 'debug-code',
         message: 'Console.log statements detected',
-        severity: 'info'
+        severity: 'info',
       });
     }
 
@@ -76,7 +77,7 @@ function analyzeCode(code, language) {
       result.patterns.push({
         type: 'todo-comment',
         message: 'TODO/FIXME comments found',
-        severity: 'info'
+        severity: 'info',
       });
     }
 
@@ -85,7 +86,7 @@ function analyzeCode(code, language) {
       result.issues.push({
         type: 'security',
         message: 'Dangerous eval/Function usage detected',
-        severity: 'high'
+        severity: 'high',
       });
     }
 
@@ -93,7 +94,7 @@ function analyzeCode(code, language) {
       result.issues.push({
         type: 'security',
         message: 'Potential XSS via innerHTML',
-        severity: 'medium'
+        severity: 'medium',
       });
     }
 
@@ -102,7 +103,7 @@ function analyzeCode(code, language) {
       result.issues.push({
         type: 'performance',
         message: 'Nested loops detected - O(n²) complexity',
-        severity: 'medium'
+        severity: 'medium',
       });
     }
 
@@ -113,7 +114,7 @@ function analyzeCode(code, language) {
         result.issues.push({
           type: 'performance',
           message: 'Excessive JSON serialization/deserialization',
-          severity: 'low'
+          severity: 'low',
         });
       }
     }
@@ -123,7 +124,7 @@ function analyzeCode(code, language) {
       functions,
       classes,
       imports,
-      exports
+      exports,
     };
 
     return result;
@@ -131,7 +132,7 @@ function analyzeCode(code, language) {
     return {
       error: error.message,
       language,
-      metrics: result.metrics
+      metrics: result.metrics,
     };
   }
 }
@@ -145,7 +146,7 @@ parentPort.on('message', (task) => {
 
     if (!code) {
       parentPort.postMessage({
-        error: 'No code provided'
+        error: 'No code provided',
       });
       return;
     }
@@ -159,13 +160,13 @@ parentPort.on('message', (task) => {
         filePath,
         analysis,
         duration,
-        workerId: workerData?.workerId
-      }
+        workerId: workerData?.workerId,
+      },
     });
   } catch (error) {
     parentPort.postMessage({
       error: error.message,
-      stack: error.stack
+      stack: error.stack,
     });
   }
 });

@@ -12,7 +12,7 @@ class GCPConsoleExtractor {
           '.service-account-email',
           '[aria-label*="email"]',
           'input[value*="@"][value*=".iam.gserviceaccount.com"]',
-          'span[title*="@"][title*=".iam.gserviceaccount.com"]'
+          'span[title*="@"][title*=".iam.gserviceaccount.com"]',
         ],
         // Unique ID selectors
         uniqueId: [
@@ -20,7 +20,7 @@ class GCPConsoleExtractor {
           '.unique-id',
           '[aria-label*="Unique ID"]',
           'span[title*="105"]', // Firebase service accounts often start with 105
-          '.metadata-value'
+          '.metadata-value',
         ],
         // Account status
         status: [
@@ -28,25 +28,25 @@ class GCPConsoleExtractor {
           '.account-status',
           '.status-indicator',
           '[aria-label*="status"]',
-          '.enabled, .disabled'
-        ]
+          '.enabled, .disabled',
+        ],
       },
       navigation: {
         permissions: 'a[href*="permissions"], [role="tab"][aria-label*="Permissions"]',
         keys: 'a[href*="keys"], [role="tab"][aria-label*="Keys"]',
         metrics: 'a[href*="metrics"], [role="tab"][aria-label*="Metrics"]',
-        logs: 'a[href*="logs"], [role="tab"][aria-label*="Logs"]'
+        logs: 'a[href*="logs"], [role="tab"][aria-label*="Logs"]',
       },
       data: {
         permissions: '.iam-permissions li, .permissions-list .permission-item, .role-binding',
         keys: '.service-account-keys tr, .key-list .key-row, .key-table tbody tr',
-        projects: '.project-list .project-item, .gcp-project'
-      }
+        projects: '.project-list .project-item, .gcp-project',
+      },
     };
-    
+
     this.cache = new Map();
     this.lastExtraction = null;
-    
+
     console.log('🌍 GCPConsoleExtractor initialized for Firebase service accounts');
   }
 
@@ -57,26 +57,26 @@ class GCPConsoleExtractor {
    */
   async extractAll(options = {}) {
     const startTime = performance.now();
-    
+
     try {
       const data = {
         timestamp: Date.now(),
         url: window.location.href,
         pageTitle: document.title,
         extractionId: this.generateId(),
-        
+
         // Core service account data
         serviceAccount: await this.extractServiceAccount(),
-        
+
         // Navigation and tabs
         navigation: this.extractNavigation(),
-        
+
         // Permissions and access
         permissions: await this.extractPermissions(),
-        
+
         // Service account keys
         keys: await this.extractKeys(),
-        
+
         // Page metadata
         metadata: {
           extractionTime: performance.now() - startTime,
@@ -84,38 +84,37 @@ class GCPConsoleExtractor {
           pageLoadState: document.readyState,
           viewportSize: {
             width: window.innerWidth,
-            height: window.innerHeight
-          }
-        }
+            height: window.innerHeight,
+          },
+        },
       };
-      
+
       // Validate and clean extracted data
       const cleanedData = this.validateAndClean(data);
-      
+
       // Cache for potential re-use
       this.cache.set('lastExtraction', {
         data: cleanedData,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
-      
+
       this.lastExtraction = cleanedData;
-      
+
       console.log('✅ GCP Console extraction completed:', {
         serviceAccount: !!cleanedData.serviceAccount?.email,
         permissions: cleanedData.permissions?.length || 0,
         keys: cleanedData.keys?.length || 0,
-        extractionTime: cleanedData.metadata.extractionTime + 'ms'
+        extractionTime: cleanedData.metadata.extractionTime + 'ms',
       });
-      
+
       return cleanedData;
-      
     } catch (error) {
       console.error('❌ GCP Console extraction failed:', error);
       return {
         error: error.message,
         timestamp: Date.now(),
         url: window.location.href,
-        stack: error.stack
+        stack: error.stack,
       };
     }
   }
@@ -126,27 +125,29 @@ class GCPConsoleExtractor {
    */
   async extractServiceAccount() {
     const account = {};
-    
+
     // Extract email with multiple fallback strategies
-    account.email = this.findWithFallbacks(this.selectors.serviceAccount.email) ||
-                   this.extractFromPageText(/firebase-adminsdk-[\w-]+@[\w-]+\.iam\.gserviceaccount\.com/i) ||
-                   this.extractFromAttributes('value', /@.*\.iam\.gserviceaccount\.com/) ||
-                   this.extractFromAttributes('title', /@.*\.iam\.gserviceaccount\.com/);
-    
+    account.email =
+      this.findWithFallbacks(this.selectors.serviceAccount.email) ||
+      this.extractFromPageText(/firebase-adminsdk-[\w-]+@[\w-]+\.iam\.gserviceaccount\.com/i) ||
+      this.extractFromAttributes('value', /@.*\.iam\.gserviceaccount\.com/) ||
+      this.extractFromAttributes('title', /@.*\.iam\.gserviceaccount\.com/);
+
     // Extract unique ID (typically starts with 105 for Firebase service accounts)
-    account.uniqueId = this.findWithFallbacks(this.selectors.serviceAccount.uniqueId) ||
-                      this.extractFromPageText(/105\d{18,20}/) ||
-                      this.extractFromAttributes('data-id', /\d{15,25}/);
-    
+    account.uniqueId =
+      this.findWithFallbacks(this.selectors.serviceAccount.uniqueId) ||
+      this.extractFromPageText(/105\d{18,20}/) ||
+      this.extractFromAttributes('data-id', /\d{15,25}/);
+
     // Extract status
-    account.status = this.findWithFallbacks(this.selectors.serviceAccount.status) ||
-                    this.detectStatus();
-    
+    account.status =
+      this.findWithFallbacks(this.selectors.serviceAccount.status) || this.detectStatus();
+
     // Extract additional metadata from the page
     account.displayName = this.extractFromPageText(/Display name[:\s]+([^\n\r]+)/i, 1);
     account.description = this.extractFromPageText(/Description[:\s]+([^\n\r]+)/i, 1);
     account.created = this.extractFromPageText(/Created[:\s]+([^\n\r]+)/i, 1);
-    
+
     return account;
   }
 
@@ -156,7 +157,7 @@ class GCPConsoleExtractor {
    */
   extractNavigation() {
     const nav = {};
-    
+
     for (const [key, selector] of Object.entries(this.selectors.navigation)) {
       const element = document.querySelector(selector);
       if (element) {
@@ -164,13 +165,13 @@ class GCPConsoleExtractor {
           text: element.textContent?.trim(),
           href: element.href,
           active: this.isActiveTab(element),
-          available: true
+          available: true,
         };
       } else {
         nav[key] = { available: false };
       }
     }
-    
+
     return nav;
   }
 
@@ -180,25 +181,25 @@ class GCPConsoleExtractor {
    */
   async extractPermissions() {
     const permissions = [];
-    
+
     // Try multiple selector strategies
     for (const selector of this.selectors.data.permissions.split(', ')) {
       const elements = document.querySelectorAll(selector);
-      
+
       for (const element of elements) {
         const permission = {
           text: element.textContent?.trim(),
           role: element.querySelector('.role, .permission-role')?.textContent?.trim(),
           resource: element.querySelector('.resource, .permission-resource')?.textContent?.trim(),
-          type: this.classifyPermission(element.textContent)
+          type: this.classifyPermission(element.textContent),
         };
-        
+
         if (permission.text && permission.text.length > 0) {
           permissions.push(permission);
         }
       }
     }
-    
+
     // Deduplicate based on text content
     return this.deduplicateArray(permissions, 'text');
   }
@@ -209,29 +210,29 @@ class GCPConsoleExtractor {
    */
   async extractKeys() {
     const keys = [];
-    
+
     // Try table-based extraction first
     const keyRows = document.querySelectorAll(this.selectors.data.keys);
-    
+
     for (const row of keyRows) {
       const cells = row.querySelectorAll('td, th');
-      
+
       if (cells.length >= 2) {
         const key = {
           keyId: cells[0]?.textContent?.trim(),
           created: cells[1]?.textContent?.trim(),
           expires: cells[2]?.textContent?.trim(),
           algorithm: cells[3]?.textContent?.trim(),
-          status: this.extractKeyStatus(row)
+          status: this.extractKeyStatus(row),
         };
-        
+
         // Only add if we have meaningful key data
         if (key.keyId && key.keyId !== 'Key ID' && key.keyId.length > 5) {
           keys.push(key);
         }
       }
     }
-    
+
     return keys;
   }
 
@@ -273,14 +274,14 @@ class GCPConsoleExtractor {
    */
   extractFromAttributes(attribute, pattern) {
     const elements = document.querySelectorAll(`[${attribute}]`);
-    
+
     for (const element of elements) {
       const value = element.getAttribute(attribute);
       if (value && pattern.test(value)) {
         return value.match(pattern)[0];
       }
     }
-    
+
     return null;
   }
 
@@ -293,17 +294,17 @@ class GCPConsoleExtractor {
     if (document.querySelector('.enabled, [aria-label*="enabled"], .status-enabled')) {
       return 'Enabled';
     }
-    
+
     if (document.querySelector('.disabled, [aria-label*="disabled"], .status-disabled')) {
       return 'Disabled';
     }
-    
+
     // Check page text for status indicators
     const pageText = document.body.textContent.toLowerCase();
     if (pageText.includes('service account status') && pageText.includes('enabled')) {
       return 'Enabled';
     }
-    
+
     return 'Unknown';
   }
 
@@ -313,10 +314,12 @@ class GCPConsoleExtractor {
    * @returns {boolean} True if active
    */
   isActiveTab(element) {
-    return element.classList.contains('active') ||
-           element.classList.contains('selected') ||
-           element.getAttribute('aria-selected') === 'true' ||
-           element.getAttribute('aria-current') === 'page';
+    return (
+      element.classList.contains('active') ||
+      element.classList.contains('selected') ||
+      element.getAttribute('aria-selected') === 'true' ||
+      element.getAttribute('aria-current') === 'page'
+    );
   }
 
   /**
@@ -326,14 +329,14 @@ class GCPConsoleExtractor {
    */
   classifyPermission(text) {
     if (!text) return 'unknown';
-    
+
     const lowerText = text.toLowerCase();
-    
+
     if (lowerText.includes('admin') || lowerText.includes('owner')) return 'admin';
     if (lowerText.includes('editor') || lowerText.includes('write')) return 'editor';
     if (lowerText.includes('viewer') || lowerText.includes('read')) return 'viewer';
     if (lowerText.includes('service') || lowerText.includes('account')) return 'service';
-    
+
     return 'custom';
   }
 
@@ -347,12 +350,12 @@ class GCPConsoleExtractor {
     if (statusElement) {
       return statusElement.textContent?.trim() || statusElement.getAttribute('data-status');
     }
-    
+
     // Check for visual indicators
     if (row.classList.contains('disabled') || row.querySelector('.disabled')) {
       return 'Disabled';
     }
-    
+
     return 'Active';
   }
 
@@ -364,7 +367,7 @@ class GCPConsoleExtractor {
    */
   deduplicateArray(array, property) {
     const seen = new Set();
-    return array.filter(item => {
+    return array.filter((item) => {
       const value = item[property];
       if (seen.has(value)) {
         return false;
@@ -383,8 +386,9 @@ class GCPConsoleExtractor {
     // Remove empty values and validate structure
     const clean = (obj) => {
       if (Array.isArray(obj)) {
-        return obj.filter(item => item && Object.keys(item).length > 0)
-                 .map(item => clean(item));
+        return obj
+          .filter((item) => item && Object.keys(item).length > 0)
+          .map((item) => clean(item));
       } else if (obj && typeof obj === 'object') {
         const cleaned = {};
         for (const [key, value] of Object.entries(obj)) {
@@ -396,22 +400,24 @@ class GCPConsoleExtractor {
       }
       return obj;
     };
-    
+
     const cleanedData = clean(data);
-    
+
     // Add validation warnings
     cleanedData.validation = {
-      hasServiceAccount: !!(cleanedData.serviceAccount?.email || cleanedData.serviceAccount?.uniqueId),
+      hasServiceAccount: !!(
+        cleanedData.serviceAccount?.email || cleanedData.serviceAccount?.uniqueId
+      ),
       hasPermissions: !!(cleanedData.permissions?.length > 0),
       hasKeys: !!(cleanedData.keys?.length > 0),
-      isComplete: false
+      isComplete: false,
     };
-    
+
     // Mark as complete if we have core service account info
-    cleanedData.validation.isComplete = 
-      cleanedData.validation.hasServiceAccount && 
+    cleanedData.validation.isComplete =
+      cleanedData.validation.hasServiceAccount &&
       (cleanedData.validation.hasPermissions || cleanedData.validation.hasKeys);
-    
+
     return cleanedData;
   }
 
@@ -430,7 +436,7 @@ class GCPConsoleExtractor {
    */
   getCachedData(maxAge = 30000) {
     const cached = this.cache.get('lastExtraction');
-    if (cached && (Date.now() - cached.timestamp) < maxAge) {
+    if (cached && Date.now() - cached.timestamp < maxAge) {
       return cached.data;
     }
     return null;

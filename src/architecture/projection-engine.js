@@ -23,44 +23,56 @@ export class ProjectionEngine {
         await this.queryHandlers.pool.execute(async (conn) => {
           switch (event.eventType) {
             case 'SessionCreated':
-              conn.prepare(`
+              conn
+                .prepare(
+                  `
                 INSERT INTO session_view (
                   session_id, pid, start_time, last_heartbeat, status, cwd, version
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)
-              `).run(
-                event.aggregateId,
-                event.data.pid,
-                event.data.startTime,
-                event.data.startTime,
-                event.data.status,
-                event.data.cwd,
-                event.version
-              );
+              `
+                )
+                .run(
+                  event.aggregateId,
+                  event.data.pid,
+                  event.data.startTime,
+                  event.data.startTime,
+                  event.data.status,
+                  event.data.cwd,
+                  event.version
+                );
               break;
 
             case 'SessionUpdated':
-              conn.prepare(`
+              conn
+                .prepare(
+                  `
                 UPDATE session_view
                 SET current_task = ?, last_heartbeat = ?, version = ?
                 WHERE session_id = ?
-              `).run(
-                event.data.currentTask,
-                event.data.lastHeartbeat,
-                event.version,
-                event.aggregateId
-              );
+              `
+                )
+                .run(
+                  event.data.currentTask,
+                  event.data.lastHeartbeat,
+                  event.version,
+                  event.aggregateId
+                );
               break;
 
             case 'SessionTerminated':
-              conn.prepare(`
+              conn
+                .prepare(
+                  `
                 UPDATE session_view
                 SET status = 'terminated', version = ?
                 WHERE session_id = ?
-              `).run(event.version, event.aggregateId);
+              `
+                )
+                .run(event.version, event.aggregateId);
               break;
           }
         });
-      }
+      },
     });
 
     // Lock projection
@@ -70,34 +82,38 @@ export class ProjectionEngine {
         await this.queryHandlers.pool.execute(async (conn) => {
           switch (event.eventType) {
             case 'LockAcquired':
-              conn.prepare(`
+              conn
+                .prepare(
+                  `
                 INSERT INTO lock_view (
                   lock_id, resource_path, session_id, lock_type, acquired_at, status, version
                 ) VALUES (?, ?, ?, ?, ?, 'active', ?)
-              `).run(
-                event.aggregateId,
-                event.data.resourcePath,
-                event.data.sessionId,
-                event.data.lockType,
-                event.data.acquiredAt,
-                event.version
-              );
+              `
+                )
+                .run(
+                  event.aggregateId,
+                  event.data.resourcePath,
+                  event.data.sessionId,
+                  event.data.lockType,
+                  event.data.acquiredAt,
+                  event.version
+                );
               break;
 
             case 'LockReleased':
-              conn.prepare(`
+              conn
+                .prepare(
+                  `
                 UPDATE lock_view
                 SET status = 'released', released_at = ?, version = ?
                 WHERE lock_id = ?
-              `).run(
-                event.data.releasedAt,
-                event.version,
-                event.aggregateId
-              );
+              `
+                )
+                .run(event.data.releasedAt, event.version, event.aggregateId);
               break;
           }
         });
-      }
+      },
     });
   }
 

@@ -36,7 +36,7 @@ export class ProductionChecklist extends EventEmitter {
     this.checks.set(name, {
       name,
       fn: checkFunction,
-      enabled: true
+      enabled: true,
     });
   }
 
@@ -47,7 +47,7 @@ export class ProductionChecklist extends EventEmitter {
       failed: [],
       warnings: [],
       score: 0,
-      ready: false
+      ready: false,
     };
 
     for (const [name, check] of this.checks) {
@@ -71,7 +71,7 @@ export class ProductionChecklist extends EventEmitter {
         results.failed.push({
           name,
           passed: false,
-          error: error.message
+          error: error.message,
         });
 
         this.emit('check:error', { name, error });
@@ -90,12 +90,12 @@ export class ProductionChecklist extends EventEmitter {
       await access(`${this.projectRoot}/.env`, constants.F_OK);
       return {
         passed: true,
-        message: '.env file exists'
+        message: '.env file exists',
       };
     } catch {
       return {
         passed: false,
-        message: '.env file not found - create one for secrets management'
+        message: '.env file not found - create one for secrets management',
       };
     }
   }
@@ -104,56 +104,59 @@ export class ProductionChecklist extends EventEmitter {
     try {
       const gitignore = await readFile(`${this.projectRoot}/.gitignore`, 'utf-8');
       const requiredEntries = ['.env', 'node_modules', 'dist', 'build', '.DS_Store'];
-      const missing = requiredEntries.filter(entry => !gitignore.includes(entry));
+      const missing = requiredEntries.filter((entry) => !gitignore.includes(entry));
 
       if (missing.length === 0) {
         return {
           passed: true,
-          message: '.gitignore is properly configured'
+          message: '.gitignore is properly configured',
         };
       }
 
       return {
         passed: false,
-        message: `.gitignore missing entries: ${missing.join(', ')}`
+        message: `.gitignore missing entries: ${missing.join(', ')}`,
       };
     } catch {
       return {
         passed: false,
-        message: '.gitignore file not found'
+        message: '.gitignore file not found',
       };
     }
   }
 
   async checkNoSecrets() {
     try {
-      const { stdout } = await execAsync('git grep -i "api_key\\|secret\\|password\\|token" -- "*.js" "*.ts" "*.jsx" "*.tsx"', {
-        cwd: this.projectRoot
-      });
+      const { stdout } = await execAsync(
+        'git grep -i "api_key\\|secret\\|password\\|token" -- "*.js" "*.ts" "*.jsx" "*.tsx"',
+        {
+          cwd: this.projectRoot,
+        }
+      );
 
       if (stdout.trim()) {
         return {
           passed: false,
           message: 'Potential secrets found in code - review these carefully',
-          details: stdout.split('\n').slice(0, 5)
+          details: stdout.split('\n').slice(0, 5),
         };
       }
 
       return {
         passed: true,
-        message: 'No obvious secrets detected in code'
+        message: 'No obvious secrets detected in code',
       };
     } catch (error) {
       if (error.code === 1) {
         return {
           passed: true,
-          message: 'No secrets found in code'
+          message: 'No secrets found in code',
         };
       }
 
       return {
         warning: true,
-        message: 'Could not scan for secrets'
+        message: 'Could not scan for secrets',
       };
     }
   }
@@ -163,13 +166,13 @@ export class ProductionChecklist extends EventEmitter {
       await execAsync('npm test', { cwd: this.projectRoot });
       return {
         passed: true,
-        message: 'All tests passing'
+        message: 'All tests passing',
       };
     } catch (error) {
       return {
         passed: false,
         message: 'Tests failing - fix before deployment',
-        details: error.stderr || error.stdout
+        details: error.stderr || error.stdout,
       };
     }
   }
@@ -179,13 +182,13 @@ export class ProductionChecklist extends EventEmitter {
       await execAsync('npm run build', { cwd: this.projectRoot });
       return {
         passed: true,
-        message: 'Build successful'
+        message: 'Build successful',
       };
     } catch (error) {
       return {
         passed: false,
         message: 'Build failed - fix build errors',
-        details: error.stderr || error.stdout
+        details: error.stderr || error.stdout,
       };
     }
   }
@@ -197,22 +200,22 @@ export class ProductionChecklist extends EventEmitter {
       if (!stdout.trim()) {
         return {
           passed: true,
-          message: 'All dependencies up to date'
+          message: 'All dependencies up to date',
         };
       }
 
       const outdated = JSON.parse(stdout);
-      const critical = Object.values(outdated).filter(d => d.wanted !== d.latest);
+      const critical = Object.values(outdated).filter((d) => d.wanted !== d.latest);
 
       return {
         warning: true,
         message: `${critical.length} dependencies have updates available`,
-        details: Object.keys(outdated).slice(0, 5)
+        details: Object.keys(outdated).slice(0, 5),
       };
     } catch {
       return {
         passed: true,
-        message: 'Dependency check complete'
+        message: 'Dependency check complete',
       };
     }
   }
@@ -222,13 +225,13 @@ export class ProductionChecklist extends EventEmitter {
       await execAsync('npm audit --audit-level=high', { cwd: this.projectRoot });
       return {
         passed: true,
-        message: 'No high-severity vulnerabilities'
+        message: 'No high-severity vulnerabilities',
       };
     } catch (error) {
       return {
         passed: false,
         message: 'Security vulnerabilities detected - run npm audit fix',
-        details: error.stdout
+        details: error.stdout,
       };
     }
   }
@@ -238,13 +241,13 @@ export class ProductionChecklist extends EventEmitter {
       await execAsync('npm run lint', { cwd: this.projectRoot });
       return {
         passed: true,
-        message: 'Code passes linting'
+        message: 'Code passes linting',
       };
     } catch (error) {
       return {
         passed: false,
         message: 'Linting errors found - fix code style issues',
-        details: error.stdout
+        details: error.stdout,
       };
     }
   }
@@ -258,18 +261,18 @@ export class ProductionChecklist extends EventEmitter {
       if (readme.length < 100) {
         return {
           warning: true,
-          message: 'README exists but is very short'
+          message: 'README exists but is very short',
         };
       }
 
       return {
         passed: true,
-        message: 'Documentation found'
+        message: 'Documentation found',
       };
     } catch {
       return {
         warning: true,
-        message: 'No README.md found - consider adding documentation'
+        message: 'No README.md found - consider adding documentation',
       };
     }
   }
@@ -277,7 +280,7 @@ export class ProductionChecklist extends EventEmitter {
   async checkErrorHandling() {
     try {
       const { stdout } = await execAsync('git grep -c "try {" -- "*.js" "*.ts"', {
-        cwd: this.projectRoot
+        cwd: this.projectRoot,
       });
 
       const tryCount = stdout.split('\n').length - 1;
@@ -285,18 +288,18 @@ export class ProductionChecklist extends EventEmitter {
       if (tryCount > 5) {
         return {
           passed: true,
-          message: `Error handling detected (${tryCount} try blocks)`
+          message: `Error handling detected (${tryCount} try blocks)`,
         };
       }
 
       return {
         warning: true,
-        message: 'Limited error handling found - consider adding more try-catch blocks'
+        message: 'Limited error handling found - consider adding more try-catch blocks',
       };
     } catch {
       return {
         warning: true,
-        message: 'Could not analyze error handling'
+        message: 'Could not analyze error handling',
       };
     }
   }
@@ -311,14 +314,14 @@ export class ProductionChecklist extends EventEmitter {
         total: this.checks.size,
         passed: results.passed.length,
         failed: results.failed.length,
-        warnings: results.warnings.length
+        warnings: results.warnings.length,
       },
       details: {
         passed: results.passed,
         failed: results.failed,
-        warnings: results.warnings
+        warnings: results.warnings,
       },
-      recommendations: this.generateRecommendations(results)
+      recommendations: this.generateRecommendations(results),
     };
 
     this.emit('report:generated', report);
@@ -332,7 +335,7 @@ export class ProductionChecklist extends EventEmitter {
       recommendations.push({
         priority: 'high',
         message: `Fix ${results.failed.length} failing checks before deploying to production`,
-        checks: results.failed.map(f => f.name)
+        checks: results.failed.map((f) => f.name),
       });
     }
 
@@ -340,14 +343,14 @@ export class ProductionChecklist extends EventEmitter {
       recommendations.push({
         priority: 'medium',
         message: `Address ${results.warnings.length} warnings to improve production readiness`,
-        checks: results.warnings.map(w => w.name)
+        checks: results.warnings.map((w) => w.name),
       });
     }
 
     if (results.score < 80) {
       recommendations.push({
         priority: 'high',
-        message: `Production readiness score is ${results.score.toFixed(1)}% - aim for at least 80%`
+        message: `Production readiness score is ${results.score.toFixed(1)}% - aim for at least 80%`,
       });
     }
 

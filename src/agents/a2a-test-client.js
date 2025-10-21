@@ -17,11 +17,13 @@ class TestClient {
       logger.info('✅ Connected to A2A Bridge\n');
 
       // Register
-      this.ws.send(JSON.stringify({
-        type: 'register',
-        clientId: CLIENT_ID,
-        role: 'test-client'
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'register',
+          clientId: CLIENT_ID,
+          role: 'test-client',
+        })
+      );
     });
 
     this.ws.on('message', (data) => {
@@ -55,7 +57,7 @@ class TestClient {
       logger.info('Test 1: Asking Claude a question via A2A');
       this.sendMessage('claude-agent-1', {
         message: 'Explain in one sentence what an agent-to-agent system is.',
-        system: 'You are a helpful AI assistant. Be concise.'
+        system: 'You are a helpful AI assistant. Be concise.',
       });
     }, 1000);
 
@@ -64,21 +66,23 @@ class TestClient {
       logger.info('\nTest 2: Asking Claude to analyze something');
       this.sendMessage('claude-agent-1', {
         query: 'What are the benefits of multi-agent AI systems? List 3 benefits.',
-        system: 'You are an AI expert. Be specific and concise.'
+        system: 'You are an AI expert. Be specific and concise.',
       });
     }, 5000);
   }
 
   sendMessage(targetAgent, payload) {
-    this.ws.send(JSON.stringify({
-      type: 'envelope',
-      envelope: {
-        from: CLIENT_ID,
-        to: targetAgent,
-        intent: 'ai.query',
-        payload
-      }
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'envelope',
+        envelope: {
+          from: CLIENT_ID,
+          to: targetAgent,
+          intent: 'ai.query',
+          payload,
+        },
+      })
+    );
   }
 }
 

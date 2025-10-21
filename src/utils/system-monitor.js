@@ -19,16 +19,16 @@ export class SystemMonitor extends EventEmitter {
         heapTotal: 0,
         external: 0,
         rss: 0,
-        uptime: 0
+        uptime: 0,
       },
       network: { connections: 0, throughput: 0 },
-      application: {}
+      application: {},
     };
 
     this.history = {
       cpu: [],
       memory: [],
-      throughput: []
+      throughput: [],
     };
 
     this.historyLimit = 60; // Keep last 60 readings
@@ -64,7 +64,7 @@ export class SystemMonitor extends EventEmitter {
       used: usedMem,
       free: freeMem,
       total: totalMem,
-      percent: (usedMem / totalMem) * 100
+      percent: (usedMem / totalMem) * 100,
     };
 
     // Process Memory
@@ -74,7 +74,7 @@ export class SystemMonitor extends EventEmitter {
       heapTotal: memUsage.heapTotal,
       external: memUsage.external,
       rss: memUsage.rss,
-      uptime: process.uptime()
+      uptime: process.uptime(),
     };
 
     // Update history
@@ -109,7 +109,7 @@ export class SystemMonitor extends EventEmitter {
     this.metrics.application = {
       ...this.metrics.application,
       ...appMetrics,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -124,9 +124,9 @@ export class SystemMonitor extends EventEmitter {
         platform: os.platform(),
         hostname: os.hostname(),
         nodeVersion: process.version,
-        uptime: os.uptime()
+        uptime: os.uptime(),
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -146,29 +146,29 @@ export class SystemMonitor extends EventEmitter {
    * @returns {Object} Performance summary
    */
   getSummary() {
-    const cpuHistory = this.history.cpu.map(h => h.value);
-    const memHistory = this.history.memory.map(h => h.value);
+    const cpuHistory = this.history.cpu.map((h) => h.value);
+    const memHistory = this.history.memory.map((h) => h.value);
 
     return {
       cpu: {
         current: this.metrics.cpu.usage.toFixed(2),
         avg: (cpuHistory.reduce((a, b) => a + b, 0) / cpuHistory.length || 0).toFixed(2),
         max: Math.max(...cpuHistory, 0).toFixed(2),
-        cores: this.metrics.cpu.cores
+        cores: this.metrics.cpu.cores,
       },
       memory: {
         current: this.metrics.memory.percent.toFixed(2),
         avg: (memHistory.reduce((a, b) => a + b, 0) / memHistory.length || 0).toFixed(2),
         max: Math.max(...memHistory, 0).toFixed(2),
-        totalGB: (this.metrics.memory.total / 1024 / 1024 / 1024).toFixed(2)
+        totalGB: (this.metrics.memory.total / 1024 / 1024 / 1024).toFixed(2),
       },
       process: {
         heapUsedMB: (this.metrics.process.heapUsed / 1024 / 1024).toFixed(2),
         heapTotalMB: (this.metrics.process.heapTotal / 1024 / 1024).toFixed(2),
         rssMB: (this.metrics.process.rss / 1024 / 1024).toFixed(2),
-        uptimeHours: (this.metrics.process.uptime / 3600).toFixed(2)
+        uptimeHours: (this.metrics.process.uptime / 3600).toFixed(2),
       },
-      health: this._calculateHealth()
+      health: this._calculateHealth(),
     };
   }
 
@@ -195,8 +195,8 @@ export class SystemMonitor extends EventEmitter {
       components: {
         cpu: cpuScore.toFixed(2),
         memory: memScore.toFixed(2),
-        heap: heapScore.toFixed(2)
-      }
+        heap: heapScore.toFixed(2),
+      },
     };
   }
 
@@ -205,15 +205,19 @@ export class SystemMonitor extends EventEmitter {
    * @returns {string} JSON metrics
    */
   exportMetrics() {
-    return JSON.stringify({
-      current: this.getMetrics(),
-      summary: this.getSummary(),
-      history: {
-        cpu: this.history.cpu,
-        memory: this.history.memory
+    return JSON.stringify(
+      {
+        current: this.getMetrics(),
+        summary: this.getSummary(),
+        history: {
+          cpu: this.history.cpu,
+          memory: this.history.memory,
+        },
+        exportedAt: new Date().toISOString(),
       },
-      exportedAt: new Date().toISOString()
-    }, null, 2);
+      null,
+      2
+    );
   }
 
   /**

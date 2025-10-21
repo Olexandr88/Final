@@ -13,7 +13,7 @@ permissions:
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
     paths:
       - '**.js'
       - '**.ts'
@@ -30,7 +30,7 @@ on:
       - 'examples/**'
       - 'scripts/**'
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
     paths:
       - '**.js'
       - '**.ts'
@@ -76,13 +76,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-          
+
       - name: ⚡ Smart Pre-flight Analysis
         id: analysis
         run: |
           # Ultra-fast dependency analysis
           CHANGED_FILES=$(git diff --name-only HEAD~1 2>/dev/null || echo "all")
-          
+
           # Smart Node.js version matrix
           if [[ "${{ github.event_name }}" == "pull_request" ]] && [[ "${{ inputs.force_full_matrix }}" != "true" ]]; then
             # PRs: Only Node 20.x for speed (95% faster feedback)
@@ -91,19 +91,19 @@ jobs:
             # Main branch: Full compatibility matrix
             echo "node_versions=[\"18.x\", \"20.x\", \"22.x\"]" >> $GITHUB_OUTPUT
           fi
-          
+
           # Skip tests for documentation-only changes
           if echo "$CHANGED_FILES" | grep -E '\.(md|txt|yml)$' && ! echo "$CHANGED_FILES" | grep -E '\.(js|ts|json)$'; then
             echo "skip_tests=true" >> $GITHUB_OUTPUT
           else
             echo "skip_tests=false" >> $GITHUB_OUTPUT
           fi
-          
+
           # Enhanced cache key with dependency fingerprint
           DEPS_HASH=$(sha256sum package*.json 2>/dev/null | sha256sum | cut -d' ' -f1 || echo "no-deps")
           echo "cache_key=node-modules-v3-${{ runner.os }}-${DEPS_HASH}" >> $GITHUB_OUTPUT
           echo "should_run=true" >> $GITHUB_OUTPUT
-          
+
           echo "🚀 Analysis complete: Node versions configured, Skip tests: ${{ steps.analysis.outputs.skip_tests }}"
 
   # 🧹 PARALLEL QUALITY ASSURANCE
@@ -115,19 +115,19 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-        
+
       - name: ⚡ Setup Node.js (Latest)
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
           cache-dependency-path: 'package*.json'
-      
+
       - name: 🚀 Ultra-fast Install
         run: |
           # Optimized installation (75% faster)
           npm ci --prefer-offline --no-audit --no-fund --silent
-        
+
       - name: 📋 ESLint Analysis
         run: |
           echo "Running ESLint analysis..."
@@ -138,7 +138,7 @@ jobs:
             npm run lint:fix --if-present || echo "Some issues require manual attention"
           fi
         continue-on-error: false
-        
+
       - name: 🛡️ Security Audit (Parallel)
         run: |
           # Fast security check (non-blocking for moderate issues)
@@ -157,18 +157,18 @@ jobs:
       max-parallel: 3
       matrix:
         node-version: ${{ fromJson(needs.preflight.outputs.node_versions) }}
-    
+
     steps:
       - name: 📦 Checkout
         uses: actions/checkout@v4
-      
+
       - name: ⚡ Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: 'package*.json'
-      
+
       - name: 💾 Restore Dependencies Cache
         uses: actions/cache@v4
         with:
@@ -178,12 +178,12 @@ jobs:
           key: ${{ needs.preflight.outputs.cache_key }}-${{ matrix.node-version }}
           restore-keys: |
             node-modules-v3-${{ runner.os }}-
-      
+
       - name: 🚀 Install Dependencies
         run: |
           # Ultra-optimized installation
           npm ci --prefer-offline --no-audit --no-fund --silent
-      
+
       - name: 🔨 Build Project
         run: |
           echo "Building project..."
@@ -195,7 +195,7 @@ jobs:
             echo "ℹ️ No build script found, skipping build step"
           fi
         continue-on-error: false
-      
+
       - name: 🧪 Run Tests
         if: needs.preflight.outputs.skip_tests != 'true'
         run: |
@@ -208,7 +208,7 @@ jobs:
         env:
           CI: true
           NODE_ENV: test
-      
+
       - name: 📊 Coverage Upload
         if: matrix.node-version == '20.x' && success()
         uses: actions/upload-artifact@v4
@@ -229,18 +229,18 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: ⚡ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: 📦 Production Build
         run: |
           npm ci --prefer-offline --no-audit --silent
           npm run build --if-present || echo "No build script available"
-      
+
       - name: 🛡️ Generate Attestation
         uses: actions/attest-build-provenance@v1
         continue-on-error: true
@@ -274,7 +274,7 @@ jobs:
           echo "- **Concurrency Control**: ✅ Active" >> $GITHUB_STEP_SUMMARY
           echo "- **Intelligent Caching**: ✅ Enabled" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
+
           # Calculate overall status
           if [[ "${{ needs.build.result }}" == "success" && "${{ needs.quality.result }}" == "success" ]]; then
             echo "### 🎉 Status: SUCCESS" >> $GITHUB_STEP_SUMMARY
@@ -298,7 +298,7 @@ jobs:
           echo "Preflight: ${{ needs.preflight.result }}"
           echo "Quality: ${{ needs.quality.result }}"
           echo "Build: ${{ needs.build.result }}"
-          
+
           # Determine overall success
           if [[ "${{ needs.build.result }}" == "success" && "${{ needs.quality.result }}" == "success" ]]; then
             echo "🎉 ✅ WORKFLOW SUCCESS: All optimizations deployed with enhanced performance!"

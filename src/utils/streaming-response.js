@@ -13,7 +13,7 @@ export class StreamingResponseHandler extends EventEmitter {
       chunkSize: options.chunkSize || 100, // characters per chunk
       chunkDelay: options.chunkDelay || 50, // ms between chunks
       enableCompression: options.enableCompression ?? true,
-      ...options
+      ...options,
     };
 
     this.activeStreams = new Map();
@@ -21,7 +21,7 @@ export class StreamingResponseHandler extends EventEmitter {
       totalStreams: 0,
       activeStreams: 0,
       totalChunksSent: 0,
-      totalBytesSent: 0
+      totalBytesSent: 0,
     };
   }
 
@@ -48,7 +48,7 @@ export class StreamingResponseHandler extends EventEmitter {
       chunksSent: 0,
       startTime: Date.now(),
       paused: false,
-      cancelled: false
+      cancelled: false,
     };
 
     this.activeStreams.set(streamId, stream);
@@ -63,10 +63,7 @@ export class StreamingResponseHandler extends EventEmitter {
 
         if (stream.cancelled) break;
 
-        const chunk = fullResponse.slice(
-          stream.position,
-          stream.position + this.options.chunkSize
-        );
+        const chunk = fullResponse.slice(stream.position, stream.position + this.options.chunkSize);
 
         stream.position += chunk.length;
         stream.chunksSent++;
@@ -80,7 +77,7 @@ export class StreamingResponseHandler extends EventEmitter {
           totalChunks: stream.totalChunks,
           position: stream.position,
           totalLength: fullResponse.length,
-          isLast: stream.position >= fullResponse.length
+          isLast: stream.position >= fullResponse.length,
         };
 
         await onChunk(chunkData);
@@ -95,12 +92,11 @@ export class StreamingResponseHandler extends EventEmitter {
         this.emit('streamCompleted', {
           streamId,
           duration: Date.now() - stream.startTime,
-          totalChunks: stream.chunksSent
+          totalChunks: stream.chunksSent,
         });
       } else {
         this.emit('streamCancelled', { streamId });
       }
-
     } catch (error) {
       this.emit('streamError', { streamId, error: error.message });
       throw error;
@@ -133,7 +129,9 @@ export class StreamingResponseHandler extends EventEmitter {
 
     // Start streaming in background
     this.streamResponse(streamId, fullResponse, onChunk)
-      .then(() => { done = true; })
+      .then(() => {
+        done = true;
+      })
       .catch((error) => {
         if (rejectChunk) {
           rejectChunk(error);
@@ -201,7 +199,7 @@ export class StreamingResponseHandler extends EventEmitter {
       chunksSent: stream.chunksSent,
       totalChunks: stream.totalChunks,
       paused: stream.paused,
-      duration: Date.now() - stream.startTime
+      duration: Date.now() - stream.startTime,
     };
   }
 
@@ -211,9 +209,10 @@ export class StreamingResponseHandler extends EventEmitter {
   getStats() {
     return {
       ...this.stats,
-      averageChunkSize: this.stats.totalChunksSent > 0
-        ? Math.round(this.stats.totalBytesSent / this.stats.totalChunksSent)
-        : 0
+      averageChunkSize:
+        this.stats.totalChunksSent > 0
+          ? Math.round(this.stats.totalBytesSent / this.stats.totalChunksSent)
+          : 0,
     };
   }
 
@@ -221,7 +220,7 @@ export class StreamingResponseHandler extends EventEmitter {
    * Helper: sleep for ms
    */
   _sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

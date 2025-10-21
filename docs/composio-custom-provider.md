@@ -32,10 +32,10 @@ toolkit slug `LLM_FRAMEWORK`.
 All tools return repository-relative paths and enforce safe path handling so
 that inputs cannot escape the project root.
 
-| Tool | Description |
-|------|-------------|
-| `LLM_FRAMEWORK_LIST_REPO_ENTRIES` | List files/directories under a path with glob filters. |
-| `LLM_FRAMEWORK_READ_REPO_FILE` | Read a text file with optional byte limits and encoding selection. |
+| Tool                                | Description                                                               |
+| ----------------------------------- | ------------------------------------------------------------------------- |
+| `LLM_FRAMEWORK_LIST_REPO_ENTRIES`   | List files/directories under a path with glob filters.                    |
+| `LLM_FRAMEWORK_READ_REPO_FILE`      | Read a text file with optional byte limits and encoding selection.        |
 | `LLM_FRAMEWORK_SEARCH_REPO_CONTENT` | Search file contents for a literal string and return contextual snippets. |
 
 ### Integrating with Agents

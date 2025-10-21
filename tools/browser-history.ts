@@ -48,8 +48,11 @@ interface MockDatabase {
 }
 
 class MockSQLiteDatabase implements MockDatabase {
-  constructor(private _path: string, _options?: any) {}
-  
+  constructor(
+    private _path: string,
+    _options?: any
+  ) {}
+
   prepare(query: string) {
     return {
       all: () => {
@@ -77,10 +80,10 @@ class MockSQLiteDatabase implements MockDatabase {
           ];
         }
         return [];
-      }
+      },
     };
   }
-  
+
   close() {
     // Mock close
   }
@@ -253,10 +256,10 @@ export default class BrowserHistoryTool implements Tool {
     // Apply time filters
     let filteredEntries = entries;
     if (options.startTime) {
-      filteredEntries = filteredEntries.filter(entry => entry.visitTime >= options.startTime!);
+      filteredEntries = filteredEntries.filter((entry) => entry.visitTime >= options.startTime!);
     }
     if (options.endTime) {
-      filteredEntries = filteredEntries.filter(entry => entry.visitTime <= options.endTime!);
+      filteredEntries = filteredEntries.filter((entry) => entry.visitTime <= options.endTime!);
     }
 
     return filteredEntries
@@ -276,7 +279,7 @@ export default class BrowserHistoryTool implements Tool {
 
       // Create a temporary copy to avoid locking issues
       const tempPath = `${dbPath}.temp.${Date.now()}`;
-      
+
       try {
         fs.copyFileSync(dbPath, tempPath);
       } catch (error) {
@@ -285,12 +288,12 @@ export default class BrowserHistoryTool implements Tool {
       }
 
       let db: MockDatabase;
-      
+
       try {
         // Try to use better-sqlite3 if available, otherwise use mock
         try {
           // Dynamic import to handle missing dependency gracefully
-          const Database = await import('better-sqlite3').then(m => m.default);
+          const Database = await import('better-sqlite3').then((m) => m.default);
           db = new Database(tempPath, { readonly: true });
         } catch {
           console.warn('better-sqlite3 not available, using mock data');
@@ -323,17 +326,17 @@ export default class BrowserHistoryTool implements Tool {
         }
 
         const rows = db.prepare(query).all();
-        
+
         for (const row of rows) {
           const visitTime = Math.floor(row.last_visit_time * timeMultiplier);
-          
+
           entries.push({
             url: row.url || '',
             title: row.title || 'Untitled',
             visitTime: visitTime,
             visitCount: row.visit_count || 1,
             browser: browserType,
-            profile: path.dirname(dbPath)
+            profile: path.dirname(dbPath),
           });
         }
 
@@ -346,7 +349,6 @@ export default class BrowserHistoryTool implements Tool {
           // Ignore cleanup errors
         }
       }
-
     } catch (error) {
       console.error('Error reading browser history:', error);
     }
@@ -368,11 +370,12 @@ export default class BrowserHistoryTool implements Tool {
   async searchHistory(query: string, maxResults: number = 100): Promise<HistoryEntry[]> {
     const history = await this.getHistory({ maxResults: maxResults * 2 }); // Get more to filter
     const lowerQuery = query.toLowerCase();
-    
+
     return history
-      .filter(entry => 
-        entry.url.toLowerCase().includes(lowerQuery) || 
-        entry.title.toLowerCase().includes(lowerQuery)
+      .filter(
+        (entry) =>
+          entry.url.toLowerCase().includes(lowerQuery) ||
+          entry.title.toLowerCase().includes(lowerQuery)
       )
       .slice(0, maxResults);
   }
@@ -387,41 +390,53 @@ export default class BrowserHistoryTool implements Tool {
             startTime: params.startTime as number,
             endTime: params.endTime as number,
           });
-          return JSON.stringify({
-            success: true,
-            count: history.length,
-            data: history
-          }, null, 2);
+          return JSON.stringify(
+            {
+              success: true,
+              count: history.length,
+              data: history,
+            },
+            null,
+            2
+          );
         }
 
         case 'search': {
           const query = params.query as string;
           const maxResults = (params.maxResults as number) || 100;
           const results = await this.searchHistory(query, maxResults);
-          return JSON.stringify({
-            success: true,
-            query: query,
-            count: results.length,
-            data: results
-          }, null, 2);
+          return JSON.stringify(
+            {
+              success: true,
+              query: query,
+              count: results.length,
+              data: results,
+            },
+            null,
+            2
+          );
         }
 
         case 'get_recent': {
           const count = (params.count as number) || 50;
           const history = await this.getRecentHistory(count);
-          return JSON.stringify({
-            success: true,
-            count: history.length,
-            data: history
-          }, null, 2);
+          return JSON.stringify(
+            {
+              success: true,
+              count: history.length,
+              data: history,
+            },
+            null,
+            2
+          );
         }
 
         case 'get_browsers': {
           const browserPaths = this.getBrowserPaths();
           const availableBrowsers = Array.from(browserPaths.keys());
-          return JSON.stringify({ 
+          return JSON.stringify({
             success: true,
-            browsers: availableBrowsers 
+            browsers: availableBrowsers,
           });
         }
 
@@ -431,7 +446,7 @@ export default class BrowserHistoryTool implements Tool {
             success: true,
             message: 'History synchronized',
             count: this.cache.length,
-            lastSync: this.lastSync
+            lastSync: this.lastSync,
           });
         }
 
@@ -443,22 +458,29 @@ export default class BrowserHistoryTool implements Tool {
               lastSync: this.lastSync,
               cacheAge: Date.now() - this.lastSync,
               autoSync: this.config.autoSync,
-              syncInterval: this.config.syncInterval
-            }
+              syncInterval: this.config.syncInterval,
+            },
           });
         }
 
         default:
-          return JSON.stringify({ 
+          return JSON.stringify({
             success: false,
             error: `Unknown action: ${params.action}`,
-            availableActions: ['get_history', 'search', 'get_recent', 'get_browsers', 'sync', 'stats']
+            availableActions: [
+              'get_history',
+              'search',
+              'get_recent',
+              'get_browsers',
+              'sync',
+              'stats',
+            ],
           });
       }
     } catch (error) {
-      return JSON.stringify({ 
+      return JSON.stringify({
         success: false,
-        error: String(error) 
+        error: String(error),
       });
     }
   }

@@ -14,7 +14,7 @@ export class MessageCache {
     this.stats = {
       hits: 0,
       misses: 0,
-      evictions: 0
+      evictions: 0,
     };
   }
 
@@ -85,7 +85,7 @@ export class MessageCache {
       value,
       timestamp: Date.now(),
       lastAccess: Date.now(),
-      accessCount: 0
+      accessCount: 0,
     });
   }
 
@@ -121,14 +121,14 @@ export class MessageCache {
    */
   getStats() {
     const total = this.stats.hits + this.stats.misses;
-    const hitRate = total > 0 ? (this.stats.hits / total * 100).toFixed(2) : 0;
+    const hitRate = total > 0 ? ((this.stats.hits / total) * 100).toFixed(2) : 0;
 
     return {
       ...this.stats,
       size: this.cache.size,
       maxSize: this.maxSize,
       hitRate: `${hitRate}%`,
-      ttl: this.ttl
+      ttl: this.ttl,
     };
   }
 
@@ -153,7 +153,7 @@ export class MessageCache {
     }
 
     // Batch delete collected keys
-    keysToDelete.forEach(key => this.cache.delete(key));
+    keysToDelete.forEach((key) => this.cache.delete(key));
 
     if (removed > 0) {
       this.stats.evictions += removed;
@@ -168,7 +168,7 @@ export class MessageCache {
    */
   getHealth() {
     const total = this.stats.hits + this.stats.misses;
-    const hitRate = total > 0 ? (this.stats.hits / total) : 0;
+    const hitRate = total > 0 ? this.stats.hits / total : 0;
     const utilizationPct = (this.cache.size / this.maxSize) * 100;
 
     return {
@@ -177,7 +177,7 @@ export class MessageCache {
       utilization: `${utilizationPct.toFixed(1)}%`,
       size: this.cache.size,
       maxSize: this.maxSize,
-      recommendations: this._getRecommendations(hitRate, utilizationPct)
+      recommendations: this._getRecommendations(hitRate, utilizationPct),
     };
   }
 

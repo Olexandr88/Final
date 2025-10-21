@@ -16,23 +16,23 @@ http:
         frameDeny: true
         contentTypeNosniff: true
         browserXssFilter: true
-        referrerPolicy: "strict-origin-when-cross-origin"
+        referrerPolicy: 'strict-origin-when-cross-origin'
         forceSTSHeader: true
         stsIncludeSubdomains: true
         stsPreload: true
         stsSeconds: 31536000 # 1 year
-        
+
         # Custom security headers
         customRequestHeaders:
-          X-Forwarded-Proto: "https"
-          X-Real-IP: ""
+          X-Forwarded-Proto: 'https'
+          X-Real-IP: ''
         customResponseHeaders:
-          X-LLM-Version: "1.3.0"
-          X-Content-Type-Options: "nosniff"
-          X-Frame-Options: "DENY"
-          X-XSS-Protection: "1; mode=block"
-          Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"
-          Referrer-Policy: "strict-origin-when-cross-origin"
+          X-LLM-Version: '1.3.0'
+          X-Content-Type-Options: 'nosniff'
+          X-Frame-Options: 'DENY'
+          X-XSS-Protection: '1; mode=block'
+          Strict-Transport-Security: 'max-age=31536000; includeSubDomains; preload'
+          Referrer-Policy: 'strict-origin-when-cross-origin'
           Content-Security-Policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self' data:; object-src 'none'; media-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'self'; upgrade-insecure-requests;"
 
     # CORS middleware
@@ -46,17 +46,17 @@ http:
           - OPTIONS
           - HEAD
         accessControlAllowOriginList:
-          - "https://llm.localhost"
-          - "https://your-domain.com"
+          - 'https://llm.localhost'
+          - 'https://your-domain.com'
         accessControlAllowHeaders:
-          - "Content-Type"
-          - "Authorization"
-          - "X-Requested-With"
-          - "Accept"
-          - "Origin"
+          - 'Content-Type'
+          - 'Authorization'
+          - 'X-Requested-With'
+          - 'Accept'
+          - 'Origin'
         accessControlExposeHeaders:
-          - "X-LLM-Instance"
-          - "X-LLM-Version"
+          - 'X-LLM-Instance'
+          - 'X-LLM-Version'
         accessControlMaxAge: 86400
         addVaryHeader: true
         accessControlAllowCredentials: true
@@ -65,8 +65,8 @@ http:
     llm-compress:
       compress:
         excludedContentTypes:
-          - "text/event-stream"
-          - "application/grpc"
+          - 'text/event-stream'
+          - 'application/grpc'
         minResponseBodyBytes: 1024
 
     # Rate limiting middleware - General API
@@ -76,7 +76,7 @@ http:
         period: 1m
         burst: 200 # burst capacity
         sourceCriterion:
-          requestHeaderName: "X-Forwarded-For"
+          requestHeaderName: 'X-Forwarded-For'
 
     # Rate limiting middleware - Heavy operations (history, search)
     llm-rate-limit-heavy:
@@ -85,7 +85,7 @@ http:
         period: 1m
         burst: 40
         sourceCriterion:
-          requestHeaderName: "X-Forwarded-For"
+          requestHeaderName: 'X-Forwarded-For'
 
     # Rate limiting middleware - Health checks (more lenient)
     llm-rate-limit-health:
@@ -94,12 +94,12 @@ http:
         period: 1m
         burst: 300
         sourceCriterion:
-          requestHeaderName: "X-Forwarded-For"
+          requestHeaderName: 'X-Forwarded-For'
 
     # Circuit breaker middleware
     llm-circuit-breaker:
       circuitBreaker:
-        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+        expression: 'NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25'
         checkPeriod: 10s
         fallbackDuration: 30s
         recoveryDuration: 30s
@@ -123,22 +123,22 @@ http:
     llm-admin-allowlist:
       ipAllowList:
         sourceRange:
-          - "127.0.0.1/32"
-          - "10.0.0.0/8"
-          - "172.16.0.0/12"
-          - "192.168.0.0/16"
+          - '127.0.0.1/32'
+          - '10.0.0.0/8'
+          - '172.16.0.0/12'
+          - '192.168.0.0/16'
 
     # Request logging
     llm-access-log:
       accessLog:
-        filePath: "/var/log/llm-access.log"
+        filePath: '/var/log/llm-access.log'
         format: json
 
   # Custom routing rules for specific endpoints
   routers:
     # Health check routing with specific middleware
     llm-health:
-      rule: "Host(`llm.localhost`) && (Path(`/health`) || Path(`/metrics`) || Path(`/api/status`))"
+      rule: 'Host(`llm.localhost`) && (Path(`/health`) || Path(`/metrics`) || Path(`/api/status`))'
       service: llm
       middlewares:
         - llm-security
@@ -149,7 +149,7 @@ http:
 
     # Heavy operation routing (browser history, search)
     llm-heavy-ops:
-      rule: "Host(`llm.localhost`) && (PathPrefix(`/history`) || PathPrefix(`/search`))"
+      rule: 'Host(`llm.localhost`) && (PathPrefix(`/history`) || PathPrefix(`/search`))'
       service: llm
       middlewares:
         - llm-security
@@ -163,7 +163,7 @@ http:
 
     # API routing with circuit breaker
     llm-api:
-      rule: "Host(`llm.localhost`) && PathPrefix(`/api/`)"
+      rule: 'Host(`llm.localhost`) && PathPrefix(`/api/`)'
       service: llm
       middlewares:
         - llm-security
@@ -177,7 +177,7 @@ http:
 
     # Admin endpoints with IP restrictions
     llm-admin:
-      rule: "Host(`llm.localhost`) && PathPrefix(`/admin/`)"
+      rule: 'Host(`llm.localhost`) && PathPrefix(`/admin/`)'
       service: llm
       middlewares:
         - llm-admin-allowlist
@@ -199,25 +199,25 @@ http:
             httpOnly: true
             sameSite: strict
             maxAge: 3600 # 1 hour
-        
+
         # Health check configuration
         healthCheck:
           path: /health
           port: 8080
           interval: 10s
           timeout: 3s
-          hostname: ""
+          hostname: ''
           scheme: http
           headers:
-            User-Agent: "Traefik-HealthCheck"
+            User-Agent: 'Traefik-HealthCheck'
 
         # Servers (will be auto-discovered by Docker provider)
         servers:
-          - url: "http://llm-service-1:8080"
+          - url: 'http://llm-service-1:8080'
             weight: 1
-          - url: "http://llm-service-2:8080"
+          - url: 'http://llm-service-2:8080'
             weight: 1
-          - url: "http://llm-service-3:8080"
+          - url: 'http://llm-service-3:8080'
             weight: 1
 
         # Response forwarding
@@ -234,36 +234,36 @@ http:
           interval: 5s
           timeout: 2s
         servers:
-          - url: "http://llm-service-1:8080"
-          - url: "http://llm-service-2:8080" 
-          - url: "http://llm-service-3:8080"
+          - url: 'http://llm-service-1:8080'
+          - url: 'http://llm-service-2:8080'
+          - url: 'http://llm-service-3:8080'
 
 # TLS Configuration
 tls:
   options:
     # Modern TLS configuration
     modern:
-      minVersion: "VersionTLS12"
-      maxVersion: "VersionTLS13"
+      minVersion: 'VersionTLS12'
+      maxVersion: 'VersionTLS13'
       cipherSuites:
-        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
+        - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
+        - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+        - 'TLS_RSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_RSA_WITH_AES_128_GCM_SHA256'
       sniStrict: true
 
     # Intermediate TLS configuration (for broader compatibility)
     intermediate:
-      minVersion: "VersionTLS11"
-      maxVersion: "VersionTLS13"
+      minVersion: 'VersionTLS11'
+      maxVersion: 'VersionTLS13'
       cipherSuites:
-        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
-        - "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+        - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
+        - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
+        - 'TLS_RSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_RSA_WITH_AES_128_GCM_SHA256'
+        - 'TLS_RSA_WITH_3DES_EDE_CBC_SHA'
 
   # Certificate stores
   stores:
@@ -271,6 +271,6 @@ tls:
       defaultGeneratedCert:
         resolver: letsencrypt
         domain:
-          main: "llm.localhost"
+          main: 'llm.localhost'
           sans:
-            - "*.llm.localhost"
+            - '*.llm.localhost'

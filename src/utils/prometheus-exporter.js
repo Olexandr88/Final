@@ -10,7 +10,7 @@ export class PrometheusMetrics {
     this.messageCounter = new Counter({
       name: 'ai_bridge_messages_total',
       help: 'Total messages processed by the AI Bridge',
-      labelNames: ['type', 'status', 'intent']
+      labelNames: ['type', 'status', 'intent'],
     });
 
     // Message latency histogram
@@ -18,54 +18,54 @@ export class PrometheusMetrics {
       name: 'ai_bridge_message_latency_ms',
       help: 'Message processing latency in milliseconds',
       labelNames: ['type'],
-      buckets: [10, 50, 100, 200, 500, 1000, 2000, 5000]
+      buckets: [10, 50, 100, 200, 500, 1000, 2000, 5000],
     });
 
     // Active connections gauge
     this.activeConnections = new Gauge({
       name: 'ai_bridge_connections_active',
-      help: 'Number of active WebSocket connections'
+      help: 'Number of active WebSocket connections',
     });
 
     // Queue depth gauge
     this.queueDepth = new Gauge({
       name: 'ai_bridge_queue_depth',
       help: 'Number of messages in queue',
-      labelNames: ['client']
+      labelNames: ['client'],
     });
 
     // Memory usage gauge
     this.memoryUsage = new Gauge({
       name: 'ai_bridge_memory_usage_bytes',
       help: 'Memory usage in bytes',
-      labelNames: ['type']
+      labelNames: ['type'],
     });
 
     // Cache hit rate
     this.cacheHits = new Counter({
       name: 'ai_bridge_cache_hits_total',
       help: 'Cache hit count',
-      labelNames: ['cache_name']
+      labelNames: ['cache_name'],
     });
 
     this.cacheMisses = new Counter({
       name: 'ai_bridge_cache_misses_total',
       help: 'Cache miss count',
-      labelNames: ['cache_name']
+      labelNames: ['cache_name'],
     });
 
     // Error counter
     this.errorCounter = new Counter({
       name: 'ai_bridge_errors_total',
       help: 'Total errors encountered',
-      labelNames: ['type', 'severity']
+      labelNames: ['type', 'severity'],
     });
 
     // Agent health score
     this.agentHealth = new Gauge({
       name: 'ai_bridge_agent_health_score',
       help: 'Agent health score (0-100)',
-      labelNames: ['agent_id']
+      labelNames: ['agent_id'],
     });
   }
 

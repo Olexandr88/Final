@@ -24,7 +24,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error:', err.message);
       }
-    }
+    },
   },
 
   'top-mem': {
@@ -39,7 +39,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error:', err.message);
       }
-    }
+    },
   },
 
   'by-user': {
@@ -54,17 +54,17 @@ const COMMANDS = {
       } catch (err) {
         console.log('  ❌ Run as Administrator to see user info');
       }
-    }
+    },
   },
 
-  'tree': {
+  tree: {
     desc: 'Show process tree (ps awwfux equivalent)',
     async run() {
       console.log('🌳 Process Tree:\n');
       try {
         const { stdout } = await execAsync('powershell "Get-Process | Format-List"');
         const processes = stdout.split('\n\n').slice(0, 10);
-        processes.forEach(proc => {
+        processes.forEach((proc) => {
           if (proc.trim()) {
             console.log(proc);
             console.log('─'.repeat(80));
@@ -73,7 +73,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error:', err.message);
       }
-    }
+    },
   },
 
   'node-processes': {
@@ -86,7 +86,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  No Node.js processes found');
       }
-    }
+    },
   },
 
   'kill-pattern': {
@@ -101,11 +101,9 @@ const COMMANDS = {
       console.log(`💀 Killing processes matching: ${pattern}\n`);
 
       try {
-        const { stdout } = await execAsync(
-          `tasklist /FI "IMAGENAME eq ${pattern}*" /FO CSV`
-        );
+        const { stdout } = await execAsync(`tasklist /FI "IMAGENAME eq ${pattern}*" /FO CSV`);
 
-        const lines = stdout.split('\n').filter(l => l.includes(pattern));
+        const lines = stdout.split('\n').filter((l) => l.includes(pattern));
         console.log(`  Found ${lines.length} processes\n`);
 
         for (const line of lines) {
@@ -121,10 +119,10 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  ❌ Error: ${err.message}`);
       }
-    }
+    },
   },
 
-  'cwd': {
+  cwd: {
     desc: 'Get current working directory of process (pwdx equivalent)',
     async run(args) {
       const pid = args[0];
@@ -144,10 +142,10 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  ❌ Process ${pid} not found`);
       }
-    }
+    },
   },
 
-  'watch': {
+  watch: {
     desc: 'Watch process count for pattern',
     async run(args) {
       const pattern = args[0] || 'node.exe';
@@ -155,11 +153,9 @@ const COMMANDS = {
 
       const watch = async () => {
         try {
-          const { stdout } = await execAsync(
-            `tasklist /FI "IMAGENAME eq ${pattern}" /FO CSV /NH`
-          );
+          const { stdout } = await execAsync(`tasklist /FI "IMAGENAME eq ${pattern}" /FO CSV /NH`);
 
-          const count = stdout.split('\n').filter(l => l.trim()).length;
+          const count = stdout.split('\n').filter((l) => l.trim()).length;
 
           console.clear();
           console.log(`📊 Process Monitor - ${new Date().toLocaleTimeString()}\n`);
@@ -177,7 +173,7 @@ const COMMANDS = {
 
       setInterval(watch, 2000);
       await watch();
-    }
+    },
   },
 
   'zombie-check': {
@@ -200,8 +196,8 @@ const COMMANDS = {
       } catch {
         console.log('  No Node.js processes found');
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {

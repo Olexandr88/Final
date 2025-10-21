@@ -16,7 +16,7 @@ const colors = {
   red: '\x1b[31m',
   yellow: '\x1b[33m',
   blue: '\x1b[34m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 class ORMMigration {
@@ -25,7 +25,7 @@ class ORMMigration {
     this.stats = {
       sessions: { migrated: 0, skipped: 0, errors: 0 },
       locks: { migrated: 0, skipped: 0, errors: 0 },
-      selections: { migrated: 0, skipped: 0, errors: 0 }
+      selections: { migrated: 0, skipped: 0, errors: 0 },
     };
   }
 
@@ -75,11 +75,7 @@ class ORMMigration {
       return;
     }
 
-    const backupPath = path.join(
-      process.cwd(),
-      'data',
-      `llm-framework.backup.${Date.now()}.db`
-    );
+    const backupPath = path.join(process.cwd(), 'data', `llm-framework.backup.${Date.now()}.db`);
 
     fs.copyFileSync(dbPath, backupPath);
     this.log(`  ✓ Backup created: ${backupPath}`, 'green');
@@ -93,7 +89,7 @@ class ORMMigration {
     rawDb.pragma('journal_mode = WAL');
 
     const prisma = new PrismaClient({
-      datasources: { db: { url: `file:${dbPath}` } }
+      datasources: { db: { url: `file:${dbPath}` } },
     });
 
     this.log('  ✓ Raw SQLite connection established', 'green');
@@ -109,12 +105,12 @@ class ORMMigration {
     const columnsToCheck = [
       { table: 'sessions', column: 'start_time' },
       { table: 'sessions', column: 'last_heartbeat' },
-      { table: 'locks', column: 'acquired_at' }
+      { table: 'locks', column: 'acquired_at' },
     ];
 
     for (const { table, column } of columnsToCheck) {
       const columnInfo = rawDb.prepare(`PRAGMA table_info(${table})`).all();
-      const col = columnInfo.find(c => c.name === column);
+      const col = columnInfo.find((c) => c.name === column);
 
       if (col && col.type.toUpperCase() === 'INTEGER') {
         this.log(`  ⚠ Column ${table}.${column} is INTEGER, needs BIGINT`, 'yellow');
@@ -142,7 +138,10 @@ class ORMMigration {
     // 5. Recreate indexes
 
     // For now, just log a warning
-    this.log(`  ⚠ Manual schema migration may be required for ${tableName}.${columnName}`, 'yellow');
+    this.log(
+      `  ⚠ Manual schema migration may be required for ${tableName}.${columnName}`,
+      'yellow'
+    );
     this.log(`    Run: npx prisma migrate dev --name update_timestamps_to_bigint`, 'yellow');
   }
 
@@ -152,20 +151,20 @@ class ORMMigration {
     const indexes = [
       {
         name: 'idx_sessions_status_heartbeat',
-        sql: 'CREATE INDEX IF NOT EXISTS idx_sessions_status_heartbeat ON sessions(status, last_heartbeat)'
+        sql: 'CREATE INDEX IF NOT EXISTS idx_sessions_status_heartbeat ON sessions(status, last_heartbeat)',
       },
       {
         name: 'idx_locks_resource_type',
-        sql: 'CREATE INDEX IF NOT EXISTS idx_locks_resource_type ON locks(resource_path, lock_type)'
+        sql: 'CREATE INDEX IF NOT EXISTS idx_locks_resource_type ON locks(resource_path, lock_type)',
       },
       {
         name: 'idx_locks_session_time',
-        sql: 'CREATE INDEX IF NOT EXISTS idx_locks_session_time ON locks(session_id, acquired_at)'
+        sql: 'CREATE INDEX IF NOT EXISTS idx_locks_session_time ON locks(session_id, acquired_at)',
       },
       {
         name: 'idx_selections_source_time',
-        sql: 'CREATE INDEX IF NOT EXISTS idx_selections_source_time ON selections(source, created_at DESC)'
-      }
+        sql: 'CREATE INDEX IF NOT EXISTS idx_selections_source_time ON selections(source, created_at DESC)',
+      },
     ];
 
     for (const index of indexes) {
@@ -244,13 +243,16 @@ class ORMMigration {
     if (rawSelectionCount === ormSelectionCount) {
       this.log(`  ✓ Selection count matches: ${rawSelectionCount}`, 'green');
     } else {
-      this.log(`  ✗ Selection count mismatch: Raw=${rawSelectionCount}, ORM=${ormSelectionCount}`, 'red');
+      this.log(
+        `  ✗ Selection count mismatch: Raw=${rawSelectionCount}, ORM=${ormSelectionCount}`,
+        'red'
+      );
       this.errors.push('Selection count mismatch');
     }
 
     // Check referential integrity
     const orphanedLocks = await prisma.lock.count({
-      where: { session: null }
+      where: { session: null },
     });
 
     if (orphanedLocks === 0) {
@@ -292,7 +294,7 @@ class ORMMigration {
       this.log('  4. Gradually enable other modules', 'cyan');
     } else {
       this.log('✗ Migration completed with errors:', 'red');
-      this.errors.forEach(err => this.log(`  - ${err}`, 'red'));
+      this.errors.forEach((err) => this.log(`  - ${err}`, 'red'));
       this.log('\nPlease review and fix errors before enabling ORM.', 'yellow');
     }
 

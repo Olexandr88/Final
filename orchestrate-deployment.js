@@ -23,11 +23,12 @@ async function orchestrateDeployment() {
   const environment = 'production';
   const targetRegion = 'us-east-1';
 
-  const deploymentResult = await mcpIntegration.callTool(
-    'DeploymentServer',
-    'deploy',
-    { appName, version, environment, targetRegion }
-  );
+  const deploymentResult = await mcpIntegration.callTool('DeploymentServer', 'deploy', {
+    appName,
+    version,
+    environment,
+    targetRegion,
+  });
 
   console.log('Deployment Result:', deploymentResult);
 

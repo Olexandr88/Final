@@ -29,7 +29,7 @@ class WorkflowOrchestrator {
       projectStructure: this.analyzeProjectStructure(),
       existingCode: this.identifyRelevantFiles(feature),
       dependencies: this.checkDependencies(),
-      tests: this.findExistingTests()
+      tests: this.findExistingTests(),
     };
 
     console.log('Project Structure:');
@@ -38,7 +38,7 @@ class WorkflowOrchestrator {
     console.log(`  Test files: ${exploration.tests.count}\n`);
 
     console.log('Relevant Files:');
-    exploration.existingCode.forEach(file => console.log(`  - ${file}`));
+    exploration.existingCode.forEach((file) => console.log(`  - ${file}`));
 
     this.saveExploration(exploration);
 
@@ -118,7 +118,7 @@ class WorkflowOrchestrator {
     const checks = {
       tests: this.runTests(),
       linter: this.runLinter(),
-      build: this.runBuild()
+      build: this.runBuild(),
     };
 
     console.log(`  Tests: ${checks.tests ? '✓' : '✗'}`);
@@ -132,7 +132,7 @@ class WorkflowOrchestrator {
     // Get git status
     const status = this.getGitStatus();
     console.log('Changed files:');
-    status.forEach(file => console.log(`  M ${file}`));
+    status.forEach((file) => console.log(`  M ${file}`));
 
     // Create commit
     const commitMessage = message || this.generateCommitMessage();
@@ -148,7 +148,6 @@ class WorkflowOrchestrator {
       this.currentPhase = 'idle';
 
       return { committed: true, message: commitMessage, checks };
-
     } catch (error) {
       throw new Error(`Commit failed: ${error.message}`);
     }
@@ -175,7 +174,6 @@ class WorkflowOrchestrator {
       results.commit = await this.commit();
 
       return { phase: 'complete', results };
-
     } catch (error) {
       return { phase: this.currentPhase, error: error.message, results };
     }
@@ -192,7 +190,7 @@ class WorkflowOrchestrator {
 
       try {
         const items = fs.readdirSync(dir);
-        items.forEach(item => {
+        items.forEach((item) => {
           const fullPath = path.join(dir, item);
           const stat = fs.statSync(fullPath);
 
@@ -210,9 +208,9 @@ class WorkflowOrchestrator {
 
     return {
       directories,
-      sourceFiles: files.filter(f => f.match(/\.(js|ts|py|go|rs)$/)).length,
-      testFiles: files.filter(f => f.includes('test')).length,
-      totalFiles: files.length
+      sourceFiles: files.filter((f) => f.match(/\.(js|ts|py|go|rs)$/)).length,
+      testFiles: files.filter((f) => f.includes('test')).length,
+      totalFiles: files.length,
     };
   }
 
@@ -226,7 +224,7 @@ class WorkflowOrchestrator {
 
       try {
         const items = fs.readdirSync(dir);
-        items.forEach(item => {
+        items.forEach((item) => {
           const fullPath = path.join(dir, item);
           const stat = fs.statSync(fullPath);
 
@@ -234,7 +232,7 @@ class WorkflowOrchestrator {
             walk(fullPath);
           } else if (fullPath.match(/\.(js|ts|py|go|rs)$/)) {
             const fileName = item.toLowerCase();
-            if (keywords.some(kw => fileName.includes(kw))) {
+            if (keywords.some((kw) => fileName.includes(kw))) {
               files.push(path.relative(this.root, fullPath));
             }
           }
@@ -251,7 +249,7 @@ class WorkflowOrchestrator {
       const pkg = JSON.parse(fs.readFileSync(path.join(this.root, 'package.json'), 'utf8'));
       return {
         dependencies: Object.keys(pkg.dependencies || {}).length,
-        devDependencies: Object.keys(pkg.devDependencies || {}).length
+        devDependencies: Object.keys(pkg.devDependencies || {}).length,
       };
     } catch {
       return { dependencies: 0, devDependencies: 0 };
@@ -265,7 +263,7 @@ class WorkflowOrchestrator {
 
       try {
         const items = fs.readdirSync(dir);
-        items.forEach(item => {
+        items.forEach((item) => {
           const fullPath = path.join(dir, item);
           const stat = fs.statSync(fullPath);
 
@@ -329,7 +327,11 @@ ${requirements.length > 0 ? requirements.map((r, i) => `${i + 1}. ${r}`).join('\
 - [ ] Manual testing
 
 ## Files to Modify
-${this.identifyRelevantFiles(feature).map(f => `- ${f}`).join('\n') || 'No existing files identified'}
+${
+  this.identifyRelevantFiles(feature)
+    .map((f) => `- ${f}`)
+    .join('\n') || 'No existing files identified'
+}
 
 ## Acceptance Criteria
 - ✅ All tests passing
@@ -394,10 +396,14 @@ Review this plan carefully. Adjust as needed. Only proceed to coding phase after
     try {
       const status = execSync('git status --porcelain', {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
 
-      return status.trim().split('\n').filter(Boolean).map(line => line.substring(3));
+      return status
+        .trim()
+        .split('\n')
+        .filter(Boolean)
+        .map((line) => line.substring(3));
     } catch {
       return [];
     }

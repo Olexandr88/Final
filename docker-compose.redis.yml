@@ -6,14 +6,14 @@ services:
     image: redis:7-alpine
     container_name: redis-node-1
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-1-data:/data
       - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf --protected-mode no --requirepass ""
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -23,24 +23,24 @@ services:
     environment:
       - REDIS_NODE_ID=1
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # Redis Node 2 (Secondary for Redlock)
   redis-2:
     image: redis:7-alpine
     container_name: redis-node-2
     ports:
-      - "6380:6379"
+      - '6380:6379'
     volumes:
       - redis-2-data:/data
       - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf --protected-mode no
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -50,24 +50,24 @@ services:
     environment:
       - REDIS_NODE_ID=2
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # Redis Node 3 (Tertiary for Redlock)
   redis-3:
     image: redis:7-alpine
     container_name: redis-node-3
     ports:
-      - "6381:6379"
+      - '6381:6379'
     volumes:
       - redis-3-data:/data
       - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf --protected-mode no
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -77,10 +77,10 @@ services:
     environment:
       - REDIS_NODE_ID=3
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   # AI Bridge Server (hybrid mode - WebSocket + Redis)
   ai-bridge:
@@ -89,8 +89,8 @@ services:
       dockerfile: Dockerfile
     container_name: ai-bridge-server
     ports:
-      - "56427:56427"  # WebSocket
-      - "65038:65038"  # HTTP API
+      - '56427:56427' # WebSocket
+      - '65038:65038' # HTTP API
     environment:
       - NODE_ENV=production
       - REDIS_URL=redis://redis-1:6379
@@ -120,23 +120,23 @@ services:
     networks:
       - ai-bridge-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:65038/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:65038/health']
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "20m"
-        max-file: "5"
+        max-size: '20m'
+        max-file: '5'
 
   # Redis Commander (Web UI for Redis)
   redis-commander:
     image: rediscommander/redis-commander:latest
     container_name: redis-commander
     ports:
-      - "8081:8081"
+      - '8081:8081'
     environment:
       - REDIS_HOSTS=node1:redis-1:6379,node2:redis-2:6379,node3:redis-3:6379
     depends_on:
@@ -152,7 +152,7 @@ services:
     image: prom/prometheus:latest
     container_name: ai-bridge-prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
@@ -169,7 +169,7 @@ services:
     image: grafana/grafana:latest
     container_name: ai-bridge-grafana
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin

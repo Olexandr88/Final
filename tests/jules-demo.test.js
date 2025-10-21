@@ -58,9 +58,7 @@ describe('jules-demo.js', () => {
       try {
         await execAsync('node src/jules-demo.js', { timeout: 3000 });
       } catch (error) {
-        assert.ok(
-          error.message.includes('API') || error.message.includes('key') || error.killed
-        );
+        assert.ok(error.message.includes('API') || error.message.includes('key') || error.killed);
       }
     });
 

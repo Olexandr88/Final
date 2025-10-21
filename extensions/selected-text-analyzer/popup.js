@@ -7,7 +7,7 @@ class PopupController {
     this.currentSource = '';
     this.isAutonomousMode = false;
     this.activeTab = null;
-    
+
     this.initialize();
   }
 
@@ -22,22 +22,38 @@ class PopupController {
     // Original functionality
     document.getElementById('analyze-btn')?.addEventListener('click', () => this.runAnalysis());
     document.getElementById('copy-btn')?.addEventListener('click', () => this.copyText());
-    document.getElementById('analyze-page-btn')?.addEventListener('click', () => this.analyzeCurrentPage());
-    
+    document
+      .getElementById('analyze-page-btn')
+      ?.addEventListener('click', () => this.analyzeCurrentPage());
+
     // New autonomous execution controls
-    document.getElementById('start-autonomous-btn')?.addEventListener('click', () => this.startAutonomousMode());
-    document.getElementById('stop-autonomous-btn')?.addEventListener('click', () => this.stopAutonomousMode());
-    document.getElementById('fix-issues-btn')?.addEventListener('click', () => this.fixPageIssues());
-    document.getElementById('extract-data-btn')?.addEventListener('click', () => this.extractPageData());
-    
+    document
+      .getElementById('start-autonomous-btn')
+      ?.addEventListener('click', () => this.startAutonomousMode());
+    document
+      .getElementById('stop-autonomous-btn')
+      ?.addEventListener('click', () => this.stopAutonomousMode());
+    document
+      .getElementById('fix-issues-btn')
+      ?.addEventListener('click', () => this.fixPageIssues());
+    document
+      .getElementById('extract-data-btn')
+      ?.addEventListener('click', () => this.extractPageData());
+
     // Advanced controls
-    document.getElementById('screenshot-btn')?.addEventListener('click', () => this.takeScreenshot());
-    document.getElementById('clear-storage-btn')?.addEventListener('click', () => this.clearStoredData());
-    
+    document
+      .getElementById('screenshot-btn')
+      ?.addEventListener('click', () => this.takeScreenshot());
+    document
+      .getElementById('clear-storage-btn')
+      ?.addEventListener('click', () => this.clearStoredData());
+
     // Settings
     document.getElementById('settings-btn')?.addEventListener('click', () => this.toggleSettings());
-    document.getElementById('save-settings-btn')?.addEventListener('click', () => this.saveSettings());
-    
+    document
+      .getElementById('save-settings-btn')
+      ?.addEventListener('click', () => this.saveSettings());
+
     // Auto-analyze setting
     chrome.storage.local.get(['autoAnalyze'], (result) => {
       if (result.autoAnalyze && this.currentText) {
@@ -48,16 +64,19 @@ class PopupController {
 
   async loadStoredText() {
     return new Promise((resolve) => {
-      chrome.storage.local.get(['analysisText', 'analysisSource', 'timestamp', 'tabId'], (result) => {
-        if (result.analysisText) {
-          this.currentText = result.analysisText;
-          this.currentSource = result.analysisSource || 'unknown';
-          this.displayTextInfo();
-        } else {
-          this.showNoDataMessage();
+      chrome.storage.local.get(
+        ['analysisText', 'analysisSource', 'timestamp', 'tabId'],
+        (result) => {
+          if (result.analysisText) {
+            this.currentText = result.analysisText;
+            this.currentSource = result.analysisSource || 'unknown';
+            this.displayTextInfo();
+          } else {
+            this.showNoDataMessage();
+          }
+          resolve();
         }
-        resolve();
-      });
+      );
     });
   }
 
@@ -66,7 +85,7 @@ class PopupController {
       const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
       if (tabs[0]) {
         this.activeTab = tabs[0];
-        
+
         // Check if autonomous mode is active for this tab
         chrome.storage.local.get(['autonomousMode', 'autonomousTabId'], (result) => {
           this.isAutonomousMode = result.autonomousMode && result.autonomousTabId === tabs[0].id;
@@ -82,7 +101,7 @@ class PopupController {
     const startBtn = document.getElementById('start-autonomous-btn');
     const stopBtn = document.getElementById('stop-autonomous-btn');
     const statusEl = document.getElementById('autonomous-status');
-    
+
     if (this.isAutonomousMode) {
       if (startBtn) startBtn.style.display = 'none';
       if (stopBtn) stopBtn.style.display = 'block';
@@ -105,7 +124,7 @@ class PopupController {
     if (this.activeTab) {
       const pageTitle = document.getElementById('page-title');
       const pageUrl = document.getElementById('page-url');
-      
+
       if (pageTitle) {
         pageTitle.textContent = this.activeTab.title || 'Unknown Page';
       }
@@ -114,37 +133,37 @@ class PopupController {
         pageUrl.title = this.activeTab.url || '';
       }
     }
-    
+
     // Check for page issues
     await this.checkPageIssues();
   }
 
   async analyzeCurrentPage() {
     if (!this.activeTab) return;
-    
+
     const btn = document.getElementById('analyze-page-btn');
     if (btn) {
       btn.textContent = 'Loading...';
       btn.disabled = true;
     }
-    
+
     try {
       const response = await chrome.runtime.sendMessage({
         action: 'getPageText',
-        tabId: this.activeTab.id
+        tabId: this.activeTab.id,
       });
-      
+
       if (response && response.text) {
         this.currentText = response.text;
         this.currentSource = 'page';
-        
+
         // Store the text
         chrome.storage.local.set({
           analysisText: this.currentText,
           analysisSource: this.currentSource,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
-        
+
         this.displayTextInfo();
         this.runAnalysis();
       } else {
@@ -162,26 +181,26 @@ class PopupController {
 
   async startAutonomousMode() {
     if (!this.activeTab) return;
-    
+
     const btn = document.getElementById('start-autonomous-btn');
     if (btn) {
       btn.textContent = 'Starting...';
       btn.disabled = true;
     }
-    
+
     try {
       const response = await chrome.runtime.sendMessage({
         action: 'startAutonomousMode',
-        tabId: this.activeTab.id
+        tabId: this.activeTab.id,
       });
-      
+
       if (response?.success) {
         this.isAutonomousMode = true;
         chrome.storage.local.set({
           autonomousMode: true,
-          autonomousTabId: this.activeTab.id
+          autonomousTabId: this.activeTab.id,
         });
-        
+
         this.updateAutonomousControls();
         this.showSuccess('Autonomous mode started successfully!');
       } else {
@@ -199,16 +218,16 @@ class PopupController {
 
   async stopAutonomousMode() {
     const response = await chrome.runtime.sendMessage({
-      action: 'stopAutonomousMode'
+      action: 'stopAutonomousMode',
     });
-    
+
     if (response?.success) {
       this.isAutonomousMode = false;
       chrome.storage.local.set({
         autonomousMode: false,
-        autonomousTabId: null
+        autonomousTabId: null,
       });
-      
+
       this.updateAutonomousControls();
       this.showSuccess('Autonomous mode stopped');
     }
@@ -216,34 +235,34 @@ class PopupController {
 
   async fixPageIssues() {
     if (!this.activeTab) return;
-    
+
     const btn = document.getElementById('fix-issues-btn');
     if (btn) {
       btn.textContent = 'Fixing...';
       btn.disabled = true;
     }
-    
+
     try {
       // First, check for issues
       const response = await chrome.tabs.sendMessage(this.activeTab.id, {
-        action: 'analyzePageIssues'
+        action: 'analyzePageIssues',
       });
-      
+
       if (response?.success) {
         const issues = response.issues;
-        
+
         if (issues.length > 0) {
           this.displayIssues(issues);
-          
+
           // Start fixing
           const fixResponse = await chrome.tabs.sendMessage(this.activeTab.id, {
             action: 'startAutonomousExecution',
             task: {
               type: 'fix_issues',
-              issues: issues
-            }
+              issues: issues,
+            },
           });
-          
+
           if (fixResponse?.success) {
             this.showSuccess(`Found and fixing ${issues.length} issues`);
           }
@@ -263,21 +282,21 @@ class PopupController {
 
   async extractPageData() {
     if (!this.activeTab) return;
-    
+
     try {
       const response = await chrome.tabs.sendMessage(this.activeTab.id, {
-        action: 'getPageData'
+        action: 'getPageData',
       });
-      
+
       if (response?.success) {
         this.displayExtractedData(response.data);
-        
+
         // Store extracted data
         chrome.storage.local.set({
           lastExtractedData: response.data,
-          extractionTime: Date.now()
+          extractionTime: Date.now(),
         });
-        
+
         this.showSuccess('Page data extracted successfully');
       }
     } catch (error) {
@@ -291,19 +310,19 @@ class PopupController {
       btn.textContent = 'Taking...';
       btn.disabled = true;
     }
-    
+
     try {
       const response = await chrome.runtime.sendMessage({
-        action: 'takeScreenshot'
+        action: 'takeScreenshot',
       });
-      
+
       if (response?.success) {
         // Create download link
         const link = document.createElement('a');
         link.href = response.dataUrl;
         link.download = `screenshot-${Date.now()}.png`;
         link.click();
-        
+
         this.showSuccess('Screenshot saved');
       }
     } catch (error) {
@@ -318,16 +337,16 @@ class PopupController {
 
   async checkPageIssues() {
     if (!this.activeTab) return;
-    
+
     try {
       const response = await chrome.tabs.sendMessage(this.activeTab.id, {
-        action: 'analyzePageIssues'
+        action: 'analyzePageIssues',
       });
-      
+
       if (response?.success) {
         const issueCount = response.issues.length;
         const issueCountEl = document.getElementById('issue-count');
-        
+
         if (issueCountEl) {
           if (issueCount > 0) {
             issueCountEl.textContent = `${issueCount} issues detected`;
@@ -347,24 +366,23 @@ class PopupController {
     // Hide no-data message
     const contentDiv = document.getElementById('content');
     if (contentDiv) contentDiv.style.display = 'none';
-    
+
     // Show analysis container
     const container = document.getElementById('analysis-container');
     if (container) container.style.display = 'block';
-    
+
     // Update source
     const sourceText = this.currentSource === 'selection' ? 'Selected Text' : 'Full Page';
     const sourceEl = document.getElementById('source');
     if (sourceEl) sourceEl.textContent = sourceText;
-    
+
     // Update length
     const lengthEl = document.getElementById('length');
     if (lengthEl) lengthEl.textContent = `${this.currentText.length.toLocaleString()} characters`;
-    
+
     // Update text preview
-    const preview = this.currentText.length > 500 
-      ? this.currentText.substring(0, 500) + '...' 
-      : this.currentText;
+    const preview =
+      this.currentText.length > 500 ? this.currentText.substring(0, 500) + '...' : this.currentText;
     const previewEl = document.getElementById('text-preview');
     if (previewEl) previewEl.textContent = preview;
   }
@@ -372,7 +390,7 @@ class PopupController {
   showNoDataMessage() {
     const contentDiv = document.getElementById('content');
     if (contentDiv) contentDiv.style.display = 'block';
-    
+
     const container = document.getElementById('analysis-container');
     if (container) container.style.display = 'none';
   }
@@ -382,36 +400,39 @@ class PopupController {
       this.showError('No text to analyze');
       return;
     }
-    
+
     // Character count (total)
     const charCount = this.currentText.length;
-    
+
     // Character count (no spaces)
     const charNoSpaceCount = this.currentText.replace(/\s/g, '').length;
-    
+
     // Word count
-    const words = this.currentText.trim().split(/\s+/).filter(word => word.length > 0);
+    const words = this.currentText
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
     const wordCount = words.length;
-    
+
     // Line count
     const lines = this.currentText.split(/\n/);
     const lineCount = lines.length;
-    
+
     // Sentence count (approximate)
-    const sentences = this.currentText.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = this.currentText.split(/[.!?]+/).filter((s) => s.trim().length > 0);
     const sentenceCount = sentences.length;
-    
+
     // Average word length
     const totalWordChars = words.join('').length;
     const avgWordLength = wordCount > 0 ? (totalWordChars / wordCount).toFixed(2) : 0;
-    
+
     // Paragraph count
-    const paragraphs = this.currentText.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+    const paragraphs = this.currentText.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
     const paragraphCount = paragraphs.length;
-    
+
     // Reading time (average 200 words per minute)
     const readingTimeMinutes = Math.ceil(wordCount / 200);
-    
+
     // Display results
     this.updateStatElement('char-count', charCount.toLocaleString());
     this.updateStatElement('char-no-space-count', charNoSpaceCount.toLocaleString());
@@ -421,7 +442,7 @@ class PopupController {
     this.updateStatElement('paragraph-count', paragraphCount.toLocaleString());
     this.updateStatElement('avg-word-length', avgWordLength);
     this.updateStatElement('reading-time', `${readingTimeMinutes} min`);
-    
+
     // Show results section
     const resultsDiv = document.getElementById('analysis-results');
     if (resultsDiv) resultsDiv.style.display = 'block';
@@ -437,28 +458,31 @@ class PopupController {
       this.showError('No text to copy');
       return;
     }
-    
-    navigator.clipboard.writeText(this.currentText).then(() => {
-      const copyBtn = document.getElementById('copy-btn');
-      if (copyBtn) {
-        const originalText = copyBtn.textContent;
-        copyBtn.textContent = 'Copied!';
-        
-        setTimeout(() => {
-          copyBtn.textContent = originalText;
-        }, 2000);
-      }
-    }).catch(err => {
-      this.showError('Failed to copy text: ' + err);
-    });
+
+    navigator.clipboard
+      .writeText(this.currentText)
+      .then(() => {
+        const copyBtn = document.getElementById('copy-btn');
+        if (copyBtn) {
+          const originalText = copyBtn.textContent;
+          copyBtn.textContent = 'Copied!';
+
+          setTimeout(() => {
+            copyBtn.textContent = originalText;
+          }, 2000);
+        }
+      })
+      .catch((err) => {
+        this.showError('Failed to copy text: ' + err);
+      });
   }
 
   displayIssues(issues) {
     const container = document.getElementById('issues-container');
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     issues.forEach((issue, index) => {
       const issueEl = document.createElement('div');
       issueEl.className = 'issue-item';
@@ -469,14 +493,14 @@ class PopupController {
       `;
       container.appendChild(issueEl);
     });
-    
+
     container.style.display = 'block';
   }
 
   displayExtractedData(data) {
     const container = document.getElementById('extracted-data-container');
     if (!container) return;
-    
+
     container.innerHTML = `
       <h3>Extracted Page Data</h3>
       <div><strong>Title:</strong> ${data.title}</div>
@@ -486,7 +510,7 @@ class PopupController {
       <div><strong>Errors:</strong> ${data.errors?.length || 0}</div>
       <div><strong>Text Length:</strong> ${data.text?.length || 0} characters</div>
     `;
-    
+
     container.style.display = 'block';
   }
 
@@ -495,7 +519,7 @@ class PopupController {
     if (settingsPanel) {
       const isVisible = settingsPanel.style.display === 'block';
       settingsPanel.style.display = isVisible ? 'none' : 'block';
-      
+
       if (!isVisible) {
         this.loadSettings();
       }
@@ -503,39 +527,44 @@ class PopupController {
   }
 
   loadSettings() {
-    chrome.storage.local.get([
-      'autoAnalyze', 'autonomousExecution', 'maxRetries', 'delayBetweenActions', 'debugMode'
-    ], (result) => {
-      const autoAnalyze = document.getElementById('auto-analyze');
-      const autonomousExecution = document.getElementById('autonomous-execution');
-      const maxRetries = document.getElementById('max-retries');
-      const delayBetweenActions = document.getElementById('delay-between-actions');
-      const debugMode = document.getElementById('debug-mode');
-      
-      if (autoAnalyze) autoAnalyze.checked = result.autoAnalyze || false;
-      if (autonomousExecution) autonomousExecution.checked = result.autonomousExecution || false;
-      if (maxRetries) maxRetries.value = result.maxRetries || 3;
-      if (delayBetweenActions) delayBetweenActions.value = result.delayBetweenActions || 1000;
-      if (debugMode) debugMode.checked = result.debugMode || false;
-    });
+    chrome.storage.local.get(
+      ['autoAnalyze', 'autonomousExecution', 'maxRetries', 'delayBetweenActions', 'debugMode'],
+      (result) => {
+        const autoAnalyze = document.getElementById('auto-analyze');
+        const autonomousExecution = document.getElementById('autonomous-execution');
+        const maxRetries = document.getElementById('max-retries');
+        const delayBetweenActions = document.getElementById('delay-between-actions');
+        const debugMode = document.getElementById('debug-mode');
+
+        if (autoAnalyze) autoAnalyze.checked = result.autoAnalyze || false;
+        if (autonomousExecution) autonomousExecution.checked = result.autonomousExecution || false;
+        if (maxRetries) maxRetries.value = result.maxRetries || 3;
+        if (delayBetweenActions) delayBetweenActions.value = result.delayBetweenActions || 1000;
+        if (debugMode) debugMode.checked = result.debugMode || false;
+      }
+    );
   }
 
   saveSettings() {
     const autoAnalyze = document.getElementById('auto-analyze')?.checked || false;
     const autonomousExecution = document.getElementById('autonomous-execution')?.checked || false;
     const maxRetries = parseInt(document.getElementById('max-retries')?.value) || 3;
-    const delayBetweenActions = parseInt(document.getElementById('delay-between-actions')?.value) || 1000;
+    const delayBetweenActions =
+      parseInt(document.getElementById('delay-between-actions')?.value) || 1000;
     const debugMode = document.getElementById('debug-mode')?.checked || false;
-    
-    chrome.storage.local.set({
-      autoAnalyze,
-      autonomousExecution,
-      maxRetries,
-      delayBetweenActions,
-      debugMode
-    }, () => {
-      this.showSuccess('Settings saved');
-    });
+
+    chrome.storage.local.set(
+      {
+        autoAnalyze,
+        autonomousExecution,
+        maxRetries,
+        delayBetweenActions,
+        debugMode,
+      },
+      () => {
+        this.showSuccess('Settings saved');
+      }
+    );
   }
 
   clearStoredData() {
@@ -561,7 +590,7 @@ class PopupController {
       messageEl.textContent = message;
       messageEl.className = `message ${type}`;
       messageEl.style.display = 'block';
-      
+
       setTimeout(() => {
         messageEl.style.display = 'none';
       }, 3000);

@@ -39,7 +39,7 @@ async function main() {
           }
           if (info.locks && info.locks.length > 0) {
             console.log('\nLocks:');
-            info.locks.forEach(lock => {
+            info.locks.forEach((lock) => {
               console.log(`  • ${lock.resource_path} (${lock.lock_type})`);
             });
           }

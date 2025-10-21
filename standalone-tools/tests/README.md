@@ -14,12 +14,12 @@ This directory contains a comprehensive pytest-based test suite for the Python s
 
 ### Coverage Goals
 
-| Module | Target Coverage | Test Types |
-|--------|----------------|------------|
-| text_tools.py | >95% | Unit, Integration, Security |
-| data_tools.py | >95% | Unit, Integration, Security |
-| file_tools.py | >90% | Unit, Integration, Security, Mocking |
-| math_tools.py | >95% | Unit, Integration, Performance |
+| Module        | Target Coverage | Test Types                           |
+| ------------- | --------------- | ------------------------------------ |
+| text_tools.py | >95%            | Unit, Integration, Security          |
+| data_tools.py | >95%            | Unit, Integration, Security          |
+| file_tools.py | >90%            | Unit, Integration, Security, Mocking |
+| math_tools.py | >95%            | Unit, Integration, Performance       |
 
 ## Installation
 
@@ -152,6 +152,7 @@ pytest --cov=. --cov-fail-under=90
 ### Test Types
 
 #### Unit Tests
+
 Test individual functions in isolation.
 
 ```python
@@ -163,6 +164,7 @@ def test_hash_text():
 ```
 
 #### Integration Tests
+
 Test workflows combining multiple functions.
 
 ```python
@@ -174,6 +176,7 @@ def test_csv_to_json_query_workflow():
 ```
 
 #### Security Tests
+
 Test protection against malicious input.
 
 ```python
@@ -185,6 +188,7 @@ def test_sql_injection():
 ```
 
 #### Performance Tests
+
 Benchmark performance with large datasets.
 
 ```python

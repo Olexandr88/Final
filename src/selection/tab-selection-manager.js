@@ -1,4 +1,9 @@
-import { saveSelection, getLatestSelections, getSelectionCount, searchSelections } from '../selection-store.js';
+import {
+  saveSelection,
+  getLatestSelections,
+  getSelectionCount,
+  searchSelections,
+} from '../selection-store.js';
 
 export default class TabSelectionManager {
   constructor(options = {}) {
@@ -14,7 +19,8 @@ export default class TabSelectionManager {
   async handleTextSelection(tabId, text, metadata = {}) {
     const startTime = Date.now();
     const analysis = {
-      tabId, text,
+      tabId,
+      text,
       language: /[a-zA-Z]/.test(text) ? 'en' : 'unknown',
       wordCount: text.split(/\s+/).length,
       charCount: text.length,
@@ -22,7 +28,7 @@ export default class TabSelectionManager {
       timestamp: new Date().toISOString(),
       metadata,
       suggestions: ['Save to clipboard', 'Share'],
-      preview: text.slice(0, 50)
+      preview: text.slice(0, 50),
     };
 
     // Store in-memory for quick access
@@ -34,7 +40,7 @@ export default class TabSelectionManager {
         url: metadata.url || `tab://${tabId}`,
         title: metadata.title || `Tab ${tabId}`,
         selected_text: text,
-        source: metadata.source || 'tab-manager'
+        source: metadata.source || 'tab-manager',
       });
       analysis.selectionId = selectionId;
     } catch (error) {
@@ -49,8 +55,8 @@ export default class TabSelectionManager {
     const positive = ['amazing', 'excellent', 'great', 'wonderful', 'fantastic'];
     const negative = ['bad', 'terrible', 'awful', 'poor', 'horrible'];
     const lower = text.toLowerCase();
-    const posCount = positive.filter(w => lower.includes(w)).length;
-    const negCount = negative.filter(w => lower.includes(w)).length;
+    const posCount = positive.filter((w) => lower.includes(w)).length;
+    const negCount = negative.filter((w) => lower.includes(w)).length;
     if (posCount > negCount) return 'positive';
     if (negCount > posCount) return 'negative';
     return 'neutral';
@@ -59,10 +65,13 @@ export default class TabSelectionManager {
   getPerformanceMetrics() {
     const { captureLatency } = this.performance;
     return {
-      avgCaptureLatency: captureLatency.length > 0 ? captureLatency.reduce((a, b) => a + b, 0) / captureLatency.length : 0,
+      avgCaptureLatency:
+        captureLatency.length > 0
+          ? captureLatency.reduce((a, b) => a + b, 0) / captureLatency.length
+          : 0,
       maxCaptureLatency: Math.max(...captureLatency, 0),
       totalSelections: this.selections.size,
-      persistedSelections: getSelectionCount()
+      persistedSelections: getSelectionCount(),
     };
   }
 
@@ -81,7 +90,7 @@ export default class TabSelectionManager {
       totalSelections: totalCount,
       recentSelections: recent.length,
       oldestSelection: recent.length > 0 ? recent[recent.length - 1]?.created_at : null,
-      newestSelection: recent.length > 0 ? recent[0]?.created_at : null
+      newestSelection: recent.length > 0 ? recent[0]?.created_at : null,
     };
   }
 }

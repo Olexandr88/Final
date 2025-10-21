@@ -22,7 +22,7 @@ if (isNaN(a) || isNaN(b)) {
 
 try {
   let result;
-  switch(op) {
+  switch (op) {
     case '+':
       result = add(a, b);
       break;

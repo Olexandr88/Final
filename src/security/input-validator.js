@@ -97,9 +97,9 @@ export class InputValidator {
         command: { type: 'string', minLength: 1, maxLength: 1000 },
         args: { type: 'array', items: { type: 'string' } },
         cwd: { type: 'string' },
-        timeout: { type: 'number', minimum: 100, maximum: 300000 }
+        timeout: { type: 'number', minimum: 100, maximum: 300000 },
       },
-      required: ['command']
+      required: ['command'],
     };
 
     // File operation schema
@@ -108,9 +108,9 @@ export class InputValidator {
       properties: {
         path: { type: 'string', minLength: 1, maxLength: 500 },
         content: { type: 'string', maxLength: 10 * 1024 * 1024 }, // 10MB max
-        encoding: { type: 'string', enum: ['utf8', 'ascii', 'base64'] }
+        encoding: { type: 'string', enum: ['utf8', 'ascii', 'base64'] },
       },
-      required: ['path']
+      required: ['path'],
     };
 
     // Git operation schema
@@ -118,9 +118,9 @@ export class InputValidator {
       type: 'object',
       properties: {
         operation: { type: 'string', enum: ['status', 'diff', 'commit', 'log', 'branch'] },
-        params: { type: 'object' }
+        params: { type: 'object' },
       },
-      required: ['operation']
+      required: ['operation'],
     };
   }
 
@@ -138,7 +138,7 @@ export class InputValidator {
       validated.command = this.sanitizeString(validated.command);
 
       if (validated.args) {
-        validated.args = validated.args.map(arg => this.sanitizeString(arg));
+        validated.args = validated.args.map((arg) => this.sanitizeString(arg));
       }
 
       if (validated.cwd) {
@@ -147,11 +147,10 @@ export class InputValidator {
 
       logger.debug('Input validated: command', { validated });
       return validated;
-
     } catch (error) {
       logger.error('Input validation failed: command', {
         error: error.message,
-        input
+        input,
       });
       throw new Error(`Invalid command input: ${error.message}`);
     }
@@ -176,11 +175,10 @@ export class InputValidator {
 
       logger.debug('Input validated: file operation', { validated });
       return validated;
-
     } catch (error) {
       logger.error('Input validation failed: file operation', {
         error: error.message,
-        input
+        input,
       });
       throw new Error(`Invalid file operation: ${error.message}`);
     }
@@ -196,11 +194,10 @@ export class InputValidator {
       const validated = this.validator.validateObject(this.gitSchema, input);
       logger.debug('Input validated: git operation', { validated });
       return validated;
-
     } catch (error) {
       logger.error('Input validation failed: git operation', {
         error: error.message,
-        input
+        input,
       });
       throw new Error(`Invalid git operation: ${error.message}`);
     }

@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Claude Code Session Monitor</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .header {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .header h1 {
+        color: #667eea;
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .header .subtitle {
+        color: #666;
+        font-size: 1.1em;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.9em;
+        font-weight: bold;
+        margin-top: 15px;
+      }
+
+      .status.connected {
+        background: #10b981;
+        color: white;
+      }
+
+      .status.disconnected {
+        background: #ef4444;
+        color: white;
+      }
+
+      .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: white;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card .label {
+        color: #666;
+        font-size: 0.9em;
+        margin-bottom: 8px;
+      }
+
+      .stat-card .value {
+        color: #667eea;
+        font-size: 2em;
+        font-weight: bold;
+      }
+
+      .sessions {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      .sessions h2 {
+        color: #333;
+        margin-bottom: 20px;
+        font-size: 1.5em;
+      }
+
+      .session-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 15px;
+      }
+
+      .session-card {
+        border: 2px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 20px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .session-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+      }
+
+      .session-card.stale {
+        opacity: 0.6;
+        border-color: #ef4444;
+      }
+
+      .session-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+
+      .session-name {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .session-status {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #10b981;
+      }
+
+      .session-status.stale {
+        background: #ef4444;
+      }
+
+      .session-info {
+        display: grid;
+        gap: 8px;
+        color: #666;
+        font-size: 0.9em;
+      }
+
+      .session-info .row {
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .session-info .label {
+        font-weight: 600;
+      }
+
+      .capabilities {
+        margin-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .capability-badge {
+        background: #e0e7ff;
+        color: #667eea;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.8em;
+        font-weight: 500;
+      }
+
+      .actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85em;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5a67d8;
+        transform: scale(1.05);
+      }
+
+      .btn-secondary {
+        background: #e5e7eb;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #d1d5db;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9ca3af;
+      }
+
+      .empty-state svg {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      .modal-header {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #666;
+        font-weight: 500;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 1em;
+        font-family: inherit;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+      }
+
+      .refresh-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #667eea;
+        color: white;
+        border: none;
+        font-size: 1.5em;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s;
+      }
+
+      .refresh-btn:hover {
+        transform: scale(1.1) rotate(180deg);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔮 Claude Code Session Monitor</h1>
+        <p class="subtitle">Real-time monitoring of active Claude Code sessions</p>
+        <div class="status disconnected" id="connection-status">
+          <span class="status-indicator"></span>
+          <span id="status-text">Disconnected</span>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">Active Sessions</div>
+          <div class="value" id="stat-active">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Discovered</div>
+          <div class="value" id="stat-discovered">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Messages Sent</div>
+          <div class="value" id="stat-sent">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Messages Received</div>
+          <div class="value" id="stat-received">0</div>
+        </div>
+      </div>
+
+      <div class="sessions">
+        <h2>Discovered Sessions</h2>
+        <div class="session-grid" id="session-grid">
+          <div class="empty-state">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+              />
+            </svg>
+            <div>No sessions discovered yet</div>
+            <div style="font-size: 0.9em; margin-top: 10px">
+              Sessions will appear automatically...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="refresh-btn" onclick="refreshSessions()" title="Refresh">⟳</button>
+
+    <!-- Message Modal -->
+    <div class="modal" id="message-modal">
+      <div class="modal-content">
+        <div class="modal-header">Send Message</div>
+        <div class="form-group">
+          <label>To:</label>
+          <input type="text" id="message-to" readonly />
+        </div>
+        <div class="form-group">
+          <label>Message:</label>
+          <textarea id="message-body" placeholder="Enter your message..."></textarea>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+          <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let ws = null;
+      let discoverySessionId = null;
+      let sessions = new Map();
+      let stats = {
+        discovered: 0,
+        sent: 0,
+        received: 0,
+      };
+
+      // Connect to AI Bridge
+      function connect() {
+        const bridgeUrl = 'ws://localhost:65028';
+        ws = new WebSocket(bridgeUrl);
+
+        ws.onopen = () => {
+          updateConnectionStatus(true);
+          register();
+        };
+
+        ws.onmessage = (event) => {
+          handleMessage(JSON.parse(event.data));
+        };
+
+        ws.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          updateConnectionStatus(false);
+        };
+
+        ws.onclose = () => {
+          updateConnectionStatus(false);
+          // Reconnect after 5 seconds
+          setTimeout(connect, 5000);
+        };
+      }
+
+      // Register with AI Bridge
+      function register() {
+        discoverySessionId = 'dashboard-' + Date.now();
+        ws.send(
+          JSON.stringify({
+            type: 'register',
+            clientId: discoverySessionId,
+            role: 'dashboard',
+            labels: ['session-monitor', 'web-dashboard'],
+            tools: ['visualize', 'monitor'],
+            intents: ['session.announce', 'session.query', 'session.message'],
+            maxConcurrentTasks: 1,
+          })
+        );
+      }
+
+      // Handle incoming messages
+      function handleMessage(message) {
+        if (message.type === 'registered') {
+          console.log('Registered:', message.clientId);
+          queryExistingSessions();
+          return;
+        }
+
+        if (message[0] === 'env') {
+          const envelope = message[1];
+          handleEnvelope(envelope);
+        }
+      }
+
+      // Handle envelope messages
+      function handleEnvelope(envelope) {
+        const { intent, from, payload } = envelope;
+
+        if (from === discoverySessionId) return; // Ignore our own messages
+
+        stats.received++;
+
+        switch (intent) {
+          case 'session.announce':
+            handleSessionAnnouncement(from, payload);
+            break;
+          case 'session.message':
+            handleSessionMessage(from, payload);
+            break;
+          case 'session.departed':
+            handleSessionDeparture(from);
+            break;
+        }
+
+        updateStats();
+      }
+
+      // Handle session announcement
+      function handleSessionAnnouncement(sessionId, payload) {
+        const existing = sessions.has(sessionId);
+
+        sessions.set(sessionId, {
+          sessionId,
+          sessionName: payload.sessionName || 'Unknown',
+          capabilities: payload.capabilities || [],
+          metadata: payload.metadata || {},
+          lastSeen: Date.now(),
+          discoveredAt: existing ? sessions.get(sessionId).discoveredAt : Date.now(),
+        });
+
+        if (!existing) {
+          stats.discovered++;
+          console.log('Discovered session:', payload.sessionName);
+        }
+
+        renderSessions();
+      }
+
+      // Handle session message
+      function handleSessionMessage(sessionId, payload) {
+        console.log('Message from', sessionId, ':', payload);
+      }
+
+      // Handle session departure
+      function handleSessionDeparture(sessionId) {
+        if (sessions.has(sessionId)) {
+          console.log('Session departed:', sessions.get(sessionId).sessionName);
+          sessions.delete(sessionId);
+          renderSessions();
+        }
+      }
+
+      // Query for existing sessions
+      function queryExistingSessions() {
+        ws.send(
+          JSON.stringify({
+            type: 'envelope',
+            envelope: {
+              from: discoverySessionId,
+              intent: 'session.query',
+              timestamp: new Date().toISOString(),
+              payload: {
+                query: 'list_all_sessions',
+              },
+            },
+          })
+        );
+      }
+
+      // Render sessions
+      function renderSessions() {
+        const grid = document.getElementById('session-grid');
+        const activeSessions = Array.from(sessions.values());
+
+        if (activeSessions.length === 0) {
+          grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                        </svg>
+                        <div>No sessions discovered yet</div>
+                        <div style="font-size: 0.9em; margin-top: 10px;">Sessions will appear automatically...</div>
+                    </div>
+                `;
+          return;
+        }
+
+        grid.innerHTML = activeSessions
+          .map((session) => {
+            const isStale = Date.now() - session.lastSeen > 30000;
+            const uptime = formatDuration(Date.now() - session.discoveredAt);
+            const lastSeen = formatDuration(Date.now() - session.lastSeen);
+
+            return `
+                    <div class="session-card ${isStale ? 'stale' : ''}">
+                        <div class="session-header">
+                            <div class="session-name">${session.sessionName}</div>
+                            <div class="session-status ${isStale ? 'stale' : ''}"></div>
+                        </div>
+                        <div class="session-info">
+                            <div class="row">
+                                <span class="label">ID:</span>
+                                <span>${session.sessionId.slice(0, 8)}</span>
+                            </div>
+                            <div class="row">
+                                <span class="label">PID:</span>
+                                <span>${session.metadata.pid || 'N/A'}</span>
+                            </div>
+                            <div class="row">
+                                <span class="label">Uptime:</span>
+                                <span>${uptime}</span>
+                            </div>
+                            <div class="row">
+                                <span class="label">Last Seen:</span>
+                                <span>${lastSeen} ago</span>
+                            </div>
+                        </div>
+                        ${
+                          session.capabilities.length > 0
+                            ? `
+                            <div class="capabilities">
+                                ${session.capabilities
+                                  .map(
+                                    (cap) => `
+                                    <span class="capability-badge">${cap}</span>
+                                `
+                                  )
+                                  .join('')}
+                            </div>
+                        `
+                            : ''
+                        }
+                        <div class="actions">
+                            <button class="btn btn-primary" onclick="openMessageModal('${session.sessionId}', '${session.sessionName}')">
+                                Message
+                            </button>
+                            <button class="btn btn-secondary" onclick="viewDetails('${session.sessionId}')">
+                                Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+          })
+          .join('');
+
+        updateStats();
+      }
+
+      // Update statistics
+      function updateStats() {
+        document.getElementById('stat-active').textContent = sessions.size;
+        document.getElementById('stat-discovered').textContent = stats.discovered;
+        document.getElementById('stat-sent').textContent = stats.sent;
+        document.getElementById('stat-received').textContent = stats.received;
+      }
+
+      // Update connection status
+      function updateConnectionStatus(connected) {
+        const statusEl = document.getElementById('connection-status');
+        const statusText = document.getElementById('status-text');
+
+        if (connected) {
+          statusEl.className = 'status connected';
+          statusText.textContent = 'Connected';
+        } else {
+          statusEl.className = 'status disconnected';
+          statusText.textContent = 'Disconnected';
+        }
+      }
+
+      // Format duration
+      function formatDuration(ms) {
+        const seconds = Math.floor(ms / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+
+        if (hours > 0) return `${hours}h ${minutes % 60}m`;
+        if (minutes > 0) return `${minutes}m ${seconds % 60}s`;
+        return `${seconds}s`;
+      }
+
+      // Open message modal
+      function openMessageModal(sessionId, sessionName) {
+        document.getElementById('message-to').value = sessionName;
+        document.getElementById('message-to').dataset.sessionId = sessionId;
+        document.getElementById('message-body').value = '';
+        document.getElementById('message-modal').classList.add('active');
+      }
+
+      // Close modal
+      function closeModal() {
+        document.getElementById('message-modal').classList.remove('active');
+      }
+
+      // Send message
+      function sendMessage() {
+        const sessionId = document.getElementById('message-to').dataset.sessionId;
+        const message = document.getElementById('message-body').value;
+
+        if (!message.trim()) {
+          alert('Please enter a message');
+          return;
+        }
+
+        ws.send(
+          JSON.stringify({
+            type: 'envelope',
+            envelope: {
+              from: discoverySessionId,
+              to: sessionId,
+              intent: 'session.message',
+              timestamp: new Date().toISOString(),
+              payload: {
+                type: 'dashboard_message',
+                message,
+                timestamp: new Date().toISOString(),
+              },
+            },
+          })
+        );
+
+        stats.sent++;
+        updateStats();
+        closeModal();
+        alert('Message sent!');
+      }
+
+      // View session details
+      function viewDetails(sessionId) {
+        const session = sessions.get(sessionId);
+        if (!session) return;
+
+        alert(JSON.stringify(session, null, 2));
+      }
+
+      // Refresh sessions
+      function refreshSessions() {
+        queryExistingSessions();
+      }
+
+      // Cleanup stale sessions periodically
+      setInterval(() => {
+        let hasStale = false;
+        for (const [sessionId, session] of sessions.entries()) {
+          if (Date.now() - session.lastSeen > 60000) {
+            // 1 minute
+            sessions.delete(sessionId);
+            hasStale = true;
+          }
+        }
+        if (hasStale) {
+          renderSessions();
+        }
+      }, 10000);
+
+      // Connect on page load
+      connect();
+    </script>
+  </body>
+</html>

@@ -8,9 +8,16 @@ import WebSocket from 'ws';
 import dotenv from 'dotenv';
 import http from 'http';
 import https from 'https';
+import fetch from 'node-fetch';
 import { logger } from '../utils/logger.js';
+import { OllamaClusterCoordinator } from '../utils/ollama-cluster-coordinator.js';
 
 dotenv.config();
+
+const fetchApi = globalThis.fetch ?? fetch;
+if (!globalThis.fetch) {
+  globalThis.fetch = fetchApi;
+}
 
 // HTTP connection pooling for better performance
 const httpAgent = new http.Agent({
@@ -18,7 +25,7 @@ const httpAgent = new http.Agent({
   keepAliveMsecs: 30000,
   maxSockets: 10,
   maxFreeSockets: 5,
-  timeout: 30000
+  timeout: 30000,
 });
 
 const httpsAgent = new https.Agent({
@@ -26,7 +33,7 @@ const httpsAgent = new https.Agent({
   keepAliveMsecs: 30000,
   maxSockets: 10,
   maxFreeSockets: 5,
-  timeout: 30000
+  timeout: 30000,
 });
 
 const BRIDGE_URL = process.env.BRIDGE_WS || 'ws://localhost:65028';
@@ -49,13 +56,14 @@ class A2AOllamaAgent {
       threshold: 3,
       timeout: 60000, // 1 minute cooldown
       state: 'CLOSED', // CLOSED, OPEN, HALF_OPEN
-      nextRetry: 0
+      nextRetry: 0,
     };
 
     // Request queue to prevent overload (max 3 concurrent)
     this.requestQueue = [];
     this.activeRequests = 0;
     this.maxConcurrent = 3;
+    this.inFlightMessages = new Set();
 
     // Message deduplication
     this.processedMessages = new Set();
@@ -66,9 +74,24 @@ class A2AOllamaAgent {
       }
     }, 300000);
 
+    this.clusterSync = new OllamaClusterCoordinator({
+      clusterId: process.env.OLLAMA_CLUSTER_ID || 'default',
+      maxGlobalConcurrency: Number(process.env.OLLAMA_GLOBAL_MAX_CONCURRENCY || this.maxConcurrent),
+    });
+
     logger.info(`🤖 Starting Ollama Agent: ${this.agentId}`);
     logger.info(`📡 Ollama URL: ${OLLAMA_URL}`);
     logger.info(`🧠 Model: ${MODEL}`);
+    this.connect();
+  }
+
+  async bootstrap() {
+    const available = await this.waitForOllama();
+    if (!available) {
+      logger.warn(
+        '??  Ollama not reachable yet. Requests will queue until the service becomes available.'
+      );
+    }
     this.connect();
   }
 
@@ -112,7 +135,9 @@ class A2AOllamaAgent {
       const jitter = Math.random() * 1000; // 0-1s jitter
       const delay = backoffDelay + jitter;
 
-      logger.info(`🔄 Reconnecting in ${(delay/1000).toFixed(1)}s (attempt ${this.reconnectAttempts})...`);
+      logger.info(
+        `🔄 Reconnecting in ${(delay / 1000).toFixed(1)}s (attempt ${this.reconnectAttempts})...`
+      );
       setTimeout(() => this.connect(), delay);
     });
 
@@ -143,6 +168,13 @@ class A2AOllamaAgent {
     if (this.ws) {
       this.ws.close();
     }
+    if (this.clusterSync) {
+      this.clusterSync.shutdown();
+      this.clusterSync = null;
+    }
+    this.requestQueue = [];
+    this.inFlightMessages.clear();
+    this.processedMessages.clear();
   }
 
   register() {
@@ -152,8 +184,8 @@ class A2AOllamaAgent {
       role: 'ai-assistant',
       labels: ['ollama', 'llm', 'ai', 'local'],
       tools: ['conversation', 'analysis', 'reasoning'],
-      intents: ['ai.query', 'ai.analyze', 'ai.converse'],
-      maxConcurrentTasks: 5
+      intents: ['ai.query', 'ai.analyze', 'ai.converse', 'agent.health'],
+      maxConcurrentTasks: 5,
     };
 
     this.ws.send(JSON.stringify(registration));
@@ -178,47 +210,134 @@ class A2AOllamaAgent {
   async handleEnvelope(envelope) {
     const { from, to, intent, payload, id } = envelope;
 
-    // Only respond to messages directed at us
-    if (to !== this.agentId && to !== null) return;
-
-    // Deduplication check
-    if (id && this.processedMessages.has(id)) {
-      logger.info(`⚠️  Skipping duplicate message ID: ${id}`);
+    if (to !== this.agentId && to !== null) {
       return;
     }
-    if (id) this.processedMessages.add(id);
 
-    logger.info(`\n📨 Received message from ${from}`);
+    if (id && this.processedMessages.has(id)) {
+      logger.info(`??  Skipping duplicate message ID: ${id}`);
+      return;
+    }
+
+    if (id && this.inFlightMessages.has(id)) {
+      logger.info(`??  Message ${id} is already being processed`);
+      return;
+    }
+
+    logger.info(`?? Received message from ${from}`);
     logger.info(`   Intent: ${intent}`);
     logger.info(`   Payload:`, JSON.stringify(payload).slice(0, 100));
 
-    // Queue management - prevent overload
-    if (this.activeRequests >= this.maxConcurrent) {
-      if (this.requestQueue.length >= 10) {
-        logger.info(`⚠️  Request queue full, dropping message`);
-        return;
+    if (intent === 'agent.health') {
+      const clusterStats = this.clusterSync
+        ? {
+            enabled: true,
+            totalInflight: this.clusterSync.getTotalInflight(),
+            localInflight: this.clusterSync.getLocalInflight(),
+            maxConcurrency: this.clusterSync.getMaxConcurrency(),
+            waiters: this.clusterSync.getWaiterCount(),
+            peers: this.clusterSync.getPeerCount(),
+          }
+        : { enabled: false };
+
+      const saturated =
+        clusterStats.enabled &&
+        typeof clusterStats.totalInflight === 'number' &&
+        typeof clusterStats.maxConcurrency === 'number' &&
+        clusterStats.maxConcurrency > 0 &&
+        clusterStats.totalInflight >= clusterStats.maxConcurrency;
+
+      const status = this.circuitBreaker.state === 'OPEN' ? 'error' : saturated ? 'warn' : 'ok';
+
+      const healthEnvelope = {
+        type: 'envelope',
+        envelope: {
+          from: this.agentId,
+          to: from,
+          intent: 'agent.health',
+          replyTo: id,
+          payload: {
+            status,
+            agent: this.agentId,
+            model: MODEL,
+            activeRequests: this.activeRequests,
+            queueSize: this.requestQueue.length,
+            circuitBreaker: this.circuitBreaker.state,
+            failures: this.circuitBreaker.failures,
+            cluster: clusterStats,
+            queueLimit: this.maxConcurrent,
+            timestamp: new Date().toISOString(),
+          },
+        },
+      };
+      this.ws.send(JSON.stringify(healthEnvelope));
+      if (id) {
+        this.processedMessages.add(id);
       }
-      logger.info(`⏸️  Queueing request (${this.requestQueue.length + 1} queued, ${this.activeRequests} active)`);
-      this.requestQueue.push({ envelope, from, to, intent, payload, id });
       return;
     }
 
-    this.activeRequests++;
-    try {
-      await this._processRequest(envelope, from, to, intent, payload, id);
-    } finally {
-      this.activeRequests--;
-      // Process next queued request
-      if (this.requestQueue.length > 0) {
-        const next = this.requestQueue.shift();
-        setImmediate(() => this.handleEnvelope(next.envelope));
+    if (this.activeRequests >= this.maxConcurrent) {
+      if (this.requestQueue.length >= 10) {
+        logger.info(`??  Request queue full, dropping message`);
+        return;
       }
+      logger.info(
+        `??  Queueing request (${this.requestQueue.length + 1} queued, ${this.activeRequests} active)`
+      );
+      this.requestQueue.push(envelope);
+      return;
+    }
+
+    this._startProcessing(envelope);
+  }
+
+  _startProcessing(envelope) {
+    const { id } = envelope;
+    if (id) {
+      this.inFlightMessages.add(id);
+    }
+    this.activeRequests++;
+    this._processRequest(envelope)
+      .catch((error) => {
+        logger.error('? Unhandled processing error:', error.message);
+      })
+      .finally(() => {
+        if (id) {
+          this.inFlightMessages.delete(id);
+          this.processedMessages.add(id);
+        }
+        this.activeRequests = Math.max(this.activeRequests - 1, 0);
+        this._drainQueue();
+      });
+  }
+
+  _drainQueue() {
+    if (this.requestQueue.length === 0) {
+      return;
+    }
+
+    while (this.requestQueue.length > 0 && this.activeRequests < this.maxConcurrent) {
+      const nextEnvelope = this.requestQueue.shift();
+      if (!nextEnvelope) continue;
+      const { id } = nextEnvelope;
+      if (id && (this.processedMessages.has(id) || this.inFlightMessages.has(id))) {
+        continue;
+      }
+      this._startProcessing(nextEnvelope);
     }
   }
 
-  async _processRequest(envelope, from, to, intent, payload, id) {
+  async _processRequest(envelope) {
+    const { from, to, intent, payload, id } = envelope;
+    let releaseClusterSlot = null;
     try {
-      const userMessage = payload.message || payload.query || payload.question || JSON.stringify(payload);
+      if (this.clusterSync) {
+        releaseClusterSlot = await this.clusterSync.acquire({ envelopeId: id, from, intent });
+      }
+
+      const userMessage =
+        payload?.message || payload?.query || payload?.question || JSON.stringify(payload);
 
       logger.info(`🤔 Processing with Ollama (${MODEL})...`);
 
@@ -241,11 +360,11 @@ class A2AOllamaAgent {
 
       while (retries > 0) {
         try {
-          response = await fetch(`${OLLAMA_URL}/api/generate`, {
+          response = await fetchApi(`${OLLAMA_URL}/api/generate`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Connection': 'keep-alive'
+              Connection: 'keep-alive',
             },
             body: JSON.stringify({
               model: MODEL,
@@ -257,19 +376,19 @@ class A2AOllamaAgent {
                 top_k: 40,
                 num_predict: 256, // Optimized for faster responses
                 num_ctx: 2048, // Balanced context for speed
-                num_thread: 6 // Increased threads for faster inference
-              }
+                num_thread: 6, // Increased threads for faster inference
+              },
             }),
             signal: controller.signal,
-            agent: isHttps ? httpsAgent : httpAgent // Use connection pooling
+            agent: isHttps ? httpsAgent : httpAgent, // Use connection pooling
           });
           if (response.ok) break;
           retries--;
-          if (retries > 0) await new Promise(r => setTimeout(r, 1000));
+          if (retries > 0) await new Promise((r) => setTimeout(r, 1000));
         } catch (err) {
           retries--;
           if (retries === 0) throw err;
-          await new Promise(r => setTimeout(r, 1000));
+          await new Promise((r) => setTimeout(r, 1000));
         }
       }
 
@@ -304,14 +423,13 @@ class A2AOllamaAgent {
             response: aiResponse,
             model: MODEL,
             agent: this.agentId,
-            processed_at: new Date().toISOString()
-          }
-        }
+            processed_at: new Date().toISOString(),
+          },
+        },
       };
 
       this.ws.send(JSON.stringify(responseEnvelope));
       logger.info(`📤 Sent response back to ${from}\n`);
-
     } catch (error) {
       logger.error(`❌ Error processing message:`, error.message);
 
@@ -321,14 +439,17 @@ class A2AOllamaAgent {
         this.circuitBreaker.state = 'OPEN';
         this.circuitBreaker.nextRetry = Date.now() + this.circuitBreaker.timeout;
         const retryTime = new Date(this.circuitBreaker.nextRetry).toLocaleTimeString();
-        logger.info(`⚠️  Circuit breaker OPEN after ${this.circuitBreaker.failures} ` +
-          `failures. Retry at ${retryTime}`);
+        logger.info(
+          `⚠️  Circuit breaker OPEN after ${this.circuitBreaker.failures} ` +
+            `failures. Retry at ${retryTime}`
+        );
       }
 
       // Sanitize error message for production
-      const sanitizedError = process.env.NODE_ENV === 'production'
-        ? 'An error occurred processing your request'
-        : error.message;
+      const sanitizedError =
+        process.env.NODE_ENV === 'production'
+          ? 'An error occurred processing your request'
+          : error.message;
 
       // Send error response
       const errorEnvelope = {
@@ -341,12 +462,61 @@ class A2AOllamaAgent {
           payload: {
             error: sanitizedError,
             agent: this.agentId,
-            timestamp: new Date().toISOString()
-          }
-        }
+            timestamp: new Date().toISOString(),
+          },
+        },
       };
       this.ws.send(JSON.stringify(errorEnvelope));
+    } finally {
+      if (typeof releaseClusterSlot === 'function') {
+        try {
+          releaseClusterSlot();
+        } catch (releaseError) {
+          logger.debug('Failed to release Ollama cluster slot', {
+            error: releaseError.message,
+          });
+        }
+      }
     }
+  }
+
+  async pingOllama(timeoutMs = 3000) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      const response = await fetchApi(`${OLLAMA_URL}/api/tags`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  async waitForOllama() {
+    const maxAttempts = parseInt(process.env.OLLAMA_BOOT_ATTEMPTS || '5', 10);
+    const baseDelay = parseInt(process.env.OLLAMA_BOOT_DELAY || '2000', 10);
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const available = await this.pingOllama();
+      if (available) {
+        logger.info(`? Ollama is reachable (attempt ${attempt}/${maxAttempts})`);
+        return true;
+      }
+
+      const delay = baseDelay * attempt;
+      logger.warn(
+        `??  Ollama not reachable (attempt ${attempt}/${maxAttempts}). Retrying in ${(delay / 1000).toFixed(1)}s...`
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    logger.error('?? Ollama service is still unreachable after multiple attempts.');
+    logger.info('   • Ensure Ollama is installed: https://ollama.com/download');
+    logger.info('   • Start the service: ollama serve');
+    logger.info(`   • Pull the model "${MODEL}": ollama pull ${MODEL}`);
+    return false;
   }
 }
 
@@ -355,15 +525,22 @@ const agent = new A2AOllamaAgent();
 
 // Cleanup function
 function cleanup() {
-  logger.info('\n👋 Shutting down Ollama Agent...');
-  if (agent && agent.heartbeatInterval) {
-    clearInterval(agent.heartbeatInterval);
-  }
-  if (agent && agent.messageCleanupInterval) {
-    clearInterval(agent.messageCleanupInterval);
-  }
-  if (agent && agent.ws) {
-    agent.ws.close();
+  logger.info('\n?? Shutting down Ollama Agent...');
+  if (agent && typeof agent.cleanup === 'function') {
+    agent.cleanup();
+  } else {
+    if (agent && agent.heartbeatInterval) {
+      clearInterval(agent.heartbeatInterval);
+    }
+    if (agent && agent.messageCleanupInterval) {
+      clearInterval(agent.messageCleanupInterval);
+    }
+    if (agent && agent.ws) {
+      agent.ws.close();
+    }
+    if (agent && agent.clusterSync) {
+      agent.clusterSync.shutdown();
+    }
   }
   // Cleanup connection pool agents
   if (httpAgent) httpAgent.destroy();

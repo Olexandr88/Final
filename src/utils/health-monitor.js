@@ -28,8 +28,8 @@ export class HealthMonitor {
         heartbeatInterval: config.heartbeatInterval || 30000,
         healthCheckTimeout: config.healthCheckTimeout || 10000,
         maxErrors: config.maxErrors || 10,
-        ...config
-      }
+        ...config,
+      },
     });
   }
 
@@ -99,7 +99,11 @@ export class HealthMonitor {
         status = 'unknown';
       } else if (timeSinceHeartbeat > agent.config.healthCheckTimeout * 2) {
         status = 'unhealthy';
-        this.addAlert(agentId, 'heartbeat_timeout', `No heartbeat for ${Math.round(timeSinceHeartbeat / 1000)}s`);
+        this.addAlert(
+          agentId,
+          'heartbeat_timeout',
+          `No heartbeat for ${Math.round(timeSinceHeartbeat / 1000)}s`
+        );
       } else if (timeSinceHeartbeat > agent.config.healthCheckTimeout) {
         status = 'warning';
       }
@@ -113,8 +117,9 @@ export class HealthMonitor {
         timeSinceHeartbeat,
         errorCount: agent.errorCount,
         requestCount: agent.requestCount,
-        successRate: agent.requestCount > 0 ? (agent.successCount / agent.requestCount * 100).toFixed(2) : 0,
-        avgResponseTime: Math.round(agent.avgResponseTime)
+        successRate:
+          agent.requestCount > 0 ? ((agent.successCount / agent.requestCount) * 100).toFixed(2) : 0,
+        avgResponseTime: Math.round(agent.avgResponseTime),
       };
     }
 
@@ -136,9 +141,10 @@ export class HealthMonitor {
       errorCount: agent.errorCount,
       requestCount: agent.requestCount,
       successCount: agent.successCount,
-      successRate: agent.requestCount > 0 ? (agent.successCount / agent.requestCount * 100).toFixed(2) : 0,
+      successRate:
+        agent.requestCount > 0 ? ((agent.successCount / agent.requestCount) * 100).toFixed(2) : 0,
       avgResponseTime: Math.round(agent.avgResponseTime),
-      lastHeartbeat: agent.lastHeartbeat
+      lastHeartbeat: agent.lastHeartbeat,
     };
   }
 
@@ -150,7 +156,7 @@ export class HealthMonitor {
       agentId,
       type,
       message,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.alerts.push(alert);
@@ -174,7 +180,7 @@ export class HealthMonitor {
    * Clear alerts for an agent
    */
   clearAlerts(agentId) {
-    this.alerts = this.alerts.filter(alert => alert.agentId !== agentId);
+    this.alerts = this.alerts.filter((alert) => alert.agentId !== agentId);
   }
 
   /**

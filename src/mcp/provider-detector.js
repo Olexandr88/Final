@@ -21,7 +21,7 @@ export class ProviderDetector {
         displayName: 'Anthropic Claude',
         envVar: 'ANTHROPIC_API_KEY',
         capabilities: ['chat', 'analysis', 'code_generation', 'reasoning', 'vision'],
-        models: ['claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-haiku-20240307']
+        models: ['claude-3-5-sonnet-20241022', 'claude-3-opus-20240229', 'claude-3-haiku-20240307'],
       },
       ollama: {
         name: 'ollama',
@@ -29,7 +29,7 @@ export class ProviderDetector {
         envVar: null,
         endpoint: process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
         capabilities: ['chat', 'code_generation', 'embeddings'],
-        models: [] // Dynamically detected
+        models: [], // Dynamically detected
       },
       jules: {
         name: 'jules',
@@ -37,14 +37,14 @@ export class ProviderDetector {
         envVar: 'JULES_API_KEY',
         endpoint: process.env.JULES_API_URL || 'https://api.jules.ai',
         capabilities: ['chat', 'task_automation', 'workflow'],
-        models: ['jules-1']
+        models: ['jules-1'],
       },
       openai: {
         name: 'openai',
         displayName: 'OpenAI',
         envVar: 'OPENAI_API_KEY',
         capabilities: ['chat', 'code_generation', 'vision', 'tts', 'embeddings'],
-        models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-turbo']
+        models: ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-turbo'],
       },
       perplexity: {
         name: 'perplexity',
@@ -52,8 +52,8 @@ export class ProviderDetector {
         envVar: 'PERPLEXITY_API_KEY',
         endpoint: 'https://api.perplexity.ai',
         capabilities: ['chat', 'search', 'citations'],
-        models: ['llama-3.1-sonar-large-128k-online', 'llama-3.1-sonar-small-128k-online']
-      }
+        models: ['llama-3.1-sonar-large-128k-online', 'llama-3.1-sonar-small-128k-online'],
+      },
     };
   }
 
@@ -65,10 +65,7 @@ export class ProviderDetector {
    * @returns {Promise<Object>} Provider detection results
    */
   async detectProviders(options = {}) {
-    const {
-      includeHealth = false,
-      includeModels = false
-    } = options;
+    const { includeHealth = false, includeModels = false } = options;
 
     const results = {
       timestamp: new Date().toISOString(),
@@ -77,15 +74,15 @@ export class ProviderDetector {
         total: 0,
         available: 0,
         configured: 0,
-        healthy: 0
-      }
+        healthy: 0,
+      },
     };
 
     // Detect each provider
     for (const [key, provider] of Object.entries(this.providers)) {
       const detection = await this._detectProvider(provider, {
         includeHealth,
-        includeModels
+        includeModels,
       });
 
       results.providers.push(detection);
@@ -117,7 +114,7 @@ export class ProviderDetector {
       models: provider.models || [],
       endpoint: provider.endpoint || null,
       error: null,
-      metadata: {}
+      metadata: {},
     };
 
     try {
@@ -139,7 +136,6 @@ export class ProviderDetector {
 
       // Health is true if both configured and available
       result.healthy = result.configured && result.available;
-
     } catch (error) {
       result.error = error.message;
       result.available = false;
@@ -181,7 +177,7 @@ export class ProviderDetector {
           client.sendMessage('ping', 'Respond with only "pong"', { stream: false }),
           new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Health check timeout')), this.timeout)
-          )
+          ),
         ]);
 
         result.metadata.healthCheck = 'passed';
@@ -217,7 +213,7 @@ export class ProviderDetector {
       if (options.includeModels) {
         const modelsResult = await client.listModels();
         if (modelsResult.success) {
-          result.models = modelsResult.models.map(m => m.name);
+          result.models = modelsResult.models.map((m) => m.name);
           result.metadata.modelCount = result.models.length;
         }
       }
@@ -249,8 +245,8 @@ export class ProviderDetector {
 
       if (options.includeHealth) {
         const response = await fetch(`${endpoint}/health`, {
-          headers: { 'Authorization': `Bearer ${apiKey}` },
-          signal: AbortSignal.timeout(this.timeout)
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(this.timeout),
         });
 
         if (!response.ok) {
@@ -281,8 +277,8 @@ export class ProviderDetector {
 
       if (options.includeHealth) {
         const response = await fetch('https://api.openai.com/v1/models', {
-          headers: { 'Authorization': `Bearer ${apiKey}` },
-          signal: AbortSignal.timeout(this.timeout)
+          headers: { Authorization: `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(this.timeout),
         });
 
         if (!response.ok) {
@@ -317,18 +313,19 @@ export class ProviderDetector {
         const response = await fetch(`${endpoint}/chat/completions`, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             model: 'llama-3.1-sonar-small-128k-online',
             messages: [{ role: 'user', content: 'ping' }],
-            max_tokens: 1
+            max_tokens: 1,
           }),
-          signal: AbortSignal.timeout(this.timeout)
+          signal: AbortSignal.timeout(this.timeout),
         });
 
-        if (!response.ok && response.status !== 429) { // 429 = rate limit, but means it's working
+        if (!response.ok && response.status !== 429) {
+          // 429 = rate limit, but means it's working
           result.error = `Perplexity API returned ${response.status}`;
           return false;
         }
@@ -351,22 +348,23 @@ export class ProviderDetector {
   static getToolDefinition() {
     return {
       name: 'detect_providers',
-      description: 'Auto-detect available LLM providers and their configurations. Returns information about which providers (Claude, Ollama, Jules, OpenAI, Perplexity) are configured and available.',
+      description:
+        'Auto-detect available LLM providers and their configurations. Returns information about which providers (Claude, Ollama, Jules, OpenAI, Perplexity) are configured and available.',
       inputSchema: {
         type: 'object',
         properties: {
           includeHealth: {
             type: 'boolean',
             description: 'Include health check by making test requests to each provider',
-            default: false
+            default: false,
           },
           includeModels: {
             type: 'boolean',
             description: 'Include list of available models for each provider',
-            default: false
-          }
-        }
-      }
+            default: false,
+          },
+        },
+      },
     };
   }
 
@@ -376,23 +374,20 @@ export class ProviderDetector {
    * @returns {Promise<Object>} Detection results
    */
   async executeTool(params = {}) {
-    const {
-      includeHealth = false,
-      includeModels = false
-    } = params;
+    const { includeHealth = false, includeModels = false } = params;
 
     const results = await this.detectProviders({
       includeHealth,
-      includeModels
+      includeModels,
     });
 
     return {
       content: [
         {
           type: 'text',
-          text: JSON.stringify(results, null, 2)
-        }
-      ]
+          text: JSON.stringify(results, null, 2),
+        },
+      ],
     };
   }
 }

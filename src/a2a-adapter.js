@@ -32,7 +32,7 @@ export class A2AAdapter extends EventEmitter {
         this.send({
           type: 'register',
           agent_id: this.agentId,
-          capabilities
+          capabilities,
         });
 
         this.emit('connected');
@@ -112,11 +112,13 @@ export class A2AAdapter extends EventEmitter {
       throw new Error('Not connected to A2A hub');
     }
 
-    this.ws.send(JSON.stringify({
-      ...message,
-      from: this.agentId,
-      timestamp: new Date().toISOString()
-    }));
+    this.ws.send(
+      JSON.stringify({
+        ...message,
+        from: this.agentId,
+        timestamp: new Date().toISOString(),
+      })
+    );
   }
 
   /**
@@ -126,7 +128,7 @@ export class A2AAdapter extends EventEmitter {
     this.send({
       type: 'message',
       to: targetAgent,
-      payload
+      payload,
     });
   }
 
@@ -136,7 +138,7 @@ export class A2AAdapter extends EventEmitter {
   broadcast(message) {
     this.send({
       type: 'broadcast',
-      message
+      message,
     });
   }
 
@@ -147,7 +149,7 @@ export class A2AAdapter extends EventEmitter {
     this.send({
       type: 'collaborative-task',
       agents,
-      task
+      task,
     });
   }
 

@@ -11,7 +11,6 @@ import { StreamingResponseHandler, streamText } from '../src/utils/streaming-res
 import { PerformanceMonitorEndpoint } from '../src/utils/performance-monitor-endpoint.js';
 
 describe('Optimization Features Validation', () => {
-
   describe('Circuit Breaker', () => {
     let breaker;
 
@@ -20,7 +19,7 @@ describe('Optimization Features Validation', () => {
         failureThreshold: 3,
         successThreshold: 2,
         timeout: 1000,
-        monitoringWindow: 5000
+        monitoringWindow: 5000,
       });
     });
 
@@ -35,7 +34,9 @@ describe('Optimization Features Validation', () => {
     });
 
     it('should track failures and open circuit', async () => {
-      const failingFn = async () => { throw new Error('fail'); };
+      const failingFn = async () => {
+        throw new Error('fail');
+      };
 
       // Trigger 3 failures (threshold)
       for (let i = 0; i < 3; i++) {
@@ -80,7 +81,7 @@ describe('Optimization Features Validation', () => {
     before(() => {
       manager = new CircuitBreakerManager({
         failureThreshold: 2,
-        timeout: 1000
+        timeout: 1000,
       });
     });
 
@@ -116,7 +117,7 @@ describe('Optimization Features Validation', () => {
     before(() => {
       handler = new StreamingResponseHandler({
         chunkSize: 10,
-        chunkDelay: 10
+        chunkDelay: 10,
       });
     });
 
@@ -132,7 +133,7 @@ describe('Optimization Features Validation', () => {
       assert.strictEqual(chunks[chunks.length - 1].isLast, true);
 
       // Verify all chunks reconstruct original text
-      const reconstructed = chunks.map(c => c.chunk).join('');
+      const reconstructed = chunks.map((c) => c.chunk).join('');
       assert.strictEqual(reconstructed, text);
     });
 
@@ -142,7 +143,7 @@ describe('Optimization Features Validation', () => {
       const streamPromise = handler.streamResponse('test-2', text, async () => {});
 
       // Check status while streaming
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 20));
       const status = handler.getStreamStatus('test-2');
 
       if (status.active) {
@@ -164,12 +165,12 @@ describe('Optimization Features Validation', () => {
       });
 
       // Pause after a bit
-      await new Promise(resolve => setTimeout(resolve, 30));
+      await new Promise((resolve) => setTimeout(resolve, 30));
       handler.pauseStream('test-3');
       const pausedCount = chunkCount;
 
       // Wait a bit while paused
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       assert.strictEqual(chunkCount, pausedCount, 'Should not receive chunks while paused');
 
       // Resume
@@ -183,13 +184,16 @@ describe('Optimization Features Validation', () => {
       const text = 'Cancel test message that is long enough to need multiple chunks';
       let completed = false;
 
-      const streamPromise = handler.streamResponse('test-4', text, async () => {})
-        .then(() => { completed = true; });
+      const streamPromise = handler
+        .streamResponse('test-4', text, async () => {})
+        .then(() => {
+          completed = true;
+        });
 
-      await new Promise(resolve => setTimeout(resolve, 20));
+      await new Promise((resolve) => setTimeout(resolve, 20));
       handler.cancelStream('test-4');
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       assert.strictEqual(completed, false, 'Stream should be cancelled, not completed');
     });
 
@@ -210,9 +214,14 @@ describe('Optimization Features Validation', () => {
       const text = 'Simple streaming test';
       const chunks = [];
 
-      await streamText(text, async (chunk) => {
-        chunks.push(chunk.chunk);
-      }, 5, 10);
+      await streamText(
+        text,
+        async (chunk) => {
+          chunks.push(chunk.chunk);
+        },
+        5,
+        10
+      );
 
       const reconstructed = chunks.join('');
       assert.strictEqual(reconstructed, text);
@@ -235,7 +244,7 @@ describe('Optimization Features Validation', () => {
     it('should record request metrics', () => {
       monitor.recordRequest(100, false); // 100ms, no error
       monitor.recordRequest(200, false); // 200ms, no error
-      monitor.recordRequest(150, true);  // 150ms, error
+      monitor.recordRequest(150, true); // 150ms, error
 
       const metrics = monitor.getMetrics();
       assert.strictEqual(metrics.application.requests, 3);
@@ -277,7 +286,7 @@ describe('Optimization Features Validation', () => {
 
     it('should track trends over time', async () => {
       // Wait for system metrics collection
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const metrics = monitor.getMetrics();
       assert.ok(metrics.trends);

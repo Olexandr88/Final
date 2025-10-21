@@ -9,7 +9,7 @@ async function sendTask(task) {
     const response = await fetch(`${bridgeUrl}/api/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(task)
+      body: JSON.stringify(task),
     });
 
     if (!response.ok) {
@@ -43,15 +43,15 @@ async function runFeatureWorkflow() {
         'Span tracking across agents',
         'OpenTelemetry export integration',
         'Minimal performance overhead (<5ms latency)',
-        'Create architecture diagram and implementation plan'
+        'Create architecture diagram and implementation plan',
       ],
       priority: 'high',
-      estimatedTime: '30 minutes'
-    }
+      estimatedTime: '30 minutes',
+    },
   });
 
   // Wait a bit for architect to start
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Task 2: Developer implements based on architecture
   console.log('📋 Step 2: Assigning task to Developer Agent...');
@@ -65,16 +65,16 @@ async function runFeatureWorkflow() {
         'Add span tracking to agent messages',
         'Integrate OpenTelemetry exporter',
         'Add configuration options',
-        'Write inline documentation'
+        'Write inline documentation',
       ],
       dependencies: 'architect',
       priority: 'high',
-      estimatedTime: '45 minutes'
-    }
+      estimatedTime: '45 minutes',
+    },
   });
 
   // Wait a bit for developer to start
-  await new Promise(resolve => setTimeout(resolve, 3000));
+  await new Promise((resolve) => setTimeout(resolve, 3000));
 
   // Task 3: Tester creates comprehensive tests
   console.log('📋 Step 3: Assigning task to Tester Agent...');
@@ -88,12 +88,12 @@ async function runFeatureWorkflow() {
         'Integration tests for end-to-end tracing',
         'Performance tests (verify <5ms overhead)',
         'Test error handling and edge cases',
-        'Run full test suite and report results'
+        'Run full test suite and report results',
       ],
       dependencies: 'developer',
       priority: 'high',
-      estimatedTime: '30 minutes'
-    }
+      estimatedTime: '30 minutes',
+    },
   });
 
   console.log('');

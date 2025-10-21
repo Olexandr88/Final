@@ -2,7 +2,7 @@
 
 /**
  * 🚀 ENHANCED BRIDGE DEMO - Autonomous Error Recovery & Performance Optimization
- * 
+ *
  * CRITICAL OPTIMIZATIONS APPLIED:
  * ✅ Robust error handling for HTTP operations (Line 114 fix)
  * ✅ Request timeout protection and validation
@@ -22,19 +22,19 @@ const ENHANCED_CONFIG = {
   MESSAGE_DELAY: 400,
   SHUTDOWN_DELAY: 800,
   MAX_RETRIES: 3,
-  HISTORY_LIMIT: 5
+  HISTORY_LIMIT: 5,
 };
 
 // Enhanced logging system
 function createLogger(level = 'info') {
   const levels = { debug: 0, info: 1, warn: 2, error: 3 };
   const currentLevel = levels[level] || 1;
-  
+
   return {
     debug: (msg, ...args) => currentLevel <= 0 && console.log(`🔍 [DEBUG]`, msg, ...args),
     info: (msg, ...args) => currentLevel <= 1 && console.log(`ℹ️  [INFO]`, msg, ...args),
     warn: (msg, ...args) => currentLevel <= 2 && console.warn(`⚠️  [WARN]`, msg, ...args),
-    error: (msg, ...args) => currentLevel <= 3 && console.error(`❌ [ERROR]`, msg, ...args)
+    error: (msg, ...args) => currentLevel <= 3 && console.error(`❌ [ERROR]`, msg, ...args),
   };
 }
 
@@ -79,7 +79,7 @@ class CircuitBreaker {
   onFailure() {
     this.failureCount++;
     this.lastFailureTime = Date.now();
-    
+
     if (this.failureCount >= this.failureThreshold) {
       this.state = 'OPEN';
       log.warn(`Circuit breaker OPEN (failures: ${this.failureCount})`);
@@ -96,30 +96,30 @@ class EnhancedHttpClient {
   async fetchWithTimeout(url, options = {}, timeout = ENHANCED_CONFIG.HTTP_TIMEOUT) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
-    
+
     try {
       const response = await this.circuitBreaker.execute(async () => {
         const res = await fetch(url, {
           ...options,
-          signal: controller.signal
+          signal: controller.signal,
         });
-        
+
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);
         }
-        
+
         return res;
       });
-      
+
       clearTimeout(timeoutId);
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error.name === 'AbortError') {
         throw new Error(`Request timeout after ${timeout}ms`);
       }
-      
+
       throw error;
     }
   }
@@ -128,12 +128,12 @@ class EnhancedHttpClient {
     try {
       const response = await this.fetchWithTimeout(url, {}, timeout);
       const data = await response.json();
-      
+
       // Validate response structure
       if (!data || typeof data !== 'object') {
         throw new Error('Invalid JSON response structure');
       }
-      
+
       return data;
     } catch (error) {
       log.error(`HTTP request failed for ${url}:`, error.message);
@@ -161,12 +161,12 @@ class EnhancedWebSocketClient {
 
       try {
         this.ws = new WebSocket(this.url);
-        
+
         this.ws.on('open', async () => {
           clearTimeout(timeout);
           this.connected = true;
           log.info(`✅ ${this.clientId} connected successfully`);
-          
+
           try {
             await this.register();
             resolve(this);
@@ -190,7 +190,6 @@ class EnhancedWebSocketClient {
           this.registered = false;
           log.warn(`${this.clientId} disconnected`);
         });
-
       } catch (error) {
         clearTimeout(timeout);
         reject(error);
@@ -203,7 +202,7 @@ class EnhancedWebSocketClient {
       const timeout = setTimeout(() => {
         reject(new Error(`Registration timeout for ${this.clientId}`));
       }, 3000);
-      
+
       const onMessage = (data) => {
         try {
           const msg = JSON.parse(data.toString());
@@ -218,7 +217,7 @@ class EnhancedWebSocketClient {
           log.error(`Registration parse error for ${this.clientId}:`, error.message);
         }
       };
-      
+
       this.ws.on('message', onMessage);
       this.send({ type: 'register', clientId: this.clientId });
     });
@@ -227,7 +226,7 @@ class EnhancedWebSocketClient {
   handleMessage(data) {
     try {
       const msg = JSON.parse(data.toString());
-      
+
       if (msg.type === 'envelope') {
         const text = msg.envelope.payload?.text || JSON.stringify(msg.envelope.payload);
         const from = msg.envelope.from || 'unknown';
@@ -281,19 +280,19 @@ class EnhancedDemoOrchestrator {
 
   async startServer() {
     log.info('🚀 Starting enhanced bridge server...');
-    
+
     try {
       this.server = await createAIBridgeServer({
         wsPort: 0,
-        httpPort: 0
+        httpPort: 0,
       });
-      
+
       this.trackResource(this.server);
-      
+
       log.info(`✅ Enhanced server running:`);
       log.info(`   WebSocket: ws://localhost:${this.server.ports.ws}`);
       log.info(`   HTTP API:  http://localhost:${this.server.ports.http}`);
-      
+
       return this.server;
     } catch (error) {
       log.error('Failed to start server:', error.message);
@@ -304,7 +303,7 @@ class EnhancedDemoOrchestrator {
   async connectClients() {
     const clientIds = ['claude-main', 'gemini-1', 'ollama-local', 'perplexity-1'];
     log.info(`🔗 Connecting ${clientIds.length} clients with enhanced reliability...`);
-    
+
     // Connect clients in parallel for better performance
     const connectionPromises = clientIds.map(async (id) => {
       try {
@@ -320,28 +319,30 @@ class EnhancedDemoOrchestrator {
     });
 
     const results = await Promise.allSettled(connectionPromises);
-    const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
-    
+    const successful = results.filter((r) => r.status === 'fulfilled' && r.value.success).length;
+
     log.info(`✅ Connected ${successful}/${clientIds.length} clients`);
-    
+
     if (successful === 0) {
       throw new Error('No clients connected successfully');
     }
-    
+
     return successful;
   }
 
   async broadcastMessages() {
     log.info('--- 💬 Enhanced Message Broadcasting ---');
-    
+
     const messages = [
       {
         client: 0,
         delay: 0,
         envelope: {
           intent: 'agent.message',
-          payload: { text: 'Claude Enhanced: Starting optimized code analysis with error recovery.' }
-        }
+          payload: {
+            text: 'Claude Enhanced: Starting optimized code analysis with error recovery.',
+          },
+        },
       },
       {
         client: 1,
@@ -349,33 +350,39 @@ class EnhancedDemoOrchestrator {
         envelope: {
           intent: 'agent.message',
           to: 'ollama-local',
-          payload: { text: 'Gemini Enhanced → Ollama: Execute pattern validation with enhanced reliability.' }
-        }
+          payload: {
+            text: 'Gemini Enhanced → Ollama: Execute pattern validation with enhanced reliability.',
+          },
+        },
       },
       {
         client: 2,
         delay: ENHANCED_CONFIG.MESSAGE_DELAY * 2,
         envelope: {
           intent: 'agent.message',
-          payload: { text: 'Ollama Enhanced: Pattern validation complete with circuit breaker protection.' }
-        }
+          payload: {
+            text: 'Ollama Enhanced: Pattern validation complete with circuit breaker protection.',
+          },
+        },
       },
       {
         client: 3,
         delay: ENHANCED_CONFIG.MESSAGE_DELAY * 3,
         envelope: {
           intent: 'agent.message',
-          payload: { text: 'Perplexity Enhanced: Found 7 resilient patterns with enhanced error handling.' }
-        }
-      }
+          payload: {
+            text: 'Perplexity Enhanced: Found 7 resilient patterns with enhanced error handling.',
+          },
+        },
+      },
     ];
 
     // Send messages with enhanced timing and error handling
     for (const msgConfig of messages) {
       if (msgConfig.delay > 0) {
-        await new Promise(resolve => setTimeout(resolve, msgConfig.delay));
+        await new Promise((resolve) => setTimeout(resolve, msgConfig.delay));
       }
-      
+
       const client = this.clients[msgConfig.client];
       if (client && client.connected) {
         client.send({ type: 'envelope', envelope: msgConfig.envelope });
@@ -384,74 +391,81 @@ class EnhancedDemoOrchestrator {
         log.warn(`⚠️ Client ${msgConfig.client} not available`);
       }
     }
-    
+
     log.info('✅ All enhanced messages dispatched');
   }
 
   async checkAPIHealth() {
     log.info('--- 🎪 Enhanced HTTP API Health Check ---');
-    
+
     try {
       const baseUrl = `http://localhost:${this.server.ports.http}`;
-      
+
       // Enhanced health check with validation
       log.info('Checking server health...');
       const health = await this.httpClient.fetchJSON(`${baseUrl}/health`);
-      
+
       if (!health.status) {
         throw new Error('Invalid health response structure');
       }
-      
+
       log.info(`✅ Health: ${health.status}, ${health.connectedClients || 0} clients`);
 
       // Enhanced agents check
       log.info('Checking connected agents...');
       const agentList = await this.httpClient.fetchJSON(`${baseUrl}/agents`);
-      
+
       if (!Array.isArray(agentList.agents)) {
         throw new Error('Invalid agents response structure');
       }
-      
-      log.info(`✅ Active Agents: ${agentList.agents.map(a => a.id).join(', ')}`);
+
+      log.info(`✅ Active Agents: ${agentList.agents.map((a) => a.id).join(', ')}`);
 
       // FIXED: Enhanced history check with proper error handling (Line 114 optimization)
       log.info('Checking message history...');
-      const history = await this.httpClient.fetchJSON(`${baseUrl}/history?limit=${ENHANCED_CONFIG.HISTORY_LIMIT}`);
-      
+      const history = await this.httpClient.fetchJSON(
+        `${baseUrl}/history?limit=${ENHANCED_CONFIG.HISTORY_LIMIT}`
+      );
+
       // Validate history response structure
       if (!history || !Array.isArray(history.history)) {
         throw new Error('Invalid history response structure - missing history array');
       }
-      
-      log.info(`✅ Message History (last ${history.history.length} messages):`);
-      
-      // OPTIMIZED: Async processing of history items with enhanced display
-      await Promise.all(history.history.map(async (env, index) => {
-        try {
-          const text = env.payload?.text || JSON.stringify(env.payload).substring(0, 60);
-          const timestamp = env.timestamp ? new Date(env.timestamp).toLocaleTimeString() : 'unknown';
-          const from = env.from || 'unknown';
-          
-          log.info(`   ${index + 1}. [${timestamp}] ${from}: "${text}${text.length > 60 ? '...' : ''}"`);
-        } catch (error) {
-          log.warn(`   ${index + 1}. [Invalid message format]: ${error.message}`);
-        }
-      }));
 
+      log.info(`✅ Message History (last ${history.history.length} messages):`);
+
+      // OPTIMIZED: Async processing of history items with enhanced display
+      await Promise.all(
+        history.history.map(async (env, index) => {
+          try {
+            const text = env.payload?.text || JSON.stringify(env.payload).substring(0, 60);
+            const timestamp = env.timestamp
+              ? new Date(env.timestamp).toLocaleTimeString()
+              : 'unknown';
+            const from = env.from || 'unknown';
+
+            log.info(
+              `   ${index + 1}. [${timestamp}] ${from}: "${text}${text.length > 60 ? '...' : ''}"`
+            );
+          } catch (error) {
+            log.warn(`   ${index + 1}. [Invalid message format]: ${error.message}`);
+          }
+        })
+      );
     } catch (error) {
       log.error('Enhanced API health check failed:', error.message);
-      
+
       if (this.httpClient.circuitBreaker.state === 'OPEN') {
         log.warn('⚠️ HTTP Circuit breaker is OPEN - API temporarily unavailable');
       }
-      
+
       // Don't throw - continue with graceful degradation
     }
   }
 
   async gracefulShutdown() {
     log.info('--- 🛭 Enhanced Graceful Shutdown ---');
-    
+
     try {
       // Close all clients with enhanced cleanup
       if (this.clients.length > 0) {
@@ -463,22 +477,21 @@ class EnhancedDemoOrchestrator {
             log.warn(`Cleanup error for client ${index}:`, error.message);
           }
         });
-        
+
         await Promise.allSettled(cleanupPromises);
         this.clients = [];
         log.info('✅ All clients cleaned up');
       }
-      
+
       // Close server
       if (this.server) {
         await this.server.close();
         log.info('✅ Enhanced server stopped');
       }
-      
+
       // Clear all tracked resources
       this.resources.clear();
       log.info('✅ All resources released');
-      
     } catch (error) {
       log.error('Enhanced shutdown error:', error.message);
       // Continue with cleanup anyway
@@ -489,35 +502,34 @@ class EnhancedDemoOrchestrator {
 // Main enhanced demo function
 async function enhancedDemo() {
   const orchestrator = new EnhancedDemoOrchestrator();
-  
+
   try {
     log.info('🌉 Starting ENHANCED AI Bridge Demo - Autonomous Error Recovery\n');
-    
+
     // Enhanced server startup
     await orchestrator.startServer();
-    
+
     // Enhanced client connections
     const connectedCount = await orchestrator.connectClients();
-    
+
     // Allow connections to stabilize
     log.info('⏳ Stabilizing connections...');
-    await new Promise(resolve => setTimeout(resolve, 1200));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+
     // Enhanced message broadcasting
     await orchestrator.broadcastMessages();
-    
+
     // Allow messages to propagate
     log.info('⏳ Processing messages...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     // Enhanced API health check
     await orchestrator.checkAPIHealth();
-    
+
     // Brief pause before shutdown
-    await new Promise(resolve => setTimeout(resolve, ENHANCED_CONFIG.SHUTDOWN_DELAY));
-    
+    await new Promise((resolve) => setTimeout(resolve, ENHANCED_CONFIG.SHUTDOWN_DELAY));
+
     log.info('\n✅ Enhanced demo completed successfully');
-    
   } catch (error) {
     log.error('❌ Enhanced demo failed:', error.message);
     throw error;
@@ -531,10 +543,9 @@ async function enhancedDemo() {
 async function main() {
   try {
     await enhancedDemo();
-    
+
     log.info('🎉 ENHANCED Bridge demo completed with autonomous optimizations!\n');
     process.exit(0);
-    
   } catch (error) {
     log.error('💥 Critical demo failure:', error.message);
     process.exit(1);

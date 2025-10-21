@@ -35,7 +35,7 @@ export class VisualUITester {
       viewport = { width: 1920, height: 1080 },
       waitFor = 'networkidle',
       selector = null,
-      name = `screenshot-${Date.now()}.png`
+      name = `screenshot-${Date.now()}.png`,
     } = options;
 
     if (!this.browser) await this.init();
@@ -63,7 +63,7 @@ export class VisualUITester {
         path: screenshotPath,
         url,
         timestamp: Date.now(),
-        viewport
+        viewport,
       };
     } finally {
       await page.close();
@@ -83,7 +83,7 @@ export class VisualUITester {
       specDescription,
       differences: analysis.differences,
       recommendations: analysis.recommendations,
-      score: analysis.score
+      score: analysis.score,
     };
   }
 
@@ -96,14 +96,14 @@ export class VisualUITester {
       differences: [
         'Button color is #2563EB instead of #3B82F6',
         'Card spacing is 12px instead of 16px',
-        'Font size in header is 18px instead of 20px'
+        'Font size in header is 18px instead of 20px',
       ],
       recommendations: [
         'Update button background-color in styles.css',
         'Increase margin-bottom on .card class',
-        'Set h1 font-size to 20px'
+        'Set h1 font-size to 20px',
       ],
-      score: 85 // out of 100
+      score: 85, // out of 100
     };
   }
 
@@ -123,7 +123,7 @@ export class VisualUITester {
 
       // Capture current state
       const screenshot = await this.captureScreenshot(url, {
-        name: `iteration-${iteration}.png`
+        name: `iteration-${iteration}.png`,
       });
 
       // Compare to spec
@@ -135,7 +135,7 @@ export class VisualUITester {
         screenshot: screenshot.path,
         score: currentScore,
         differences: analysis.differences,
-        recommendations: analysis.recommendations
+        recommendations: analysis.recommendations,
       });
 
       // If perfect, stop
@@ -156,7 +156,7 @@ export class VisualUITester {
       finalScore: currentScore,
       iterations,
       totalIterations: iteration,
-      success: currentScore >= 95
+      success: currentScore >= 95,
     };
   }
 
@@ -168,7 +168,7 @@ export class VisualUITester {
     logger.debug('Applying recommendations:', recommendations);
 
     // Simulate code changes
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
   /**
@@ -176,7 +176,7 @@ export class VisualUITester {
    */
   async _waitForRebuild() {
     logger.debug('Waiting for rebuild...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   /**
@@ -198,21 +198,21 @@ export class VisualUITester {
         return {
           colors: {
             background: styles.backgroundColor,
-            text: styles.color
+            text: styles.color,
           },
           fonts: {
             family: styles.fontFamily,
-            size: styles.fontSize
+            size: styles.fontSize,
           },
           layout: {
             width: body.offsetWidth,
-            height: body.offsetHeight
+            height: body.offsetHeight,
           },
           elements: {
             buttons: document.querySelectorAll('button').length,
             inputs: document.querySelectorAll('input').length,
-            images: document.querySelectorAll('img').length
-          }
+            images: document.querySelectorAll('img').length,
+          },
         };
       });
 
@@ -232,13 +232,13 @@ export class VisualUITester {
     for (const [name, selector] of Object.entries(componentSelectors)) {
       const screenshot = await this.captureScreenshot(url, {
         selector,
-        name: `component-${name}.png`
+        name: `component-${name}.png`,
       });
 
       results.push({
         component: name,
         selector,
-        screenshot: screenshot.path
+        screenshot: screenshot.path,
       });
     }
 

@@ -67,8 +67,8 @@ async function visualUITest(htmlFile, referenceImage = null) {
       issues,
       dimensions: {
         width: document.body.scrollWidth,
-        height: document.body.scrollHeight
-      }
+        height: document.body.scrollHeight,
+      },
     };
   });
 
@@ -82,7 +82,7 @@ async function visualUITest(htmlFile, referenceImage = null) {
 
   if (analysis.issues.length > 0) {
     console.log('\n⚠ Issues Found:');
-    analysis.issues.forEach(issue => console.log(`  - ${issue}`));
+    analysis.issues.forEach((issue) => console.log(`  - ${issue}`));
   } else {
     console.log('\n✓ No issues detected');
   }
@@ -91,7 +91,7 @@ async function visualUITest(htmlFile, referenceImage = null) {
 
   return {
     screenshotPath,
-    analysis
+    analysis,
   };
 }
 
@@ -100,7 +100,7 @@ if (require.main === module) {
   const htmlFile = process.argv[2] || path.join(__dirname, 'sample-ui.html');
 
   visualUITest(htmlFile)
-    .then(result => {
+    .then((result) => {
       console.log('\n=== Next Steps ===');
       console.log('1. Review screenshot at:', result.screenshotPath);
       console.log('2. Compare with design spec');
@@ -108,7 +108,7 @@ if (require.main === module) {
       console.log('4. Run this script again to verify');
       console.log('\nVibe Coding Workflow: Iterate until perfect!');
     })
-    .catch(err => {
+    .catch((err) => {
       console.error('Error:', err);
       process.exit(1);
     });

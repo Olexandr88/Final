@@ -37,7 +37,7 @@ export class CoalescingCache {
       pendingRequests: this.pending.size,
       totalRequests: this.hits,
       coalescedRequests: this.coalesced,
-      savingsRate: this.hits > 0 ? ((this.coalesced / this.hits) * 100).toFixed(2) + '%' : '0%'
+      savingsRate: this.hits > 0 ? ((this.coalesced / this.hits) * 100).toFixed(2) + '%' : '0%',
     };
   }
 
@@ -97,10 +97,12 @@ export class MessageBatcher {
       this.messagesSent++;
     } else {
       // Batch send
-      this.ws.send(JSON.stringify({
-        type: 'message_batch',
-        messages: this.buffer
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'message_batch',
+          messages: this.buffer,
+        })
+      );
       this.messagesSent += this.buffer.length;
       this.batchesSent++;
     }
@@ -113,7 +115,7 @@ export class MessageBatcher {
       messagesSent: this.messagesSent,
       batchesSent: this.batchesSent,
       buffered: this.buffer.length,
-      avgBatchSize: this.batchesSent > 0 ? (this.messagesSent / this.batchesSent).toFixed(2) : '0'
+      avgBatchSize: this.batchesSent > 0 ? (this.messagesSent / this.batchesSent).toFixed(2) : '0',
     };
   }
 
@@ -172,7 +174,7 @@ export class AdaptiveCache {
     this.cache.set(key, {
       value,
       expires: Date.now() + ttl,
-      ttl
+      ttl,
     });
   }
 
@@ -188,7 +190,7 @@ export class AdaptiveCache {
       hits: this.hits,
       misses: this.misses,
       hitRate: total > 0 ? ((this.hits / total) * 100).toFixed(2) + '%' : '0%',
-      avgTTL: this._calculateAvgTTL()
+      avgTTL: this._calculateAvgTTL(),
     };
   }
 
@@ -230,7 +232,7 @@ export class ClientRateLimiter {
     return {
       allowed: client.count <= this.maxRequests,
       remaining: Math.max(0, this.maxRequests - client.count),
-      resetTime: client.resetTime
+      resetTime: client.resetTime,
     };
   }
 
@@ -247,7 +249,7 @@ export class ClientRateLimiter {
     return {
       trackedClients: this.clients.size,
       windowMs: this.windowMs,
-      maxRequests: this.maxRequests
+      maxRequests: this.maxRequests,
     };
   }
 }

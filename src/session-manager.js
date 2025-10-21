@@ -17,7 +17,7 @@ class SessionManager {
     // Initialize database pool
     this.pool = new DatabasePool(this.dbPath, {
       poolSize: 10,
-      enableWAL: true
+      enableWAL: true,
     });
 
     // Keep a reference to a connection for backwards compatibility
@@ -138,10 +138,14 @@ class SessionManager {
     const staleThreshold = Date.now() - 30000; // 30 seconds
 
     // Find stale sessions
-    const staleSessions = this.db.prepare(`
+    const staleSessions = this.db
+      .prepare(
+        `
       SELECT id FROM sessions
       WHERE last_heartbeat < ? AND status = 'active'
-    `).all(staleThreshold);
+    `
+      )
+      .all(staleThreshold);
 
     // Mark as stale and release their locks
     for (const session of staleSessions) {
@@ -165,33 +169,45 @@ class SessionManager {
   listActiveSessions() {
     this._cleanupStaleSessions();
 
-    const sessions = this.db.prepare(`
+    const sessions = this.db
+      .prepare(
+        `
       SELECT id, pid, start_time, last_heartbeat, current_task, cwd
       FROM sessions
       WHERE status = 'active'
       ORDER BY start_time DESC
-    `).all();
+    `
+      )
+      .all();
 
-    return sessions.map(s => ({
+    return sessions.map((s) => ({
       ...s,
       isCurrentSession: s.id === this.sessionId,
       uptime: Date.now() - s.start_time,
-      lastHeartbeatAge: Date.now() - s.last_heartbeat
+      lastHeartbeatAge: Date.now() - s.last_heartbeat,
     }));
   }
 
   getSessionInfo(sessionId) {
-    const session = this.db.prepare(`
+    const session = this.db
+      .prepare(
+        `
       SELECT * FROM sessions WHERE id = ?
-    `).get(sessionId || this.sessionId);
+    `
+      )
+      .get(sessionId || this.sessionId);
 
     if (!session) return null;
 
-    const locks = this.db.prepare(`
+    const locks = this.db
+      .prepare(
+        `
       SELECT resource_path, lock_type, acquired_at
       FROM locks
       WHERE session_id = ?
-    `).all(session.id);
+    `
+      )
+      .all(session.id);
 
     return { ...session, locks };
   }
@@ -232,7 +248,9 @@ class SessionManager {
         this._syncConn.prepare(`DELETE FROM locks WHERE session_id = ?`).run(this.sessionId);
 
         // Mark as inactive
-        this._syncConn.prepare(`UPDATE sessions SET status = 'inactive' WHERE id = ?`).run(this.sessionId);
+        this._syncConn
+          .prepare(`UPDATE sessions SET status = 'inactive' WHERE id = ?`)
+          .run(this.sessionId);
 
         // Close sync connection
         this._syncConn.close();

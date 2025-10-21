@@ -53,8 +53,9 @@ describe('orchestrator.ts', () => {
       try {
         // Test basic orchestrator functionality
         assert.strictEqual(
-          typeof Orchestrator === 'function' || typeof Orchestrator === 'object'
-        , true);
+          typeof Orchestrator === 'function' || typeof Orchestrator === 'object',
+          true
+        );
       } catch (error) {
         throw new Error(`Orchestrator instantiation failed: ${error.message}`);
       }

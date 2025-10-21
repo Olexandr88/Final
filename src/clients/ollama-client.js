@@ -40,10 +40,10 @@ export class OllamaClient {
             top_p: options.top_p || 0.9,
             top_k: options.top_k || 40,
             num_predict: options.max_tokens || 512,
-            ...(options.system && { system: options.system })
-          }
+            ...(options.system && { system: options.system }),
+          },
         }),
-        signal: AbortSignal.timeout(this.timeout)
+        signal: AbortSignal.timeout(this.timeout),
       });
 
       if (!response.ok) {
@@ -62,13 +62,13 @@ export class OllamaClient {
         load_duration: result.load_duration,
         prompt_eval_duration: result.prompt_eval_duration,
         eval_duration: result.eval_duration,
-        eval_count: result.eval_count
+        eval_count: result.eval_count,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        model
+        model,
       };
     }
   }
@@ -93,10 +93,10 @@ export class OllamaClient {
           options: {
             temperature: options.temperature || 0.7,
             top_p: options.top_p || 0.9,
-            num_predict: options.max_tokens || 512
-          }
+            num_predict: options.max_tokens || 512,
+          },
         }),
-        signal: AbortSignal.timeout(this.timeout)
+        signal: AbortSignal.timeout(this.timeout),
       });
 
       if (!response.ok) {
@@ -111,13 +111,13 @@ export class OllamaClient {
         created_at: result.created_at,
         done: result.done,
         total_duration: result.total_duration,
-        eval_count: result.eval_count
+        eval_count: result.eval_count,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        model
+        model,
       };
     }
   }
@@ -129,7 +129,7 @@ export class OllamaClient {
   async listModels() {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(5000),
       });
 
       if (!response.ok) {
@@ -139,13 +139,13 @@ export class OllamaClient {
       const result = await response.json();
       return {
         success: true,
-        models: result.models || []
+        models: result.models || [],
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        models: []
+        models: [],
       };
     }
   }
@@ -157,7 +157,7 @@ export class OllamaClient {
   async isAvailable() {
     try {
       const response = await fetch(`${this.baseUrl}/api/tags`, {
-        signal: AbortSignal.timeout(3000)
+        signal: AbortSignal.timeout(3000),
       });
       return response.ok;
     } catch {
@@ -176,7 +176,7 @@ export class OllamaClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: modelName || this.model }),
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(5000),
       });
 
       if (!response.ok) {
@@ -187,7 +187,7 @@ export class OllamaClient {
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -203,7 +203,7 @@ export class OllamaClient {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: modelName }),
-        signal: AbortSignal.timeout(300000) // 5 min timeout for downloads
+        signal: AbortSignal.timeout(300000), // 5 min timeout for downloads
       });
 
       if (!response.ok) {
@@ -212,12 +212,12 @@ export class OllamaClient {
 
       return {
         success: true,
-        message: `Model ${modelName} pulled successfully`
+        message: `Model ${modelName} pulled successfully`,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }

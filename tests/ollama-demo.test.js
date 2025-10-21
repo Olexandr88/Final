@@ -53,9 +53,7 @@ describe('ollama-demo.js', () => {
       try {
         const content = readFileSync(modulePath, 'utf-8');
         assert.ok(content.length > 0);
-        assert.ok(
-          content.includes('ollama') || content.includes('Ollama')
-        );
+        assert.ok(content.includes('ollama') || content.includes('Ollama'));
       } catch (error) {
         throw new Error(`Failed to read module: ${error.message}`);
       }

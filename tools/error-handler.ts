@@ -29,24 +29,25 @@ class ErrorManager {
   private errors: ErrorReport[] = [];
   private recoveryStrategies: RecoveryStrategy[] = [];
   private logFile: string = 'logs/error.log';
-  
+
   constructor() {
     this.initializeRecoveryStrategies();
   }
-  
+
   private initializeRecoveryStrategies(): void {
     // Network connectivity recovery
     this.recoveryStrategies.push({
       name: 'network_retry',
-      condition: (error) => error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'),
+      condition: (error) =>
+        error.message.includes('ENOTFOUND') || error.message.includes('ECONNREFUSED'),
       action: async (error, context) => {
         console.log('Attempting network recovery...');
         await this.delay(2000); // Wait 2 seconds
         return true; // Retry the operation
       },
-      maxAttempts: 3
+      maxAttempts: 3,
     });
-    
+
     // File system recovery
     this.recoveryStrategies.push({
       name: 'filesystem_recovery',
@@ -62,13 +63,14 @@ class ErrorManager {
         }
         return false;
       },
-      maxAttempts: 2
+      maxAttempts: 2,
     });
-    
+
     // Memory recovery
     this.recoveryStrategies.push({
       name: 'memory_recovery',
-      condition: (error) => error.message.includes('out of memory') || error.message.includes('heap'),
+      condition: (error) =>
+        error.message.includes('out of memory') || error.message.includes('heap'),
       action: async (error, context) => {
         console.log('Attempting memory recovery...');
         if (global.gc) {
@@ -77,9 +79,9 @@ class ErrorManager {
         await this.delay(1000);
         return true;
       },
-      maxAttempts: 2
+      maxAttempts: 2,
     });
-    
+
     // API rate limit recovery
     this.recoveryStrategies.push({
       name: 'rate_limit_recovery',
@@ -90,10 +92,10 @@ class ErrorManager {
         await this.delay(backoffTime);
         return true;
       },
-      maxAttempts: 5
+      maxAttempts: 5,
     });
   }
-  
+
   async handleError(error: Error, context: any = {}): Promise<ErrorReport> {
     const report: ErrorReport = {
       id: this.generateId(),
@@ -103,27 +105,30 @@ class ErrorManager {
       stack: error.stack,
       context,
       resolved: false,
-      recoveryAttempts: 0
+      recoveryAttempts: 0,
     };
-    
+
     this.errors.push(report);
     await this.logError(report);
-    
+
     // Attempt recovery
     const recovered = await this.attemptRecovery(error, context, report);
     report.resolved = recovered;
-    
+
     return report;
   }
-  
+
   private async attemptRecovery(error: Error, context: any, report: ErrorReport): Promise<boolean> {
     for (const strategy of this.recoveryStrategies) {
       if (strategy.condition(error, context) && report.recoveryAttempts < strategy.maxAttempts) {
         console.log(`Attempting recovery with strategy: ${strategy.name}`);
         report.recoveryAttempts++;
-        
+
         try {
-          const success = await strategy.action(error, { ...context, attempt: report.recoveryAttempts });
+          const success = await strategy.action(error, {
+            ...context,
+            attempt: report.recoveryAttempts,
+          });
           if (success) {
             console.log(`Recovery successful with strategy: ${strategy.name}`);
             return true;
@@ -133,10 +138,10 @@ class ErrorManager {
         }
       }
     }
-    
+
     return false;
   }
-  
+
   private determineLevel(error: Error): ErrorReport['level'] {
     if (error.message.includes('fatal') || error.name === 'FatalError') {
       return 'fatal';
@@ -149,39 +154,39 @@ class ErrorManager {
     }
     return 'error';
   }
-  
+
   private generateId(): string {
     return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   }
-  
+
   private async logError(report: ErrorReport): Promise<void> {
     try {
       const logDir = path.dirname(this.logFile);
       await fs.mkdir(logDir, { recursive: true });
-      
+
       const logEntry = `[${report.timestamp}] ${report.level.toUpperCase()} ${report.id}: ${report.message}\n`;
       await fs.appendFile(this.logFile, logEntry);
     } catch (logError) {
       console.error('Failed to log error:', logError);
     }
   }
-  
+
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
-  
+
   getErrors(level?: ErrorReport['level']): ErrorReport[] {
-    return level ? this.errors.filter(e => e.level === level) : this.errors;
+    return level ? this.errors.filter((e) => e.level === level) : this.errors;
   }
-  
+
   getUnresolvedErrors(): ErrorReport[] {
-    return this.errors.filter(e => !e.resolved);
+    return this.errors.filter((e) => !e.resolved);
   }
-  
+
   clearErrors(): void {
     this.errors = [];
   }
-  
+
   addRecoveryStrategy(strategy: RecoveryStrategy): void {
     this.recoveryStrategies.push(strategy);
   }
@@ -195,7 +200,7 @@ const errorManager = new ErrorManager();
 function getMostCommonErrors(errors: ErrorReport[]): Array<{ message: string; count: number }> {
   const errorCounts: Record<string, number> = {};
 
-  errors.forEach(error => {
+  errors.forEach((error) => {
     const key = error.message.substring(0, 100); // Truncate for grouping
     errorCounts[key] = (errorCounts[key] || 0) + 1;
   });
@@ -215,32 +220,32 @@ export const errorHandler: Tool = {
       operation: {
         type: 'string',
         enum: ['handle', 'report', 'recover', 'clear', 'analyze', 'configure'],
-        description: 'Error handling operation to perform'
+        description: 'Error handling operation to perform',
       },
       error: {
         type: 'object',
-        description: 'Error object to handle (for handle operation)'
+        description: 'Error object to handle (for handle operation)',
       },
       context: {
         type: 'object',
-        description: 'Additional context for error handling'
+        description: 'Additional context for error handling',
       },
       level: {
         type: 'string',
         enum: ['info', 'warn', 'error', 'fatal'],
-        description: 'Filter errors by level (for report operation)'
+        description: 'Filter errors by level (for report operation)',
       },
       strategy: {
         type: 'object',
-        description: 'Recovery strategy to add (for configure operation)'
-      }
+        description: 'Recovery strategy to add (for configure operation)',
+      },
     },
-    required: ['operation']
+    required: ['operation'],
   },
-  
+
   async execute(params: any): Promise<any> {
     const { operation, error, context = {}, level, strategy } = params;
-    
+
     try {
       switch (operation) {
         case 'handle':
@@ -250,19 +255,19 @@ export const errorHandler: Tool = {
           const errorObj = new Error(error.message || 'Unknown error');
           errorObj.stack = error.stack;
           return await errorManager.handleError(errorObj, context);
-          
+
         case 'report':
           return {
             success: true,
             errors: errorManager.getErrors(level),
             unresolved: errorManager.getUnresolvedErrors(),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
-          
+
         case 'recover':
           const unresolvedErrors = errorManager.getUnresolvedErrors();
           const recoveryResults = [];
-          
+
           for (const errorReport of unresolvedErrors) {
             if (errorReport.stack) {
               const error = new Error(errorReport.message);
@@ -271,71 +276,70 @@ export const errorHandler: Tool = {
               recoveryResults.push(recovered);
             }
           }
-          
+
           return {
             success: true,
             recoveryResults,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
-          
+
         case 'clear':
           errorManager.clearErrors();
           return {
             success: true,
             message: 'All errors cleared',
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
-          
+
         case 'analyze':
           const errors = errorManager.getErrors();
           const analysis = {
             total: errors.length,
             byLevel: {
-              info: errors.filter(e => e.level === 'info').length,
-              warn: errors.filter(e => e.level === 'warn').length,
-              error: errors.filter(e => e.level === 'error').length,
-              fatal: errors.filter(e => e.level === 'fatal').length
+              info: errors.filter((e) => e.level === 'info').length,
+              warn: errors.filter((e) => e.level === 'warn').length,
+              error: errors.filter((e) => e.level === 'error').length,
+              fatal: errors.filter((e) => e.level === 'fatal').length,
             },
-            resolved: errors.filter(e => e.resolved).length,
-            unresolved: errors.filter(e => !e.resolved).length,
+            resolved: errors.filter((e) => e.resolved).length,
+            unresolved: errors.filter((e) => !e.resolved).length,
             mostCommonErrors: getMostCommonErrors(errors),
-            recentErrors: errors.slice(-10)
+            recentErrors: errors.slice(-10),
           };
-          
+
           return {
             success: true,
             analysis,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           };
-          
+
         case 'configure':
           if (strategy) {
             errorManager.addRecoveryStrategy(strategy);
             return {
               success: true,
               message: `Recovery strategy '${strategy.name}' added`,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             };
           } else {
             return {
               success: false,
               error: 'Strategy object is required for configure operation',
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(),
             };
           }
-          
+
         default:
           throw new Error(`Unknown operation: ${operation}`);
       }
-      
     } catch (error: any) {
       return {
         success: false,
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
-  }
+  },
 };
 
 // Global error handlers

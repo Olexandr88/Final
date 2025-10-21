@@ -31,15 +31,17 @@ class ClaudeAgent {
     });
 
     // Register with bridge
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'claude-agent',
-      role: 'assistant',
-      skills: ['chat', 'code', 'analysis', 'summarize'],
-      intents: ['user.message', 'agent.prompt', 'task.assign']
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'claude-agent',
+        role: 'assistant',
+        skills: ['chat', 'code', 'analysis', 'summarize'],
+        intents: ['user.message', 'agent.prompt', 'task.assign'],
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info('✅ Claude Agent registered and ready\n');
 
     this.setupHandlers();
@@ -91,7 +93,7 @@ class ClaudeAgent {
 
       history.push({
         role: 'user',
-        content: userMessage
+        content: userMessage,
       });
 
       logger.info(`💭 Thinking...`);
@@ -100,36 +102,38 @@ class ClaudeAgent {
       const response = await this.client.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1024,
-        messages: history
+        messages: history,
       });
 
       const assistantMessage = response.content[0].text;
       history.push({
         role: 'assistant',
-        content: assistantMessage
+        content: assistantMessage,
       });
 
       logger.info(`✅ Response generated (${assistantMessage.length} chars)\n`);
 
       // Send response back
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'agent.response',
-          from: 'claude-agent',
-          to: envelope.from,
-          taskId: envelope.taskId,
-          replyTo: envelope.id,
-          payload: {
-            text: assistantMessage,
-            model: 'claude-3-5-sonnet-20241022',
-            usage: {
-              input_tokens: response.usage.input_tokens,
-              output_tokens: response.usage.output_tokens
-            }
-          }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            intent: 'agent.response',
+            from: 'claude-agent',
+            to: envelope.from,
+            taskId: envelope.taskId,
+            replyTo: envelope.id,
+            payload: {
+              text: assistantMessage,
+              model: 'claude-3-5-sonnet-20241022',
+              usage: {
+                input_tokens: response.usage.input_tokens,
+                output_tokens: response.usage.output_tokens,
+              },
+            },
+          },
+        })
+      );
 
       // Keep history manageable
       if (history.length > 20) {
@@ -139,25 +143,27 @@ class ClaudeAgent {
       logger.error('❌ Error processing message:', error.message);
 
       // Send error response
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'agent.error',
-          from: 'claude-agent',
-          to: envelope.from,
-          taskId: envelope.taskId,
-          replyTo: envelope.id,
-          payload: {
-            error: error.message
-          }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            intent: 'agent.error',
+            from: 'claude-agent',
+            to: envelope.from,
+            taskId: envelope.taskId,
+            replyTo: envelope.id,
+            payload: {
+              error: error.message,
+            },
+          },
+        })
+      );
     }
   }
 }
 
 const agent = new ClaudeAgent();
-agent.connect().catch(err => {
+agent.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

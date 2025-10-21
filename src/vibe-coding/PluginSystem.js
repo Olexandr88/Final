@@ -38,7 +38,7 @@ export class PluginSystem extends EventEmitter {
       mcpServers = [],
       slashCommands = [],
       claudeMd = '',
-      permissions = {}
+      permissions = {},
     } = config;
 
     const plugin = {
@@ -53,7 +53,7 @@ export class PluginSystem extends EventEmitter {
       claudeMd,
       permissions,
       createdAt: Date.now(),
-      active: false
+      active: false,
     };
 
     // Save plugin manifest
@@ -179,7 +179,7 @@ export class PluginSystem extends EventEmitter {
     // Create exportable package
     const pkg = {
       plugin,
-      files: {}
+      files: {},
     };
 
     // Read all plugin files
@@ -223,12 +223,12 @@ export class PluginSystem extends EventEmitter {
    * List all plugins
    */
   listPlugins() {
-    return Array.from(this.plugins.values()).map(p => ({
+    return Array.from(this.plugins.values()).map((p) => ({
       name: p.name,
       version: p.version,
       description: p.description,
       active: p.active,
-      author: p.author
+      author: p.author,
     }));
   }
 

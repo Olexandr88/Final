@@ -1,0 +1,21 @@
+# MoE Expert Merge: llama2-smart + deepseek-coder
+# Method: DARE (Drop And REscale) - minimizes hallucination
+
+models:
+  - model: meta-llama/Llama-2-7b-hf
+    # Base architecture (optional, can be omitted)
+  - model: llama2-uncensored
+    # Your uncensored chat model
+    parameters:
+      weight: 0.6
+      density: 0.85 # Drop 15% of deltas
+  - model: deepseek-ai/deepseek-coder-6.7b-instruct
+    # Code expert
+    parameters:
+      weight: 0.4
+      density: 0.9 # Keep 90% of code improvements
+
+merge_method: dare_linear
+base_model: meta-llama/Llama-2-7b-hf
+dtype: float16
+tokenizer_source: model:llama2-uncensored

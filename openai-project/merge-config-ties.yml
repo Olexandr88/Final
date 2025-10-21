@@ -1,0 +1,17 @@
+# MoE Expert Merge: llama2-smart + deepseek-coder
+# Method: TIES (Trim, Elect, Merge) - good for complementary skills
+
+models:
+  - model: llama2-uncensored
+    parameters:
+      weight: 0.6
+  - model: deepseek-ai/deepseek-coder-6.7b-instruct
+    parameters:
+      weight: 0.4
+
+merge_method: ties
+parameters:
+  normalize: true
+  int8_mask: false
+
+dtype: float16

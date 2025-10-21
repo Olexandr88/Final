@@ -32,6 +32,7 @@ export class BaseAgent extends EventEmitter {
       maxReconnectDelay: config.maxReconnectDelay || 30000,
       maxReconnectAttempts: config.maxReconnectAttempts || Infinity,
       heartbeatInterval: config.heartbeatInterval || 30000,
+      sessionSyncInterval: config.sessionSyncInterval || 30000, // Session state sync broadcasts
       // Tool execution permissions
       toolPermissions: config.toolPermissions || {
         file_read: true,
@@ -39,15 +40,16 @@ export class BaseAgent extends EventEmitter {
         command_exec: false,
         git_operations: false,
         code_analysis: true,
-        test_execution: false
+        test_execution: false,
       },
-      ...config
+      ...config,
     };
 
     this.ws = null;
     this.reconnectAttempts = 0;
     this.reconnectTimer = null;
     this.heartbeatTimer = null;
+    this.sessionSyncTimer = null; // Session.sync broadcast timer
     this.isConnected = false;
     this.messageQueue = [];
 
@@ -56,10 +58,7 @@ export class BaseAgent extends EventEmitter {
 
     // Initialize secure tool executor
     // Use regular ToolExecutor for now (SecureToolExecutor has import issues)
-    this.toolExecutor = new ToolExecutor(
-      this.config.clientId,
-      this.config.toolPermissions
-    );
+    this.toolExecutor = new ToolExecutor(this.config.clientId, this.config.toolPermissions);
 
     // Listen to tool execution events
     this.toolExecutor.on('toolExecuted', (event) => {
@@ -90,6 +89,7 @@ export class BaseAgent extends EventEmitter {
 
           this.register();
           this.startHeartbeat();
+          this.startSessionSync(); // Start session.sync broadcasts
           this.flushMessageQueue();
 
           this.emit('connected');
@@ -102,7 +102,7 @@ export class BaseAgent extends EventEmitter {
           } catch (error) {
             logger.error(`Message handling error in ${this.config.clientId}`, {
               error: error.message,
-              stack: error.stack
+              stack: error.stack,
             });
             this.emit('error', error);
           }
@@ -111,6 +111,7 @@ export class BaseAgent extends EventEmitter {
         this.ws.on('close', () => {
           this.isConnected = false;
           this.stopHeartbeat();
+          this.stopSessionSync(); // Stop session.sync broadcasts
           logger.warn(`🔌 ${this.config.clientId} disconnected`);
 
           this.emit('disconnected');
@@ -119,7 +120,7 @@ export class BaseAgent extends EventEmitter {
 
         this.ws.on('error', (error) => {
           logger.error(`WebSocket error in ${this.config.clientId}`, {
-            error: error.message
+            error: error.message,
           });
           this.emit('error', error);
 
@@ -129,7 +130,7 @@ export class BaseAgent extends EventEmitter {
         });
       } catch (error) {
         logger.error(`Connection failed for ${this.config.clientId}`, {
-          error: error.message
+          error: error.message,
         });
         reject(error);
       }
@@ -147,7 +148,7 @@ export class BaseAgent extends EventEmitter {
       labels: this.config.labels,
       tools: this.config.tools,
       intents: this.config.intents,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     this.send(registration);
@@ -181,7 +182,7 @@ export class BaseAgent extends EventEmitter {
     this.send({
       type: 'pong',
       to: envelope.from,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
   }
 
@@ -195,7 +196,7 @@ export class BaseAgent extends EventEmitter {
     this.sendResponse(envelope, {
       status: 'not_implemented',
       error: `Intent ${envelope.intent} not supported`,
-      agent: this.config.clientId
+      agent: this.config.clientId,
     });
   }
 
@@ -232,7 +233,7 @@ export class BaseAgent extends EventEmitter {
       correlationId: originalEnvelope.id,
       payload,
       timestamp: new Date().toISOString(),
-      from: this.config.clientId
+      from: this.config.clientId,
     });
   }
 
@@ -252,15 +253,19 @@ export class BaseAgent extends EventEmitter {
   startHeartbeat() {
     this.stopHeartbeat();
 
-    this.heartbeatTimer = this.resources.setInterval(() => {
-      if (this.ws?.readyState === WebSocket.OPEN) {
-        this.send({
-          type: 'heartbeat',
-          from: this.config.clientId,
-          timestamp: new Date().toISOString()
-        });
-      }
-    }, this.config.heartbeatInterval, 'heartbeat');
+    this.heartbeatTimer = this.resources.setInterval(
+      () => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          this.send({
+            type: 'heartbeat',
+            from: this.config.clientId,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      },
+      this.config.heartbeatInterval,
+      'heartbeat'
+    );
   }
 
   /**
@@ -270,6 +275,68 @@ export class BaseAgent extends EventEmitter {
     if (this.heartbeatTimer) {
       this.resources.clearTimer(this.heartbeatTimer);
       this.heartbeatTimer = null;
+    }
+  }
+
+  /**
+   * Start session.sync broadcasts for cross-session coordination
+   * Broadcasts agent state at regular intervals so all sessions have shared visibility
+   */
+  startSessionSync() {
+    this.stopSessionSync();
+
+    this.sessionSyncTimer = this.resources.setInterval(
+      () => {
+        if (this.ws?.readyState === WebSocket.OPEN) {
+          const status = this.getStatus();
+          const syncPayload = {
+            who: this.config.clientId,
+            what: 'session.sync.agent',
+            when: new Date().toISOString(),
+            agent: {
+              clientId: this.config.clientId,
+              role: this.config.role,
+              connected: this.isConnected,
+              intents: this.config.intents,
+              labels: this.config.labels,
+              toolCount: status.toolCount,
+              permissions: status.permissions,
+              queuedMessages: status.queuedMessages,
+            },
+          };
+
+          // Add tool usage stats if available
+          if (this.toolExecutor && typeof this.toolExecutor.getMetrics === 'function') {
+            try {
+              syncPayload.tools = this.toolExecutor.getMetrics();
+            } catch (error) {
+              logger.debug('Unable to get tool metrics', { error: error.message });
+            }
+          }
+
+          this.send({
+            type: 'broadcast',
+            intent: 'session.sync',
+            from: this.config.clientId,
+            payload: syncPayload,
+            timestamp: new Date().toISOString(),
+          });
+
+          logger.debug(`session.sync broadcast sent`, { clientId: this.config.clientId });
+        }
+      },
+      this.config.sessionSyncInterval,
+      'session-sync'
+    );
+  }
+
+  /**
+   * Stop session.sync broadcasts
+   */
+  stopSessionSync() {
+    if (this.sessionSyncTimer) {
+      this.resources.clearTimer(this.sessionSyncTimer);
+      this.sessionSyncTimer = null;
     }
   }
 
@@ -290,7 +357,9 @@ export class BaseAgent extends EventEmitter {
       this.config.maxReconnectDelay
     );
 
-    logger.info(`🔌 Reconnecting ${this.config.clientId} in ${delay}ms (attempt ${this.reconnectAttempts})...`);
+    logger.info(
+      `🔌 Reconnecting ${this.config.clientId} in ${delay}ms (attempt ${this.reconnectAttempts})...`
+    );
 
     this.reconnectTimer = this.resources.setTimeout(() => {
       this.connect().catch((error) => {
@@ -307,6 +376,7 @@ export class BaseAgent extends EventEmitter {
     logger.info(`Disconnecting ${this.config.clientId}...`);
 
     this.stopHeartbeat();
+    this.stopSessionSync(); // Stop session.sync broadcasts
 
     if (this.reconnectTimer) {
       this.resources.clearTimer(this.reconnectTimer);
@@ -335,7 +405,7 @@ export class BaseAgent extends EventEmitter {
   async executeTool(toolName, params) {
     return await this.toolExecutor.executeTool(toolName, params, {
       agentId: this.config.clientId,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -367,7 +437,7 @@ export class BaseAgent extends EventEmitter {
       role: this.config.role,
       intents: this.config.intents,
       toolCount: this.toolExecutor ? this.toolExecutor.tools.size : 0,
-      permissions: this.config.toolPermissions
+      permissions: this.config.toolPermissions,
     };
   }
 }

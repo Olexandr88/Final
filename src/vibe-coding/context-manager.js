@@ -25,8 +25,8 @@ export class ContextManager extends EventEmitter {
       metadata: {
         created: Date.now(),
         lastUpdated: Date.now(),
-        tokenCount: 0
-      }
+        tokenCount: 0,
+      },
     };
 
     this.sessions.set(sessionId, session);
@@ -43,7 +43,7 @@ export class ContextManager extends EventEmitter {
     const enrichedMessage = {
       ...message,
       timestamp: Date.now(),
-      tokenCount: this.estimateTokens(message.content)
+      tokenCount: this.estimateTokens(message.content),
     };
 
     session.messages.push(enrichedMessage);
@@ -80,7 +80,7 @@ export class ContextManager extends EventEmitter {
       timestamp: Date.now(),
       messageCount: messagesToCompress.length,
       summary,
-      tokensSaved: messagesToCompress.reduce((sum, m) => sum + m.tokenCount, 0)
+      tokensSaved: messagesToCompress.reduce((sum, m) => sum + m.tokenCount, 0),
     });
 
     session.messages = session.messages.slice(-10);
@@ -103,7 +103,11 @@ export class ContextManager extends EventEmitter {
         codeChanges.push(this.extractCodeChange(msg));
       }
 
-      if (content.includes('decision') || content.includes('chosen') || content.includes('approach')) {
+      if (
+        content.includes('decision') ||
+        content.includes('chosen') ||
+        content.includes('approach')
+      ) {
         decisions.push(this.extractDecision(msg));
       }
 
@@ -124,8 +128,8 @@ export class ContextManager extends EventEmitter {
       messageCount: messages.length,
       timespan: {
         start: messages[0]?.timestamp,
-        end: messages[messages.length - 1]?.timestamp
-      }
+        end: messages[messages.length - 1]?.timestamp,
+      },
     };
   }
 
@@ -138,7 +142,7 @@ export class ContextManager extends EventEmitter {
       return {
         file: fileMatch?.[1],
         description: descMatch?.[1] || 'Code modification',
-        timestamp: message.timestamp
+        timestamp: message.timestamp,
       };
     }
     return null;
@@ -150,7 +154,7 @@ export class ContextManager extends EventEmitter {
     if (match) {
       return {
         decision: match[1],
-        timestamp: message.timestamp
+        timestamp: message.timestamp,
       };
     }
     return null;
@@ -162,7 +166,7 @@ export class ContextManager extends EventEmitter {
     if (match) {
       return {
         issue: match[1],
-        timestamp: message.timestamp
+        timestamp: message.timestamp,
       };
     }
     return null;
@@ -174,7 +178,7 @@ export class ContextManager extends EventEmitter {
     if (match) {
       return {
         feature: match[1],
-        timestamp: message.timestamp
+        timestamp: message.timestamp,
       };
     }
     return null;
@@ -191,7 +195,7 @@ export class ContextManager extends EventEmitter {
       timestamp: Date.now(),
       messageCount: session.messages.length,
       summary: finalSummary,
-      type: 'final'
+      type: 'final',
     });
 
     session.messages = [];
@@ -215,7 +219,7 @@ export class ContextManager extends EventEmitter {
       tokenCount: session.metadata.tokenCount,
       created: session.metadata.created,
       lastUpdated: session.metadata.lastUpdated,
-      summaries: session.summaries
+      summaries: session.summaries,
     };
   }
 
@@ -227,7 +231,7 @@ export class ContextManager extends EventEmitter {
 
     return {
       ...session,
-      exportedAt: Date.now()
+      exportedAt: Date.now(),
     };
   }
 
@@ -248,7 +252,7 @@ export class ContextManager extends EventEmitter {
   }
 
   listSessions() {
-    return Array.from(this.sessions.keys()).map(id => this.getSessionSummary(id));
+    return Array.from(this.sessions.keys()).map((id) => this.getSessionSummary(id));
   }
 }
 

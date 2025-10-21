@@ -15,7 +15,7 @@ class VerificationLoop {
   constructor(options = {}) {
     this.analyzer = new SelfModifyingAnalyzer({
       safeMode: options.safeMode !== false,
-      backupEnabled: options.backupEnabled !== false
+      backupEnabled: options.backupEnabled !== false,
     });
 
     this.verificationConfig = {
@@ -24,7 +24,7 @@ class VerificationLoop {
       runTests: options.runTests !== false,
       runLinter: options.runLinter !== false,
       autoFix: options.autoFix !== false,
-      verifyBuild: options.verifyBuild !== false
+      verifyBuild: options.verifyBuild !== false,
     };
 
     this.iterations = [];
@@ -47,7 +47,9 @@ class VerificationLoop {
 
     while (this.currentIteration < this.verificationConfig.maxIterations && !converged) {
       this.currentIteration++;
-      logger.info(`\n=== Iteration ${this.currentIteration}/${this.verificationConfig.maxIterations} ===\n`);
+      logger.info(
+        `\n=== Iteration ${this.currentIteration}/${this.verificationConfig.maxIterations} ===\n`
+      );
 
       const iteration = await this.runSingleIteration(filePath, options);
       this.iterations.push(iteration);
@@ -79,7 +81,7 @@ class VerificationLoop {
       finalQuality: previousQuality,
       duration,
       results: this.iterations,
-      summary: this.summarizeVerification()
+      summary: this.summarizeVerification(),
     };
   }
 
@@ -90,7 +92,7 @@ class VerificationLoop {
     const iteration = {
       number: this.currentIteration,
       timestamp: Date.now(),
-      steps: []
+      steps: [],
     };
 
     try {
@@ -98,7 +100,7 @@ class VerificationLoop {
       logger.info('📊 Step 1: Analyzing code...');
       const code = await fs.promises.readFile(filePath, 'utf8');
       const analysis = this.analyzer.analyzeWithContext(code, filePath, {
-        source: 'verification-loop'
+        source: 'verification-loop',
       });
 
       iteration.analysis = analysis;
@@ -106,24 +108,26 @@ class VerificationLoop {
         name: 'analysis',
         success: true,
         issues: analysis.issues?.length || 0,
-        quality: analysis.metrics?.qualityScore
+        quality: analysis.metrics?.qualityScore,
       });
 
-      logger.info(`Found ${analysis.issues?.length || 0} issues, quality: ${analysis.metrics?.qualityScore?.toFixed(2)}`);
+      logger.info(
+        `Found ${analysis.issues?.length || 0} issues, quality: ${analysis.metrics?.qualityScore?.toFixed(2)}`
+      );
 
       // Step 2: Propose improvements
       if (analysis.issues && analysis.issues.length > 0) {
         logger.info('🔧 Step 2: Proposing improvements...');
 
         const proposal = await this.analyzer.proposeSelfModifications(filePath, {
-          removeConsoleLogs: options.removeConsoleLogs
+          removeConsoleLogs: options.removeConsoleLogs,
         });
 
         iteration.proposal = proposal;
         iteration.steps.push({
           name: 'proposal',
           success: true,
-          modifications: proposal.proposedModifications?.length || 0
+          modifications: proposal.proposedModifications?.length || 0,
         });
 
         logger.info(`Proposed ${proposal.proposedModifications?.length || 0} modifications`);
@@ -142,7 +146,7 @@ class VerificationLoop {
           iteration.steps.push({
             name: 'modifications',
             success: result.success,
-            applied: result.applied?.length || 0
+            applied: result.applied?.length || 0,
           });
 
           logger.info(`Applied ${result.applied?.length || 0} modifications`);
@@ -161,7 +165,7 @@ class VerificationLoop {
         iteration.steps.push({
           name: 'lint',
           success: lintResult.success,
-          errors: lintResult.errors || 0
+          errors: lintResult.errors || 0,
         });
 
         if (lintResult.success) {
@@ -177,7 +181,7 @@ class VerificationLoop {
       iteration.syntax = syntaxCheck;
       iteration.steps.push({
         name: 'syntax',
-        success: syntaxCheck.valid
+        success: syntaxCheck.valid,
       });
 
       if (syntaxCheck.valid) {
@@ -186,8 +190,7 @@ class VerificationLoop {
         logger.info(`❌ Syntax error: ${syntaxCheck.error}`);
       }
 
-      iteration.success = iteration.steps.every(s => s.success);
-
+      iteration.success = iteration.steps.every((s) => s.success);
     } catch (error) {
       logger.error(`❌ Iteration failed: ${error.message}`);
       iteration.error = error.message;
@@ -204,7 +207,7 @@ class VerificationLoop {
     logger.info(`\n🔄 Starting directory verification: ${dirPath}\n`);
 
     const results = await this.analyzer.analyzeDirectory(dirPath, {
-      recursive: options.recursive !== false
+      recursive: options.recursive !== false,
     });
 
     const fileResults = [];
@@ -220,7 +223,9 @@ class VerificationLoop {
         const verificationResult = await this.runVerificationLoop(fileAnalysis.filePath, options);
         fileResults.push(verificationResult);
       } else {
-        logger.info(`✅ ${fileAnalysis.filePath} quality: ${fileAnalysis.metrics?.qualityScore?.toFixed(2)}`);
+        logger.info(
+          `✅ ${fileAnalysis.filePath} quality: ${fileAnalysis.metrics?.qualityScore?.toFixed(2)}`
+        );
       }
     }
 
@@ -229,7 +234,7 @@ class VerificationLoop {
       filesProcessed: results.fileCount,
       filesImproved: fileResults.length,
       results: fileResults,
-      summary: results.summary
+      summary: results.summary,
     };
   }
 
@@ -239,7 +244,7 @@ class VerificationLoop {
   async runLinter(filePath) {
     try {
       const { stdout, stderr } = await execAsync(`npx eslint ${filePath} --format json`, {
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
 
       const result = JSON.parse(stdout);
@@ -249,7 +254,7 @@ class VerificationLoop {
         success: fileResult.errorCount === 0,
         errors: fileResult.errorCount || 0,
         warnings: fileResult.warningCount || 0,
-        messages: fileResult.messages || []
+        messages: fileResult.messages || [],
       };
     } catch (error) {
       // ESLint returns non-zero exit code if errors found
@@ -262,7 +267,7 @@ class VerificationLoop {
             success: false,
             errors: fileResult.errorCount || 0,
             warnings: fileResult.warningCount || 0,
-            messages: fileResult.messages || []
+            messages: fileResult.messages || [],
           };
         } catch (parseError) {
           // Continue to generic error handling
@@ -271,7 +276,7 @@ class VerificationLoop {
 
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -286,18 +291,18 @@ class VerificationLoop {
 
       parse(code, {
         ecmaVersion: 2024,
-        sourceType: 'module'
+        sourceType: 'module',
       });
 
       return {
         valid: true,
-        filePath
+        filePath,
       };
     } catch (error) {
       return {
         valid: false,
         error: error.message,
-        filePath
+        filePath,
       };
     }
   }
@@ -309,18 +314,18 @@ class VerificationLoop {
     try {
       logger.info('🏗️  Running build...');
       const { stdout, stderr } = await execAsync('npm run build', {
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
 
       return {
         success: true,
-        output: stdout
+        output: stdout,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        output: error.stderr || error.stdout
+        output: error.stderr || error.stdout,
       };
     }
   }
@@ -332,18 +337,18 @@ class VerificationLoop {
     try {
       logger.info('🧪 Running tests...');
       const { stdout, stderr } = await execAsync('npm test', {
-        cwd: process.cwd()
+        cwd: process.cwd(),
       });
 
       return {
         success: true,
-        output: stdout
+        output: stdout,
       };
     } catch (error) {
       return {
         success: false,
         error: error.message,
-        output: error.stderr || error.stdout
+        output: error.stderr || error.stdout,
       };
     }
   }
@@ -357,7 +362,7 @@ class VerificationLoop {
     const results = {
       filePath,
       timestamp: Date.now(),
-      steps: []
+      steps: [],
     };
 
     // Step 1: Verification loop
@@ -392,7 +397,7 @@ class VerificationLoop {
       }
     }
 
-    results.success = results.steps.every(s => s.success);
+    results.success = results.steps.every((s) => s.success);
     return results;
   }
 
@@ -402,7 +407,7 @@ class VerificationLoop {
   summarizeVerification() {
     const totalSteps = this.iterations.reduce((sum, i) => sum + (i.steps?.length || 0), 0);
     const successfulSteps = this.iterations.reduce(
-      (sum, i) => sum + (i.steps?.filter(s => s.success).length || 0),
+      (sum, i) => sum + (i.steps?.filter((s) => s.success).length || 0),
       0
     );
 
@@ -415,13 +420,13 @@ class VerificationLoop {
       totalIterations: this.iterations.length,
       totalSteps,
       successfulSteps,
-      successRate: totalSteps > 0 ? (successfulSteps / totalSteps) : 0,
+      successRate: totalSteps > 0 ? successfulSteps / totalSteps : 0,
       totalModifications,
-      qualityProgression: this.iterations.map(i => ({
+      qualityProgression: this.iterations.map((i) => ({
         iteration: i.number,
         quality: i.analysis?.metrics?.qualityScore,
-        issues: i.analysis?.issues?.length
-      }))
+        issues: i.analysis?.issues?.length,
+      })),
     };
   }
 

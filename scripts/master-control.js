@@ -16,7 +16,7 @@ const COLORS = {
   red: '\x1b[31m',
   green: '\x1b[32m',
   yellow: '\x1b[33m',
-  cyan: '\x1b[36m'
+  cyan: '\x1b[36m',
 };
 
 function log(msg, color = 'reset') {
@@ -35,19 +35,27 @@ const TOOLS = {
     name: 'Performance Tools',
     items: [
       { key: '1', name: 'Quick System Check', cmd: 'node scripts/quick-fix.js' },
-      { key: '2', name: 'Process Cleanup (Kill Zombies)', cmd: 'powershell -ExecutionPolicy Bypass -File scripts/ai-process-cleaner.ps1 -Kill' },
+      {
+        key: '2',
+        name: 'Process Cleanup (Kill Zombies)',
+        cmd: 'powershell -ExecutionPolicy Bypass -File scripts/ai-process-cleaner.ps1 -Kill',
+      },
       { key: '3', name: 'Live Monitor Dashboard', cmd: 'bash scripts/live-monitor.sh' },
       { key: '4', name: 'Full Health Scan', cmd: 'bash scripts/ai-system-health.sh' },
-      { key: '5', name: 'Performance Optimizer', cmd: 'node scripts/performance-optimizer.js' }
-    ]
+      { key: '5', name: 'Performance Optimizer', cmd: 'node scripts/performance-optimizer.js' },
+    ],
   },
   network: {
     name: 'Network & Debugging',
     items: [
       { key: '6', name: 'Port Hunter (65028)', cmd: 'bash scripts/port-hunter.sh 65028' },
-      { key: '7', name: 'Network Debug Agent', cmd: 'bash scripts/network-debug-agent.sh localhost 65028' },
-      { key: '8', name: 'Check AI Bridge Status', cmd: 'netstat -ano | findstr "65028"' }
-    ]
+      {
+        key: '7',
+        name: 'Network Debug Agent',
+        cmd: 'bash scripts/network-debug-agent.sh localhost 65028',
+      },
+      { key: '8', name: 'Check AI Bridge Status', cmd: 'netstat -ano | findstr "65028"' },
+    ],
   },
   testing: {
     name: 'Testing & Quality',
@@ -55,24 +63,28 @@ const TOOLS = {
       { key: '9', name: 'Run Tests (Fast)', cmd: 'npm run test:fast' },
       { key: 'a', name: 'Run Tests (Standard)', cmd: 'npm test' },
       { key: 'b', name: 'Run Lint Check', cmd: 'npm run lint' },
-      { key: 'c', name: 'Run Lint Fix', cmd: 'npm run lint:fix' }
-    ]
+      { key: 'c', name: 'Run Lint Fix', cmd: 'npm run lint:fix' },
+    ],
   },
   aibridge: {
     name: 'AI Bridge Control',
     items: [
       { key: 'd', name: 'Start AI Bridge', cmd: 'npm run start:bridge' },
       { key: 'e', name: 'Start Full System', cmd: 'npm run system:start' },
-      { key: 'f', name: 'Stop All Node Processes', cmd: 'taskkill /IM node.exe /F' }
-    ]
+      { key: 'f', name: 'Stop All Node Processes', cmd: 'taskkill /IM node.exe /F' },
+    ],
   },
   automation: {
     name: 'Automation & Scheduling',
     items: [
-      { key: 'g', name: 'Setup Auto-Cleanup', cmd: 'powershell -ExecutionPolicy Bypass -File scripts/auto-cleanup-scheduler.ps1' },
-      { key: 'h', name: 'View Scheduled Tasks', cmd: 'Get-ScheduledTask -TaskName "*AI-Bridge*"' }
-    ]
-  }
+      {
+        key: 'g',
+        name: 'Setup Auto-Cleanup',
+        cmd: 'powershell -ExecutionPolicy Bypass -File scripts/auto-cleanup-scheduler.ps1',
+      },
+      { key: 'h', name: 'View Scheduled Tasks', cmd: 'Get-ScheduledTask -TaskName "*AI-Bridge*"' },
+    ],
+  },
 };
 
 async function runCommand(cmd) {
@@ -82,7 +94,7 @@ async function runCommand(cmd) {
   try {
     const { stdout, stderr } = await execAsync(cmd, {
       maxBuffer: 1024 * 1024 * 10, // 10MB buffer
-      timeout: 60000 // 60s timeout
+      timeout: 60000, // 60s timeout
     });
 
     if (stdout) console.log(stdout);
@@ -100,11 +112,11 @@ async function runCommand(cmd) {
 function prompt(question) {
   const rl = createInterface({
     input: process.stdin,
-    output: process.stdout
+    output: process.stdout,
   });
 
-  return new Promise(resolve => {
-    rl.question(question, answer => {
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
       rl.close();
       resolve(answer);
     });
@@ -114,9 +126,9 @@ function prompt(question) {
 function displayMenu() {
   header('AI Bridge Master Control');
 
-  Object.values(TOOLS).forEach(category => {
+  Object.values(TOOLS).forEach((category) => {
     log(`\n${category.name}:`, 'bright');
-    category.items.forEach(item => {
+    category.items.forEach((item) => {
       log(`  [${item.key}] ${item.name}`, 'cyan');
     });
   });
@@ -131,7 +143,9 @@ async function getSystemStatus() {
 
   try {
     // Check processes
-    const nodeCount = execSync('tasklist | findstr "node.exe" | wc -l', { encoding: 'utf-8' }).trim();
+    const nodeCount = execSync('tasklist | findstr "node.exe" | wc -l', {
+      encoding: 'utf-8',
+    }).trim();
     log(`Node.js Processes: ${nodeCount}`, nodeCount > 30 ? 'yellow' : 'green');
 
     // Check AI Bridge
@@ -155,7 +169,6 @@ async function getSystemStatus() {
 
     log('  💡 Press [3] for Live Monitor', 'cyan');
     log('  💡 Press [1] for Quick System Check', 'cyan');
-
   } catch (error) {
     log(`Error getting status: ${error.message}`, 'red');
   }
@@ -186,7 +199,7 @@ async function main() {
     // Find command
     let found = false;
     for (const category of Object.values(TOOLS)) {
-      const item = category.items.find(i => i.key === key);
+      const item = category.items.find((i) => i.key === key);
       if (item) {
         await runCommand(item.cmd);
         found = true;
@@ -202,7 +215,7 @@ async function main() {
 }
 
 // Run
-main().catch(err => {
+main().catch((err) => {
   log(`Fatal error: ${err.message}`, 'red');
   process.exit(1);
 });

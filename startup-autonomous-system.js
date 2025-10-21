@@ -15,7 +15,7 @@ const COMPONENTS = [
     command: 'node',
     args: ['src/ai-bridge.js'],
     healthCheck: () => checkHttpHealth('http://localhost:65029/health'),
-    critical: true
+    critical: true,
   },
   {
     name: 'Meta-Agent Factory',
@@ -23,7 +23,7 @@ const COMPONENTS = [
     args: ['src/agents/meta-agent-factory.js'],
     healthCheck: () => checkWsConnection('ws://localhost:65028'),
     critical: false,
-    dependsOn: ['AI Bridge']
+    dependsOn: ['AI Bridge'],
   },
   {
     name: 'Autonomous Ollama Agent',
@@ -31,8 +31,8 @@ const COMPONENTS = [
     args: ['src/agents/autonomous-ollama-agent.js'],
     healthCheck: () => checkWsConnection('ws://localhost:65028'),
     critical: false,
-    dependsOn: ['AI Bridge']
-  }
+    dependsOn: ['AI Bridge'],
+  },
 ];
 
 class SystemOrchestrator {
@@ -66,7 +66,7 @@ class SystemOrchestrator {
 
     const proc = spawn(command, args, {
       stdio: ['ignore', 'pipe', 'pipe'],
-      env: process.env
+      env: process.env,
     });
 
     proc.stdout.on('data', (data) => {
@@ -103,7 +103,7 @@ class SystemOrchestrator {
 
   async waitForDependencies(dependsOn) {
     for (const dep of dependsOn) {
-      const component = COMPONENTS.find(c => c.name === dep);
+      const component = COMPONENTS.find((c) => c.name === dep);
       if (component && component.healthCheck) {
         let healthy = false;
         let attempts = 0;
@@ -113,7 +113,7 @@ class SystemOrchestrator {
             healthy = true;
           } catch (error) {
             attempts++;
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise((r) => setTimeout(r, 1000));
           }
         }
       }
@@ -123,7 +123,7 @@ class SystemOrchestrator {
   async waitForHealth(component) {
     if (!component.healthCheck) {
       // No health check, just wait 2 seconds
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 2000));
       return;
     }
 
@@ -141,7 +141,7 @@ class SystemOrchestrator {
         if (attempts % 5 === 0) {
           logger.debug(`Waiting for ${component.name}... (${attempts}/${maxAttempts})`);
         }
-        await new Promise(r => setTimeout(r, 1000));
+        await new Promise((r) => setTimeout(r, 1000));
       }
     }
 
@@ -186,7 +186,7 @@ class SystemOrchestrator {
         name,
         pid: proc.pid,
         uptime: `${uptime}s`,
-        restarts: this.restartCounts.get(name) || 0
+        restarts: this.restartCounts.get(name) || 0,
       });
     }
     return status;
@@ -196,13 +196,15 @@ class SystemOrchestrator {
 // Helper functions
 function checkHttpHealth(url) {
   return new Promise((resolve, reject) => {
-    http.get(url, (res) => {
-      if (res.statusCode === 200) {
-        resolve();
-      } else {
-        reject(new Error(`HTTP ${res.statusCode}`));
-      }
-    }).on('error', reject);
+    http
+      .get(url, (res) => {
+        if (res.statusCode === 200) {
+          resolve();
+        } else {
+          reject(new Error(`HTTP ${res.statusCode}`));
+        }
+      })
+      .on('error', reject);
   });
 }
 
@@ -214,7 +216,7 @@ function checkWsConnection(url) {
 // Start the system
 const orchestrator = new SystemOrchestrator();
 
-orchestrator.start().catch(err => {
+orchestrator.start().catch((err) => {
   logger.error('Failed to start system:', err.message);
   process.exit(1);
 });
@@ -232,7 +234,7 @@ process.on('SIGTERM', () => {
 setInterval(() => {
   logger.info('\n📊 System Status:');
   const status = orchestrator.getStatus();
-  status.forEach(s => {
+  status.forEach((s) => {
     logger.info(`  ${s.name}: PID ${s.pid}, Uptime ${s.uptime}, Restarts: ${s.restarts}`);
   });
 }, 60000);

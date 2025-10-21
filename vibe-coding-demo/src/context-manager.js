@@ -25,7 +25,7 @@ class ContextManager {
       changes: this.getRecentChanges(),
       issues: this.detectIssues(),
       nextSteps: this.suggestNextSteps(),
-      contextSize: this.estimateContextSize()
+      contextSize: this.estimateContextSize(),
     };
 
     // Save summary
@@ -43,12 +43,12 @@ class ContextManager {
     try {
       const diff = execSync('git diff HEAD~1..HEAD --stat', {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       }).trim();
 
       const log = execSync('git log -1 --pretty=format:"%h - %s"', {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       }).trim();
 
       return { diff, log };
@@ -64,8 +64,11 @@ class ContextManager {
     try {
       const todos = execSync('grep -r "TODO\\|FIXME\\|HACK" --include="*.js" --include="*.ts" .', {
         cwd: this.root,
-        encoding: 'utf8'
-      }).trim().split('\n').slice(0, 10);
+        encoding: 'utf8',
+      })
+        .trim()
+        .split('\n')
+        .slice(0, 10);
 
       if (todos.length > 0 && todos[0]) {
         issues.push({ type: 'todos', count: todos.length, items: todos });
@@ -89,7 +92,7 @@ class ContextManager {
     try {
       const status = execSync('git status --porcelain', {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       }).trim();
 
       if (status) {
@@ -142,12 +145,14 @@ ${summary.changes.diff}
 \`\`\`
 
 ## Issues Detected
-${summary.issues.length === 0 ? 'None' : summary.issues.map(i =>
-  `- **${i.type}**: ${i.message || i.count + ' items'}`
-).join('\n')}
+${
+  summary.issues.length === 0
+    ? 'None'
+    : summary.issues.map((i) => `- **${i.type}**: ${i.message || i.count + ' items'}`).join('\n')
+}
 
 ## Next Steps
-${summary.nextSteps.map(s => `- [ ] ${s}`).join('\n')}
+${summary.nextSteps.map((s) => `- [ ] ${s}`).join('\n')}
 
 ## Context Size
 - Bytes: ${summary.contextSize.bytes.toLocaleString()}
@@ -162,7 +167,7 @@ ${summary.nextSteps.map(s => `- [ ] ${s}`).join('\n')}
     try {
       const result = execSync(`find . -name "${pattern}" -type f 2>/dev/null || echo ""`, {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
       return result.trim().split('\n').filter(Boolean);
     } catch {
@@ -174,8 +179,9 @@ ${summary.nextSteps.map(s => `- [ ] ${s}`).join('\n')}
   loadLastSummary() {
     if (!fs.existsSync(this.summaryDir)) return null;
 
-    const files = fs.readdirSync(this.summaryDir)
-      .filter(f => f.endsWith('.md'))
+    const files = fs
+      .readdirSync(this.summaryDir)
+      .filter((f) => f.endsWith('.md'))
       .sort()
       .reverse();
 
@@ -199,7 +205,7 @@ if (require.main === module) {
   const command = process.argv[2];
 
   if (command === 'summarize') {
-    manager.summarizeSession(process.argv[3]).then(result => {
+    manager.summarizeSession(process.argv[3]).then((result) => {
       console.log('✓ Session summarized:', result.file);
       console.log('\nSummary:');
       console.log(result.summary.nextSteps.join('\n'));

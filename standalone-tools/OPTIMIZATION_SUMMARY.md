@@ -12,11 +12,13 @@ Based on benchmark results from `benchmark_report.json`
 **Technique**: LRU cache with 128 pattern slots
 
 ### Results
+
 - **Cache Hit Rate**: 99.9% (1009 hits, 1 miss)
 - **Average Execution**: 0.0016ms per regex match
 - **Cache Size**: 1/128 patterns cached
 
 ### Impact
+
 - **Expected**: 50-80% speedup on repeated patterns
 - **Actual**: 99.9% cache hit rate proves effectiveness
 - **Use Case**: Email/URL extraction with repeated patterns
@@ -29,11 +31,13 @@ Based on benchmark results from `benchmark_report.json`
 **Technique**: Compute all metrics in one text traversal
 
 ### Results
+
 - **Average Time**: 0.4871ms for full analysis
 - **Text Size**: 13,900 characters
 - **Metrics Computed**: 7 metrics (chars, words, lines, sentences, paragraphs, reading time)
 
 ### Impact
+
 - **Expected**: 30-40% speedup vs multiple passes
 - **Actual**: Single pass eliminates redundant text.split() calls
 - **Throughput**: ~28,500 chars/ms analyzed
@@ -46,14 +50,16 @@ Based on benchmark results from `benchmark_report.json`
 **Technique**: Read files in 64KB chunks
 
 ### Results
-| File Size | Avg Time | Throughput |
-|-----------|----------|------------|
-| 1 KB      | 0.031ms  | 31.51 MB/s |
+
+| File Size | Avg Time | Throughput  |
+| --------- | -------- | ----------- |
+| 1 KB      | 0.031ms  | 31.51 MB/s  |
 | 10 KB     | 0.031ms  | 318.20 MB/s |
 | 100 KB    | 0.123ms  | 791.51 MB/s |
 | 1 MB      | 1.031ms  | 970.35 MB/s |
 
 ### Impact
+
 - **Expected**: 99% memory reduction for large files
 - **Actual**: Constant 64KB memory footprint regardless of file size
 - **Scalability**: Can hash 10GB+ files without OOM errors
@@ -66,6 +72,7 @@ Based on benchmark results from `benchmark_report.json`
 **Technique**: Pre-filter files by size before hashing
 
 ### Results
+
 - **Total Files**: 50
 - **Files Hashed**: 20 (40%)
 - **Files Skipped**: 30 (60%)
@@ -73,11 +80,13 @@ Based on benchmark results from `benchmark_report.json`
 - **Duplicates Found**: 10 groups
 
 ### Impact
+
 - **Expected**: 3-5x speedup vs hashing all files
 - **Actual**: 60% of files skipped (size-unique)
 - **I/O Reduction**: 60% fewer disk reads
 
 ### Formula
+
 ```
 Speedup = Total Files / Files Hashed
         = 50 / 20
@@ -92,13 +101,15 @@ Speedup = Total Files / Files Hashed
 **Technique**: Skip even divisors + LRU caching
 
 ### Results
+
 - **Average Time**: 0.000127ms per check
 - **Cache Hit Rate**: 99.01% (700 hits, 7 misses)
 - **Cache Utilization**: 7/1024 slots
 
 ### Individual Prime Checks
+
 | Number  | Result | Time (ms) |
-|---------|--------|-----------|
+| ------- | ------ | --------- |
 | 2       | Prime  | 0.0003    |
 | 17      | Prime  | 0.0005    |
 | 97      | Prime  | 0.0003    |
@@ -108,6 +119,7 @@ Speedup = Total Files / Files Hashed
 | 999,983 | Prime  | 0.0002    |
 
 ### Impact
+
 - **Expected**: 50% speedup (odd divisors only)
 - **Actual**: 99% cache hit rate for repeated checks
 - **Large Numbers**: 999,983 checked in 0.0002ms
@@ -117,6 +129,7 @@ Speedup = Total Files / Files Hashed
 ## Overall System Performance
 
 ### Before Optimizations (Estimated)
+
 - Regex compilation: Every call
 - Text analysis: 7 separate passes
 - File hashing: Load entire file into memory
@@ -124,6 +137,7 @@ Speedup = Total Files / Files Hashed
 - Prime check: Test all divisors
 
 ### After Optimizations (Measured)
+
 - Regex compilation: 99.9% cache hits
 - Text analysis: Single pass for all metrics
 - File hashing: 64KB constant memory
@@ -135,6 +149,7 @@ Speedup = Total Files / Files Hashed
 ## Memory Improvements
 
 ### Chunked File Hashing
+
 ```
 1 MB file:
   Before: 1,048,576 bytes (1 MB in memory)
@@ -159,11 +174,13 @@ Speedup = Total Files / Files Hashed
 ### LRU Cache Statistics
 
 **Regex Cache** (128 slots):
+
 - Current size: 1 pattern
 - Hit rate: 99.9%
 - Effectiveness: Excellent for repeated patterns
 
 **Prime Cache** (1024 slots):
+
 - Current size: 7 numbers
 - Hit rate: 99.01%
 - Effectiveness: Excellent for number theory operations
@@ -172,15 +189,15 @@ Speedup = Total Files / Files Hashed
 
 ## Performance Comparison Table
 
-| Optimization | Before (Est.) | After (Actual) | Improvement |
-|--------------|---------------|----------------|-------------|
-| Regex Match  | ~0.1ms        | 0.0016ms       | 62.5x       |
-| Text Analysis| ~1.8ms        | 0.4871ms       | 3.7x        |
-| File Hash 1MB| 1.5ms         | 1.031ms        | 1.5x        |
-| Duplicate Scan| 50 hashes    | 20 hashes      | 2.5x        |
-| Prime Check  | ~0.002ms      | 0.000127ms     | 15.7x       |
+| Optimization   | Before (Est.) | After (Actual) | Improvement |
+| -------------- | ------------- | -------------- | ----------- |
+| Regex Match    | ~0.1ms        | 0.0016ms       | 62.5x       |
+| Text Analysis  | ~1.8ms        | 0.4871ms       | 3.7x        |
+| File Hash 1MB  | 1.5ms         | 1.031ms        | 1.5x        |
+| Duplicate Scan | 50 hashes     | 20 hashes      | 2.5x        |
+| Prime Check    | ~0.002ms      | 0.000127ms     | 15.7x       |
 
-*Note: "Before" values are estimates based on typical unoptimized implementations*
+_Note: "Before" values are estimates based on typical unoptimized implementations_
 
 ---
 
@@ -197,6 +214,7 @@ Speedup = Total Files / Files Hashed
 ## Real-World Impact Examples
 
 ### Email Extraction from 1000 Documents
+
 ```
 Before: 1000 × 0.1ms = 100ms
 After:  1000 × 0.0016ms = 1.6ms
@@ -204,6 +222,7 @@ Speedup: 62.5x
 ```
 
 ### Analyzing Large Book (500KB text)
+
 ```
 Before: ~6ms (multiple passes)
 After:  ~1.6ms (single pass)
@@ -211,6 +230,7 @@ Speedup: 3.75x
 ```
 
 ### Finding Duplicates in Photo Library (10,000 files)
+
 ```
 Before: Hash all 10,000 files
 After:  Hash ~3,000 files (70% unique sizes)
@@ -219,6 +239,7 @@ I/O Reduction: 7,000 fewer file reads
 ```
 
 ### Primality Testing RSA Key Candidates
+
 ```
 Before: Test all divisors
 After:  Test odd divisors + cache
@@ -235,6 +256,7 @@ python benchmark_results.py
 ```
 
 This generates:
+
 - Console output with detailed metrics
 - `benchmark_report.json` with structured data
 

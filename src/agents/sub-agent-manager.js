@@ -37,7 +37,7 @@ export class SubAgentManager extends EventEmitter {
 - Test coverage
 Provide detailed, actionable feedback.`,
         tools: ['Read', 'Grep', 'Glob', 'Bash'],
-        expertise: ['security', 'quality', 'testing']
+        expertise: ['security', 'quality', 'testing'],
       },
       {
         id: 'planner',
@@ -50,7 +50,7 @@ Provide detailed, actionable feedback.`,
 - Resource estimation
 Provide comprehensive implementation plans.`,
         tools: ['Read', 'Grep', 'Glob'],
-        expertise: ['architecture', 'planning']
+        expertise: ['architecture', 'planning'],
       },
       {
         id: 'ui-designer',
@@ -64,7 +64,7 @@ Provide comprehensive implementation plans.`,
 - Component architecture
 Generate beautiful, functional interfaces.`,
         tools: ['Read', 'Write', 'Edit', 'Bash'],
-        expertise: ['frontend', 'design', 'accessibility']
+        expertise: ['frontend', 'design', 'accessibility'],
       },
       {
         id: 'test-writer',
@@ -77,7 +77,7 @@ Generate beautiful, functional interfaces.`,
 - Test-driven development approach
 Ensure code reliability and correctness.`,
         tools: ['Read', 'Write', 'Edit', 'Bash', 'Grep'],
-        expertise: ['testing', 'quality']
+        expertise: ['testing', 'quality'],
       },
       {
         id: 'documentation-writer',
@@ -91,8 +91,8 @@ Ensure code reliability and correctness.`,
 - Setup instructions
 Make code accessible and maintainable.`,
         tools: ['Read', 'Write', 'Edit', 'Grep'],
-        expertise: ['documentation', 'communication']
-      }
+        expertise: ['documentation', 'communication'],
+      },
     ];
 
     // Register default agents
@@ -125,7 +125,7 @@ Make code accessible and maintainable.`,
       expertise: expertise || [],
       contextWindow: this.contextWindow,
       created: new Date(),
-      messageHistory: []
+      messageHistory: [],
     };
 
     this.agentRegistry.set(id, agent);
@@ -150,7 +150,7 @@ Make code accessible and maintainable.`,
         ...agentDef,
         instance: this.createAgentInstance(agentDef),
         activeTask: null,
-        messageHistory: []
+        messageHistory: [],
       };
       this.agents.set(agentId, agent);
     }
@@ -172,7 +172,7 @@ Make code accessible and maintainable.`,
       agentId,
       raw: result,
       summary,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
   }
 
@@ -207,7 +207,7 @@ Make code accessible and maintainable.`,
       systemPrompt: agentDef.systemPrompt,
       task,
       refinements,
-      context
+      context,
     };
   }
 
@@ -224,7 +224,7 @@ Make code accessible and maintainable.`,
       return {
         type: 'unfiltered',
         content: result,
-        warning: 'Critical review - unfiltered output'
+        warning: 'Critical review - unfiltered output',
       };
     }
 
@@ -232,7 +232,7 @@ Make code accessible and maintainable.`,
     return {
       type: 'summarized',
       content: this.extractKeySummary(result),
-      fullDetails: result
+      fullDetails: result,
     };
   }
 
@@ -246,7 +246,7 @@ Make code accessible and maintainable.`,
       return {
         headline: lines[0],
         keyPoints: lines.slice(1, 6),
-        fullLength: lines.length
+        fullLength: lines.length,
       };
     }
     return result;
@@ -261,7 +261,7 @@ Make code accessible and maintainable.`,
       name: agentDef.name,
       systemPrompt: agentDef.systemPrompt,
       tools: agentDef.tools,
-      contextWindow: agentDef.contextWindow
+      contextWindow: agentDef.contextWindow,
     };
   }
 
@@ -273,7 +273,7 @@ Make code accessible and maintainable.`,
     agent.messageHistory.push({
       timestamp: new Date(),
       prompt: refinedPrompt,
-      context
+      context,
     });
 
     // Trim history to fit context window
@@ -308,7 +308,7 @@ Make code accessible and maintainable.`,
       agent: agent.name,
       task: refinedPrompt.task,
       response: `[${agent.name} processing task: ${refinedPrompt.task}]`,
-      refinements: refinedPrompt.refinements
+      refinements: refinedPrompt.refinements,
     };
   }
 
@@ -365,8 +365,16 @@ Make code accessible and maintainable.`,
    * Save agent definitions to config
    */
   async saveAgentDefinitions() {
-    const customAgents = Array.from(this.agentRegistry.values())
-      .filter(agent => !['code-reviewer', 'planner', 'ui-designer', 'test-writer', 'documentation-writer'].includes(agent.id));
+    const customAgents = Array.from(this.agentRegistry.values()).filter(
+      (agent) =>
+        ![
+          'code-reviewer',
+          'planner',
+          'ui-designer',
+          'test-writer',
+          'documentation-writer',
+        ].includes(agent.id)
+    );
 
     if (customAgents.length > 0) {
       const configPath = path.join(this.agentConfigPath, 'custom.json');
@@ -389,9 +397,7 @@ Make code accessible and maintainable.`,
    */
   async parallelInvoke(tasks) {
     const results = await Promise.all(
-      tasks.map(({ agentId, task, context }) =>
-        this.invokeAgent(agentId, task, context)
-      )
+      tasks.map(({ agentId, task, context }) => this.invokeAgent(agentId, task, context))
     );
     return results;
   }

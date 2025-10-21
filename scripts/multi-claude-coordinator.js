@@ -19,7 +19,7 @@ export function assignTask(instanceId, task) {
 ${task.description}
 
 ## Success Criteria
-${task.criteria ? task.criteria.map(c => `- ${c}`).join('\n') : 'Complete the task successfully'}
+${task.criteria ? task.criteria.map((c) => `- ${c}`).join('\n') : 'Complete the task successfully'}
 
 ## Dependencies
 ${task.dependencies ? task.dependencies.join(', ') : 'None'}
@@ -50,10 +50,11 @@ ${task.estimatedTime || 'unknown'}
 
 // Get status of all instances
 export function getStatuses() {
-  const statusFiles = readdirSync(workspaceDir)
-    .filter(f => f.startsWith('status-') && f.endsWith('.json'));
+  const statusFiles = readdirSync(workspaceDir).filter(
+    (f) => f.startsWith('status-') && f.endsWith('.json')
+  );
 
-  return statusFiles.map(file => {
+  return statusFiles.map((file) => {
     const content = readFileSync(join(workspaceDir, file), 'utf-8');
     return JSON.parse(content);
   });
@@ -69,15 +70,16 @@ export function monitor() {
 
   const statuses = getStatuses();
 
-  statuses.forEach(status => {
-    const statusIcon = {
-      idle: '⏸️',
-      assigned: '📋',
-      working: '⚙️',
-      blocked: '🚧',
-      complete: '✅',
-      error: '❌'
-    }[status.status] || '❓';
+  statuses.forEach((status) => {
+    const statusIcon =
+      {
+        idle: '⏸️',
+        assigned: '📋',
+        working: '⚙️',
+        blocked: '🚧',
+        complete: '✅',
+        error: '❌',
+      }[status.status] || '❓';
 
     console.log(`${statusIcon} ${status.instance.toUpperCase()}`);
     console.log(`   Status: ${status.status}`);

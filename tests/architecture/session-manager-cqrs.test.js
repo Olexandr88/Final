@@ -17,7 +17,7 @@ describe('Session Manager CQRS - End-to-End', () => {
     try {
       if (fs.existsSync(archDir)) {
         const files = fs.readdirSync(archDir);
-        files.forEach(file => {
+        files.forEach((file) => {
           if (file.startsWith('event-store') || file.startsWith('read-models')) {
             const filePath = path.join(archDir, file);
             try {
@@ -62,7 +62,7 @@ describe('Session Manager CQRS - End-to-End', () => {
 
     const sessions = await sessionManager.listActiveSessions();
     assert.ok(sessions.length > 0);
-    assert.ok(sessions.find(s => s.isCurrentSession));
+    assert.ok(sessions.find((s) => s.isCurrentSession));
   });
 
   it('should acquire and release locks', async () => {
@@ -101,12 +101,9 @@ describe('Session Manager CQRS - End-to-End', () => {
     sessionManager = new SessionManagerCQRS();
     // Don't register session
 
-    await assert.rejects(
-      async () => {
-        await sessionManager.acquireLock('/test', 'write');
-      },
-      /No active session/
-    );
+    await assert.rejects(async () => {
+      await sessionManager.acquireLock('/test', 'write');
+    }, /No active session/);
   });
 
   it('should provide event store statistics', async () => {
@@ -127,7 +124,7 @@ describe('Session Manager CQRS - End-to-End', () => {
     const initialHeartbeat = initialInfo.last_heartbeat;
 
     // Wait a bit
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Manual heartbeat
     await sessionManager.heartbeat();

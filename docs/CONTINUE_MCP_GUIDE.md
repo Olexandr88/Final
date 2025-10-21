@@ -5,6 +5,7 @@
 The Continue-Ollama MCP server enables VS Code's [Continue extension](https://continue.dev) to use local Ollama models with full autocomplete, agent mode, and code analysis capabilities.
 
 **Features:**
+
 - ✅ **Auto-detection** of all installed Ollama models
 - ✅ **Streaming autocomplete** with <100ms latency target
 - ✅ **Agent mode** with conversation context retention

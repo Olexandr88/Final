@@ -24,7 +24,9 @@ async function main() {
     if (s.error) {
       md.push(`| unknown | ${s.pid} | timeout | - | - |`);
     } else {
-      md.push(`| ${s.agent} | ${s.pid} | ${s.uptime.toFixed(1)} | ${s.ticks} | ${(s.capabilities||[]).join(', ')} |`);
+      md.push(
+        `| ${s.agent} | ${s.pid} | ${s.uptime.toFixed(1)} | ${s.ticks} | ${(s.capabilities || []).join(', ')} |`
+      );
     }
   }
   md.push('');
@@ -36,7 +38,7 @@ async function main() {
   console.log('Status report updated.');
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error('Failed to generate status report', e);
   process.exit(1);
 });

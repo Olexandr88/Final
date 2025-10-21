@@ -10,6 +10,7 @@ import dotenv from 'dotenv';
 import { MessageCache } from '../utils/message-cache.js';
 import { NETWORK, AGENTS, LLM } from '../config/constants.js';
 import { logger } from '../utils/logger.js';
+import { OllamaClusterCoordinator } from '../utils/ollama-cluster-coordinator.js';
 
 dotenv.config();
 
@@ -28,14 +29,22 @@ class A2AOllamaAgent {
     this.maxReconnectDelay = NETWORK.RECONNECT_MAX_DELAY_MS;
     this.baseReconnectDelay = NETWORK.RECONNECT_BASE_DELAY_MS;
     this.ollamaAvailable = null; // Cache Ollama availability check
+    this.clusterSync = new OllamaClusterCoordinator({
+      clusterId: process.env.OLLAMA_CLUSTER_ID || 'default',
+      maxGlobalConcurrency: Number(
+        process.env.OLLAMA_GLOBAL_MAX_CONCURRENCY || AGENTS.MAX_CONCURRENCY || 3
+      ),
+    });
 
     logger.info(`🤖 Starting Ollama Agent: ${this.agentId}`);
     logger.info(`📡 Ollama URL: ${OLLAMA_URL}`);
     logger.info(`🧠 Model: ${MODEL}`);
-    logger.info(`💾 Cache enabled (max ${LLM.CACHE.MAX_SIZE} entries, TTL ${LLM.CACHE.TTL_MS / 1000}s)`);
+    logger.info(
+      `💾 Cache enabled (max ${LLM.CACHE.MAX_SIZE} entries, TTL ${LLM.CACHE.TTL_MS / 1000}s)`
+    );
 
     // Check Ollama availability before connecting
-    this.checkOllamaAvailability().then(available => {
+    this.checkOllamaAvailability().then((available) => {
       if (!available) {
         logger.warn('⚠️  WARNING: Ollama service not detected at ' + OLLAMA_URL);
         logger.warn('⚠️  The agent will connect but may fail to process requests.');
@@ -59,8 +68,8 @@ class A2AOllamaAgent {
         method: 'GET',
         signal: controller.signal,
         headers: {
-          'Accept': 'application/json'
-        }
+          Accept: 'application/json',
+        },
       });
 
       clearTimeout(timeoutId);
@@ -139,7 +148,9 @@ class A2AOllamaAgent {
         return;
       }
 
-      logger.info(`🔄 Reconnecting in ${(delay/1000).toFixed(1)}s (attempt ${this.reconnectAttempts})...`);
+      logger.info(
+        `🔄 Reconnecting in ${(delay / 1000).toFixed(1)}s (attempt ${this.reconnectAttempts})...`
+      );
 
       // Store timeout reference for cleanup
       this.reconnectTimeout = setTimeout(() => {
@@ -174,7 +185,7 @@ class A2AOllamaAgent {
       labels: ['ollama', 'llm', 'ai', 'local', 'cached'],
       tools: ['conversation', 'analysis', 'reasoning'],
       intents: ['ai.query', 'ai.analyze', 'ai.converse'],
-      maxConcurrentTasks: 5
+      maxConcurrentTasks: 5,
     };
 
     this.ws.send(JSON.stringify(registration));
@@ -206,14 +217,76 @@ class A2AOllamaAgent {
     logger.info(`   Intent: ${intent}`);
     logger.info(`   Payload:`, JSON.stringify(payload).slice(0, 100));
 
+    if (intent === 'agent.health') {
+      const clusterStats = this.clusterSync
+        ? {
+            enabled: true,
+            totalInflight: this.clusterSync.getTotalInflight(),
+            localInflight: this.clusterSync.getLocalInflight(),
+            maxConcurrency: this.clusterSync.getMaxConcurrency(),
+            waiters: this.clusterSync.getWaiterCount(),
+            peers: this.clusterSync.getPeerCount(),
+          }
+        : { enabled: false };
+
+      const cacheStats = this.messageCache.getStats();
+      const cacheHealth = this.messageCache.getHealth();
+      const saturated =
+        clusterStats.enabled &&
+        clusterStats.maxConcurrency > 0 &&
+        clusterStats.totalInflight >= clusterStats.maxConcurrency;
+      const unhealthyCache = cacheHealth?.healthy === false;
+      const status = saturated || unhealthyCache ? 'warn' : 'ok';
+
+      const healthEnvelope = {
+        type: 'envelope',
+        envelope: {
+          from: this.agentId,
+          to: from,
+          intent: 'agent.health',
+          replyTo: id,
+          payload: {
+            status,
+            agent: this.agentId,
+            model: MODEL,
+            activeRequests: clusterStats.enabled ? clusterStats.localInflight : 0,
+            queueSize: 0,
+            circuitBreaker: 'cached',
+            failures: 0,
+            cluster: clusterStats,
+            cache: {
+              hits: cacheStats.hits,
+              misses: cacheStats.misses,
+              evictions: cacheStats.evictions,
+              size: cacheStats.size,
+              maxSize: cacheStats.maxSize,
+              hitRate: cacheStats.hitRate,
+              healthy: cacheHealth.healthy,
+              recommendations: cacheHealth.recommendations,
+            },
+            timestamp: new Date().toISOString(),
+          },
+        },
+      };
+
+      this.ws.send(JSON.stringify(healthEnvelope));
+      return;
+    }
+
+    let releaseClusterSlot = null;
+    logger.info(`   Payload:`, JSON.stringify(payload).slice(0, 100));
+
     try {
       // Check if Ollama is available before processing
       const isOllamaAvailable = await this.checkOllamaAvailability();
       if (!isOllamaAvailable) {
-        throw new Error('Ollama service is not available. Please ensure Ollama is running on http://localhost:11434');
+        throw new Error(
+          'Ollama service is not available. Please ensure Ollama is running on http://localhost:11434'
+        );
       }
 
-      const userMessage = payload.message || payload.query || payload.question || JSON.stringify(payload);
+      const userMessage =
+        payload.message || payload.query || payload.question || JSON.stringify(payload);
 
       // Check cache first
       const cacheKey = this.messageCache.generateKey(userMessage, { model: MODEL });
@@ -236,9 +309,9 @@ class A2AOllamaAgent {
               model: MODEL,
               agent: this.agentId,
               cached: true,
-              processed_at: new Date().toISOString()
-            }
-          }
+              processed_at: new Date().toISOString(),
+            },
+          },
         };
 
         this.ws.send(JSON.stringify(responseEnvelope));
@@ -246,7 +319,9 @@ class A2AOllamaAgent {
 
         // Log cache stats
         const stats = this.messageCache.getStats();
-        logger.info(`📊 Cache stats: ${stats.hitRate} hit rate, ${stats.size}/${stats.maxSize} entries\n`);
+        logger.info(
+          `📊 Cache stats: ${stats.hitRate} hit rate, ${stats.size}/${stats.maxSize} entries\n`
+        );
         return;
       }
 
@@ -270,8 +345,8 @@ class A2AOllamaAgent {
           top_k: LLM.OLLAMA.DEFAULT_TOP_K,
           num_predict: LLM.OLLAMA.DEFAULT_NUM_PREDICT,
           num_ctx: LLM.OLLAMA.DEFAULT_NUM_CTX,
-          num_thread: LLM.OLLAMA.DEFAULT_NUM_THREAD
-        }
+          num_thread: LLM.OLLAMA.DEFAULT_NUM_THREAD,
+        },
       });
 
       while (retries > 0) {
@@ -280,20 +355,20 @@ class A2AOllamaAgent {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Connection': 'keep-alive',
-              'Accept-Encoding': 'gzip, deflate'
+              Connection: 'keep-alive',
+              'Accept-Encoding': 'gzip, deflate',
             },
             body: requestBody,
             signal: controller.signal,
-            keepalive: true
+            keepalive: true,
           });
           if (response.ok) break;
           retries--;
-          if (retries > 0) await new Promise(r => setTimeout(r, LLM.OLLAMA.RETRY_DELAY_MS));
+          if (retries > 0) await new Promise((r) => setTimeout(r, LLM.OLLAMA.RETRY_DELAY_MS));
         } catch (err) {
           retries--;
           if (retries === 0) throw err;
-          await new Promise(r => setTimeout(r, LLM.OLLAMA.RETRY_DELAY_MS));
+          await new Promise((r) => setTimeout(r, LLM.OLLAMA.RETRY_DELAY_MS));
         }
       }
 
@@ -326,21 +401,21 @@ class A2AOllamaAgent {
             model: MODEL,
             agent: this.agentId,
             cached: false,
-            processed_at: new Date().toISOString()
-          }
-        }
+            processed_at: new Date().toISOString(),
+          },
+        },
       };
 
       this.ws.send(JSON.stringify(responseEnvelope));
       logger.info(`📤 Sent response back to ${from}\n`);
-
     } catch (error) {
       logger.error(`❌ Error processing message:`, error.message);
 
       // Sanitize error message for production
-      const sanitizedError = process.env.NODE_ENV === 'production'
-        ? 'An error occurred processing your request'
-        : error.message;
+      const sanitizedError =
+        process.env.NODE_ENV === 'production'
+          ? 'An error occurred processing your request'
+          : error.message;
 
       // Send error response
       const errorEnvelope = {
@@ -353,9 +428,9 @@ class A2AOllamaAgent {
           payload: {
             error: sanitizedError,
             agent: this.agentId,
-            timestamp: new Date().toISOString()
-          }
-        }
+            timestamp: new Date().toISOString(),
+          },
+        },
       };
       this.ws.send(JSON.stringify(errorEnvelope));
     }
@@ -393,8 +468,12 @@ function cleanup() {
     const stats = agent.messageCache.getStats();
     const health = agent.messageCache.getHealth();
 
-    logger.info(`📊 Final cache stats: ${stats.hits} hits, ${stats.misses} misses (${stats.hitRate} hit rate)`);
-    logger.info(`🏥 Cache health: ${health.healthy ? 'Healthy' : 'Needs attention'} (utilization: ${health.utilization})`);
+    logger.info(
+      `📊 Final cache stats: ${stats.hits} hits, ${stats.misses} misses (${stats.hitRate} hit rate)`
+    );
+    logger.info(
+      `🏥 Cache health: ${health.healthy ? 'Healthy' : 'Needs attention'} (utilization: ${health.utilization})`
+    );
 
     if (health.recommendations.length > 0) {
       logger.info(`💡 Recommendations: ${health.recommendations.join(', ')}`);

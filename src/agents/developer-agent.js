@@ -25,9 +25,9 @@ export class DeveloperAgent extends BaseAgent {
         code_analysis: true,
         command_exec: true,
         git_operations: true,
-        test_execution: true
+        test_execution: true,
       },
-      ...config
+      ...config,
     });
 
     this.ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434';
@@ -60,7 +60,7 @@ export class DeveloperAgent extends BaseAgent {
       this.send({
         intent: 'error',
         to: message.from,
-        payload: { error: error.message }
+        payload: { error: error.message },
       });
     }
   }
@@ -76,7 +76,7 @@ export class DeveloperAgent extends BaseAgent {
 TASK: ${payload.description}
 
 SUCCESS CRITERIA:
-${payload.criteria?.map(c => `- ${c}`).join('\n') || 'Complete implementation'}
+${payload.criteria?.map((c) => `- ${c}`).join('\n') || 'Complete implementation'}
 
 ${architecturePlan ? `ARCHITECTURE PLAN:\n${architecturePlan}\n` : ''}
 
@@ -106,8 +106,8 @@ Write production-ready code with best practices.`;
         agent: this.config.clientId,
         task: payload.description,
         deliverable: filepath,
-        summary: response.substring(0, 200)
-      }
+        summary: response.substring(0, 200),
+      },
     });
   }
 
@@ -140,8 +140,8 @@ Provide complete, working code with:
       to: payload.requester || 'coordinator',
       payload: {
         type: 'implementation',
-        deliverable: filepath
-      }
+        deliverable: filepath,
+      },
     });
   }
 
@@ -161,15 +161,15 @@ Provide refactored code with explanations.`;
       to: payload.requester || 'coordinator',
       payload: {
         type: 'refactor',
-        result: response
-      }
+        result: response,
+      },
     });
   }
 
   async findArchitecturePlan() {
     try {
       const files = await fs.readdir(this.workspace);
-      const archFiles = files.filter(f => f.startsWith('architecture-'));
+      const archFiles = files.filter((f) => f.startsWith('architecture-'));
 
       if (archFiles.length > 0) {
         const latest = archFiles.sort().reverse()[0];
@@ -190,8 +190,8 @@ Provide refactored code with explanations.`;
         body: JSON.stringify({
           model: this.model,
           prompt: prompt,
-          stream: false
-        })
+          stream: false,
+        }),
       });
 
       if (!response.ok) {
@@ -208,11 +208,13 @@ Provide refactored code with explanations.`;
 
   send(message) {
     if (this.isConnected && this.ws) {
-      this.ws.send(JSON.stringify({
-        from: this.config.clientId,
-        timestamp: Date.now(),
-        ...message
-      }));
+      this.ws.send(
+        JSON.stringify({
+          from: this.config.clientId,
+          timestamp: Date.now(),
+          ...message,
+        })
+      );
     } else {
       this.messageQueue.push(message);
     }

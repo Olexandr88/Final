@@ -1,1 +1,1 @@
-console.log("Welcome to Vibe Workspace!");
+console.log('Welcome to Vibe Workspace!');

@@ -21,8 +21,8 @@ async function httpExample() {
     body: JSON.stringify({
       agent_id: 'worker-1',
       capabilities: ['data-processing'],
-      metadata: { version: '1.0' }
-    })
+      metadata: { version: '1.0' },
+    }),
   });
   console.log('✅ Registered:', await reg.json());
 
@@ -33,8 +33,8 @@ async function httpExample() {
     body: JSON.stringify({
       from: 'worker-1',
       to: 'test-agent-1',
-      payload: { task: 'analyze data', data: [1, 2, 3] }
-    })
+      payload: { task: 'analyze data', data: [1, 2, 3] },
+    }),
   });
   console.log('✅ Message sent:', await msg.json());
 
@@ -47,10 +47,10 @@ async function httpExample() {
       steps: [
         { provider: 'ollama', action: 'preprocess' },
         { provider: 'claude', action: 'analyze' },
-        { provider: 'ollama', action: 'summarize' }
+        { provider: 'ollama', action: 'summarize' },
       ],
-      input: 'User data to process'
-    })
+      input: 'User data to process',
+    }),
   });
   console.log('✅ Workflow created:', await wf.json());
 }
@@ -65,13 +65,15 @@ function websocketExample() {
     console.log('✅ Connected to bridge');
 
     // Register with capabilities
-    ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'realtime-agent',
-      role: 'worker',
-      tools: ['compute', 'transform'],
-      maxConcurrentTasks: 5
-    }));
+    ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'realtime-agent',
+        role: 'worker',
+        tools: ['compute', 'transform'],
+        maxConcurrentTasks: 5,
+      })
+    );
   });
 
   ws.on('message', (data) => {
@@ -81,25 +83,29 @@ function websocketExample() {
       console.log('✅ Registered as:', msg.client.id);
 
       // Send envelope to specific agent
-      ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: 'realtime-agent',
-          to: 'worker-1',
-          intent: 'task.assign',
-          payload: { job: 'compute-42' }
-        }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: 'realtime-agent',
+            to: 'worker-1',
+            intent: 'task.assign',
+            payload: { job: 'compute-42' },
+          },
+        })
+      );
 
       // Broadcast to all agents
-      ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: 'realtime-agent',
-          intent: 'system.announce',
-          payload: { status: 'ready' }
-        }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: 'realtime-agent',
+            intent: 'system.announce',
+            payload: { status: 'ready' },
+          },
+        })
+      );
     }
 
     if (msg[0] === 'env') {
@@ -133,9 +139,9 @@ async function collaborationExample() {
       data: {
         users: 1000,
         events: 5000,
-        timeframe: '24h'
-      }
-    })
+        timeframe: '24h',
+      },
+    }),
   });
   console.log('✅ Collaboration started:', await result.json());
 }
@@ -146,7 +152,7 @@ async function collaborationExample() {
     await httpExample();
     const ws = websocketExample();
 
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     await collaborationExample();
 
     setTimeout(() => {
@@ -154,7 +160,6 @@ async function collaborationExample() {
       console.log('\n✅ Demo complete\n');
       process.exit(0);
     }, 3000);
-
   } catch (err) {
     console.error('❌ Error:', err.message);
     process.exit(1);

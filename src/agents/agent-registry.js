@@ -39,25 +39,27 @@ export class AgentRegistry {
   }
 
   list() {
-    return Array.from(this.agents.values()).map(a => ({
+    return Array.from(this.agents.values()).map((a) => ({
       id: a.id,
       role: a.role,
       skills: Array.from(a.skills),
       intents: Array.from(a.intents),
-      load: a.load
+      load: a.load,
     }));
   }
 
   findByRole(role) {
     const ids = this.roles.get(role);
     if (!ids || ids.size === 0) return [];
-    return Array.from(ids).map(id => this.agents.get(id)).filter(Boolean);
+    return Array.from(ids)
+      .map((id) => this.agents.get(id))
+      .filter(Boolean);
   }
 
   // Choose best agent by skill overlap and lowest load
   choose(roleOrIds, requiredSkills = []) {
     const pool = Array.isArray(roleOrIds)
-      ? roleOrIds.map(id => this.agents.get(id)).filter(Boolean)
+      ? roleOrIds.map((id) => this.agents.get(id)).filter(Boolean)
       : this.findByRole(roleOrIds);
 
     if (pool.length === 0) return null;
@@ -100,7 +102,7 @@ export class TaskGuard {
       taskId: envelope.taskId,
       round: envelope.trace?.round || 0,
       from: envelope.from,
-      to: envelope.to
+      to: envelope.to,
     });
 
     if (this.seen.has(key)) return false;

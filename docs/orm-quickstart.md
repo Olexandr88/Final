@@ -16,6 +16,7 @@ npx prisma init --datasource-provider sqlite
 ```
 
 This creates:
+
 - `prisma/schema.prisma` - Database schema
 - `.env` - Environment variables (add DATABASE_URL)
 
@@ -50,6 +51,7 @@ node examples/orm-migration-demo.js
 ```
 
 Expected output:
+
 ```
 === Example 1: Simple CRUD Operations ===
 Raw SQL Insert: 2.1ms
@@ -70,6 +72,7 @@ node scripts/benchmark-orm-performance.js
 Expected runtime: 30-60 seconds
 
 Expected output:
+
 ```
 ==========================================
   ORM Performance Benchmark Summary
@@ -235,6 +238,7 @@ npx prisma studio
 Opens at `http://localhost:5555`
 
 Features:
+
 - View all tables
 - Edit data
 - Run queries
@@ -247,6 +251,7 @@ Features:
 ### Issue: "PrismaClient not found"
 
 **Solution**:
+
 ```bash
 npx prisma generate
 ```
@@ -255,6 +260,7 @@ npx prisma generate
 
 **Solution**:
 Check DATABASE_URL in `.env`:
+
 ```bash
 echo $DATABASE_URL
 # Should output: file:./data/llm-framework.db
@@ -263,6 +269,7 @@ echo $DATABASE_URL
 ### Issue: "Migration failed"
 
 **Solution**:
+
 ```bash
 # Check migration status
 npx prisma migrate status
@@ -274,6 +281,7 @@ npx prisma migrate resolve --applied 20250120000000_migration_name
 ### Issue: Performance degradation
 
 **Solution**:
+
 1. Check logs: `npm run log:analyze`
 2. Run benchmark: `node scripts/benchmark-orm-performance.js`
 3. Use hybrid approach (raw SQL for hot paths)
@@ -312,7 +320,7 @@ import { prisma } from './src/database/prisma-client.js';
 // Get all active sessions
 const sessions = await prisma.session.findMany({
   where: { status: 'active' },
-  include: { locks: true }
+  include: { locks: true },
 });
 
 console.log(`Active sessions: ${sessions.length}`);
@@ -328,8 +336,8 @@ const session = await prisma.session.create({
     startTime: Date.now(),
     lastHeartbeat: Date.now(),
     status: 'active',
-    cwd: process.cwd()
-  }
+    cwd: process.cwd(),
+  },
 });
 ```
 
@@ -338,7 +346,7 @@ const session = await prisma.session.create({
 ```javascript
 await prisma.session.update({
   where: { id: 'session-id' },
-  data: { lastHeartbeat: Date.now() }
+  data: { lastHeartbeat: Date.now() },
 });
 ```
 
@@ -346,7 +354,7 @@ await prisma.session.update({
 
 ```javascript
 await prisma.session.delete({
-  where: { id: 'session-id' }
+  where: { id: 'session-id' },
 });
 ```
 
@@ -356,11 +364,11 @@ await prisma.session.delete({
 await prisma.$transaction([
   prisma.session.update({
     where: { id: 'session-1' },
-    data: { status: 'inactive' }
+    data: { status: 'inactive' },
   }),
   prisma.lock.deleteMany({
-    where: { sessionId: 'session-1' }
-  })
+    where: { sessionId: 'session-1' },
+  }),
 ]);
 ```
 
@@ -431,8 +439,8 @@ const prisma = new PrismaClient({
   log: [
     { level: 'query', emit: 'event' },
     { level: 'warn', emit: 'event' },
-    { level: 'error', emit: 'event' }
-  ]
+    { level: 'error', emit: 'event' },
+  ],
 });
 
 prisma.$on('query', (e) => {
@@ -446,13 +454,13 @@ prisma.$on('query', (e) => {
 ```javascript
 // BAD: Fetches all fields
 const session = await prisma.session.findUnique({
-  where: { id: 'session-1' }
+  where: { id: 'session-1' },
 });
 
 // GOOD: Fetches only needed fields
 const session = await prisma.session.findUnique({
   where: { id: 'session-1' },
-  select: { id: true, status: true }
+  select: { id: true, status: true },
 });
 ```
 
@@ -466,7 +474,7 @@ for (const id of sessionIds) {
 
 // GOOD: Single query
 const sessions = await prisma.session.findMany({
-  where: { id: { in: sessionIds } }
+  where: { id: { in: sessionIds } },
 });
 ```
 

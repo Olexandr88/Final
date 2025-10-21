@@ -1,6 +1,7 @@
 # LLM Framework MCP Server - Quick Reference
 
 ## Configuration File
+
 **Location**: `C:\Users\scarm\.claude\mcp.json`
 
 ## Quick Start Commands
@@ -18,18 +19,18 @@ npm run system:start
 
 ## Available MCP Tools
 
-| Tool | Description | Key Parameters |
-|------|-------------|----------------|
-| `analyze_code` | Code analysis for bugs and quality | `code`, `filepath`, `language` |
-| `run_tests` | Execute test suite | `pattern`, `timeout`, `parallel` |
-| `get_context` | Get session context | `sessionId`, `includeHistory` |
-| `execute_command` | Run shell commands safely | `command`, `cwd`, `timeout`, `env` |
-| `read_file` | Read file contents | `filepath`, `encoding`, `maxSize` |
-| `write_file` | Write to file with backup | `filepath`, `content`, `createBackup` |
-| `jules_list_sessions` | List Jules sessions (requires `JULES_API_KEY`) | `page_size`, `page_token` |
-| `jules_get_session` | Fetch details for a Jules session | `session_id` |
-| `jules_create_session` | Create a Jules session for a source | `prompt`, `source_id`, `starting_branch` |
-| `jules_send_message` | Send a message to a Jules session | `session_id`, `message` |
+| Tool                   | Description                                    | Key Parameters                           |
+| ---------------------- | ---------------------------------------------- | ---------------------------------------- |
+| `analyze_code`         | Code analysis for bugs and quality             | `code`, `filepath`, `language`           |
+| `run_tests`            | Execute test suite                             | `pattern`, `timeout`, `parallel`         |
+| `get_context`          | Get session context                            | `sessionId`, `includeHistory`            |
+| `execute_command`      | Run shell commands safely                      | `command`, `cwd`, `timeout`, `env`       |
+| `read_file`            | Read file contents                             | `filepath`, `encoding`, `maxSize`        |
+| `write_file`           | Write to file with backup                      | `filepath`, `content`, `createBackup`    |
+| `jules_list_sessions`  | List Jules sessions (requires `JULES_API_KEY`) | `page_size`, `page_token`                |
+| `jules_get_session`    | Fetch details for a Jules session              | `session_id`                             |
+| `jules_create_session` | Create a Jules session for a source            | `prompt`, `source_id`, `starting_branch` |
+| `jules_send_message`   | Send a message to a Jules session              | `session_id`, `message`                  |
 
 ## Configuration Summary
 
@@ -53,23 +54,25 @@ npm run system:start
 ## Integration Points
 
 ### With Claude Code
+
 - Automatic startup via stdio transport
 - Tools appear in Claude Code's tool palette
 - JSON-RPC communication over stdin/stdout
 
 ### With AI Bridge
+
 - WebSocket: ws://localhost:65028
 - HTTP API: http://localhost:65029
 - Multi-agent orchestration
 
 ## Common Issues
 
-| Issue | Solution |
-|-------|----------|
-| Tools not showing | Restart Claude Code, check `disabled: false` |
+| Issue              | Solution                                          |
+| ------------------ | ------------------------------------------------- |
+| Tools not showing  | Restart Claude Code, check `disabled: false`      |
 | Connection timeout | Increase timeout in config, check Node.js version |
-| Permission errors | Verify file permissions, run with admin if needed |
-| AI Bridge offline | Start with `npm run bridge:start` |
+| Permission errors  | Verify file permissions, run with admin if needed |
+| AI Bridge offline  | Start with `npm run bridge:start`                 |
 
 ## File Locations
 

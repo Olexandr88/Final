@@ -33,12 +33,12 @@ export class MathTools {
         success: true,
         expression,
         result: rounded,
-        rawResult: result
+        rawResult: result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -52,7 +52,7 @@ export class MathTools {
         throw new Error('Data must be a non-empty array');
       }
 
-      const numbers = data.map(n => {
+      const numbers = data.map((n) => {
         const num = typeof n === 'string' ? parseFloat(n) : n;
         if (isNaN(num)) throw new Error(`Invalid number: ${n}`);
         return num;
@@ -104,12 +104,12 @@ export class MathTools {
 
       return {
         success: true,
-        measures: results
+        measures: results,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -140,12 +140,12 @@ export class MathTools {
         original: number,
         fromBase,
         toBase,
-        result
+        result,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -154,13 +154,7 @@ export class MathTools {
    * Generate random numbers
    */
   static randomNumbers(options = {}) {
-    const {
-      count = 1,
-      min = 0,
-      max = 100,
-      decimals = 0,
-      unique = false
-    } = options;
+    const { count = 1, min = 0, max = 100, decimals = 0, unique = false } = options;
 
     try {
       const results = [];
@@ -185,7 +179,7 @@ export class MathTools {
         }
 
         // Prevent infinite loop
-        if (unique && seen.size >= (max - min + 1)) break;
+        if (unique && seen.size >= max - min + 1) break;
       }
 
       return {
@@ -193,12 +187,12 @@ export class MathTools {
         count: results.length,
         min,
         max,
-        results
+        results,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -218,12 +212,12 @@ export class MathTools {
         value,
         total,
         percentage: rounded,
-        formatted: `${rounded}%`
+        formatted: `${rounded}%`,
       };
     } catch (error) {
       return {
         success: false,
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -236,9 +230,7 @@ export class MathTools {
   static _median(numbers) {
     const sorted = [...numbers].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0
-      ? (sorted[mid - 1] + sorted[mid]) / 2
-      : sorted[mid];
+    return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
   }
 
   static _mode(numbers) {
@@ -246,7 +238,7 @@ export class MathTools {
     let maxFreq = 0;
     let modes = [];
 
-    numbers.forEach(n => {
+    numbers.forEach((n) => {
       frequency[n] = (frequency[n] || 0) + 1;
       if (frequency[n] > maxFreq) {
         maxFreq = frequency[n];
@@ -276,39 +268,61 @@ export class MathTools {
 
 // CLI Interface
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [,, command, ...args] = process.argv;
+  const [, , command, ...args] = process.argv;
 
   const commands = {
-    'calc': () => {
+    calc: () => {
       const [expression, precision] = args;
-      console.log(JSON.stringify(MathTools.calculate(expression, {
-        precision: precision ? parseInt(precision) : 2
-      }), null, 2));
+      console.log(
+        JSON.stringify(
+          MathTools.calculate(expression, {
+            precision: precision ? parseInt(precision) : 2,
+          }),
+          null,
+          2
+        )
+      );
     },
-    'stats': () => {
-      const data = args[0].split(',').map(n => parseFloat(n.trim()));
+    stats: () => {
+      const data = args[0].split(',').map((n) => parseFloat(n.trim()));
       const measures = args.slice(1);
-      console.log(JSON.stringify(MathTools.statistics(data, measures.length ? measures : ['all']), null, 2));
+      console.log(
+        JSON.stringify(MathTools.statistics(data, measures.length ? measures : ['all']), null, 2)
+      );
     },
-    'convert': () => {
+    convert: () => {
       const [number, fromBase, toBase] = args;
-      console.log(JSON.stringify(MathTools.convertBase(number, parseInt(fromBase), parseInt(toBase)), null, 2));
+      console.log(
+        JSON.stringify(MathTools.convertBase(number, parseInt(fromBase), parseInt(toBase)), null, 2)
+      );
     },
-    'random': () => {
+    random: () => {
       const [count, min, max, decimals] = args;
-      console.log(JSON.stringify(MathTools.randomNumbers({
-        count: count ? parseInt(count) : 1,
-        min: min ? parseFloat(min) : 0,
-        max: max ? parseFloat(max) : 100,
-        decimals: decimals ? parseInt(decimals) : 0
-      }), null, 2));
+      console.log(
+        JSON.stringify(
+          MathTools.randomNumbers({
+            count: count ? parseInt(count) : 1,
+            min: min ? parseFloat(min) : 0,
+            max: max ? parseFloat(max) : 100,
+            decimals: decimals ? parseInt(decimals) : 0,
+          }),
+          null,
+          2
+        )
+      );
     },
-    'percent': () => {
+    percent: () => {
       const [value, total, precision] = args;
-      console.log(JSON.stringify(MathTools.percentage(parseFloat(value), parseFloat(total), {
-        precision: precision ? parseInt(precision) : 2
-      }), null, 2));
-    }
+      console.log(
+        JSON.stringify(
+          MathTools.percentage(parseFloat(value), parseFloat(total), {
+            precision: precision ? parseInt(precision) : 2,
+          }),
+          null,
+          2
+        )
+      );
+    },
   };
 
   if (commands[command]) {

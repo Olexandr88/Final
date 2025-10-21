@@ -30,7 +30,7 @@ class SessionManager {
       timestamp: new Date().toISOString(),
       summary: summary.summary,
       environment: this.captureEnvironment(),
-      recommendations: this.generateRecommendations()
+      recommendations: this.generateRecommendations(),
     };
 
     const stateFile = path.join(this.sessionDir, `${sessionName}-state.json`);
@@ -56,8 +56,9 @@ class SessionManager {
       sessionFile = path.join(this.sessionDir, `${name}-state.json`);
     } else {
       // Load most recent
-      const files = fs.readdirSync(this.sessionDir)
-        .filter(f => f.endsWith('-state.json'))
+      const files = fs
+        .readdirSync(this.sessionDir)
+        .filter((f) => f.endsWith('-state.json'))
         .sort()
         .reverse();
 
@@ -106,14 +107,22 @@ ${state.summary.changes.log}
 - Environment: ${state.environment.node} Node, ${state.environment.os}
 
 ## Outstanding Issues
-${state.summary.issues.map((issue, i) => `
+${state.summary.issues
+  .map(
+    (issue, i) => `
 ${i + 1}. **${issue.type}**: ${issue.message || issue.count + ' items'}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ## Next Steps (Priority Order)
-${state.recommendations.nextSteps.map((step, i) => `
+${state.recommendations.nextSteps
+  .map(
+    (step, i) => `
 ${i + 1}. ${step}
-`).join('\n')}
+`
+  )
+  .join('\n')}
 
 ## Recommendations
 ${state.recommendations.focus || 'Continue with next steps above'}
@@ -129,7 +138,7 @@ ${state.recommendations.focus || 'Continue with next steps above'}
       node: process.version,
       platform: process.platform,
       os: process.platform,
-      cwd: this.root
+      cwd: this.root,
     };
 
     try {
@@ -144,7 +153,7 @@ ${state.recommendations.focus || 'Continue with next steps above'}
   generateRecommendations() {
     const recs = {
       nextSteps: [],
-      focus: ''
+      focus: '',
     };
 
     const contextSize = this.contextManager.estimateContextSize();
@@ -173,16 +182,17 @@ ${state.recommendations.focus || 'Continue with next steps above'}
       return [];
     }
 
-    const sessions = fs.readdirSync(this.sessionDir)
-      .filter(f => f.endsWith('-state.json'))
-      .map(f => {
+    const sessions = fs
+      .readdirSync(this.sessionDir)
+      .filter((f) => f.endsWith('-state.json'))
+      .map((f) => {
         try {
           const state = JSON.parse(fs.readFileSync(path.join(this.sessionDir, f), 'utf8'));
           return {
             name: state.name,
             timestamp: state.timestamp,
             issues: state.summary.issues.length,
-            nextSteps: state.recommendations.nextSteps.length
+            nextSteps: state.recommendations.nextSteps.length,
           };
         } catch {
           return null;
@@ -206,7 +216,7 @@ ${state.recommendations.focus || 'Continue with next steps above'}
     const toDelete = sessions.slice(keepLast);
     let deleted = 0;
 
-    toDelete.forEach(session => {
+    toDelete.forEach((session) => {
       const stateFile = path.join(this.sessionDir, `${session.name}-state.json`);
       const summaryFile = path.join(this.sessionDir, `${session.name}.md`);
 
@@ -238,7 +248,6 @@ if (require.main === module) {
     manager.saveSession(name).then(() => {
       console.log('\n✓ Session saved successfully');
     });
-
   } else if (command === 'load') {
     const name = process.argv[3];
     const state = manager.loadSession(name);
@@ -246,7 +255,6 @@ if (require.main === module) {
     if (state) {
       console.log(manager.generateHandoffPrompt(state));
     }
-
   } else if (command === 'list') {
     const sessions = manager.listSessions();
     console.log(`Found ${sessions.length} sessions:\n`);
@@ -255,11 +263,9 @@ if (require.main === module) {
       console.log(`   ${s.timestamp}`);
       console.log(`   Issues: ${s.issues} | Next steps: ${s.nextSteps}\n`);
     });
-
   } else if (command === 'clean') {
     const keep = parseInt(process.argv[3]) || 10;
     manager.cleanOldSessions(keep);
-
   } else {
     console.log('Session Manager - Context reset and compression');
     console.log('\nUsage:');

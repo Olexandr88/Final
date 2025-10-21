@@ -96,7 +96,7 @@ class TDDWorkflow {
     try {
       const output = execSync('npm test 2>&1', {
         cwd: this.root,
-        encoding: 'utf8'
+        encoding: 'utf8',
       });
 
       // Parse test output
@@ -110,9 +110,8 @@ class TDDWorkflow {
         passed: failed === 0,
         total: passed + failed,
         failed,
-        output
+        output,
       };
-
     } catch (error) {
       // Tests failed
       const output = error.stdout || error.stderr || '';
@@ -126,7 +125,7 @@ class TDDWorkflow {
         passed: false,
         total: passed + failed,
         failed,
-        output
+        output,
       };
     }
   }
@@ -155,12 +154,16 @@ class TDDWorkflow {
   static generateTestTemplate(feature, acceptance) {
     return `
 describe('${feature}', () => {
-${acceptance.map(criterion => `
+${acceptance
+  .map(
+    (criterion) => `
   it('should ${criterion}', () => {
     // TODO: Write test
     expect(true).toBe(false); // Failing test
   });
-`).join('\n')}
+`
+  )
+  .join('\n')}
 });
 `.trim();
   }
@@ -184,9 +187,10 @@ ${acceptance.map(criterion => `
       console.log(`  Functions: ${total.functions.pct}%`);
       console.log(`  Statements: ${total.statements.pct}%`);
 
-      const passed = total.lines.pct >= threshold &&
-                     total.branches.pct >= threshold &&
-                     total.functions.pct >= threshold;
+      const passed =
+        total.lines.pct >= threshold &&
+        total.branches.pct >= threshold &&
+        total.functions.pct >= threshold;
 
       if (passed) {
         console.log(`\n✓ Coverage above ${threshold}% threshold`);
@@ -195,7 +199,6 @@ ${acceptance.map(criterion => `
       }
 
       return passed;
-
     } catch (error) {
       console.error('Error reading coverage:', error.message);
       return false;
@@ -219,18 +222,15 @@ if (require.main === module) {
     }
 
     console.log(TDDWorkflow.generateTestTemplate(feature, acceptance));
-
   } else if (command === 'verify') {
     const threshold = parseInt(process.argv[3]) || 90;
     const passed = workflow.verifyCoverage(threshold);
     process.exit(passed ? 0 : 1);
-
   } else if (command === 'status') {
     const result = workflow.runTests();
     console.log(`Tests: ${result.passed ? 'PASSING' : 'FAILING'}`);
     console.log(`Total: ${result.total} | Failed: ${result.failed}`);
     process.exit(result.passed ? 0 : 1);
-
   } else {
     console.log('TDD Workflow Automation');
     console.log('\nUsage:');

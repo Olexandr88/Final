@@ -13,11 +13,11 @@ const OLLAMA_AGENT = 'ollama-agent-1';
 await fs.mkdir(WORKSPACE, { recursive: true });
 
 function wait(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function sendTask(role, taskDescription, context = {}) {
-  const historyBefore = await fetch(`${BRIDGE_URL}/history`).then(r => r.json());
+  const historyBefore = await fetch(`${BRIDGE_URL}/history`).then((r) => r.json());
   const messageCountBefore = historyBefore.history?.length || 0;
 
   const sendResponse = await fetch(`${BRIDGE_URL}/api/send`, {
@@ -26,8 +26,8 @@ async function sendTask(role, taskDescription, context = {}) {
     body: JSON.stringify({
       to: OLLAMA_AGENT,
       intent: 'ai.query',
-      payload: { message: buildRolePrompt(role, taskDescription, context) }
-    })
+      payload: { message: buildRolePrompt(role, taskDescription, context) },
+    }),
   });
 
   if (!sendResponse.ok) {
@@ -40,12 +40,12 @@ async function sendTask(role, taskDescription, context = {}) {
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     await wait(pollInterval);
 
-    const historyAfter = await fetch(`${BRIDGE_URL}/history`).then(r => r.json());
+    const historyAfter = await fetch(`${BRIDGE_URL}/history`).then((r) => r.json());
     const messages = historyAfter.history || [];
 
-    const newResponses = messages.slice(messageCountBefore).filter(msg =>
-      msg.intent === 'ai.response' && msg.from === OLLAMA_AGENT
-    );
+    const newResponses = messages
+      .slice(messageCountBefore)
+      .filter((msg) => msg.intent === 'ai.response' && msg.from === OLLAMA_AGENT);
 
     if (newResponses.length > 0) {
       const response = newResponses[newResponses.length - 1];
@@ -53,8 +53,8 @@ async function sendTask(role, taskDescription, context = {}) {
         response: response.payload?.response || 'No response generated',
         metadata: {
           timestamp: response.timestamp,
-          model: response.payload?.model
-        }
+          model: response.payload?.model,
+        },
       };
     }
   }
@@ -68,7 +68,7 @@ function buildRolePrompt(role, taskDescription, context) {
 
 TASK: ${taskDescription}
 
-${context.requirements ? `REQUIREMENTS:\n${context.requirements.map(r => `- ${r}`).join('\n')}\n` : ''}
+${context.requirements ? `REQUIREMENTS:\n${context.requirements.map((r) => `- ${r}`).join('\n')}\n` : ''}
 
 Provide:
 1. System Overview - High-level architecture
@@ -85,7 +85,7 @@ Provide:
 TASK: ${taskDescription}
 
 ${context.architecture ? `ARCHITECTURE:\n${context.architecture}\n` : ''}
-${context.requirements ? `REQUIREMENTS:\n${context.requirements.map(r => `- ${r}`).join('\n')}\n` : ''}
+${context.requirements ? `REQUIREMENTS:\n${context.requirements.map((r) => `- ${r}`).join('\n')}\n` : ''}
 
 Provide:
 1. Core Implementation - Complete working code
@@ -102,7 +102,7 @@ Provide:
 TASK: ${taskDescription}
 
 ${context.implementation ? `IMPLEMENTATION:\n${context.implementation}\n` : ''}
-${context.requirements ? `REQUIREMENTS:\n${context.requirements.map(r => `- ${r}`).join('\n')}\n` : ''}
+${context.requirements ? `REQUIREMENTS:\n${context.requirements.map((r) => `- ${r}`).join('\n')}\n` : ''}
 
 Provide:
 1. Unit Tests - Test individual functions
@@ -112,7 +112,7 @@ Provide:
 5. Test Data - Realistic fixtures
 6. Coverage Analysis - What's tested
 7. CI/CD Integration - Automation
-8. Quality Metrics - Success criteria`
+8. Quality Metrics - Success criteria`,
   };
 
   return rolePrompts[role] || taskDescription;
@@ -141,7 +141,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
     architecture: null,
     implementation: null,
     tests: null,
-    deliverables: []
+    deliverables: [],
   };
 
   try {
@@ -173,7 +173,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
 
     const devResult = await sendTask('developer', projectDescription, {
       requirements,
-      architecture: results.architecture.substring(0, 1000)
+      architecture: results.architecture.substring(0, 1000),
     });
     const devContent = devResult.response || 'No implementation generated';
     results.implementation = devContent;
@@ -195,7 +195,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
 
     const testResult = await sendTask('tester', projectDescription, {
       requirements,
-      implementation: results.implementation.substring(0, 1000)
+      implementation: results.implementation.substring(0, 1000),
     });
     const testContent = testResult.response || 'No tests generated';
     results.tests = testContent;
@@ -212,7 +212,7 @@ async function executeWorkflow(projectDescription, requirements = []) {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('');
     console.log('📦 Deliverables:');
-    results.deliverables.forEach(file => {
+    results.deliverables.forEach((file) => {
       console.log(`   - ${path.basename(file)}`);
     });
     console.log('');
@@ -220,7 +220,6 @@ async function executeWorkflow(projectDescription, requirements = []) {
     console.log('');
 
     return results;
-
   } catch (error) {
     console.error('');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -236,186 +235,155 @@ async function executeWorkflow(projectDescription, requirements = []) {
 // ========== WORKFLOW TEMPLATES ==========
 
 export const templates = {
-
   // 1. Microservice Template
   async microservice(serviceName, features = []) {
-    await executeWorkflow(
-      `${serviceName} - Microservice with RESTful API`,
-      [
-        'RESTful API with OpenAPI/Swagger documentation',
-        'Database integration (PostgreSQL/MongoDB)',
-        'JWT authentication and authorization',
-        'Request validation and error handling',
-        'Structured logging with correlation IDs',
-        'Health checks and readiness probes',
-        'Docker containerization',
-        'Kubernetes deployment manifests',
-        ...features
-      ]
-    );
+    await executeWorkflow(`${serviceName} - Microservice with RESTful API`, [
+      'RESTful API with OpenAPI/Swagger documentation',
+      'Database integration (PostgreSQL/MongoDB)',
+      'JWT authentication and authorization',
+      'Request validation and error handling',
+      'Structured logging with correlation IDs',
+      'Health checks and readiness probes',
+      'Docker containerization',
+      'Kubernetes deployment manifests',
+      ...features,
+    ]);
   },
 
   // 2. Event-Driven System
   async eventDriven(systemName, events = []) {
-    await executeWorkflow(
-      `${systemName} - Event-Driven Architecture`,
-      [
-        'Event bus (Kafka/RabbitMQ/Redis Streams)',
-        'Event schema registry',
-        'Producer and consumer implementations',
-        'Event sourcing pattern',
-        'CQRS (Command Query Responsibility Segregation)',
-        'Dead letter queue handling',
-        'Event replay capability',
-        'At-least-once delivery guarantee',
-        ...events
-      ]
-    );
+    await executeWorkflow(`${systemName} - Event-Driven Architecture`, [
+      'Event bus (Kafka/RabbitMQ/Redis Streams)',
+      'Event schema registry',
+      'Producer and consumer implementations',
+      'Event sourcing pattern',
+      'CQRS (Command Query Responsibility Segregation)',
+      'Dead letter queue handling',
+      'Event replay capability',
+      'At-least-once delivery guarantee',
+      ...events,
+    ]);
   },
 
   // 3. Real-Time Dashboard
   async dashboard(dashboardName, metrics = []) {
-    await executeWorkflow(
-      `${dashboardName} - Real-Time Analytics Dashboard`,
-      [
-        'WebSocket-based real-time updates',
-        'React/Vue.js frontend with charts',
-        'Time-series data aggregation',
-        'Multi-tenant data isolation',
-        'Responsive design (mobile/desktop)',
-        'Export to PDF/CSV',
-        'Alert thresholds and notifications',
-        'Historical data comparison',
-        ...metrics
-      ]
-    );
+    await executeWorkflow(`${dashboardName} - Real-Time Analytics Dashboard`, [
+      'WebSocket-based real-time updates',
+      'React/Vue.js frontend with charts',
+      'Time-series data aggregation',
+      'Multi-tenant data isolation',
+      'Responsive design (mobile/desktop)',
+      'Export to PDF/CSV',
+      'Alert thresholds and notifications',
+      'Historical data comparison',
+      ...metrics,
+    ]);
   },
 
   // 4. CLI Tool
   async cliTool(toolName, commands = []) {
-    await executeWorkflow(
-      `${toolName} - Command-Line Interface Tool`,
-      [
-        'Argument parsing (yargs/commander)',
-        'Interactive prompts',
-        'Progress bars and spinners',
-        'Configuration file support',
-        'Color-coded output',
-        'Auto-completion scripts',
-        'Man page documentation',
-        'Cross-platform compatibility',
-        ...commands
-      ]
-    );
+    await executeWorkflow(`${toolName} - Command-Line Interface Tool`, [
+      'Argument parsing (yargs/commander)',
+      'Interactive prompts',
+      'Progress bars and spinners',
+      'Configuration file support',
+      'Color-coded output',
+      'Auto-completion scripts',
+      'Man page documentation',
+      'Cross-platform compatibility',
+      ...commands,
+    ]);
   },
 
   // 5. Background Worker System
   async workerSystem(systemName, jobs = []) {
-    await executeWorkflow(
-      `${systemName} - Background Job Processing System`,
-      [
-        'Job queue (Bull/BullMQ/Redis)',
-        'Priority-based scheduling',
-        'Retry logic with exponential backoff',
-        'Job progress tracking',
-        'Concurrency control',
-        'Job result persistence',
-        'Dead job monitoring',
-        'Graceful shutdown handling',
-        ...jobs
-      ]
-    );
+    await executeWorkflow(`${systemName} - Background Job Processing System`, [
+      'Job queue (Bull/BullMQ/Redis)',
+      'Priority-based scheduling',
+      'Retry logic with exponential backoff',
+      'Job progress tracking',
+      'Concurrency control',
+      'Job result persistence',
+      'Dead job monitoring',
+      'Graceful shutdown handling',
+      ...jobs,
+    ]);
   },
 
   // 6. Authentication Service
   async authService(serviceName) {
-    await executeWorkflow(
-      `${serviceName} - Authentication and Authorization Service`,
-      [
-        'JWT token generation and validation',
-        'OAuth2/OpenID Connect support',
-        'Multi-factor authentication (TOTP)',
-        'Password hashing (bcrypt/argon2)',
-        'Session management',
-        'Role-based access control (RBAC)',
-        'Refresh token rotation',
-        'Account lockout and rate limiting',
-        'Audit logging'
-      ]
-    );
+    await executeWorkflow(`${serviceName} - Authentication and Authorization Service`, [
+      'JWT token generation and validation',
+      'OAuth2/OpenID Connect support',
+      'Multi-factor authentication (TOTP)',
+      'Password hashing (bcrypt/argon2)',
+      'Session management',
+      'Role-based access control (RBAC)',
+      'Refresh token rotation',
+      'Account lockout and rate limiting',
+      'Audit logging',
+    ]);
   },
 
   // 7. File Processing Pipeline
   async filePipeline(pipelineName, stages = []) {
-    await executeWorkflow(
-      `${pipelineName} - File Processing Pipeline`,
-      [
-        'File upload handling (multipart/form-data)',
-        'Stream-based processing',
-        'Multiple file format support',
-        'Transformation stages',
-        'Validation and sanitization',
-        'Storage (S3/local filesystem)',
-        'Thumbnail/preview generation',
-        'Batch processing support',
-        ...stages
-      ]
-    );
+    await executeWorkflow(`${pipelineName} - File Processing Pipeline`, [
+      'File upload handling (multipart/form-data)',
+      'Stream-based processing',
+      'Multiple file format support',
+      'Transformation stages',
+      'Validation and sanitization',
+      'Storage (S3/local filesystem)',
+      'Thumbnail/preview generation',
+      'Batch processing support',
+      ...stages,
+    ]);
   },
 
   // 8. Search Engine
   async searchEngine(engineName) {
-    await executeWorkflow(
-      `${engineName} - Full-Text Search Engine`,
-      [
-        'Elasticsearch/Algolia integration',
-        'Full-text indexing',
-        'Faceted search and filters',
-        'Autocomplete/typeahead',
-        'Relevance scoring',
-        'Fuzzy matching',
-        'Search analytics',
-        'Index optimization',
-        'Real-time index updates'
-      ]
-    );
+    await executeWorkflow(`${engineName} - Full-Text Search Engine`, [
+      'Elasticsearch/Algolia integration',
+      'Full-text indexing',
+      'Faceted search and filters',
+      'Autocomplete/typeahead',
+      'Relevance scoring',
+      'Fuzzy matching',
+      'Search analytics',
+      'Index optimization',
+      'Real-time index updates',
+    ]);
   },
 
   // 9. Data Sync Service
   async dataSyncService(serviceName) {
-    await executeWorkflow(
-      `${serviceName} - Data Synchronization Service`,
-      [
-        'Change data capture (CDC)',
-        'Conflict resolution strategy',
-        'Incremental sync',
-        'Two-way synchronization',
-        'Sync status tracking',
-        'Rollback capability',
-        'Large dataset handling',
-        'Offline sync queue',
-        'Sync scheduling'
-      ]
-    );
+    await executeWorkflow(`${serviceName} - Data Synchronization Service`, [
+      'Change data capture (CDC)',
+      'Conflict resolution strategy',
+      'Incremental sync',
+      'Two-way synchronization',
+      'Sync status tracking',
+      'Rollback capability',
+      'Large dataset handling',
+      'Offline sync queue',
+      'Sync scheduling',
+    ]);
   },
 
   // 10. Cache Layer
   async cacheLayer(layerName) {
-    await executeWorkflow(
-      `${layerName} - Distributed Cache Layer`,
-      [
-        'Redis cluster setup',
-        'Cache-aside pattern',
-        'Write-through/write-behind strategies',
-        'TTL (Time-To-Live) management',
-        'Cache invalidation',
-        'Hot-key detection',
-        'Cache warming strategies',
-        'Metrics and monitoring',
-        'Fallback to database'
-      ]
-    );
-  }
+    await executeWorkflow(`${layerName} - Distributed Cache Layer`, [
+      'Redis cluster setup',
+      'Cache-aside pattern',
+      'Write-through/write-behind strategies',
+      'TTL (Time-To-Live) management',
+      'Cache invalidation',
+      'Hot-key detection',
+      'Cache warming strategies',
+      'Metrics and monitoring',
+      'Fallback to database',
+    ]);
+  },
 };
 
 // ========== CLI EXECUTION ==========
@@ -431,14 +399,18 @@ if (!templateName || !templates[templateName]) {
   console.log('Usage: node scripts/workflow-templates.js <template> <name> [...features]');
   console.log('');
   console.log('Available templates:');
-  Object.keys(templates).forEach(name => {
+  Object.keys(templates).forEach((name) => {
     console.log(`  - ${name}`);
   });
   console.log('');
   console.log('Examples:');
   console.log('  node scripts/workflow-templates.js microservice "Payment Service"');
-  console.log('  node scripts/workflow-templates.js dashboard "Analytics Dashboard" "Custom metric 1"');
-  console.log('  node scripts/workflow-templates.js cliTool "Deploy Tool" "deploy command" "rollback command"');
+  console.log(
+    '  node scripts/workflow-templates.js dashboard "Analytics Dashboard" "Custom metric 1"'
+  );
+  console.log(
+    '  node scripts/workflow-templates.js cliTool "Deploy Tool" "deploy command" "rollback command"'
+  );
   console.log('');
   process.exit(1);
 }

@@ -18,7 +18,7 @@ const GIT_COMMANDS = {
       // Block 241 - option 1
       const { stdout } = await execAsync('git log --oneline --decorate --graph --all');
       console.log(stdout);
-    }
+    },
   },
 
   'log-pretty': {
@@ -30,7 +30,7 @@ const GIT_COMMANDS = {
       const cmd = `git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit`;
       const { stdout } = await execAsync(cmd);
       console.log(stdout);
-    }
+    },
   },
 
   'log-stats': {
@@ -40,36 +40,36 @@ const GIT_COMMANDS = {
 
       const { stdout } = await execAsync('git log --stat --oneline -10');
       console.log(stdout);
-    }
+    },
   },
 
-  'recent': {
+  recent: {
     desc: 'Recent commits (last 20)',
     async run() {
       const { stdout } = await execAsync('git log --oneline -20');
       console.log('📅 Recent Commits:\n');
       console.log(stdout);
-    }
+    },
   },
 
-  'authors': {
+  authors: {
     desc: 'List all authors with commit counts',
     async run() {
       console.log('👥 Authors and Commit Counts\n');
 
       const { stdout } = await execAsync('git shortlog -sn --all');
       console.log(stdout);
-    }
+    },
   },
 
-  'branches': {
+  branches: {
     desc: 'List all branches with last commit',
     async run() {
       console.log('🌿 All Branches\n');
 
       const { stdout } = await execAsync('git branch -av');
       console.log(stdout);
-    }
+    },
   },
 
   'status-short': {
@@ -78,10 +78,10 @@ const GIT_COMMANDS = {
       const { stdout } = await execAsync('git status --short');
       console.log('📋 Status:\n');
       console.log(stdout || '  ✓ Working tree clean');
-    }
+    },
   },
 
-  'uncommitted': {
+  uncommitted: {
     desc: 'Show uncommitted changes',
     async run() {
       console.log('📝 Uncommitted Changes\n');
@@ -92,7 +92,7 @@ const GIT_COMMANDS = {
       } else {
         console.log('  ✓ No uncommitted changes');
       }
-    }
+    },
   },
 
   'file-history': {
@@ -108,10 +108,10 @@ const GIT_COMMANDS = {
 
       const { stdout } = await execAsync(`git log --oneline --follow -- ${file}`);
       console.log(stdout);
-    }
+    },
   },
 
-  'blame': {
+  blame: {
     desc: 'Show who changed each line in file',
     async run(args) {
       const file = args[0];
@@ -124,7 +124,7 @@ const GIT_COMMANDS = {
 
       const { stdout } = await execAsync(`git blame ${file}`);
       console.log(stdout);
-    }
+    },
   },
 
   'changed-files': {
@@ -136,7 +136,7 @@ const GIT_COMMANDS = {
 
       const { stdout } = await execAsync(`git log --name-only --oneline -${count}`);
       console.log(stdout);
-    }
+    },
   },
 
   'diff-branch': {
@@ -149,7 +149,7 @@ const GIT_COMMANDS = {
 
       const { stdout } = await execAsync(`git diff ${branch1}..${branch2} --stat`);
       console.log(stdout);
-    }
+    },
   },
 
   'stash-list': {
@@ -163,40 +163,40 @@ const GIT_COMMANDS = {
       } catch {
         console.log('  (no stashes)');
       }
-    }
+    },
   },
 
-  'tags': {
+  tags: {
     desc: 'List all tags',
     async run() {
       console.log('🏷️  Tags\n');
 
       const { stdout } = await execAsync('git tag -l');
       console.log(stdout || '  (no tags)');
-    }
+    },
   },
 
-  'remote': {
+  remote: {
     desc: 'Show remote repositories',
     async run() {
       console.log('🌐 Remote Repositories\n');
 
       const { stdout } = await execAsync('git remote -v');
       console.log(stdout);
-    }
+    },
   },
 
-  'size': {
+  size: {
     desc: 'Repository size and object count',
     async run() {
       console.log('📦 Repository Size\n');
 
       const { stdout: count } = await execAsync('git count-objects -vH');
       console.log(count);
-    }
+    },
   },
 
-  'contributors': {
+  contributors: {
     desc: 'Top contributors by lines of code',
     async run(args) {
       const limit = args[0] || '10';
@@ -207,20 +207,20 @@ const GIT_COMMANDS = {
         `git log --format='%aN' | sort | uniq -c | sort -rn | head -${limit}`
       );
       console.log(stdout);
-    }
+    },
   },
 
-  'today': {
+  today: {
     desc: 'Commits made today',
     async run() {
-      console.log('📅 Today\'s Commits\n');
+      console.log("📅 Today's Commits\n");
 
       const { stdout } = await execAsync('git log --since="midnight" --oneline');
       console.log(stdout || '  (no commits today)');
-    }
+    },
   },
 
-  'summary': {
+  summary: {
     desc: 'Quick repository summary',
     async run() {
       console.log('📊 Repository Summary\n');
@@ -242,8 +242,8 @@ const GIT_COMMANDS = {
       } catch (error) {
         console.error('❌ Error generating summary:', error.message);
       }
-    }
-  }
+    },
+  },
 };
 
 // CLI Interface
@@ -273,7 +273,7 @@ if (!cmd) {
   process.exit(1);
 }
 
-cmd.run(args).catch(err => {
+cmd.run(args).catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

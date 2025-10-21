@@ -69,7 +69,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      
+
       - name: Analyze changes for A2A impact
         id: changes
         run: |
@@ -98,14 +98,14 @@ jobs:
     needs: preflight
     if: needs.preflight.outputs.should-run-basic == 'true'
     timeout-minutes: 25
-    
+
     strategy:
       fail-fast: true
       max-parallel: 2
       matrix:
         # Optimize for essential versions only
         node-version: [18.x, 20.x]
-    
+
     services:
       ollama:
         image: ollama/ollama:latest
@@ -116,20 +116,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
-      
+
       - name: Enhanced dependency caching
         uses: actions/cache@v4
         with:
@@ -141,7 +141,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-a2a-${{ matrix.node-version }}-${{ env.CACHE_VERSION }}-
             ${{ runner.os }}-a2a-${{ matrix.node-version }}-
-      
+
       - name: Install dependencies (optimized)
         run: |
           npm ci \
@@ -149,7 +149,7 @@ jobs:
             --no-audit \
             --no-fund
           npm install --save-dev @jest/globals ws node-fetch --no-audit
-      
+
       - name: Start A2A Server
         run: |
           node src/enhanced-a2a-server.js &
@@ -157,7 +157,7 @@ jobs:
           sleep 3
           # Quick health check
           timeout 10 bash -c 'until curl -f http://localhost:3001/health 2>/dev/null; do sleep 1; done' || echo "A2A Server health check timeout"
-      
+
       - name: Start AI Bridge
         run: |
           node src/ai-bridge.js &
@@ -166,7 +166,7 @@ jobs:
           # Quick health check
           timeout 10 bash -c 'until curl -f http://localhost:3000/health 2>/dev/null; do sleep 1; done' || echo "AI Bridge health check timeout"
         continue-on-error: true
-      
+
       - name: Wait for Ollama readiness
         run: |
           echo "Waiting for Ollama to be ready..."
@@ -178,7 +178,7 @@ jobs:
             echo "Waiting for Ollama... ($i/20)"
             sleep 2
           done
-      
+
       - name: Pull Ollama model (optimized)
         run: |
           # Use smaller, faster model for CI
@@ -187,7 +187,7 @@ jobs:
           }
           sleep 3
         continue-on-error: true
-      
+
       - name: Run A2A Self-Test Framework
         id: test
         run: |
@@ -196,7 +196,7 @@ jobs:
             --maxWorkers=2 \
             --testTimeout=30000
         continue-on-error: true
-      
+
       - name: Self-Healing Recovery
         if: failure() && needs.preflight.outputs.should-run-full == 'true'
         run: |
@@ -206,7 +206,7 @@ jobs:
           RECOVERY_MODE: auto
           NOTIFICATION_ENABLED: false
         continue-on-error: true
-      
+
       - name: Retry tests after self-healing
         if: failure() && needs.preflight.outputs.should-run-full == 'true'
         run: |
@@ -217,13 +217,13 @@ jobs:
             --maxWorkers=1 \
             --testTimeout=20000
         continue-on-error: true
-      
+
       - name: Generate test coverage
         if: always() && needs.preflight.outputs.should-run-full == 'true'
         run: |
           npm run test:coverage -- tests/integration/a2a-self-test-framework.test.js || echo "Coverage generation failed"
         continue-on-error: true
-      
+
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v4
@@ -234,7 +234,7 @@ jobs:
             test-results/
             *.log
           retention-days: 3
-      
+
       - name: Cleanup processes
         if: always()
         run: |
@@ -250,19 +250,19 @@ jobs:
     needs: [preflight, a2a-integration-test]
     if: needs.preflight.outputs.should-run-full == 'true' && needs.a2a-integration-test.result == 'success'
     timeout-minutes: 15
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Setup Node.js (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Restore dependency cache
         uses: actions/cache@v4
         with:
@@ -270,10 +270,10 @@ jobs:
             ~/.npm
             node_modules
           key: ${{ runner.os }}-a2a-20.x-${{ env.CACHE_VERSION }}-${{ hashFiles('**/package-lock.json') }}
-      
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --no-fund
-      
+
       - name: Run performance tests (optimized)
         run: |
           timeout 600 npm run test:performance || echo "Performance tests completed with warnings"
@@ -281,7 +281,7 @@ jobs:
           LOAD_TEST_DURATION: 30
           CONCURRENT_AGENTS: 25
         continue-on-error: true
-      
+
       - name: Analyze performance metrics
         run: |
           timeout 60 node scripts/analyze-performance.js || echo "Performance analysis completed"
@@ -293,22 +293,22 @@ jobs:
     needs: [preflight, a2a-integration-test]
     if: needs.preflight.outputs.should-run-full == 'true' && needs.a2a-integration-test.result == 'success'
     timeout-minutes: 12
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Setup Node.js (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --no-fund
-      
+
       - name: Run E2E workflow tests (optimized)
         run: |
           timeout 480 npm run test:e2e -- \
@@ -319,7 +319,7 @@ jobs:
           E2E_MODE: true
           HEADLESS: true
         continue-on-error: true
-      
+
       - name: Validate agent collaboration (quick)
         run: |
           timeout 120 node examples/a2a-collaboration-demo.js || echo "Collaboration demo completed"
@@ -331,27 +331,27 @@ jobs:
     needs: [preflight, a2a-integration-test]
     if: needs.preflight.outputs.should-run-full == 'true'
     timeout-minutes: 10
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Setup Node.js (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit --no-fund
-      
+
       - name: Test service recovery
         run: |
           timeout 240 node tests/self-healing-scenarios.js || echo "Service recovery tests completed"
         continue-on-error: true
-      
+
       - name: Validate auto-recovery mechanisms
         run: |
           timeout 180 npm test -- tests/integration/self-healing.test.js \
@@ -365,31 +365,31 @@ jobs:
     needs: [preflight, a2a-integration-test, performance-validation, e2e-workflow-validation]
     if: github.ref == 'refs/heads/main' && needs.preflight.outputs.should-run-full == 'true'
     timeout-minutes: 8
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      
+
       - name: Setup Node.js (LTS)
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
+
       - name: Validate deployment configuration
         run: |
           timeout 60 node scripts/validate-deployment.js || echo "Deployment validation completed"
-      
+
       - name: Run smoke tests
         run: |
           timeout 120 npm run test:smoke || echo "Smoke tests completed"
-      
+
       - name: Generate deployment report
         run: |
           timeout 60 node scripts/generate-deployment-report.js || echo "Deployment report generated"
-      
+
       - name: Upload deployment artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -400,10 +400,17 @@ jobs:
   workflow-summary:
     name: A2A Workflow Summary
     runs-on: ubuntu-latest
-    needs: [preflight, a2a-integration-test, performance-validation, e2e-workflow-validation, self-healing-validation]
+    needs:
+      [
+        preflight,
+        a2a-integration-test,
+        performance-validation,
+        e2e-workflow-validation,
+        self-healing-validation,
+      ]
     if: always() && needs.preflight.outputs.should-run-basic == 'true'
     timeout-minutes: 3
-    
+
     steps:
       - name: Generate comprehensive summary
         run: |

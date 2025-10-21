@@ -13,7 +13,7 @@ export class TraefikIntegration {
     this.version = options.version || '1.3.0';
     this.enableMetrics = options.enableMetrics !== false;
     this.enableLogging = options.enableLogging !== false;
-    
+
     // Request tracking
     this.requestMetrics = {
       total: 0,
@@ -21,19 +21,19 @@ export class TraefikIntegration {
       responseTimes: [],
       slowRequests: 0,
       lastRequest: null,
-      instanceRequests: 0
+      instanceRequests: 0,
     };
-    
+
     // Health status
     this.healthStatus = {
       status: 'healthy',
       uptime: Date.now(),
       lastHealthCheck: null,
-      consecutiveFailures: 0
+      consecutiveFailures: 0,
     };
-    
+
     this.startTime = Date.now();
-    
+
     console.log(`[${this.instanceId}] Traefik integration initialized`);
   }
 
@@ -43,24 +43,24 @@ export class TraefikIntegration {
   middleware() {
     return (req, res, next) => {
       const startTime = performance.now();
-      
+
       // Add Traefik-aware headers
       this.addTraefikHeaders(req, res);
-      
+
       // Track request
       this.trackRequest(req);
-      
+
       // Log Traefik routing information
       if (this.enableLogging) {
         this.logTraefikRequest(req);
       }
-      
+
       // Add response time tracking
       res.on('finish', () => {
         const responseTime = performance.now() - startTime;
         this.recordResponseTime(responseTime, res.statusCode);
       });
-      
+
       next();
     };
   }
@@ -73,15 +73,15 @@ export class TraefikIntegration {
     res.setHeader('X-LLM-Instance', this.instanceId);
     res.setHeader('X-LLM-Version', this.version);
     res.setHeader('X-LLM-Uptime', Math.floor((Date.now() - this.startTime) / 1000));
-    
+
     // Traefik metadata
     res.setHeader('X-Traefik-Integration', 'active');
-    
+
     // Load balancing information
     if (req.headers.cookie && req.headers.cookie.includes('llm-instance')) {
       res.setHeader('X-LLM-Session-Sticky', 'true');
     }
-    
+
     // Performance hints for Traefik
     res.setHeader('X-LLM-Health-Status', this.healthStatus.status);
     res.setHeader('X-LLM-Request-Count', this.requestMetrics.instanceRequests.toString());
@@ -95,7 +95,7 @@ export class TraefikIntegration {
     const forwardedProto = req.headers['x-forwarded-proto'];
     const realIp = req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip;
     const userAgent = req.headers['user-agent'];
-    
+
     if (forwardedHost) {
       const logEntry = {
         timestamp: new Date().toISOString(),
@@ -106,9 +106,9 @@ export class TraefikIntegration {
         forwardedProto,
         realIp,
         userAgent,
-        query: Object.keys(req.query).length > 0 ? req.query : undefined
+        query: Object.keys(req.query).length > 0 ? req.query : undefined,
       };
-      
+
       console.log(`[TRAEFIK] ${JSON.stringify(logEntry)}`);
     }
   }
@@ -127,17 +127,17 @@ export class TraefikIntegration {
    */
   recordResponseTime(responseTime, statusCode) {
     this.requestMetrics.responseTimes.push(responseTime);
-    
+
     // Keep only last 100 response times
     if (this.requestMetrics.responseTimes.length > 100) {
       this.requestMetrics.responseTimes.shift();
     }
-    
+
     // Track slow requests (>1000ms)
     if (responseTime > 1000) {
       this.requestMetrics.slowRequests++;
     }
-    
+
     // Track errors (5xx status codes)
     if (statusCode >= 500) {
       this.requestMetrics.errors++;
@@ -152,16 +152,18 @@ export class TraefikIntegration {
       const uptime = Math.floor((Date.now() - this.startTime) / 1000);
       const memUsage = process.memoryUsage();
       const memoryPressure = Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100);
-      
+
       // Calculate average response time
-      const avgResponseTime = this.requestMetrics.responseTimes.length > 0
-        ? this.requestMetrics.responseTimes.reduce((a, b) => a + b, 0) / this.requestMetrics.responseTimes.length
-        : 0;
-      
+      const avgResponseTime =
+        this.requestMetrics.responseTimes.length > 0
+          ? this.requestMetrics.responseTimes.reduce((a, b) => a + b, 0) /
+            this.requestMetrics.responseTimes.length
+          : 0;
+
       // Determine health status
       let status = 'healthy';
       let httpStatus = 200;
-      
+
       // Memory pressure check
       if (memoryPressure > 90) {
         status = 'unhealthy';
@@ -173,11 +175,11 @@ export class TraefikIntegration {
       } else {
         this.healthStatus.consecutiveFailures = 0;
       }
-      
+
       // Update health status
       this.healthStatus.status = status;
       this.healthStatus.lastHealthCheck = new Date().toISOString();
-      
+
       const healthCheck = {
         status,
         instance: this.instanceId,
@@ -188,31 +190,36 @@ export class TraefikIntegration {
           forwardedHost: req.headers['x-forwarded-host'],
           forwardedProto: req.headers['x-forwarded-proto'],
           realIp: req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip,
-          loadBalancer: req.headers.cookie?.includes('llm-instance') ? 'sticky-session' : 'round-robin'
+          loadBalancer: req.headers.cookie?.includes('llm-instance')
+            ? 'sticky-session'
+            : 'round-robin',
         },
         memory: {
           heapUsed: Math.round(memUsage.heapUsed / 1024 / 1024),
           heapTotal: Math.round(memUsage.heapTotal / 1024 / 1024),
           external: Math.round(memUsage.external / 1024 / 1024),
-          pressure: memoryPressure
+          pressure: memoryPressure,
         },
         performance: {
           requests: this.requestMetrics.instanceRequests,
           errors: this.requestMetrics.errors,
           slowRequests: this.requestMetrics.slowRequests,
           avgResponseTime: Math.round(avgResponseTime),
-          errorRate: this.requestMetrics.instanceRequests > 0
-            ? ((this.requestMetrics.errors / this.requestMetrics.instanceRequests) * 100).toFixed(2)
-            : '0.00'
+          errorRate:
+            this.requestMetrics.instanceRequests > 0
+              ? ((this.requestMetrics.errors / this.requestMetrics.instanceRequests) * 100).toFixed(
+                  2
+                )
+              : '0.00',
         },
         health: {
           consecutiveFailures: this.healthStatus.consecutiveFailures,
           lastRequest: this.requestMetrics.lastRequest
             ? new Date(this.requestMetrics.lastRequest).toISOString()
-            : null
-        }
+            : null,
+        },
       };
-      
+
       res.status(httpStatus).json(healthCheck);
     };
   }
@@ -224,16 +231,19 @@ export class TraefikIntegration {
     return (req, res) => {
       const uptime = Math.floor((Date.now() - this.startTime) / 1000);
       const memUsage = process.memoryUsage();
-      
+
       // Calculate rates and averages
-      const avgResponseTime = this.requestMetrics.responseTimes.length > 0
-        ? this.requestMetrics.responseTimes.reduce((a, b) => a + b, 0) / this.requestMetrics.responseTimes.length
-        : 0;
-      
-      const errorRate = this.requestMetrics.instanceRequests > 0
-        ? (this.requestMetrics.errors / this.requestMetrics.instanceRequests)
-        : 0;
-      
+      const avgResponseTime =
+        this.requestMetrics.responseTimes.length > 0
+          ? this.requestMetrics.responseTimes.reduce((a, b) => a + b, 0) /
+            this.requestMetrics.responseTimes.length
+          : 0;
+
+      const errorRate =
+        this.requestMetrics.instanceRequests > 0
+          ? this.requestMetrics.errors / this.requestMetrics.instanceRequests
+          : 0;
+
       res.set('Content-Type', 'text/plain');
       res.send(`# HELP llm_instance_info Instance information
 # TYPE llm_instance_info gauge
@@ -298,7 +308,7 @@ llm_traefik_integration{instance="${this.instanceId}"} 1
         status: 'pong',
         instance: this.instanceId,
         timestamp: new Date().toISOString(),
-        traefik: 'integrated'
+        traefik: 'integrated',
       });
     };
   }
@@ -310,8 +320,8 @@ llm_traefik_integration{instance="${this.instanceId}"} 1
     return (req, res) => {
       const recentErrors = this.requestMetrics.errors;
       const totalRequests = this.requestMetrics.instanceRequests;
-      const errorRate = totalRequests > 0 ? (recentErrors / totalRequests) : 0;
-      
+      const errorRate = totalRequests > 0 ? recentErrors / totalRequests : 0;
+
       const circuitStatus = {
         instance: this.instanceId,
         circuitBreaker: {
@@ -319,11 +329,11 @@ llm_traefik_integration{instance="${this.instanceId}"} 1
           errorRate: (errorRate * 100).toFixed(2),
           threshold: '30.00',
           recentErrors,
-          totalRequests
+          totalRequests,
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
-      
+
       res.json(circuitStatus);
     };
   }
@@ -342,8 +352,8 @@ llm_traefik_integration{instance="${this.instanceId}"} 1
         integration: 'active',
         loadBalancing: 'enabled',
         healthChecks: 'enabled',
-        metrics: 'enabled'
-      }
+        metrics: 'enabled',
+      },
     };
   }
 
@@ -352,10 +362,10 @@ llm_traefik_integration{instance="${this.instanceId}"} 1
    */
   gracefulShutdown() {
     console.log(`[${this.instanceId}] Shutting down Traefik integration...`);
-    
+
     // Mark as unhealthy to remove from load balancer
     this.healthStatus.status = 'shutting-down';
-    
+
     // Give Traefik time to detect unhealthy status and stop routing
     return new Promise((resolve) => {
       setTimeout(() => {
@@ -386,7 +396,7 @@ export const TraefikHelpers = {
       forwardedProto: req.headers['x-forwarded-proto'],
       realIp: req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || req.ip,
       stickySession: req.headers.cookie?.includes('llm-instance'),
-      userAgent: req.headers['user-agent']
+      userAgent: req.headers['user-agent'],
     };
   },
 
@@ -405,9 +415,9 @@ export const TraefikHelpers = {
       'X-LLM-Instance': instanceId,
       'X-LLM-Version': version,
       'X-Traefik-Integration': 'active',
-      'X-LLM-Timestamp': new Date().toISOString()
+      'X-LLM-Timestamp': new Date().toISOString(),
     };
-  }
+  },
 };
 
 export default TraefikIntegration;

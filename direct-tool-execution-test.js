@@ -24,7 +24,7 @@ async function testDirectToolExecution() {
     file_read: true,
     file_write: true,
     command_exec: true,
-    git_operations: true
+    git_operations: true,
   });
 
   // Wait for tools to load
@@ -34,7 +34,7 @@ async function testDirectToolExecution() {
 
   const results = {
     timestamp: new Date().toISOString(),
-    tests: []
+    tests: [],
   };
 
   // Test 1: Write a file
@@ -56,7 +56,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
 // This file was created by AUTONOMOUS TOOL EXECUTION
 // NOT by an LLM generating text
 // This proves real file system modification capability
-`
+`,
     });
 
     results.tests.push({
@@ -64,7 +64,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
       success: writeResult.success,
       tool: writeResult.tool,
       duration: writeResult.duration,
-      result: writeResult.result
+      result: writeResult.result,
     });
 
     console.log('✅ File write successful');
@@ -75,7 +75,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
     results.tests.push({
       name: 'Write File',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 
@@ -83,7 +83,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
   console.log('\n📖 Test 2: Read file back');
   try {
     const readResult = await executor.executeTool('read', {
-      file_path: TEST_FILE
+      file_path: TEST_FILE,
     });
 
     results.tests.push({
@@ -92,7 +92,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
       tool: readResult.tool,
       duration: readResult.duration,
       lines: readResult.result.lines,
-      size: readResult.result.size
+      size: readResult.result.size,
     });
 
     console.log('✅ File read successful');
@@ -105,7 +105,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
     results.tests.push({
       name: 'Read File',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 
@@ -115,7 +115,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
     const bashResult = await executor.executeTool('bash', {
       command: 'ls',
       args: ['-la', TEST_DIR],
-      timeout: 5000
+      timeout: 5000,
     });
 
     results.tests.push({
@@ -124,7 +124,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
       tool: bashResult.tool,
       duration: bashResult.duration,
       exitCode: bashResult.result.exitCode,
-      stdout: bashResult.result.stdout.substring(0, 200)
+      stdout: bashResult.result.stdout.substring(0, 200),
     });
 
     console.log('✅ Bash command executed');
@@ -135,7 +135,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
     results.tests.push({
       name: 'Bash Command',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 
@@ -144,7 +144,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
   try {
     const globResult = await executor.executeTool('glob', {
       pattern: '**/*.js',
-      cwd: TEST_DIR
+      cwd: TEST_DIR,
     });
 
     results.tests.push({
@@ -152,7 +152,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
       success: globResult.success,
       tool: globResult.tool,
       duration: globResult.duration,
-      filesFound: globResult.result.count
+      filesFound: globResult.result.count,
     });
 
     console.log('✅ Glob search executed');
@@ -163,7 +163,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
     results.tests.push({
       name: 'Glob Search',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 
@@ -171,7 +171,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
   console.log('\n📦 Test 5: Git status');
   try {
     const gitResult = await executor.executeTool('git_status', {
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
 
     results.tests.push({
@@ -180,7 +180,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
       tool: gitResult.tool,
       duration: gitResult.duration,
       isRepository: gitResult.result.isRepository,
-      branch: gitResult.result.branch
+      branch: gitResult.result.branch,
     });
 
     console.log('✅ Git status executed');
@@ -194,7 +194,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
     results.tests.push({
       name: 'Git Status',
       success: false,
-      error: error.message
+      error: error.message,
     });
   }
 
@@ -222,7 +222,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
   }
 
   // Summary
-  const successCount = results.tests.filter(t => t.success).length;
+  const successCount = results.tests.filter((t) => t.success).length;
   const totalTests = results.tests.length;
 
   console.log('\n╔════════════════════════════════════════════════════════╗');
@@ -248,7 +248,7 @@ module.exports = { autonomousAdd, autonomousMultiply };
 }
 
 // Run test
-testDirectToolExecution().catch(error => {
+testDirectToolExecution().catch((error) => {
   console.error('\n❌ Fatal error:', error.message);
   console.error(error.stack);
   process.exit(1);

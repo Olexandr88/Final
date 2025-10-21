@@ -20,7 +20,7 @@ const MAX_TOKENS = 2048; // Ollama context limit for speed
 class OllamaAutonomousAgent {
   constructor() {
     this.octokit = new Octokit({
-      auth: process.env.GITHUB_TOKEN
+      auth: process.env.GITHUB_TOKEN,
     });
 
     this.owner = 'scarmonit';
@@ -58,10 +58,10 @@ class OllamaAutonomousAgent {
               top_k: 40,
               num_predict: options.maxTokens || MAX_TOKENS,
               num_ctx: 4096,
-              num_thread: 8
-            }
+              num_thread: 8,
+            },
           }),
-          signal: controller.signal
+          signal: controller.signal,
         });
 
         clearTimeout(timeoutId);
@@ -74,13 +74,12 @@ class OllamaAutonomousAgent {
         logger.info(`✅ Ollama responded (${result.response.length} chars)`);
 
         return result.response;
-
       } catch (error) {
         lastError = error;
         logger.warn(`⚠️  Attempt ${i + 1} failed: ${error.message}`);
 
         if (i < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 2000 * (i + 1)));
+          await new Promise((resolve) => setTimeout(resolve, 2000 * (i + 1)));
         }
       }
     }
@@ -104,25 +103,24 @@ class OllamaAutonomousAgent {
         owner: this.owner,
         repo: this.repo,
         state: 'open',
-        per_page: 100
+        per_page: 100,
       });
 
       logger.info(`📋 Found ${issues.length} open issues`);
 
       // Filter for issues without PRs and not assigned to Copilot
-      const targetIssues = issues.filter(issue =>
-        !issue.pull_request &&
-        !issue.assignees.some(a => a.login === 'Copilot')
+      const targetIssues = issues.filter(
+        (issue) => !issue.pull_request && !issue.assignees.some((a) => a.login === 'Copilot')
       );
 
       logger.info(`🎯 Targeting ${targetIssues.length} issues for autonomous resolution\n`);
 
-      for (const issue of targetIssues.slice(0, 5)) { // Limit to 5 to avoid overwhelming
+      for (const issue of targetIssues.slice(0, 5)) {
+        // Limit to 5 to avoid overwhelming
         await this.solveIssue(issue);
       }
 
       logger.info('\n✅ Autonomous agent cycle complete!');
-
     } catch (error) {
       logger.error('❌ Agent error:', { error: error.message });
       throw error;
@@ -142,16 +140,15 @@ class OllamaAutonomousAgent {
       }
 
       const data = await response.json();
-      const modelExists = data.models.some(m => m.name.includes(MODEL));
+      const modelExists = data.models.some((m) => m.name.includes(MODEL));
 
       if (!modelExists) {
         logger.warn(`⚠️  Model ${MODEL} not found. Available models:`);
-        data.models.forEach(m => logger.info(`   - ${m.name}`));
+        data.models.forEach((m) => logger.info(`   - ${m.name}`));
         throw new Error(`Model ${MODEL} not installed. Run: ollama pull ${MODEL}`);
       }
 
       logger.info(`✅ Ollama is running with model: ${MODEL}`);
-
     } catch (error) {
       logger.error('❌ Ollama check failed:', error.message);
       logger.info('\n📖 To fix this:');
@@ -192,7 +189,6 @@ class OllamaAutonomousAgent {
       await this.createIssuePR(issue, branchName, solution, analysis);
 
       logger.info(`✅ Issue #${issue.number} solved! PR created.`);
-
     } catch (error) {
       logger.error(`❌ Failed to solve issue #${issue.number}:`, { error: error.message });
 
@@ -201,7 +197,7 @@ class OllamaAutonomousAgent {
         owner: this.owner,
         repo: this.repo,
         issue_number: issue.number,
-        body: `🦙 **Ollama Autonomous Agent** attempted to solve this issue but encountered an error:\n\n\`\`\`\n${error.message}\n\`\`\`\n\nManual intervention may be required.`
+        body: `🦙 **Ollama Autonomous Agent** attempted to solve this issue but encountered an error:\n\n\`\`\`\n${error.message}\n\`\`\`\n\nManual intervention may be required.`,
       });
     }
   }
@@ -217,7 +213,7 @@ ISSUE #${issue.number}: ${issue.title}
 DESCRIPTION:
 ${issue.body || 'No description provided'}
 
-LABELS: ${issue.labels.map(l => l.name).join(', ')}
+LABELS: ${issue.labels.map((l) => l.name).join(', ')}
 
 TASK: Analyze this issue and provide a solution approach.
 
@@ -243,9 +239,14 @@ Keep your response concise and structured exactly as shown above.`;
     return {
       complexity: complexityMatch ? complexityMatch[1].toLowerCase() : 'medium',
       approach: approachMatch ? approachMatch[1].trim() : 'Create solution step by step',
-      files: filesMatch ? filesMatch[1].split(',').map(f => f.trim()) : [],
-      steps: stepsMatch ? stepsMatch[1].trim().split('\n').filter(s => s.trim()) : [],
-      rawAnalysis: response
+      files: filesMatch ? filesMatch[1].split(',').map((f) => f.trim()) : [],
+      steps: stepsMatch
+        ? stepsMatch[1]
+            .trim()
+            .split('\n')
+            .filter((s) => s.trim())
+        : [],
+      rawAnalysis: response,
     };
   }
 
@@ -277,7 +278,7 @@ Output ONLY the code, no explanations. Start with a comment indicating the file 
 
     const solution = await this.callOllama(prompt, {
       maxTokens: 2048,
-      temperature: 0.5 // Lower temperature for more consistent code
+      temperature: 0.5, // Lower temperature for more consistent code
     });
 
     return solution;
@@ -292,7 +293,7 @@ Output ONLY the code, no explanations. Start with a comment indicating the file 
       const { data: ref } = await this.octokit.git.getRef({
         owner: this.owner,
         repo: this.repo,
-        ref: `heads/${this.baseBranch}`
+        ref: `heads/${this.baseBranch}`,
       });
 
       // Create new branch
@@ -301,7 +302,7 @@ Output ONLY the code, no explanations. Start with a comment indicating the file 
           owner: this.owner,
           repo: this.repo,
           ref: `refs/heads/${branchName}`,
-          sha: ref.object.sha
+          sha: ref.object.sha,
         });
       } catch (error) {
         if (error.status === 422) {
@@ -316,7 +317,9 @@ Output ONLY the code, no explanations. Start with a comment indicating the file 
       let filePath = 'solution.js';
 
       // Try to extract file path from solution comment
-      const filePathMatch = solution.match(/\/\/\s*(?:File:|Path:)?\s*([^\n]+\.(?:js|ts|json|md))/i);
+      const filePathMatch = solution.match(
+        /\/\/\s*(?:File:|Path:)?\s*([^\n]+\.(?:js|ts|json|md))/i
+      );
       if (filePathMatch) {
         filePath = filePathMatch[1].trim();
       } else if (analysis.files && analysis.files.length > 0) {
@@ -332,7 +335,7 @@ Output ONLY the code, no explanations. Start with a comment indicating the file 
           owner: this.owner,
           repo: this.repo,
           path: filePath,
-          ref: branchName
+          ref: branchName,
         });
         fileSha = existingFile.sha;
       } catch (error) {
@@ -346,7 +349,7 @@ Output ONLY the code, no explanations. Start with a comment indicating the file 
         message: `🦙 Ollama: Implement solution for issue #${issue.number}`,
         content: Buffer.from(solution).toString('base64'),
         branch: branchName,
-        sha: fileSha
+        sha: fileSha,
       });
 
       // Create PR
@@ -382,7 +385,7 @@ ${analysis.steps.map((step, i) => `${i + 1}. ${step}`).join('\n')}
 ---
 *🦙 Generated with Ollama (${MODEL}) - 100% FREE, runs locally!*
 
-Co-Authored-By: Ollama <noreply@ollama.com>`
+Co-Authored-By: Ollama <noreply@ollama.com>`,
       });
 
       logger.info(`✅ PR created: #${pr.number} - ${pr.html_url}`);
@@ -392,9 +395,8 @@ Co-Authored-By: Ollama <noreply@ollama.com>`
         owner: this.owner,
         repo: this.repo,
         issue_number: issue.number,
-        body: `🦙 **Ollama Autonomous Agent** (${MODEL}) has created PR #${pr.number} to resolve this issue.\n\nReview at: ${pr.html_url}\n\n*Using local Ollama - no API costs!*`
+        body: `🦙 **Ollama Autonomous Agent** (${MODEL}) has created PR #${pr.number} to resolve this issue.\n\nReview at: ${pr.html_url}\n\n*Using local Ollama - no API costs!*`,
       });
-
     } catch (error) {
       logger.error('❌ Failed to create PR:', { error: error.message });
       throw error;
@@ -442,7 +444,7 @@ async function checkOllamaRunning() {
 
   const agent = new OllamaAutonomousAgent();
   await agent.run();
-})().catch(error => {
+})().catch((error) => {
   logger.error('Fatal error:', error);
   process.exit(1);
 });

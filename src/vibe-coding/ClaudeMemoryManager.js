@@ -12,14 +12,16 @@ export class ClaudeMemoryManager extends EventEmitter {
   constructor(options = {}) {
     super();
     this.projectRoot = options.projectRoot || process.cwd();
-    this.globalPath = options.globalPath || path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'CLAUDE.md');
+    this.globalPath =
+      options.globalPath ||
+      path.join(process.env.HOME || process.env.USERPROFILE, '.claude', 'CLAUDE.md');
   }
 
   async createTemplate(type = 'project', config = {}) {
     const templates = {
       project: this.generateProjectTemplate(config),
       global: this.generateGlobalTemplate(config),
-      subdir: this.generateSubdirTemplate(config)
+      subdir: this.generateSubdirTemplate(config),
     };
 
     const template = templates[type] || templates.project;
@@ -35,12 +37,15 @@ ${config.description || 'AI-assisted development project using Claude Code.'}
 
 ## Project Structure
 \`\`\`
-${config.structure || `
+${
+  config.structure ||
+  `
 src/          - Main application source code
 tests/        - Test files
 db/           - Database files
 bin/          - Executable scripts
-`}
+`
+}
 \`\`\`
 
 ## Technical Stack
@@ -103,11 +108,14 @@ ${config.lintCommand || 'npm run lint'}      # Run linter
 - Use ${config.testPattern || 'describe/it'} pattern for test organization
 
 ## Sub-Agents Configuration
-${config.subAgents || `
+${
+  config.subAgents ||
+  `
 - \`code-reviewer\`: Reviews code for bugs and best practices
 - \`test-writer\`: Generates comprehensive test suites
 - \`db-designer\`: Designs database schemas
-`}
+`
+}
 
 ## Workflow
 1. **Explore**: Read codebase and understand context
@@ -185,7 +193,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
       sections: {},
       rules: [],
       antiPatterns: [],
-      commands: {}
+      commands: {},
     };
 
     const sections = content.split(/^## /m).filter(Boolean);
@@ -200,14 +208,14 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
       if (title.includes('Anti-Pattern')) {
         const patterns = body.match(/- ❌ (.+)/g);
         if (patterns) {
-          parsed.antiPatterns.push(...patterns.map(p => p.replace('- ❌ ', '').trim()));
+          parsed.antiPatterns.push(...patterns.map((p) => p.replace('- ❌ ', '').trim()));
         }
       }
 
       if (title.includes('Command')) {
         const cmds = body.match(/```bash\n([\s\S]*?)\n```/);
         if (cmds) {
-          const lines = cmds[1].split('\n').filter(l => l.trim() && !l.includes('#'));
+          const lines = cmds[1].split('\n').filter((l) => l.trim() && !l.includes('#'));
           parsed.commands = lines.reduce((acc, line) => {
             const [cmd, ...desc] = line.split('#');
             acc[cmd.trim()] = desc.join('#').trim();
@@ -226,14 +234,14 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
     if (!memory) {
       return {
         valid: false,
-        errors: ['CLAUDE.md file not found']
+        errors: ['CLAUDE.md file not found'],
       };
     }
 
     const validation = {
       valid: true,
       errors: [],
-      warnings: []
+      warnings: [],
     };
 
     const requiredSections = [
@@ -241,7 +249,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
       'Project Structure',
       'Technical Stack',
       'Commands',
-      'Coding Conventions'
+      'Coding Conventions',
     ];
 
     for (const section of requiredSections) {
@@ -276,7 +284,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
       return {
         success: false,
         message: 'CLAUDE.md already exists',
-        path: claudePath
+        path: claudePath,
       };
     } catch {
       const template = await this.createTemplate('project', config);
@@ -287,7 +295,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
         success: true,
         message: 'CLAUDE.md created successfully',
         path: claudePath,
-        content: template
+        content: template,
       };
     }
   }
@@ -298,7 +306,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
     if (!memory) {
       return {
         violations: [],
-        warnings: []
+        warnings: [],
       };
     }
 
@@ -312,7 +320,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
             type: 'security',
             pattern: 'SQL Injection Risk',
             description: 'Raw SQL string detected - use parameterized queries',
-            file: filePath
+            file: filePath,
           });
         }
       }
@@ -324,7 +332,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
             type: 'security',
             pattern: 'Hardcoded Secret',
             description: 'Secret value appears to be hardcoded',
-            file: filePath
+            file: filePath,
           });
         }
       }
@@ -336,7 +344,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
             type: 'code-quality',
             pattern: 'Magic Numbers',
             description: `Found ${numbers.length} numeric literals - consider using constants`,
-            file: filePath
+            file: filePath,
           });
         }
       }
@@ -379,7 +387,7 @@ ${config.conventions || '- Follow parent directory conventions\n- Add subdirecto
         memories.push({
           path: memPath,
           scope: this.getScope(memPath),
-          memory
+          memory,
         });
       }
     }

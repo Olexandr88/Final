@@ -25,19 +25,19 @@ npm run control quick       # Full workflow: stop + clean + test + start
 
 ### Available Actions
 
-| Action | Description |
-|--------|-------------|
-| `status` | Show complete system status (git, bridge, processes, tests) |
-| `start` | Start AI Bridge and agents |
-| `stop` | Stop all AI Bridge processes |
-| `test [pattern]` | Run quick tests with optional pattern |
-| `clean` | Clean workspace |
-| `diagnostic` | Run full system diagnostic |
-| `dev` | Start development mode (bridge + watch) |
-| `reset` | Complete reset (stop + clean + status) |
-| `health` | Quick health check |
-| `quick` | Quick workflow: stop + clean + test + start |
-| `info` | Show system information |
+| Action           | Description                                                 |
+| ---------------- | ----------------------------------------------------------- |
+| `status`         | Show complete system status (git, bridge, processes, tests) |
+| `start`          | Start AI Bridge and agents                                  |
+| `stop`           | Stop all AI Bridge processes                                |
+| `test [pattern]` | Run quick tests with optional pattern                       |
+| `clean`          | Clean workspace                                             |
+| `diagnostic`     | Run full system diagnostic                                  |
+| `dev`            | Start development mode (bridge + watch)                     |
+| `reset`          | Complete reset (stop + clean + status)                      |
+| `health`         | Quick health check                                          |
+| `quick`          | Quick workflow: stop + clean + test + start                 |
+| `info`           | Show system information                                     |
 
 ### Examples
 
@@ -83,7 +83,7 @@ npm run quick-test                  # Run all tests (one by one)
 ### Features
 
 - ⚡ Runs tests individually (no concurrency issues)
-- ⏱️  30-second timeout per test file
+- ⏱️ 30-second timeout per test file
 - 📊 Summary report with pass/fail counts
 - 🎯 Pattern matching for test file selection
 
@@ -128,11 +128,13 @@ npm run workspace:clean:aggressive
 ### What Gets Removed
 
 **Always removed:**
+
 - Test artifacts: `.test-sessions/`, `test-output.txt`, `test.txt`
 - Temp files: `variableContent`, `NUL`, `summary.txt`
 - Temp directories: `test-workspace/`, `demo/`, `output/`
 
 **Aggressive mode also removes:**
+
 - Demo scripts: `demo-*.js`, `test-a2a-*.js`, `validate-*.js`
 - Report files: `*-COMPLETE.md`, `*-REPORT.md`, `*-STATUS.md`
 
@@ -140,14 +142,14 @@ npm run workspace:clean:aggressive
 
 - 🔍 Dry-run mode to preview changes
 - 📊 Summary report with space saved
-- 🛡️  Protects critical directories (src, tests, node_modules, etc.)
+- 🛡️ Protects critical directories (src, tests, node_modules, etc.)
 - ⚡ Fast pattern-based cleanup
 
 **File**: `scripts/workspace-cleanup.js`
 
 ---
 
-## 🛠️  Developer Helper
+## 🛠️ Developer Helper
 
 Quick access to common development tasks using shell one-liners.
 
@@ -165,17 +167,17 @@ npm run dev:kill-bridge        # Kill all AI Bridge processes
 
 ### Available Commands
 
-| Command | Description |
-|---------|-------------|
-| `ports` | Show all listening ports on the system |
-| `bridge-ports` | Check if AI Bridge ports are in use |
-| `kill-bridge` | Kill all AI Bridge processes |
-| `node-procs` | List all Node.js processes |
-| `git-status` | Quick git status summary |
-| `quick-test [pattern]` | Run quick test on specific file |
-| `cleanup` | Cleanup workspace (dry run preview) |
-| `disk-usage` | Check disk usage of project directories |
-| `env-check` | Check environment variables |
+| Command                | Description                             |
+| ---------------------- | --------------------------------------- |
+| `ports`                | Show all listening ports on the system  |
+| `bridge-ports`         | Check if AI Bridge ports are in use     |
+| `kill-bridge`          | Kill all AI Bridge processes            |
+| `node-procs`           | List all Node.js processes              |
+| `git-status`           | Quick git status summary                |
+| `quick-test [pattern]` | Run quick test on specific file         |
+| `cleanup`              | Cleanup workspace (dry run preview)     |
+| `disk-usage`           | Check disk usage of project directories |
+| `env-check`            | Check environment variables             |
 
 ### Examples
 
@@ -421,6 +423,7 @@ The `scripts/ai-bridge-diagnostic.sh` and `scripts/dev-helper.js` utilities leve
 **File**: `Desktop/shell_one_liners.sh`
 
 This includes:
+
 - `lsof` patterns for port checking
 - `ps` patterns for process monitoring
 - `netstat` for network analysis

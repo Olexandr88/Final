@@ -13,11 +13,11 @@ describe('History Endpoint Integration Tests', { skip: true }, () => {
     return new Promise((resolve, reject) => {
       serverProcess = spawn('node', ['server.js'], {
         env: { ...process.env, PORT: port.toString() },
-        stdio: 'pipe'
+        stdio: 'pipe',
       });
 
       let startupOutput = '';
-      
+
       const timeout = setTimeout(() => {
         reject(new Error('Server failed to start within 10 seconds'));
       }, 10000);

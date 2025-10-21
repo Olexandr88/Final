@@ -7,6 +7,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 ## Current System Analysis
 
 ### AI Bridge (WebSocket Hub)
+
 - **WebSocket Server**: Port 56427 (configurable)
 - **HTTP API**: Port 65038 (configurable)
 - **Message Storage**: In-memory circular buffer (50 messages default)
@@ -15,12 +16,14 @@ This document outlines the comprehensive strategy for replacing the current WebS
 - **Patterns**: Point-to-point and broadcast
 
 ### Key Metrics
+
 - **Message Latency**: <120ms average
 - **Memory Baseline**: <100MB idle
 - **Connection Setup**: <200ms
 - **Throughput**: ~100 messages/second currently
 
 ### Limitations
+
 1. No message persistence (lost on restart)
 2. No delivery guarantees
 3. No replay capability beyond circular buffer
@@ -36,6 +39,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 ### 1. Redis Pub/Sub + Streams
 
 **Pros:**
+
 - Extremely low latency (~1-2ms)
 - Simple deployment (single binary)
 - Excellent Node.js support (ioredis)
@@ -46,6 +50,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 - Can run alongside existing infrastructure
 
 **Cons:**
+
 - No guaranteed delivery by default
 - Limited message retention (memory-based)
 - No complex routing (but sufficient for A2A)
@@ -54,6 +59,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 **Verdict**: RECOMMENDED - Best fit for this use case
 
 **Use Cases:**
+
 - Real-time agent communication
 - Low-latency message passing
 - Simple pub/sub patterns
@@ -64,6 +70,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 ### 2. RabbitMQ
 
 **Pros:**
+
 - Rich routing capabilities (exchanges, bindings)
 - Strong delivery guarantees (ACKs, confirms)
 - Built-in dead letter exchanges
@@ -73,6 +80,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 - Priority queues
 
 **Cons:**
+
 - Higher latency (~5-10ms)
 - More complex to configure and maintain
 - Heavier resource footprint
@@ -82,6 +90,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 **Verdict**: ALTERNATIVE - Use if strong guarantees required
 
 **Use Cases:**
+
 - Mission-critical workflows
 - Complex routing requirements
 - Strong ordering guarantees needed
@@ -92,6 +101,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 ### 3. Apache Kafka
 
 **Pros:**
+
 - Exceptional throughput (millions of messages/sec)
 - Long-term message retention
 - Strong ordering guarantees per partition
@@ -99,6 +109,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 - Excellent for event sourcing
 
 **Cons:**
+
 - Significant operational complexity (ZooKeeper/KRaft)
 - Higher latency (~5-15ms)
 - Heavy resource requirements (Java-based)
@@ -108,6 +119,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 **Verdict**: NOT RECOMMENDED - Too complex for current needs
 
 **Use Cases:**
+
 - Massive scale (thousands of agents)
 - Long-term audit logs
 - Event sourcing architectures
@@ -118,6 +130,7 @@ This document outlines the comprehensive strategy for replacing the current WebS
 ## Recommended Architecture: Redis Hybrid Model
 
 ### Design Philosophy
+
 Use Redis for real-time communication with strategic persistence, maintaining WebSocket connections for low-latency delivery while Redis handles message durability and routing.
 
 ### Component Architecture
@@ -149,9 +162,11 @@ Use Redis for real-time communication with strategic persistence, maintaining We
 ### Redis Components
 
 #### 1. Pub/Sub Channels
+
 **Purpose**: Real-time broadcast and point-to-point delivery
 
 **Channels:**
+
 - `agent:broadcast` - System-wide broadcasts
 - `agent:{clientId}` - Direct messages to specific agent
 - `agent:intent:{intent}` - Intent-based routing (e.g., `agent:intent:code.analyze`)
@@ -159,6 +174,7 @@ Use Redis for real-time communication with strategic persistence, maintaining We
 - `bridge:control` - Bridge control messages
 
 **Message Format:**
+
 ```json
 {
   "id": "uuid-v4",
@@ -175,29 +191,35 @@ Use Redis for real-time communication with strategic persistence, maintaining We
 ```
 
 #### 2. Redis Streams (Persistence)
+
 **Purpose**: Message persistence, replay, and audit trail
 
 **Streams:**
+
 - `messages:all` - Complete message history (trimmed to 10k messages)
 - `messages:task:{taskId}` - Task-specific message history
 - `messages:agent:{agentId}` - Agent-specific inbox
 - `messages:dlq` - Dead letter queue for failed messages
 
 **Consumer Groups:**
+
 - `bridge-consumers` - AI Bridge consumers
 - `analyzer-consumers` - Analysis agent consumers
 - `monitor-consumers` - Monitoring/audit consumers
 
 **Stream Features:**
+
 - **MAXLEN ~10000**: Automatic trimming to prevent memory bloat
 - **Consumer Groups**: Multiple consumers, at-least-once delivery
 - **XACK**: Explicit acknowledgment for reliability
 - **XPENDING**: Track unprocessed messages
 
 #### 3. Dead Letter Queue (DLQ)
+
 **Stream**: `messages:dlq`
 
 **When Messages Enter DLQ:**
+
 - Agent offline for >5 minutes
 - Delivery retries exhausted (3 attempts)
 - Processing errors (exception thrown)
@@ -205,6 +227,7 @@ Use Redis for real-time communication with strategic persistence, maintaining We
 - Circuit breaker open
 
 **DLQ Entry Format:**
+
 ```json
 {
   "originalMessage": {},
@@ -221,6 +244,7 @@ Use Redis for real-time communication with strategic persistence, maintaining We
 ## Message Patterns
 
 ### Pattern 1: Point-to-Point (Direct Messaging)
+
 ```
 Agent A → Redis Channel (agent:{clientId}) → Agent B
          ↓
@@ -228,6 +252,7 @@ Agent A → Redis Channel (agent:{clientId}) → Agent B
 ```
 
 **Flow:**
+
 1. Agent A sends message to Redis
 2. Bridge publishes to channel `agent:B`
 3. Message persisted to stream `messages:all`
@@ -237,6 +262,7 @@ Agent A → Redis Channel (agent:{clientId}) → Agent B
 **Delivery Guarantee**: At-least-once
 
 ### Pattern 2: Broadcast
+
 ```
 Agent A → Redis Channel (agent:broadcast) → All Agents
          ↓
@@ -244,6 +270,7 @@ Agent A → Redis Channel (agent:broadcast) → All Agents
 ```
 
 **Flow:**
+
 1. Agent A publishes to `agent:broadcast`
 2. All subscribed agents receive message
 3. Message persisted to stream
@@ -251,6 +278,7 @@ Agent A → Redis Channel (agent:broadcast) → All Agents
 **Delivery Guarantee**: Best-effort (pub/sub)
 
 ### Pattern 3: Intent-Based Routing
+
 ```
 Agent A → Redis Channel (agent:intent:code.analyze) → Agents with intent
          ↓
@@ -258,6 +286,7 @@ Agent A → Redis Channel (agent:intent:code.analyze) → Agents with intent
 ```
 
 **Flow:**
+
 1. Agent A sends message with intent `code.analyze`
 2. Bridge publishes to `agent:intent:code.analyze`
 3. Analyzer agents subscribed to intent receive message
@@ -266,12 +295,14 @@ Agent A → Redis Channel (agent:intent:code.analyze) → Agents with intent
 **Delivery Guarantee**: At-least-once via consumer groups
 
 ### Pattern 4: Request/Response (RPC)
+
 ```
 Agent A → Redis + replyTo → Agent B
 Agent A ← Redis Channel ← Agent B
 ```
 
 **Flow:**
+
 1. Agent A sends message with `replyTo: agent-a-rpc-{uuid}`
 2. Agent A subscribes to temporary channel
 3. Agent B processes and publishes response to `replyTo` channel
@@ -284,15 +315,18 @@ Agent A ← Redis Channel ← Agent B
 ## Implementation Plan
 
 ### Phase 1: Foundation (Week 1)
+
 **Goal**: Redis infrastructure and basic integration
 
 **Tasks:**
+
 1. Install and configure Redis 7.x
    - Enable persistence (RDB + AOF)
    - Configure memory limits
    - Set up monitoring
 
 2. Create Redis client wrapper (`src/utils/redis-client.js`)
+
    ```javascript
    import { createClient } from 'redis';
 
@@ -303,11 +337,11 @@ Agent A ← Redis Channel ← Agent B
        this.publisher = this.client.duplicate();
      }
 
-     async publish(channel, message) { }
-     async subscribe(channel, handler) { }
-     async streamAdd(stream, message) { }
-     async streamRead(stream, consumerGroup, consumerId) { }
-     async streamAck(stream, consumerGroup, messageId) { }
+     async publish(channel, message) {}
+     async subscribe(channel, handler) {}
+     async streamAdd(stream, message) {}
+     async streamRead(stream, consumerGroup, consumerId) {}
+     async streamAck(stream, consumerGroup, messageId) {}
    }
    ```
 
@@ -321,9 +355,11 @@ Agent A ← Redis Channel ← Agent B
 ---
 
 ### Phase 2: Stream Persistence (Week 2)
+
 **Goal**: Add message persistence and replay
 
 **Tasks:**
+
 1. Implement stream writing
    - Add all messages to `messages:all` stream
    - Add task messages to `messages:task:{id}` streams
@@ -344,9 +380,11 @@ Agent A ← Redis Channel ← Agent B
 ---
 
 ### Phase 3: Dead Letter Queue (Week 3)
+
 **Goal**: Reliable error handling
 
 **Tasks:**
+
 1. Implement DLQ stream
    - Move failed messages to `messages:dlq`
    - Track retry attempts
@@ -367,9 +405,11 @@ Agent A ← Redis Channel ← Agent B
 ---
 
 ### Phase 4: Advanced Features (Week 4)
+
 **Goal**: Performance and operational improvements
 
 **Tasks:**
+
 1. Message prioritization
    - Priority-based delivery
    - Separate high-priority channel
@@ -388,9 +428,11 @@ Agent A ← Redis Channel ← Agent B
 ---
 
 ### Phase 5: Migration and Cutover (Week 5)
+
 **Goal**: Production deployment
 
 **Tasks:**
+
 1. Backward compatibility mode
    - Dual-write (WebSocket + Redis)
    - Feature flag for gradual rollout
@@ -414,12 +456,14 @@ Agent A ← Redis Channel ← Agent B
 ### Backward Compatibility Approach
 
 **Hybrid Mode (Default for 30 days):**
+
 - WebSocket connections remain active
 - Messages written to both WebSocket and Redis
 - Agents can use either protocol
 - Bridge monitors both channels
 
 **Configuration:**
+
 ```javascript
 // src/config/constants.js
 export const MESSAGE_BROKER_CONFIG = {
@@ -439,13 +483,14 @@ export const MESSAGE_BROKER_CONFIG = {
     maxRetries: 3,
     retryDelay: 5000, // 5s
     enabled: true,
-  }
+  },
 };
 ```
 
 ### Agent Migration
 
 **Step 1: Update Agent Libraries**
+
 ```javascript
 // src/agents/base-agent.js
 export class BaseAgent {
@@ -483,6 +528,7 @@ export class BaseAgent {
 ```
 
 **Step 2: Feature Flag Rollout**
+
 1. Week 1: 10% of agents on Redis
 2. Week 2: 50% of agents on Redis
 3. Week 3: 100% of agents on Redis
@@ -495,17 +541,17 @@ export class BaseAgent {
 
 ### Expected Metrics (Redis vs Current)
 
-| Metric | Current (WebSocket) | Redis Hybrid | Redis Only | Target |
-|--------|---------------------|--------------|------------|--------|
-| Message Latency (p50) | 120ms | 130ms | 15ms | <50ms |
-| Message Latency (p99) | 500ms | 550ms | 100ms | <200ms |
-| Throughput | 100 msg/s | 200 msg/s | 5000 msg/s | >500 msg/s |
-| Memory (Idle) | 100MB | 150MB | 120MB | <200MB |
-| Memory (Load) | 250MB | 350MB | 300MB | <500MB |
-| Connection Setup | 200ms | 220ms | 50ms | <200ms |
-| Delivery Guarantee | None | At-least-once | At-least-once | At-least-once |
-| Message Persistence | None | 7 days | 7 days | 7 days |
-| Max Clients | ~100 | ~100 | ~10,000 | >1000 |
+| Metric                | Current (WebSocket) | Redis Hybrid  | Redis Only    | Target        |
+| --------------------- | ------------------- | ------------- | ------------- | ------------- |
+| Message Latency (p50) | 120ms               | 130ms         | 15ms          | <50ms         |
+| Message Latency (p99) | 500ms               | 550ms         | 100ms         | <200ms        |
+| Throughput            | 100 msg/s           | 200 msg/s     | 5000 msg/s    | >500 msg/s    |
+| Memory (Idle)         | 100MB               | 150MB         | 120MB         | <200MB        |
+| Memory (Load)         | 250MB               | 350MB         | 300MB         | <500MB        |
+| Connection Setup      | 200ms               | 220ms         | 50ms          | <200ms        |
+| Delivery Guarantee    | None                | At-least-once | At-least-once | At-least-once |
+| Message Persistence   | None                | 7 days        | 7 days        | 7 days        |
+| Max Clients           | ~100                | ~100          | ~10,000       | >1000         |
 
 ### Latency Breakdown (Redis Hybrid)
 
@@ -549,17 +595,14 @@ export class AIBridgeRedis extends AIBridge {
     await Promise.all([
       this.redisPublisher.connect(),
       this.redisSubscriber.connect(),
-      this.redisConsumer.connect()
+      this.redisConsumer.connect(),
     ]);
 
     // Create consumer group if not exists
     try {
-      await this.redisConsumer.xGroupCreate(
-        this.streamName,
-        this.consumerGroup,
-        '0',
-        { MKSTREAM: true }
-      );
+      await this.redisConsumer.xGroupCreate(this.streamName, this.consumerGroup, '0', {
+        MKSTREAM: true,
+      });
     } catch (err) {
       if (!err.message.includes('BUSYGROUP')) throw err;
     }
@@ -672,40 +715,27 @@ export class AIBridgeRedis extends AIBridge {
   }
 
   async moveToDLQ(messageId, message, error) {
-    await this.redisPublisher.xAdd(
-      this.dlqStream,
-      '*',
-      {
-        originalMessage: message.data,
-        originalId: messageId,
-        error: error.message,
-        timestamp: new Date().toISOString()
-      }
-    );
+    await this.redisPublisher.xAdd(this.dlqStream, '*', {
+      originalMessage: message.data,
+      originalId: messageId,
+      error: error.message,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   async getHistory(options = {}) {
     const { limit = 100, start = '-', end = '+' } = options;
 
-    const messages = await this.redisConsumer.xRange(
-      this.streamName,
-      start,
-      end,
-      { COUNT: limit }
-    );
+    const messages = await this.redisConsumer.xRange(this.streamName, start, end, { COUNT: limit });
 
     return messages.map(({ id, message }) => ({
       id,
-      ...JSON.parse(message.data)
+      ...JSON.parse(message.data),
     }));
   }
 
   async replayMessage(messageId, targetClient) {
-    const [message] = await this.redisConsumer.xRange(
-      this.streamName,
-      messageId,
-      messageId
-    );
+    const [message] = await this.redisConsumer.xRange(this.streamName, messageId, messageId);
 
     if (message) {
       const envelope = JSON.parse(message.message.data);
@@ -735,29 +765,17 @@ export class RedisAgentBase {
   }
 
   async connect() {
-    await Promise.all([
-      this.subscriber.connect(),
-      this.publisher.connect()
-    ]);
+    await Promise.all([this.subscriber.connect(), this.publisher.connect()]);
 
     // Subscribe to personal channel
-    await this.subscriber.subscribe(
-      `agent:${this.agentId}`,
-      this.handleMessage.bind(this)
-    );
+    await this.subscriber.subscribe(`agent:${this.agentId}`, this.handleMessage.bind(this));
 
     // Subscribe to broadcasts
-    await this.subscriber.subscribe(
-      'agent:broadcast',
-      this.handleMessage.bind(this)
-    );
+    await this.subscriber.subscribe('agent:broadcast', this.handleMessage.bind(this));
 
     // Subscribe to intents
     for (const intent of this.intents) {
-      await this.subscriber.subscribe(
-        `agent:intent:${intent}`,
-        this.handleMessage.bind(this)
-      );
+      await this.subscriber.subscribe(`agent:intent:${intent}`, this.handleMessage.bind(this));
     }
 
     console.log(`[${this.agentId}] Connected to Redis bridge`);
@@ -794,7 +812,7 @@ export class RedisAgentBase {
       payload,
       taskId: options.taskId,
       channel: options.channel || 'default',
-      priority: options.priority || 'normal'
+      priority: options.priority || 'normal',
     };
 
     const message = JSON.stringify(envelope);
@@ -818,10 +836,7 @@ export class RedisAgentBase {
   }
 
   async disconnect() {
-    await Promise.all([
-      this.subscriber.quit(),
-      this.publisher.quit()
-    ]);
+    await Promise.all([this.subscriber.quit(), this.publisher.quit()]);
   }
 }
 ```
@@ -834,12 +849,9 @@ export class RedisAgentBase {
 app.get('/api/dlq', async (req, res) => {
   const { limit = 100, start = '-', end = '+' } = req.query;
 
-  const messages = await bridge.redisConsumer.xRange(
-    bridge.dlqStream,
-    start,
-    end,
-    { COUNT: limit }
-  );
+  const messages = await bridge.redisConsumer.xRange(bridge.dlqStream, start, end, {
+    COUNT: limit,
+  });
 
   res.json({
     count: messages.length,
@@ -847,19 +859,15 @@ app.get('/api/dlq', async (req, res) => {
       id,
       originalMessage: JSON.parse(message.originalMessage),
       error: message.error,
-      timestamp: message.timestamp
-    }))
+      timestamp: message.timestamp,
+    })),
   });
 });
 
 app.post('/api/dlq/:messageId/retry', async (req, res) => {
   const { messageId } = req.params;
 
-  const [message] = await bridge.redisConsumer.xRange(
-    bridge.dlqStream,
-    messageId,
-    messageId
-  );
+  const [message] = await bridge.redisConsumer.xRange(bridge.dlqStream, messageId, messageId);
 
   if (!message) {
     return res.status(404).json({ error: 'Message not found in DLQ' });
@@ -896,19 +904,19 @@ export const redisMetrics = {
   messagesPublished: new Counter({
     name: 'redis_messages_published_total',
     help: 'Total messages published to Redis',
-    labelNames: ['channel', 'intent']
+    labelNames: ['channel', 'intent'],
   }),
 
   messagesConsumed: new Counter({
     name: 'redis_messages_consumed_total',
     help: 'Total messages consumed from Redis streams',
-    labelNames: ['stream', 'consumer_group']
+    labelNames: ['stream', 'consumer_group'],
   }),
 
   streamLag: new Gauge({
     name: 'redis_stream_lag',
     help: 'Consumer group lag (pending messages)',
-    labelNames: ['stream', 'consumer_group']
+    labelNames: ['stream', 'consumer_group'],
   }),
 
   dlqDepth: new Gauge({
@@ -919,8 +927,8 @@ export const redisMetrics = {
   publishLatency: new Histogram({
     name: 'redis_publish_duration_seconds',
     help: 'Redis publish latency',
-    buckets: [0.001, 0.005, 0.010, 0.050, 0.100, 0.500, 1.0]
-  })
+    buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0],
+  }),
 };
 ```
 
@@ -933,10 +941,7 @@ app.get('/health/redis', async (req, res) => {
     const ping = await bridge.redisPublisher.ping();
 
     // Check stream lag
-    const pending = await bridge.redisConsumer.xPending(
-      bridge.streamName,
-      bridge.consumerGroup
-    );
+    const pending = await bridge.redisConsumer.xPending(bridge.streamName, bridge.consumerGroup);
 
     // Check DLQ depth
     const dlqInfo = await bridge.redisConsumer.xLen(bridge.dlqStream);
@@ -946,9 +951,9 @@ app.get('/health/redis', async (req, res) => {
       redis: {
         connected: ping === 'PONG',
         streamLag: pending.pending,
-        dlqDepth: dlqInfo
+        dlqDepth: dlqInfo,
       },
-      alerts: []
+      alerts: [],
     };
 
     // Warn if lag is high
@@ -967,7 +972,7 @@ app.get('/health/redis', async (req, res) => {
   } catch (err) {
     res.status(503).json({
       status: 'unhealthy',
-      error: err.message
+      error: err.message,
     });
   }
 });
@@ -1022,14 +1027,14 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis-data:/data
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -1037,8 +1042,8 @@ services:
   ai-bridge:
     build: .
     ports:
-      - "56427:56427"
-      - "65038:65038"
+      - '56427:56427'
+      - '65038:65038'
     environment:
       - REDIS_URL=redis://redis:6379
       - MESSAGE_BROKER_MODE=redis
@@ -1084,7 +1089,7 @@ describe('Redis Bridge', () => {
   before(async () => {
     bridge = new AIBridgeRedis({
       redisUrl: 'redis://localhost:6379',
-      logger: console
+      logger: console,
     });
     await bridge.initialize();
 
@@ -1101,7 +1106,7 @@ describe('Redis Bridge', () => {
     const envelope = {
       from: 'agent-a',
       to: 'agent-b',
-      payload: { test: 'data' }
+      payload: { test: 'data' },
     };
 
     const messagePromise = new Promise((resolve) => {
@@ -1121,7 +1126,7 @@ describe('Redis Bridge', () => {
     const envelope = {
       from: 'agent-a',
       to: 'agent-b',
-      payload: { test: 'data' }
+      payload: { test: 'data' },
     };
 
     await bridge.acceptEnvelope(envelope);
@@ -1168,11 +1173,13 @@ async function loadTest() {
   for (let i = 0; i < messageCount; i += concurrency) {
     const batch = [];
     for (let j = 0; j < concurrency && i + j < messageCount; j++) {
-      batch.push(bridge.acceptEnvelope({
-        from: 'load-test',
-        to: 'agent-test',
-        payload: { index: i + j }
-      }));
+      batch.push(
+        bridge.acceptEnvelope({
+          from: 'load-test',
+          to: 'agent-test',
+          payload: { index: i + j },
+        })
+      );
     }
     await Promise.all(batch);
   }
@@ -1200,6 +1207,7 @@ loadTest();
 **Rollback Steps:**
 
 1. **Immediate (5 minutes)**
+
    ```bash
    # Set environment variable
    export MESSAGE_BROKER_MODE=websocket
@@ -1209,16 +1217,17 @@ loadTest();
    ```
 
 2. **Configuration Revert**
+
    ```javascript
    // src/config/constants.js
    export const MESSAGE_BROKER_CONFIG = {
      mode: 'websocket', // Switch back
      redis: {
-       enabled: false,  // Disable Redis
+       enabled: false, // Disable Redis
      },
      websocket: {
        enabled: true,
-     }
+     },
    };
    ```
 
@@ -1242,24 +1251,28 @@ loadTest();
 ## Success Criteria
 
 ### Phase 1 Success (Foundation)
+
 - [ ] Redis pub/sub functional
 - [ ] Messages delivered via both WebSocket and Redis
 - [ ] No performance degradation vs baseline
 - [ ] All tests passing
 
 ### Phase 2 Success (Persistence)
+
 - [ ] All messages persisted to streams
 - [ ] Replay API functional
 - [ ] Consumer groups working
 - [ ] Stream trimming operational
 
 ### Phase 3 Success (DLQ)
+
 - [ ] DLQ capturing failed messages
 - [ ] Retry mechanism working
 - [ ] DLQ API functional
 - [ ] Circuit breaker integrated
 
 ### Phase 4 Success (Production Ready)
+
 - [ ] Throughput >500 msg/s
 - [ ] p99 latency <200ms
 - [ ] Memory usage <500MB under load
@@ -1267,6 +1280,7 @@ loadTest();
 - [ ] Health checks passing
 
 ### Phase 5 Success (Migration Complete)
+
 - [ ] All agents migrated to Redis
 - [ ] WebSocket deprecated
 - [ ] Zero message loss during migration
@@ -1280,6 +1294,7 @@ loadTest();
 **Recommendation**: Implement Redis-based message broker with hybrid migration strategy.
 
 **Key Benefits:**
+
 1. **Low Latency**: 10-20ms for local Redis, suitable for real-time A2A
 2. **Persistence**: 7-day message retention with replay capability
 3. **Reliability**: At-least-once delivery with DLQ
@@ -1292,6 +1307,7 @@ loadTest();
 **Risk**: Low - Hybrid mode ensures safe rollback at any time
 
 **Next Steps:**
+
 1. Approve architecture
 2. Provision Redis infrastructure
 3. Begin Phase 1 implementation
@@ -1300,6 +1316,6 @@ loadTest();
 
 ---
 
-*Document Version: 1.0*
-*Last Updated: 2025-10-20*
-*Author: DevOps Architecture Team*
+_Document Version: 1.0_
+_Last Updated: 2025-10-20_
+_Author: DevOps Architecture Team_

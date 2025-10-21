@@ -1,0 +1,72 @@
+{
+  "timestamp": 1761045814869,
+  "memories": [
+    [
+      "system.status",
+      {
+        "key": "system.status",
+        "value": "operational",
+        "timestamp": 1761045814868,
+        "source": "memory-sync-1761045812852",
+        "version": 1,
+        "metadata": {
+          "type": "system"
+        }
+      }
+    ],
+    [
+      "active.tasks",
+      {
+        "key": "active.tasks",
+        "value": 3,
+        "timestamp": 1761045814869,
+        "source": "memory-sync-1761045812852",
+        "version": 1,
+        "metadata": {
+          "type": "counter"
+        }
+      }
+    ],
+    [
+      "bridge.uptime",
+      {
+        "key": "bridge.uptime",
+        "value": "60+ minutes",
+        "timestamp": 1761045814869,
+        "source": "memory-sync-1761045812852",
+        "version": 1,
+        "metadata": {
+          "type": "status"
+        }
+      }
+    ],
+    [
+      "codex.ready",
+      {
+        "key": "codex.ready",
+        "value": true,
+        "timestamp": 1761045814869,
+        "source": "memory-sync-1761045812852",
+        "version": 1,
+        "metadata": {
+          "type": "state",
+          "description": "Codex joined as task coordinator"
+        }
+      }
+    ]
+  ]
+}[
+      "memory.sync.enabled",
+      {
+        "key": "memory.sync.enabled",
+        "value": true,
+        "timestamp": 1761045814869,
+        "source": "memory-sync-1761045812852",
+        "version": 1,
+        "metadata": {
+          "type": "feature"
+        }
+      }
+    ]
+  ]
+}

@@ -4,11 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 function minifyHtml(content) {
-  return content
-    .replace(/\s+/g, ' ')
-    .replace(/>\s+</g, '><')
-    .replace(/\n+/g, '')
-    .trim();
+  return content.replace(/\s+/g, ' ').replace(/>\s+</g, '><').replace(/\n+/g, '').trim();
 }
 
 function minifyCss(content) {
@@ -31,12 +27,12 @@ function minifyJs(content) {
 
 function copyAndMinify(src, dest) {
   const stat = fs.statSync(src);
-  
+
   if (stat.isDirectory()) {
     if (!fs.existsSync(dest)) {
       fs.mkdirSync(dest, { recursive: true });
     }
-    
+
     const files = fs.readdirSync(src);
     for (const file of files) {
       if (file !== 'dist' && file !== 'node_modules') {
@@ -45,7 +41,7 @@ function copyAndMinify(src, dest) {
     }
   } else {
     let content = fs.readFileSync(src, 'utf8');
-    
+
     if (src.endsWith('.html')) {
       content = minifyHtml(content);
     } else if (src.endsWith('.css')) {
@@ -53,7 +49,7 @@ function copyAndMinify(src, dest) {
     } else if (src.endsWith('.js')) {
       content = minifyJs(content);
     }
-    
+
     fs.writeFileSync(dest, content);
   }
 }
@@ -61,18 +57,18 @@ function copyAndMinify(src, dest) {
 function buildWebsite() {
   const srcDir = 'website';
   const destDir = 'website/dist';
-  
+
   // Clean destination
   if (fs.existsSync(destDir)) {
     fs.rmSync(destDir, { recursive: true, force: true });
   }
-  
+
   // Create destination directory
   fs.mkdirSync(destDir, { recursive: true });
-  
+
   // Copy and minify all files
   copyAndMinify(srcDir, destDir);
-  
+
   console.log(`✅ Website built successfully to ${destDir}`);
   console.log('📦 Files minified: HTML, CSS, JS');
   console.log('🚀 Ready for deployment');

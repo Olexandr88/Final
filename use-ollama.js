@@ -16,9 +16,9 @@ async function askOllama(prompt, model = 'llama3') {
       intent: 'ai.query',
       payload: {
         message: prompt,
-        model: model
-      }
-    })
+        model: model,
+      },
+    }),
   });
 
   const result = await response.json();
@@ -29,7 +29,7 @@ async function askOllama(prompt, model = 'llama3') {
     const historyRes = await fetch(`${BRIDGE_HTTP}/history`);
     const history = await historyRes.json();
 
-    const myMessage = history.find(h => h.id === result.envelope.id);
+    const myMessage = history.find((h) => h.id === result.envelope.id);
     if (myMessage?.response) {
       console.log('\n📨 Response:');
       console.log(myMessage.response);
@@ -40,10 +40,11 @@ async function askOllama(prompt, model = 'llama3') {
 }
 
 // Get prompt from command line or use default
-const prompt = process.argv.slice(2).join(' ') || 'Explain async/await in JavaScript in 2 sentences';
+const prompt =
+  process.argv.slice(2).join(' ') || 'Explain async/await in JavaScript in 2 sentences';
 const model = process.env.OLLAMA_MODEL || 'llama3';
 
-askOllama(prompt, model).catch(err => {
+askOllama(prompt, model).catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

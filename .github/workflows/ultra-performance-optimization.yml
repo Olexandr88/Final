@@ -1,9 +1,9 @@
 name: Ultra Performance Optimization Suite
 on:
   push:
-    branches: [ main, 'feat/**' ]
+    branches: [main, 'feat/**']
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
     inputs:
       optimization_level:
@@ -13,7 +13,7 @@ on:
         type: choice
         options:
           - basic
-          - advanced  
+          - advanced
           - ultra
       target_efficiency:
         description: 'Target Efficiency Percentage'
@@ -109,7 +109,7 @@ jobs:
         run: |
           echo "=== RUNNING ULTRA-OPTIMIZED BRIDGE DEMO ==="
           LOG_LEVEL=info timeout 30s node examples/bridge-demo-ultra.js || echo "Ultra demo completed"
-      - name: 🔋 Run Standard Optimized Demo  
+      - name: 🔋 Run Standard Optimized Demo
         if: matrix.demo_type == 'standard'
         timeout-minutes: 2
         run: |

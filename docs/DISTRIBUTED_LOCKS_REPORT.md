@@ -138,6 +138,7 @@ LockManager
 **Purpose**: Core distributed locking implementation using Redlock algorithm
 
 **Features**:
+
 - Multi-node coordination (requires majority consensus)
 - Automatic lock renewal for long-running operations
 - Event-driven architecture (EventEmitter)
@@ -146,30 +147,32 @@ LockManager
 - Graceful degradation on node failures
 
 **Key Methods**:
+
 ```javascript
 // Initialize connections to Redis cluster
-await initialize()
+await initialize();
 
 // Acquire distributed lock
-await acquireLock(resourcePath, ttl, options)
+await acquireLock(resourcePath, ttl, options);
 
 // Release lock
-await releaseLock(resourcePath)
+await releaseLock(resourcePath);
 
 // Extend lock TTL
-await extendLock(resourcePath, additionalTTL)
+await extendLock(resourcePath, additionalTTL);
 
 // Execute function with automatic lock management
-await withLock(resourcePath, fn, options)
+await withLock(resourcePath, fn, options);
 
 // Get health status of cluster
-await getHealthStatus()
+await getHealthStatus();
 
 // Get performance metrics
-getMetrics()
+getMetrics();
 ```
 
 **Configuration Options**:
+
 ```javascript
 {
   redisNodes: [
@@ -191,6 +194,7 @@ getMetrics()
 **Purpose**: Unified API supporting both local and distributed locks
 
 **Enhancements**:
+
 - Automatic mode selection (distributed vs local)
 - Transparent fallback on Redis failure
 - Backward compatibility with existing code
@@ -198,18 +202,20 @@ getMetrics()
 - Statistics collection
 
 **New Methods**:
+
 ```javascript
 // Get lock statistics
-getStats()
+getStats();
 
 // Get health status
-await getHealthStatus()
+await getHealthStatus();
 
 // Cleanup all resources
-await cleanup()
+await cleanup();
 ```
 
 **Statistics Structure**:
+
 ```javascript
 {
   localLocks: 2,                    // Count of local locks
@@ -234,6 +240,7 @@ await cleanup()
 **Purpose**: Deploy 3-node Redis cluster for Redlock
 
 **Services**:
+
 - **redis-1**: Primary node (port 6379)
 - **redis-2**: Secondary node (port 6380)
 - **redis-3**: Tertiary node (port 6381)
@@ -248,6 +255,7 @@ await cleanup()
 ### 4. Test Suite (`tests/redis-redlock.test.js`)
 
 **Coverage**:
+
 - ✅ Initialization and connection management
 - ✅ Basic lock acquisition and release
 - ✅ Concurrent access prevention (mutual exclusion)
@@ -262,6 +270,7 @@ await cleanup()
 - ✅ High concurrency scenarios
 
 **Test Results** (Expected):
+
 ```
 ✓ should initialize successfully
 ✓ should acquire and release a lock
@@ -312,6 +321,7 @@ await cleanup()
    - Measures: health check latency
 
 **Expected Benchmark Results**:
+
 ```
 ===========================================
 PERFORMANCE TARGETS
@@ -329,6 +339,7 @@ PERFORMANCE TARGETS
 ### 6. Health Check (`scripts/redis-lock-health-check.js`)
 
 **Checks Performed**:
+
 1. ✓ Initialization (lock manager startup)
 2. ✓ Redis Cluster Health (node availability and latency)
 3. ✓ Lock Acquisition (end-to-end lock acquisition)
@@ -338,6 +349,7 @@ PERFORMANCE TARGETS
 7. ✓ Failover Readiness (quorum status)
 
 **Output Format**:
+
 ```
 ======================================================================
 DISTRIBUTED LOCKS HEALTH CHECK
@@ -381,16 +393,16 @@ Failed: 0
 
 Tested on: Windows 10, Node.js 18.x, 3-node Redis cluster (local Docker)
 
-| Metric | Target | Achieved | Status |
-|--------|--------|----------|--------|
-| Lock Acquisition Latency (P50) | < 80ms | 45ms | ✅ |
-| Lock Acquisition Latency (P95) | < 120ms | 78ms | ✅ |
-| Lock Acquisition Latency (P99) | < 200ms | 156ms | ✅ |
-| Throughput | > 50 ops/sec | 127 ops/sec | ✅ |
-| Contention Success Rate | > 80% | 92% | ✅ |
-| Lock Extension Latency | < 100ms | 42ms | ✅ |
-| Memory Per Lock | < 10KB | 4.2KB | ✅ |
-| Health Check Latency | < 100ms | 35ms | ✅ |
+| Metric                         | Target       | Achieved    | Status |
+| ------------------------------ | ------------ | ----------- | ------ |
+| Lock Acquisition Latency (P50) | < 80ms       | 45ms        | ✅     |
+| Lock Acquisition Latency (P95) | < 120ms      | 78ms        | ✅     |
+| Lock Acquisition Latency (P99) | < 200ms      | 156ms       | ✅     |
+| Throughput                     | > 50 ops/sec | 127 ops/sec | ✅     |
+| Contention Success Rate        | > 80%        | 92%         | ✅     |
+| Lock Extension Latency         | < 100ms      | 42ms        | ✅     |
+| Memory Per Lock                | < 10KB       | 4.2KB       | ✅     |
+| Health Check Latency           | < 100ms      | 35ms        | ✅     |
 
 ### Latency Distribution
 
@@ -443,12 +455,14 @@ Lock Acquisition Times (100 samples):
 **Location**: `tests/redis-redlock.test.js`
 
 **Scope**:
+
 - Core functionality (acquire, release, extend)
 - Edge cases (timeout, expiration, concurrency)
 - Error handling (node failures, network issues)
 - Performance characteristics
 
 **Execution**:
+
 ```bash
 npm run locks:test
 ```
@@ -491,11 +505,13 @@ await locks2.acquireLock('shared-resource');
 **Location**: `scripts/benchmark-distributed-locks.js`
 
 **Execution**:
+
 ```bash
 npm run locks:benchmark
 ```
 
 **Scenarios**:
+
 - Sequential operations (measure latency)
 - Sustained load (measure throughput)
 - Concurrent contention (measure fairness)
@@ -506,11 +522,13 @@ npm run locks:benchmark
 **Location**: `scripts/redis-lock-health-check.js`
 
 **Execution**:
+
 ```bash
 npm run locks:health
 ```
 
 **Verification**:
+
 - All Redis nodes reachable
 - Lock operations functional
 - Metrics collection working
@@ -621,16 +639,19 @@ open http://localhost:9090
 ### Key Metrics
 
 **Lock Operations**:
+
 - `distributed_locks_acquired_total`: Counter of successful acquisitions
 - `distributed_locks_failed_total`: Counter of failed acquisitions
 - `distributed_locks_released_total`: Counter of releases
 - `distributed_lock_acquisition_duration_ms`: Histogram of acquisition latency
 
 **Resource Usage**:
+
 - `distributed_locks_active`: Gauge of currently held locks
 - `distributed_locks_memory_bytes`: Memory used by lock tracking
 
 **Health**:
+
 - `redis_nodes_healthy`: Gauge of healthy Redis nodes
 - `redis_node_latency_ms`: Gauge of per-node latency
 - `redis_cluster_has_quorum`: Boolean gauge of quorum status
@@ -638,12 +659,14 @@ open http://localhost:9090
 ### Grafana Dashboards
 
 **Lock Performance Dashboard**:
+
 - Lock acquisition rate (ops/sec)
 - Lock latency percentiles (P50, P95, P99)
 - Success/failure ratio
 - Active locks over time
 
 **Redis Cluster Dashboard**:
+
 - Node health status
 - Per-node latency
 - Quorum status
@@ -652,11 +675,13 @@ open http://localhost:9090
 ### Alerting Rules
 
 **Critical**:
+
 - Quorum lost (< 2/3 nodes healthy)
 - Lock acquisition P95 > 500ms
 - Lock failure rate > 10%
 
 **Warning**:
+
 - Single node unhealthy
 - Lock acquisition P95 > 200ms
 - Lock failure rate > 5%
@@ -664,12 +689,14 @@ open http://localhost:9090
 ### Logging
 
 **Log Levels**:
+
 - `ERROR`: Lock failures, node disconnections, quorum loss
 - `WARN`: Single node issues, high latency, fallback to local locks
 - `INFO`: Lock acquisitions/releases, health checks, initialization
 - `DEBUG`: Detailed lock operations, retry attempts, metrics
 
 **Log Format**:
+
 ```
 2025-10-20 10:30:45 [INFO]: [RedisRedlock] Lock acquired {"resourcePath":"file:/path/to/resource","acquireTime":"45.67","ttl":10000}
 ```
@@ -708,6 +735,7 @@ open http://localhost:9090
 ### Migration Scripts
 
 **Enable Distributed Locks**:
+
 ```bash
 # Update .env
 echo "USE_DISTRIBUTED_LOCKS=true" >> .env
@@ -717,6 +745,7 @@ npm run bridge:start
 ```
 
 **Disable Distributed Locks**:
+
 ```bash
 # Update .env
 sed -i 's/USE_DISTRIBUTED_LOCKS=true/USE_DISTRIBUTED_LOCKS=false/' .env
@@ -747,6 +776,7 @@ await lockManager.releaseLock('resource');
 **Impact**: Minimal - Redlock continues with majority
 
 **Recovery**:
+
 1. Automatic - no action needed
 2. Restart failed node when convenient
 
@@ -759,6 +789,7 @@ await lockManager.releaseLock('resource');
 **Impact**: Automatic fallback to local locks
 
 **Recovery**:
+
 1. Restore at least one more Redis node
 2. System automatically recovers when quorum restored
 
@@ -771,6 +802,7 @@ await lockManager.releaseLock('resource');
 **Impact**: Falls back to local locks
 
 **Recovery**:
+
 1. Fix network connectivity
 2. System recovers automatically when connectivity restored
 
@@ -783,6 +815,7 @@ await lockManager.releaseLock('resource');
 **Impact**: Slower lock operations but no failures
 
 **Recovery**:
+
 1. Investigate Redis performance (CPU, memory, disk)
 2. Scale Redis resources
 3. Optimize lock usage patterns
@@ -796,6 +829,7 @@ await lockManager.releaseLock('resource');
 **Impact**: Automatic expiration prevents deadlock
 
 **Recovery**:
+
 - Automatic - TTL expires and releases lock
 - For long operations, use `autoRenew: true`
 
@@ -830,7 +864,7 @@ await lockManager.acquireLock('resource', 'write', 5000);
 
 // Long operations with auto-renewal
 const lock = await lockManager._acquireDistributedLock('resource', 'write', 60000, {
-  autoRenew: true
+  autoRenew: true,
 });
 ```
 

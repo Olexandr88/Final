@@ -42,7 +42,7 @@ export class VisualRegressionTester {
         path: outputPath,
         name,
         route,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       };
     } catch (error) {
       console.error(`Failed to capture screenshot for ${route}: ${error.message}`);
@@ -68,7 +68,7 @@ export class VisualRegressionTester {
       return {
         status: 'baseline_created',
         name,
-        baselinePath
+        baselinePath,
       };
     }
 
@@ -81,7 +81,7 @@ export class VisualRegressionTester {
       return {
         status: 'identical',
         name,
-        diffPath: null
+        diffPath: null,
       };
     } catch (error) {
       // pixelmatch exits with code 1 when differences found
@@ -89,7 +89,7 @@ export class VisualRegressionTester {
         status: 'different',
         name,
         diffPath,
-        message: 'Visual differences detected'
+        message: 'Visual differences detected',
       };
     }
   }
@@ -105,7 +105,7 @@ export class VisualRegressionTester {
     const analysis = {
       path: screenshotPath,
       timestamp: Date.now(),
-      issues: []
+      issues: [],
     };
 
     // Basic analysis (can be enhanced with AI vision models)
@@ -144,7 +144,7 @@ export class VisualRegressionTester {
       issues.push({
         type: 'color',
         severity: 'warning',
-        message: 'Button color verification needed'
+        message: 'Button color verification needed',
       });
     }
 
@@ -153,7 +153,7 @@ export class VisualRegressionTester {
       issues.push({
         type: 'spacing',
         severity: 'info',
-        message: 'Verify spacing between cards'
+        message: 'Verify spacing between cards',
       });
     }
 
@@ -168,7 +168,7 @@ export class VisualRegressionTester {
       passed: [],
       failed: [],
       baseline_created: [],
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     for (const route of routes) {
@@ -189,14 +189,14 @@ export class VisualRegressionTester {
           results.failed.push({
             name,
             route: route.path,
-            diffPath: comparison.diffPath
+            diffPath: comparison.diffPath,
           });
         }
       } catch (error) {
         results.failed.push({
           name,
           route: route.path,
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -210,7 +210,7 @@ export class VisualRegressionTester {
   async updateBaseline(names = null) {
     const currentFiles = await fs.promises.readdir(this.currentDir);
     const filesToUpdate = names
-      ? currentFiles.filter(f => names.some(n => f.startsWith(n)))
+      ? currentFiles.filter((f) => names.some((n) => f.startsWith(n)))
       : currentFiles;
 
     for (const file of filesToUpdate) {
@@ -280,7 +280,7 @@ export class VisualRegressionTester {
    * Ensure required directories exist
    */
   _ensureDirectories() {
-    [this.screenshotDir, this.baselineDir, this.currentDir, this.diffDir].forEach(dir => {
+    [this.screenshotDir, this.baselineDir, this.currentDir, this.diffDir].forEach((dir) => {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true }); // Keep sync for constructor
       }

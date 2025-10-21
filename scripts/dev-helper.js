@@ -11,28 +11,30 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 const COMMANDS = {
-  'ports': {
+  ports: {
     desc: 'Show all listening ports',
     async run() {
       console.log('🔌 Listening Ports:\n');
       try {
         // Windows: netstat
         const { stdout } = await execAsync('netstat -an | findstr LISTENING');
-        const lines = stdout.split('\n').filter(l => l.trim());
+        const lines = stdout.split('\n').filter((l) => l.trim());
         const ports = new Set();
 
-        lines.forEach(line => {
+        lines.forEach((line) => {
           const match = line.match(/:(\d+)/);
           if (match) ports.add(match[1]);
         });
 
-        [...ports].sort((a, b) => parseInt(a) - parseInt(b)).forEach(port => {
-          console.log(`  Port ${port}`);
-        });
+        [...ports]
+          .sort((a, b) => parseInt(a) - parseInt(b))
+          .forEach((port) => {
+            console.log(`  Port ${port}`);
+          });
       } catch (err) {
         console.log('  (netstat command failed)');
       }
-    }
+    },
   },
 
   'bridge-ports': {
@@ -53,7 +55,7 @@ const COMMANDS = {
           console.log(`  ❌ Port ${port} - Available`);
         }
       }
-    }
+    },
   },
 
   'kill-bridge': {
@@ -83,7 +85,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  ❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'node-procs': {
@@ -96,7 +98,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  No Node.js processes found');
       }
-    }
+    },
   },
 
   'git-status': {
@@ -108,11 +110,11 @@ const COMMANDS = {
         console.log(`  Branch: ${branch.trim()}`);
 
         const { stdout: status } = await execAsync('git status --short');
-        const lines = status.split('\n').filter(l => l.trim());
+        const lines = status.split('\n').filter((l) => l.trim());
 
-        const modified = lines.filter(l => l.startsWith(' M')).length;
-        const added = lines.filter(l => l.startsWith('??')).length;
-        const staged = lines.filter(l => l.startsWith('M ')).length;
+        const modified = lines.filter((l) => l.startsWith(' M')).length;
+        const added = lines.filter((l) => l.startsWith('??')).length;
+        const staged = lines.filter((l) => l.startsWith('M ')).length;
 
         console.log(`  Modified: ${modified}`);
         console.log(`  Staged: ${staged}`);
@@ -120,7 +122,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  ❌ Not a git repository');
       }
-    }
+    },
   },
 
   'quick-test': {
@@ -131,25 +133,25 @@ const COMMANDS = {
 
       const proc = spawn('node', ['scripts/quick-test.js', pattern], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
-  'cleanup': {
+  cleanup: {
     desc: 'Cleanup workspace (dry run)',
     async run() {
       console.log('🧹 Workspace Cleanup Preview:\n');
 
       const proc = spawn('node', ['scripts/workspace-cleanup.js', '--dry-run'], {
         stdio: 'inherit',
-        shell: true
+        shell: true,
       });
 
-      return new Promise(resolve => proc.on('close', resolve));
-    }
+      return new Promise((resolve) => proc.on('close', resolve));
+    },
   },
 
   'disk-usage': {
@@ -167,7 +169,7 @@ const COMMANDS = {
           console.log(`  ${dir}: N/A`);
         }
       }
-    }
+    },
   },
 
   'env-check': {
@@ -180,35 +182,31 @@ const COMMANDS = {
         'GROQ_API_KEY',
         'DEEPSEEK_API_KEY',
         'NODE_ENV',
-        'PORT'
+        'PORT',
       ];
 
-      required.forEach(key => {
+      required.forEach((key) => {
         const value = process.env[key];
         if (value) {
-          const masked = key.includes('KEY')
-            ? `${value.substring(0, 8)}...`
-            : value;
+          const masked = key.includes('KEY') ? `${value.substring(0, 8)}...` : value;
           console.log(`  ✅ ${key}: ${masked}`);
         } else {
           console.log(`  ❌ ${key}: Not set`);
         }
       });
-    }
+    },
   },
 
-  'connections': {
+  connections: {
     desc: 'Show active network connections by IP',
     async run() {
       console.log('🌐 Active Network Connections:\n');
       try {
         // Based on shell_one_liners.sh block 225
-        const { stdout } = await execAsync(
-          'netstat -an | findstr ESTABLISHED'
-        );
+        const { stdout } = await execAsync('netstat -an | findstr ESTABLISHED');
         const connections = new Map();
 
-        stdout.split('\n').forEach(line => {
+        stdout.split('\n').forEach((line) => {
           const match = line.match(/(\d+\.\d+\.\d+\.\d+):(\d+)/);
           if (match && match[1] !== '127.0.0.1') {
             const ip = match[1];
@@ -216,9 +214,7 @@ const COMMANDS = {
           }
         });
 
-        const sorted = [...connections.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 10);
+        const sorted = [...connections.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
 
         sorted.forEach(([ip, count]) => {
           const bar = '*'.repeat(Math.min(count, 40));
@@ -227,7 +223,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  No established connections');
       }
-    }
+    },
   },
 
   'port-scan': {
@@ -239,7 +235,7 @@ const COMMANDS = {
         const { stdout } = await execAsync('netstat -an | findstr LISTENING');
         const ports = new Map();
 
-        stdout.split('\n').forEach(line => {
+        stdout.split('\n').forEach((line) => {
           const match = line.match(/:(\d+)\s+.*LISTENING/);
           if (match) {
             const port = match[1];
@@ -255,7 +251,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error scanning ports');
       }
-    }
+    },
   },
 
   'process-tree': {
@@ -266,7 +262,7 @@ const COMMANDS = {
         // Windows equivalent of ps awwfux | less -S
         const { stdout } = await execAsync('tasklist /V /FO LIST');
         const processes = stdout.split('\n\n').slice(0, 20);
-        processes.forEach(proc => {
+        processes.forEach((proc) => {
           if (proc.trim()) {
             console.log(proc.substring(0, 200));
             console.log('─'.repeat(80));
@@ -275,7 +271,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error listing processes');
       }
-    }
+    },
   },
 
   'find-large-files': {
@@ -292,7 +288,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error searching for files');
       }
-    }
+    },
   },
 
   'recent-files': {
@@ -308,8 +304,8 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error finding recent files');
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {

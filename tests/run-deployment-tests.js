@@ -17,7 +17,7 @@ const testFiles = [
   'tests/architecture/session-manager-cqrs.test.js',
   'tests/database/prisma-client.test.js',
   'tests/redis-redlock.test.js',
-  'tests/integration/deployment-validation.test.js'
+  'tests/integration/deployment-validation.test.js',
 ];
 
 const results = {
@@ -27,7 +27,7 @@ const results = {
   totalTests: 0,
   passedTests: 0,
   failedTests: 0,
-  startTime: Date.now()
+  startTime: Date.now(),
 };
 
 async function runTest(testFile) {
@@ -39,7 +39,7 @@ async function runTest(testFile) {
     const child = spawn('node', ['--test', testFile], {
       stdio: 'inherit',
       shell: true,
-      cwd: process.cwd()
+      cwd: process.cwd(),
     });
 
     child.on('close', (code) => {
@@ -98,7 +98,7 @@ function printResults() {
 
   if (results.passed.length > 0) {
     console.log('✅ Passed Suites:');
-    results.passed.forEach(file => {
+    results.passed.forEach((file) => {
       console.log(`  ✓ ${file}`);
     });
     console.log('');
@@ -106,7 +106,7 @@ function printResults() {
 
   if (results.failed.length > 0) {
     console.log('❌ Failed Suites:');
-    results.failed.forEach(file => {
+    results.failed.forEach((file) => {
       console.log(`  ✗ ${file}`);
     });
     console.log('');
@@ -114,15 +114,14 @@ function printResults() {
 
   if (results.skipped.length > 0) {
     console.log('⏭️  Skipped Suites:');
-    results.skipped.forEach(file => {
+    results.skipped.forEach((file) => {
       console.log(`  - ${file}`);
     });
     console.log('');
   }
 
-  const successRate = testFiles.length > 0
-    ? ((results.passed.length / testFiles.length) * 100).toFixed(2)
-    : 0;
+  const successRate =
+    testFiles.length > 0 ? ((results.passed.length / testFiles.length) * 100).toFixed(2) : 0;
 
   console.log(`Success Rate: ${successRate}%\n`);
 

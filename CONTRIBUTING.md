@@ -7,6 +7,7 @@ Thank you for your interest in contributing to this project! We welcome contribu
 ### Reporting Bugs
 
 If you find a bug, please open an issue with:
+
 - A clear description of the problem
 - Steps to reproduce the issue
 - Expected behavior
@@ -16,6 +17,7 @@ If you find a bug, please open an issue with:
 ### Suggesting Enhancements
 
 We welcome feature requests! Please open an issue with:
+
 - A clear description of the proposed feature
 - Use cases and benefits
 - Any relevant examples or mockups

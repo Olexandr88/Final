@@ -20,7 +20,7 @@ const PATTERNS_TO_REMOVE = {
     'test-results.txt',
     'test_output.txt',
     'test.txt',
-    'test.js'
+    'test.js',
   ],
 
   // Temporary files
@@ -29,17 +29,11 @@ const PATTERNS_TO_REMOVE = {
     'summary.txt',
     'NUL',
     'SHARED-FILE.txt',
-    '.temp-dashboard-optimizations.txt'
+    '.temp-dashboard-optimizations.txt',
   ],
 
   // Demo/validation scripts (if aggressive)
-  demoScripts: [
-    'demo-*.js',
-    'test-a2a-*.js',
-    'validate-*.js',
-    'verify-*.ps1',
-    'cleanup-*.ps1'
-  ],
+  demoScripts: ['demo-*.js', 'test-a2a-*.js', 'validate-*.js', 'verify-*.ps1', 'cleanup-*.ps1'],
 
   // Markdown reports (keep important ones)
   reports: [
@@ -50,13 +44,13 @@ const PATTERNS_TO_REMOVE = {
     'OPTIMIZATION-*.md',
     'WHAT_IS_THIS.txt',
     'WHATS_NEXT.txt',
-    'SIMPLE_SUMMARY.txt'
-  ]
+    'SIMPLE_SUMMARY.txt',
+  ],
 };
 
 async function shouldRemove(filename, category) {
   const patterns = PATTERNS_TO_REMOVE[category];
-  return patterns.some(pattern => {
+  return patterns.some((pattern) => {
     if (pattern.includes('*')) {
       const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
       return regex.test(filename);
@@ -69,7 +63,7 @@ async function cleanupDirectory(dir = '.') {
   const removed = {
     files: [],
     dirs: [],
-    savedSpace: 0
+    savedSpace: 0,
   };
 
   try {
@@ -79,10 +73,19 @@ async function cleanupDirectory(dir = '.') {
       const fullPath = join(dir, item);
 
       // Skip critical directories
-      if ([
-        'node_modules', '.git', 'src', 'tests', 'scripts',
-        '.claude', '.github', 'prisma', 'electron'
-      ].includes(item)) {
+      if (
+        [
+          'node_modules',
+          '.git',
+          'src',
+          'tests',
+          'scripts',
+          '.claude',
+          '.github',
+          'prisma',
+          'electron',
+        ].includes(item)
+      ) {
         continue;
       }
 
@@ -100,16 +103,18 @@ async function cleanupDirectory(dir = '.') {
           } else if (await shouldRemove(item, 'tempFiles')) {
             shouldDelete = true;
             reason = 'temp file';
-          } else if (AGGRESSIVE && await shouldRemove(item, 'reports')) {
+          } else if (AGGRESSIVE && (await shouldRemove(item, 'reports'))) {
             shouldDelete = true;
             reason = 'report file';
-          } else if (AGGRESSIVE && await shouldRemove(item, 'demoScripts')) {
+          } else if (AGGRESSIVE && (await shouldRemove(item, 'demoScripts'))) {
             shouldDelete = true;
             reason = 'demo script';
           }
 
           if (shouldDelete) {
-            console.log(`${DRY_RUN ? '[DRY] ' : ''}Removing ${item} (${reason}) - ${(stats.size / 1024).toFixed(2)} KB`);
+            console.log(
+              `${DRY_RUN ? '[DRY] ' : ''}Removing ${item} (${reason}) - ${(stats.size / 1024).toFixed(2)} KB`
+            );
             if (!DRY_RUN) {
               await rm(fullPath, { force: true });
             }
@@ -118,13 +123,7 @@ async function cleanupDirectory(dir = '.') {
           }
         } else if (stats.isDirectory()) {
           // Remove specific empty or test directories
-          const tempDirs = [
-            'test-workspace',
-            'vibe-demo-workspace',
-            'demo',
-            'output',
-            'generated'
-          ];
+          const tempDirs = ['test-workspace', 'vibe-demo-workspace', 'demo', 'output', 'generated'];
 
           if (tempDirs.includes(item)) {
             console.log(`${DRY_RUN ? '[DRY] ' : ''}Removing directory ${item}`);
@@ -169,7 +168,7 @@ async function main() {
 
   if (result.files.length > 0) {
     console.log('\nFiles removed:');
-    result.files.slice(0, 20).forEach(f => console.log(`  • ${f}`));
+    result.files.slice(0, 20).forEach((f) => console.log(`  • ${f}`));
     if (result.files.length > 20) {
       console.log(`  ... and ${result.files.length - 20} more`);
     }
@@ -177,7 +176,7 @@ async function main() {
 
   if (result.dirs.length > 0) {
     console.log('\nDirectories removed:');
-    result.dirs.forEach(d => console.log(`  • ${d}`));
+    result.dirs.forEach((d) => console.log(`  • ${d}`));
   }
 
   console.log('\n✨ Cleanup complete!');

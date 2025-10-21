@@ -36,7 +36,7 @@ export class DatabasePool {
       totalReleased: 0,
       totalCreated: 0,
       totalErrors: 0,
-      peakActive: 0
+      peakActive: 0,
     };
 
     // Initialize pool
@@ -45,7 +45,7 @@ export class DatabasePool {
     logger.info('DatabasePool initialized', {
       dbPath: this.dbPath,
       poolSize: this.poolSize,
-      enableWAL: this.enableWAL
+      enableWAL: this.enableWAL,
     });
   }
 
@@ -63,7 +63,7 @@ export class DatabasePool {
       } catch (error) {
         logger.error('Failed to create database connection', {
           error: error.message,
-          poolIndex: i
+          poolIndex: i,
         });
         throw error;
       }
@@ -120,7 +120,7 @@ export class DatabasePool {
 
         logger.debug('Connection acquired immediately', {
           available: this.available.length,
-          active: this.activeConnections
+          active: this.activeConnections,
         });
 
         return resolve(conn);
@@ -133,10 +133,12 @@ export class DatabasePool {
           this.waiting.splice(index, 1);
         }
         this.stats.totalErrors++;
-        reject(new Error(
-          `Database connection timeout after ${this.maxWaitTime}ms. ` +
-          `Active: ${this.activeConnections}, Waiting: ${this.waiting.length}`
-        ));
+        reject(
+          new Error(
+            `Database connection timeout after ${this.maxWaitTime}ms. ` +
+              `Active: ${this.activeConnections}, Waiting: ${this.waiting.length}`
+          )
+        );
       }, this.maxWaitTime);
 
       const waitObj = { resolve, reject, timeout };
@@ -145,7 +147,7 @@ export class DatabasePool {
       logger.debug('Connection request queued', {
         waitingCount: this.waiting.length,
         available: this.available.length,
-        active: this.activeConnections
+        active: this.activeConnections,
       });
     });
   }
@@ -172,7 +174,7 @@ export class DatabasePool {
 
       logger.debug('Connection passed to waiting request', {
         waitingCount: this.waiting.length,
-        active: this.activeConnections
+        active: this.activeConnections,
       });
 
       waitObj.resolve(conn);
@@ -182,7 +184,7 @@ export class DatabasePool {
 
       logger.debug('Connection returned to pool', {
         available: this.available.length,
-        active: this.activeConnections
+        active: this.activeConnections,
       });
     }
   }
@@ -203,7 +205,7 @@ export class DatabasePool {
       this.stats.totalErrors++;
       logger.error('Error executing database operation', {
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
       throw error;
     } finally {
@@ -224,7 +226,7 @@ export class DatabasePool {
       available: this.available.length,
       active: this.activeConnections,
       waiting: this.waiting.length,
-      utilization: (this.activeConnections / this.poolSize * 100).toFixed(2) + '%'
+      utilization: ((this.activeConnections / this.poolSize) * 100).toFixed(2) + '%',
     };
   }
 
@@ -256,7 +258,7 @@ export class DatabasePool {
     logger.info('Starting database pool cleanup', {
       active: this.activeConnections,
       available: this.available.length,
-      waiting: this.waiting.length
+      waiting: this.waiting.length,
     });
 
     const startTime = Date.now();
@@ -269,18 +271,21 @@ export class DatabasePool {
     }
 
     // Wait for active connections to be released
-    while (this.activeConnections > 0 && (Date.now() - startTime) < timeout) {
-      await new Promise(resolve => setTimeout(resolve, 100));
+    while (this.activeConnections > 0 && Date.now() - startTime < timeout) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
     if (this.activeConnections > 0) {
       logger.warn('Force closing pool with active connections', {
-        active: this.activeConnections
+        active: this.activeConnections,
       });
     }
 
     // Close all connections
-    const allConnections = [...this.available, ...this.pool.filter(c => !this.available.includes(c))];
+    const allConnections = [
+      ...this.available,
+      ...this.pool.filter((c) => !this.available.includes(c)),
+    ];
     for (const conn of allConnections) {
       try {
         if (conn.open) {
@@ -288,7 +293,7 @@ export class DatabasePool {
         }
       } catch (error) {
         logger.error('Error closing connection', {
-          error: error.message
+          error: error.message,
         });
       }
     }
@@ -299,7 +304,7 @@ export class DatabasePool {
     this.activeConnections = 0;
 
     logger.info('Database pool cleanup complete', {
-      stats: this.getStats()
+      stats: this.getStats(),
     });
   }
 
@@ -308,8 +313,7 @@ export class DatabasePool {
    * @returns {boolean} True if pool is operational
    */
   isHealthy() {
-    return this.pool.length > 0 &&
-           this.available.length + this.activeConnections === this.poolSize;
+    return this.pool.length > 0 && this.available.length + this.activeConnections === this.poolSize;
   }
 }
 

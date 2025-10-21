@@ -93,7 +93,7 @@ async function benchmarkWithPool() {
   // Create pool and initialize
   const pool = new DatabasePool(DEMO_DB_PATH, {
     poolSize: 10,
-    enableWAL: true
+    enableWAL: true,
   });
 
   await pool.execute((db) => {
@@ -129,7 +129,9 @@ async function benchmarkWithPool() {
   console.log(`⏱️  Total time: ${duration}ms`);
   console.log(`📈 Average per operation: ${(duration / NUM_OPERATIONS).toFixed(2)}ms`);
   console.log(`🔄 Pool size: ${stats.poolSize}`);
-  console.log(`📊 Connection reuse: ${stats.totalAcquired} acquisitions / ${stats.totalCreated} created`);
+  console.log(
+    `📊 Connection reuse: ${stats.totalAcquired} acquisitions / ${stats.totalCreated} created`
+  );
   console.log(`🎯 Peak concurrent: ${stats.peakActive} connections`);
   console.log(`✨ Utilization: ${stats.utilization}\n`);
 
@@ -149,7 +151,7 @@ async function demonstratePoolStatistics() {
 
   const pool = new DatabasePool(DEMO_DB_PATH, {
     poolSize: 5,
-    enableWAL: true
+    enableWAL: true,
   });
 
   console.log('Initial pool state:');
@@ -163,7 +165,7 @@ async function demonstratePoolStatistics() {
   console.log('Phase 1: Light load (2 concurrent ops)');
   await Promise.all([
     pool.execute((db) => db.prepare('SELECT COUNT(*) as count FROM users').get()),
-    pool.execute((db) => db.prepare('SELECT COUNT(*) as count FROM users').get())
+    pool.execute((db) => db.prepare('SELECT COUNT(*) as count FROM users').get()),
   ]);
   console.log('Stats:', pool.getStats());
   console.log();
@@ -175,7 +177,7 @@ async function demonstratePoolStatistics() {
     pool.execute((db) => db.prepare('SELECT * FROM users LIMIT 10').all()),
     pool.execute((db) => db.prepare('SELECT * FROM users LIMIT 10').all()),
     pool.execute((db) => db.prepare('SELECT * FROM users LIMIT 10').all()),
-    pool.execute((db) => db.prepare('SELECT * FROM users LIMIT 10').all())
+    pool.execute((db) => db.prepare('SELECT * FROM users LIMIT 10').all()),
   ]);
   console.log('Stats:', pool.getStats());
   console.log();
@@ -223,7 +225,7 @@ async function runAllBenchmarks() {
     console.log(`WITH Pool:    ${timeWithPool}ms`);
     console.log();
 
-    const improvement = ((timeWithoutPool - timeWithPool) / timeWithoutPool * 100).toFixed(1);
+    const improvement = (((timeWithoutPool - timeWithPool) / timeWithoutPool) * 100).toFixed(1);
     const speedup = (timeWithoutPool / timeWithPool).toFixed(1);
 
     console.log(`⚡ Performance Improvement: ${improvement}% faster`);
@@ -243,7 +245,6 @@ async function runAllBenchmarks() {
       fs.unlinkSync(DEMO_DB_PATH);
       console.log('✅ Demo database cleaned up');
     }
-
   } catch (error) {
     console.error('❌ Demo failed:', error.message);
     console.error(error.stack);

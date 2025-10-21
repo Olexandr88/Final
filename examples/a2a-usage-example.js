@@ -22,7 +22,7 @@ async function example1_basicClaudeAgent() {
   // Send a message to another agent
   agent.a2a.sendTo('another-agent', {
     task: 'Analyze this code',
-    code: 'function hello() { console.log("Hello"); }'
+    code: 'function hello() { console.log("Hello"); }',
   });
 
   // Wait for responses
@@ -67,14 +67,10 @@ async function example3_mcpBridge() {
   console.log('MCP servers connected:', bridge.getStatus());
 
   // Send message from filesystem to memory server
-  await bridge.sendBetweenServers(
-    'filesystem',
-    'memory',
-    {
-      action: 'store',
-      data: { file: 'important.txt', content: 'Store this in memory' }
-    }
-  );
+  await bridge.sendBetweenServers('filesystem', 'memory', {
+    action: 'store',
+    data: { file: 'important.txt', content: 'Store this in memory' },
+  });
 
   console.log('Message sent between MCP servers');
 
@@ -100,7 +96,7 @@ async function example4_customAgent() {
     const result = {
       processed: true,
       data: message.payload,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     // Send result back
@@ -132,7 +128,7 @@ async function example5_codeReviewPipeline() {
   await Promise.all([
     coordinator.connect(),
     analyzer.connect(['code-analysis', 'complexity-check']),
-    securityChecker.connect(['security-audit', 'vulnerability-scan'])
+    securityChecker.connect(['security-audit', 'vulnerability-scan']),
   ]);
 
   // Set up analyzer handler
@@ -140,7 +136,7 @@ async function example5_codeReviewPipeline() {
     console.log('Analyzer processing:', message.payload.file);
     analyzer.sendTo(message.from, {
       analysis: 'Code looks good, complexity: 5',
-      issues: []
+      issues: [],
     });
   });
 
@@ -149,7 +145,7 @@ async function example5_codeReviewPipeline() {
     console.log('Security check for:', message.payload.file);
     securityChecker.sendTo(message.from, {
       security: 'No vulnerabilities found',
-      score: 95
+      score: 95,
     });
   });
 
@@ -159,13 +155,13 @@ async function example5_codeReviewPipeline() {
   // Send to analyzer
   coordinator.a2a.sendTo('code-analyzer', {
     file: 'auth.js',
-    action: 'analyze'
+    action: 'analyze',
   });
 
   // Send to security checker
   coordinator.a2a.sendTo('security-checker', {
     file: 'auth.js',
-    action: 'security-check'
+    action: 'security-check',
   });
 
   console.log('Review requests sent, waiting for results...');
@@ -194,8 +190,8 @@ async function example6_broadcasting() {
       status: 'healthy',
       metrics: {
         cpu: Math.random() * 100,
-        memory: Math.random() * 100
-      }
+        memory: Math.random() * 100,
+      },
     });
     console.log('Status broadcast sent');
   }, 2000);
@@ -226,7 +222,6 @@ async function runExamples() {
     console.log('1. Start the hub: python a2a-hub-server.py');
     console.log('2. Uncomment an example above');
     console.log('3. Run: node examples/a2a-usage-example.js');
-
   } catch (error) {
     console.error('Error:', error.message);
   }
@@ -239,7 +234,7 @@ export {
   example3_mcpBridge,
   example4_customAgent,
   example5_codeReviewPipeline,
-  example6_broadcasting
+  example6_broadcasting,
 };
 
 // Run if executed directly

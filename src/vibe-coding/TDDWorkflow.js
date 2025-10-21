@@ -27,7 +27,7 @@ export class TDDWorkflow extends EventEmitter {
       startTime: Date.now(),
       state: 'write-test',
       iterations: [],
-      requirements
+      requirements,
     };
 
     this.emit('tdd:started', this.currentCycle);
@@ -66,14 +66,14 @@ export class TDDWorkflow extends EventEmitter {
     return {
       testFile,
       failure: testResult,
-      nextState: 'implement'
+      nextState: 'implement',
     };
   }
 
   generateTestTemplate(testSpec) {
     const templates = {
       jest: this.generateJestTemplate(testSpec),
-      pytest: this.generatePytestTemplate(testSpec)
+      pytest: this.generatePytestTemplate(testSpec),
     };
 
     return templates[this.testFramework] || templates.jest;
@@ -124,7 +124,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
     const commands = {
       jest: testFile ? `npm test -- "${testFile}"` : 'npm test',
       pytest: testFile ? `pytest "${testFile}"` : 'pytest',
-      mocha: testFile ? `npm test -- "${testFile}"` : 'npm test'
+      mocha: testFile ? `npm test -- "${testFile}"` : 'npm test',
     };
 
     const command = commands[this.testFramework] || commands.jest;
@@ -137,7 +137,6 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       this.emit('tests:run', result);
 
       return result;
-
     } catch (error) {
       const result = this.parseTestOutput(error.stdout || '', error.stderr || '');
       result.error = error.message;
@@ -161,7 +160,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       failedCount: failed ? parseInt(failed[1]) : 0,
       totalCount: total ? parseInt(total[1]) : 0,
       output: output.trim(),
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
   }
 
@@ -172,7 +171,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
 
     this.currentCycle.implementation = {
       ...implementation,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.currentCycle.state = 'verify';
@@ -194,7 +193,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
     const iteration = {
       timestamp: Date.now(),
       testResult,
-      passed: testResult.passed
+      passed: testResult.passed,
     };
 
     this.currentCycle.iterations.push(iteration);
@@ -209,9 +208,8 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       return {
         success: true,
         nextState: 'refactor',
-        testResult
+        testResult,
       };
-
     } else {
       this.currentCycle.state = 'implement';
 
@@ -221,7 +219,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
         success: false,
         nextState: 'implement',
         testResult,
-        message: 'Tests still failing - continue implementation'
+        message: 'Tests still failing - continue implementation',
       };
     }
   }
@@ -233,7 +231,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
 
     this.currentCycle.refactoring = {
       changes,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     this.emit('refactor:start', changes);
@@ -246,7 +244,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       return {
         success: false,
         message: 'Refactoring broke tests - revert changes',
-        testResult
+        testResult,
       };
     }
 
@@ -257,7 +255,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
     return {
       success: true,
       nextState: 'complete',
-      testResult
+      testResult,
     };
   }
 
@@ -270,7 +268,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       ...this.currentCycle,
       completedAt: Date.now(),
       duration: Date.now() - this.currentCycle.startTime,
-      success: this.currentCycle.state === 'complete'
+      success: this.currentCycle.state === 'complete',
     };
 
     this.emit('tdd:finished', completedCycle);
@@ -289,7 +287,6 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       this.emit('coverage:generated', coverage);
 
       return coverage;
-
     } catch (error) {
       this.emit('coverage:error', { error });
       return null;
@@ -306,7 +303,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       lines: lines ? parseFloat(lines[1]) : 0,
       branches: branches ? parseFloat(branches[1]) : 0,
       functions: functions ? parseFloat(functions[1]) : 0,
-      statements: statements ? parseFloat(statements[1]) : 0
+      statements: statements ? parseFloat(statements[1]) : 0,
     };
   }
 
@@ -320,7 +317,7 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       feature: this.currentCycle.feature,
       state: this.currentCycle.state,
       iterations: this.currentCycle.iterations.length,
-      duration: Date.now() - this.currentCycle.startTime
+      duration: Date.now() - this.currentCycle.startTime,
     };
   }
 
@@ -331,13 +328,13 @@ def test_${testSpec.testName?.replace(/\s+/g, '_') || 'feature'}():
       feature: featureSpec.name,
       testName: featureSpec.testName,
       description: featureSpec.description,
-      assert: featureSpec.assert
+      assert: featureSpec.assert,
     });
 
     return {
       cycleId: this.currentCycle.id,
       nextAction: 'implement',
-      message: 'Test written and failing as expected. Ready for implementation.'
+      message: 'Test written and failing as expected. Ready for implementation.',
     };
   }
 }

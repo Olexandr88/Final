@@ -82,13 +82,13 @@ export class MCPtoA2ABridge {
     const capabilityMap = {
       'sequential-thinking': ['reasoning', 'planning', 'analysis'],
       'ship-mode': ['validation', 'execution', 'deployment'],
-      'filesystem': ['file-operations', 'read', 'write', 'search'],
-      'github': ['repository', 'pr', 'issues', 'code-management'],
+      filesystem: ['file-operations', 'read', 'write', 'search'],
+      github: ['repository', 'pr', 'issues', 'code-management'],
       'brave-search': ['web-search', 'information-retrieval'],
-      'puppeteer': ['browser-automation', 'web-scraping', 'testing'],
-      'memory': ['knowledge-storage', 'entity-tracking', 'knowledge-graph'],
-      'sqlite': ['database', 'sql', 'data-storage'],
-      'postgres': ['database', 'sql', 'advanced-queries']
+      puppeteer: ['browser-automation', 'web-scraping', 'testing'],
+      memory: ['knowledge-storage', 'entity-tracking', 'knowledge-graph'],
+      sqlite: ['database', 'sql', 'data-storage'],
+      postgres: ['database', 'sql', 'advanced-queries'],
     };
 
     if (capabilityMap[serverName]) {
@@ -112,14 +112,14 @@ export class MCPtoA2ABridge {
         if (message.from) {
           adapter.sendTo(message.from, {
             status: 'success',
-            result: response
+            result: response,
           });
         }
       } catch (error) {
         if (message.from) {
           adapter.sendTo(message.from, {
             status: 'error',
-            error: error.message
+            error: error.message,
           });
         }
       }
@@ -135,7 +135,7 @@ export class MCPtoA2ABridge {
         type: 'collaboration_contribution',
         collaboration_id: message.collaboration_id,
         agent_id: `mcp-${serverName}`,
-        contribution
+        contribution,
       });
     });
 
@@ -153,7 +153,7 @@ export class MCPtoA2ABridge {
     return {
       server: serverName,
       message: 'MCP server processing',
-      payload: message.payload
+      payload: message.payload,
     };
   }
 
@@ -164,7 +164,7 @@ export class MCPtoA2ABridge {
     return {
       server: serverName,
       analysis: `${serverName} analysis of: ${task}`,
-      recommendations: []
+      recommendations: [],
     };
   }
 
@@ -205,13 +205,13 @@ export class MCPtoA2ABridge {
   getStatus() {
     const status = {
       total: this.a2aAdapters.size,
-      servers: {}
+      servers: {},
     };
 
     for (const [serverName, adapter] of this.a2aAdapters.entries()) {
       status.servers[serverName] = {
         connected: adapter.connected,
-        agentId: adapter.agentId
+        agentId: adapter.agentId,
       };
     }
 

@@ -12,7 +12,7 @@ import { promisify } from 'util';
 const execAsync = promisify(exec);
 
 const COMMANDS = {
-  'listening': {
+  listening: {
     desc: 'Show all listening ports (lsof -Pni4 equivalent)',
     async run() {
       console.log('🔌 Listening Ports:\n');
@@ -20,7 +20,7 @@ const COMMANDS = {
         const { stdout } = await execAsync('netstat -ano | findstr LISTENING');
         const ports = new Map();
 
-        stdout.split('\n').forEach(line => {
+        stdout.split('\n').forEach((line) => {
           const match = line.match(/:(\d+)\s+.*LISTENING\s+(\d+)/);
           if (match) {
             const [, port, pid] = match;
@@ -40,10 +40,10 @@ const COMMANDS = {
       } catch (err) {
         console.log('  Error:', err.message);
       }
-    }
+    },
   },
 
-  'established': {
+  established: {
     desc: 'Show established connections grouped by IP',
     async run() {
       console.log('🌐 Established Connections:\n');
@@ -52,7 +52,7 @@ const COMMANDS = {
         const { stdout } = await execAsync('netstat -ano | findstr ESTABLISHED');
         const connections = new Map();
 
-        stdout.split('\n').forEach(line => {
+        stdout.split('\n').forEach((line) => {
           const parts = line.trim().split(/\s+/);
           if (parts.length >= 4) {
             const remote = parts[2];
@@ -77,7 +77,7 @@ const COMMANDS = {
       } catch (err) {
         console.log('  No established connections');
       }
-    }
+    },
   },
 
   'connections-watch': {
@@ -93,7 +93,7 @@ const COMMANDS = {
           );
 
           const connections = new Set();
-          stdout.split('\n').forEach(line => {
+          stdout.split('\n').forEach((line) => {
             const match = line.match(/(\d+\.\d+\.\d+\.\d+):\d+/);
             if (match) connections.add(match[1]);
           });
@@ -102,7 +102,7 @@ const COMMANDS = {
           console.log(`🌐 Port ${port} - ${new Date().toLocaleTimeString()}\n`);
           console.log(`  Active connections: ${connections.size}\n`);
 
-          [...connections].sort().forEach(ip => {
+          [...connections].sort().forEach((ip) => {
             console.log(`  ${ip}`);
           });
         } catch {
@@ -113,7 +113,7 @@ const COMMANDS = {
       // Watch every 2 seconds
       setInterval(watch, 2000);
       await watch();
-    }
+    },
   },
 
   'port-kill': {
@@ -129,9 +129,7 @@ const COMMANDS = {
 
       try {
         // Based on shell_one_liners.sh block 73
-        const { stdout } = await execAsync(
-          `netstat -ano | findstr :${port} | findstr LISTENING`
-        );
+        const { stdout } = await execAsync(`netstat -ano | findstr :${port} | findstr LISTENING`);
 
         const match = stdout.match(/LISTENING\s+(\d+)/);
         if (match) {
@@ -145,7 +143,7 @@ const COMMANDS = {
       } catch (err) {
         console.log(`  ❌ Error: ${err.message}`);
       }
-    }
+    },
   },
 
   'dns-resolve': {
@@ -161,16 +159,14 @@ const COMMANDS = {
           // Based on shell_one_liners.sh block 229
           const { stdout } = await execAsync(`nslookup ${domain} ${dns}`);
           console.log(`📡 ${dns}:`);
-          const lines = stdout.split('\n').filter(l =>
-            l.includes('Address') && !l.includes(dns)
-          );
-          lines.forEach(l => console.log(`  ${l.trim()}`));
+          const lines = stdout.split('\n').filter((l) => l.includes('Address') && !l.includes(dns));
+          lines.forEach((l) => console.log(`  ${l.trim()}`));
           console.log('');
         } catch {
           console.log(`  ❌ Failed to resolve via ${dns}\n`);
         }
       }
-    }
+    },
   },
 
   'http-headers': {
@@ -192,7 +188,7 @@ const COMMANDS = {
           console.log(`  ❌ ${proto}: ${err.message}\n`);
         }
       }
-    }
+    },
   },
 
   'local-ip': {
@@ -201,15 +197,13 @@ const COMMANDS = {
       console.log('🏠 Local IP Addresses:\n');
       try {
         const { stdout } = await execAsync('ipconfig');
-        const lines = stdout.split('\n').filter(l =>
-          l.includes('IPv4') || l.includes('IPv6')
-        );
-        lines.forEach(l => console.log(`  ${l.trim()}`));
+        const lines = stdout.split('\n').filter((l) => l.includes('IPv4') || l.includes('IPv6'));
+        lines.forEach((l) => console.log(`  ${l.trim()}`));
       } catch (err) {
         console.log('  Error:', err.message);
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {

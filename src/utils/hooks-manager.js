@@ -16,7 +16,7 @@ export class HooksManager extends EventEmitter {
       postToolUse: [],
       notification: [],
       subagentStart: [],
-      subagentStop: []
+      subagentStop: [],
     };
     this.enabled = options.enabled !== false;
     this.loadHooks();
@@ -60,7 +60,7 @@ export class HooksManager extends EventEmitter {
       action: hook.action, // Shell command or function
       async: hook.async || false,
       priority: hook.priority || 0,
-      enabled: hook.enabled !== false
+      enabled: hook.enabled !== false,
     };
 
     this.hooks[hookType].push(hookConfig);
@@ -80,7 +80,7 @@ export class HooksManager extends EventEmitter {
 
     const results = [];
 
-    for (const hook of this.hooks.preToolUse.filter(h => h.enabled)) {
+    for (const hook of this.hooks.preToolUse.filter((h) => h.enabled)) {
       // Check condition
       if (hook.condition && !this.evaluateCondition(hook.condition, { tool, args, context })) {
         continue;
@@ -95,7 +95,7 @@ export class HooksManager extends EventEmitter {
           return {
             allowed: false,
             reason: result.reason || `Blocked by hook: ${hook.name}`,
-            hook: hook.name
+            hook: hook.name,
           };
         }
       } catch (err) {
@@ -116,8 +116,11 @@ export class HooksManager extends EventEmitter {
 
     const results = [];
 
-    for (const hook of this.hooks.postToolUse.filter(h => h.enabled)) {
-      if (hook.condition && !this.evaluateCondition(hook.condition, { tool, args, result, context })) {
+    for (const hook of this.hooks.postToolUse.filter((h) => h.enabled)) {
+      if (
+        hook.condition &&
+        !this.evaluateCondition(hook.condition, { tool, args, result, context })
+      ) {
         continue;
       }
 
@@ -139,7 +142,7 @@ export class HooksManager extends EventEmitter {
   async executeNotification(event, data = {}) {
     if (!this.enabled) return;
 
-    for (const hook of this.hooks.notification.filter(h => h.enabled)) {
+    for (const hook of this.hooks.notification.filter((h) => h.enabled)) {
       if (hook.condition && !this.evaluateCondition(hook.condition, { event, data })) {
         continue;
       }
@@ -182,21 +185,21 @@ export class HooksManager extends EventEmitter {
       const child = spawn(processedCommand, {
         shell: true,
         cwd: process.cwd(),
-        env: { ...process.env, HOOK_PAYLOAD: JSON.stringify(payload) }
+        env: { ...process.env, HOOK_PAYLOAD: JSON.stringify(payload) },
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', data => {
+      child.stdout.on('data', (data) => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', data => {
+      child.stderr.on('data', (data) => {
         stderr += data.toString();
       });
 
-      child.on('close', code => {
+      child.on('close', (code) => {
         if (code === 0) {
           resolve({ stdout, stderr, exitCode: code });
         } else {
@@ -204,7 +207,7 @@ export class HooksManager extends EventEmitter {
         }
       });
 
-      child.on('error', err => {
+      child.on('error', (err) => {
         reject(err);
       });
 
@@ -226,7 +229,7 @@ export class HooksManager extends EventEmitter {
       tool: payload.tool,
       args: JSON.stringify(payload.args),
       result: JSON.stringify(payload.result),
-      event: payload.event
+      event: payload.event,
     };
 
     for (const [key, value] of Object.entries(replacements)) {
@@ -296,7 +299,7 @@ export class HooksManager extends EventEmitter {
       throw new Error(`Invalid hook type: ${hookType}`);
     }
 
-    this.hooks[hookType] = this.hooks[hookType].filter(h => h.id !== hookId);
+    this.hooks[hookType] = this.hooks[hookType].filter((h) => h.id !== hookId);
     await this.saveHooks(hookType);
 
     this.emit('hook-removed', { hookType, hookId });
@@ -306,7 +309,7 @@ export class HooksManager extends EventEmitter {
    * Enable/disable hook
    */
   async setHookEnabled(hookType, hookId, enabled) {
-    const hook = this.hooks[hookType]?.find(h => h.id === hookId);
+    const hook = this.hooks[hookType]?.find((h) => h.id === hookId);
     if (!hook) {
       throw new Error(`Hook ${hookId} not found in ${hookType}`);
     }
@@ -337,7 +340,7 @@ export class HooksManager extends EventEmitter {
       description: 'Run Prettier on edited JavaScript files',
       condition: 'tool:Edit',
       action: 'npx prettier --write {args.file_path}',
-      async: true
+      async: true,
     });
 
     // Logging hook
@@ -345,7 +348,7 @@ export class HooksManager extends EventEmitter {
       name: 'Log tool usage',
       description: 'Log all tool executions',
       action: 'echo "[$(date)] Tool: {tool}, Args: {args}" >> .claude/logs/tool-usage.log',
-      async: true
+      async: true,
     });
 
     // Block dangerous commands
@@ -359,7 +362,7 @@ export class HooksManager extends EventEmitter {
           return { blocked: true, reason: 'Dangerous deletion command blocked' };
         }
         return { blocked: false };
-      }
+      },
     });
 
     // Notification on task completion
@@ -368,7 +371,7 @@ export class HooksManager extends EventEmitter {
       description: 'Notify when tasks complete',
       condition: 'event:task-complete',
       action: 'echo "Task completed: {event}" | wall',
-      async: true
+      async: true,
     });
 
     console.log('Default hooks created');
@@ -396,7 +399,7 @@ export class HooksManager extends EventEmitter {
 
     const results = [];
 
-    for (const hook of this.hooks[hookType]?.filter(h => h.enabled) || []) {
+    for (const hook of this.hooks[hookType]?.filter((h) => h.enabled) || []) {
       if (hook.condition && !this.evaluateCondition(hook.condition, payload)) {
         continue;
       }

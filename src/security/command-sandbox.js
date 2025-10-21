@@ -20,28 +20,56 @@ export class CommandSandbox extends EventEmitter {
       allowNetworkAccess: config.allowNetworkAccess || false,
       allowedCommands: config.allowedCommands || [],
       deniedCommands: config.deniedCommands || [],
-      ...config
+      ...config,
     };
 
     // Initialize deny list
     this.DANGEROUS_COMMANDS = [
-      'rm', 'rmdir', 'del', 'deltree',
-      'format', 'dd', 'mkfs',
-      'sudo', 'su', 'runas',
-      'curl', 'wget', 'nc', 'netcat', 'telnet',
-      'eval', 'exec', 'bash -c', 'sh -c',
-      'chmod', 'chown',
-      'kill', 'killall', 'pkill',
-      'systemctl', 'service',
-      'shutdown', 'reboot', 'halt'
+      'rm',
+      'rmdir',
+      'del',
+      'deltree',
+      'format',
+      'dd',
+      'mkfs',
+      'sudo',
+      'su',
+      'runas',
+      'curl',
+      'wget',
+      'nc',
+      'netcat',
+      'telnet',
+      'eval',
+      'exec',
+      'bash -c',
+      'sh -c',
+      'chmod',
+      'chown',
+      'kill',
+      'killall',
+      'pkill',
+      'systemctl',
+      'service',
+      'shutdown',
+      'reboot',
+      'halt',
     ];
 
     // Whitelist approach for allowed commands
     this.SAFE_COMMANDS = [
-      'npm', 'node', 'git',
-      'ls', 'dir', 'cat', 'type',
-      'echo', 'pwd', 'cd',
-      'grep', 'find'
+      'npm',
+      'node',
+      'git',
+      'ls',
+      'dir',
+      'cat',
+      'type',
+      'echo',
+      'pwd',
+      'cd',
+      'grep',
+      'find',
     ];
   }
 
@@ -61,12 +89,14 @@ export class CommandSandbox extends EventEmitter {
 
     // Check deny list first (highest priority)
     for (const denied of this.DANGEROUS_COMMANDS) {
-      if (baseName.toLowerCase().includes(denied.toLowerCase()) ||
-          command.toLowerCase().includes(denied.toLowerCase())) {
+      if (
+        baseName.toLowerCase().includes(denied.toLowerCase()) ||
+        command.toLowerCase().includes(denied.toLowerCase())
+      ) {
         return {
           valid: false,
           reason: `Dangerous command detected: ${denied}`,
-          severity: 'CRITICAL'
+          severity: 'CRITICAL',
         };
       }
     }
@@ -77,35 +107,35 @@ export class CommandSandbox extends EventEmitter {
         return {
           valid: false,
           reason: `Denied by policy: ${denied}`,
-          severity: 'HIGH'
+          severity: 'HIGH',
         };
       }
     }
 
     // Check whitelist (if configured)
     if (this.config.allowedCommands.length > 0) {
-      const isAllowed = this.config.allowedCommands.some(allowed =>
-        baseName.toLowerCase() === allowed.toLowerCase()
+      const isAllowed = this.config.allowedCommands.some(
+        (allowed) => baseName.toLowerCase() === allowed.toLowerCase()
       );
 
       if (!isAllowed) {
         return {
           valid: false,
           reason: `Command not in whitelist: ${baseName}`,
-          severity: 'MEDIUM'
+          severity: 'MEDIUM',
         };
       }
     } else {
       // Default to safe commands list
-      const isSafe = this.SAFE_COMMANDS.some(safe =>
-        baseName.toLowerCase() === safe.toLowerCase()
+      const isSafe = this.SAFE_COMMANDS.some(
+        (safe) => baseName.toLowerCase() === safe.toLowerCase()
       );
 
       if (!isSafe) {
         return {
           valid: false,
           reason: `Command not in safe list: ${baseName}`,
-          severity: 'MEDIUM'
+          severity: 'MEDIUM',
         };
       }
     }
@@ -123,39 +153,55 @@ export class CommandSandbox extends EventEmitter {
    */
   validatePath(filePath) {
     if (!filePath || typeof filePath !== 'string') {
-      return {valid: false, reason: 'Invalid path type', severity: 'HIGH'};
+      return { valid: false, reason: 'Invalid path type', severity: 'HIGH' };
     }
     if (filePath.startsWith('\\') || filePath.startsWith('//')) {
-      return {valid: false, reason: 'UNC paths not allowed', severity: 'CRITICAL'};
+      return { valid: false, reason: 'UNC paths not allowed', severity: 'CRITICAL' };
     }
     if (filePath.includes(':') && !filePath.match(/^[A-Za-z]:[/\\]/)) {
-      return {valid: false, reason: 'NTFS ADS not allowed', severity: 'CRITICAL'};
+      return { valid: false, reason: 'NTFS ADS not allowed', severity: 'CRITICAL' };
     }
     let normalized;
     try {
       normalized = path.normalize(filePath);
       normalized = path.resolve(normalized);
     } catch (error) {
-      return {valid: false, reason: 'Normalize failed: ' + error.message, severity: 'HIGH'};
+      return { valid: false, reason: 'Normalize failed: ' + error.message, severity: 'HIGH' };
     }
     if (normalized.includes('..') || filePath.includes('..')) {
-      return {valid: false, reason: 'Path traversal detected', severity: 'CRITICAL'};
+      return { valid: false, reason: 'Path traversal detected', severity: 'CRITICAL' };
     }
-    const isAllowed = this.config.allowedPaths.some(ap => {
+    const isAllowed = this.config.allowedPaths.some((ap) => {
       const resolved = path.resolve(ap);
       return normalized.startsWith(resolved);
     });
     if (!isAllowed) {
-      return {valid: false, reason: 'Path outside allowed directories', severity: 'HIGH', path: normalized};
+      return {
+        valid: false,
+        reason: 'Path outside allowed directories',
+        severity: 'HIGH',
+        path: normalized,
+      };
     }
-    const SENS = ['C:\\Windows\\System32', 'C:\\Windows\\SysWOW64', 'C:\\Program Files', process.env.APPDATA, process.env.LOCALAPPDATA].filter(Boolean);
+    const SENS = [
+      'C:\\Windows\\System32',
+      'C:\\Windows\\SysWOW64',
+      'C:\\Program Files',
+      process.env.APPDATA,
+      process.env.LOCALAPPDATA,
+    ].filter(Boolean);
     for (const s of SENS) {
       const ns = path.resolve(s).toLowerCase();
       if (normalized.toLowerCase().startsWith(ns)) {
-        return {valid: false, reason: 'Sensitive directory denied', severity: 'CRITICAL', path: normalized};
+        return {
+          valid: false,
+          reason: 'Sensitive directory denied',
+          severity: 'CRITICAL',
+          path: normalized,
+        };
       }
     }
-    return {valid: true, path: normalized};
+    return { valid: true, path: normalized };
   }
 
   /**
@@ -165,18 +211,30 @@ export class CommandSandbox extends EventEmitter {
   _detectShellOperators(command) {
     const ops = ['&&', '||', ';', '|', '>', '<', '$(', '`', '${', '&', '\n', '\r'];
     for (const o of ops) {
-      if (command.includes(o)) return {valid: false, reason: 'Operator: ' + o, severity: 'HIGH'};
+      if (command.includes(o)) return { valid: false, reason: 'Operator: ' + o, severity: 'HIGH' };
     }
-    const enc = ['%26%26', '%7C%7C', '%3B', '%7C', '%3E', '%3C', '%0A', '%0D', '%24%28', '%60', '%24%7B'];
+    const enc = [
+      '%26%26',
+      '%7C%7C',
+      '%3B',
+      '%7C',
+      '%3E',
+      '%3C',
+      '%0A',
+      '%0D',
+      '%24%28',
+      '%60',
+      '%24%7B',
+    ];
     const upper = command.toUpperCase();
     for (const e of enc) {
-      if (upper.includes(e)) return {valid: false, reason: 'Encoded: ' + e, severity: 'CRITICAL'};
+      if (upper.includes(e)) return { valid: false, reason: 'Encoded: ' + e, severity: 'CRITICAL' };
     }
     const html = ['&amp;', '&#38;', '&lt;', '&#60;', '&gt;', '&#62;', '&semi;', '&#59;'];
     for (const h of html) {
-      if (command.includes(h)) return {valid: false, reason: 'HTML: ' + h, severity: 'CRITICAL'};
+      if (command.includes(h)) return { valid: false, reason: 'HTML: ' + h, severity: 'CRITICAL' };
     }
-    return {valid: true};
+    return { valid: true };
   }
 
   /**
@@ -200,7 +258,7 @@ export class CommandSandbox extends EventEmitter {
         command,
         reason: validation.reason,
         severity: validation.severity,
-        executionId
+        executionId,
       });
 
       // Emit security event
@@ -210,7 +268,7 @@ export class CommandSandbox extends EventEmitter {
         reason: validation.reason,
         severity: validation.severity,
         timestamp: new Date().toISOString(),
-        executionId
+        executionId,
       });
 
       throw error;
@@ -233,7 +291,7 @@ export class CommandSandbox extends EventEmitter {
         timeout: this.config.timeout,
         shell: false, // CRITICAL: No shell interpretation
         env: this._getSafeEnvironment(),
-        maxBuffer: this.config.maxBuffer
+        maxBuffer: this.config.maxBuffer,
       });
 
       // Collect output
@@ -264,7 +322,7 @@ export class CommandSandbox extends EventEmitter {
           command,
           code,
           duration,
-          executionId
+          executionId,
         });
 
         this.emit('commandExecuted', {
@@ -272,7 +330,7 @@ export class CommandSandbox extends EventEmitter {
           code,
           duration,
           success: code === 0,
-          executionId
+          executionId,
         });
 
         resolve({
@@ -281,7 +339,7 @@ export class CommandSandbox extends EventEmitter {
           stdout,
           stderr,
           duration,
-          executionId
+          executionId,
         });
       });
 
@@ -290,7 +348,7 @@ export class CommandSandbox extends EventEmitter {
         logger.error('Sandbox: Command execution error', {
           command,
           error: error.message,
-          executionId
+          executionId,
         });
         reject(error);
       });
@@ -307,7 +365,7 @@ export class CommandSandbox extends EventEmitter {
       HOME: process.env.HOME,
       TEMP: process.env.TEMP,
       TMP: process.env.TMP,
-      NODE_ENV: 'sandbox'
+      NODE_ENV: 'sandbox',
     };
 
     // Explicitly exclude all API keys and secrets

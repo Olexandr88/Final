@@ -1,19 +1,19 @@
 export function toEnvelope(system: string, user: string) {
   return {
-    protocol: "multiagent-1.0",
-    role: "agent",
-    agent: { id: "gpt5.generic", name: "GPT‑4o", model: "gpt-4o" },
+    protocol: 'multiagent-1.0',
+    role: 'agent',
+    agent: { id: 'gpt5.generic', name: 'GPT‑4o', model: 'gpt-4o' },
     timestamp: new Date().toISOString(),
-    intent: "plan",
+    intent: 'plan',
     task: user.slice(0, 160),
     inputs: { context: system },
-    content: { type: "text", text: user }
+    content: { type: 'text', text: user },
   };
 }
 
 export function fromEnvelope(e: any) {
   return {
     system: `You speak Envelope v1. Intent=${e.intent}. Return JSON only.`,
-    user: JSON.stringify({ task: e.task, context: e?.inputs?.context ?? null })
+    user: JSON.stringify({ task: e.task, context: e?.inputs?.context ?? null }),
   };
 }

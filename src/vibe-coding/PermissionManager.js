@@ -58,7 +58,7 @@ export class PermissionManager extends EventEmitter {
       action: context.action,
       params: context.params,
       timestamp: Date.now(),
-      requestId: this.requestCount
+      requestId: this.requestCount,
     };
 
     this.emit('permission:requested', request);
@@ -171,7 +171,7 @@ export class PermissionManager extends EventEmitter {
       approvalRate: this.requestCount > 0 ? (this.approvedCount / this.requestCount) * 100 : 0,
       allowlistSize: this.allowlist.size,
       denylistSize: this.denylist.size,
-      dangerousMode: this.dangerousMode
+      dangerousMode: this.dangerousMode,
     };
   }
 
@@ -190,7 +190,7 @@ export class PermissionManager extends EventEmitter {
       allowlist: Array.from(this.allowlist),
       denylist: Array.from(this.denylist),
       dangerousMode: this.dangerousMode,
-      exportedAt: new Date().toISOString()
+      exportedAt: new Date().toISOString(),
     };
 
     await fs.writeFile(filepath, JSON.stringify(config, null, 2), 'utf-8');
@@ -224,14 +224,14 @@ export class PermissionManager extends EventEmitter {
         'node_modules',
         'package.json',
         'package-lock.json',
-        '.git'
+        '.git',
       ];
 
       const file = context.params?.file || context.params?.path || '';
-      if (dangerousPatterns.some(pattern => file.includes(pattern))) {
+      if (dangerousPatterns.some((pattern) => file.includes(pattern))) {
         return {
           safe: false,
-          reason: `Blocked deletion of critical file: ${file}`
+          reason: `Blocked deletion of critical file: ${file}`,
         };
       }
     }
@@ -241,10 +241,10 @@ export class PermissionManager extends EventEmitter {
       const url = context.params?.url || '';
       const sensitiveHosts = ['localhost:22', 'localhost:3306', 'localhost:5432'];
 
-      if (sensitiveHosts.some(host => url.includes(host))) {
+      if (sensitiveHosts.some((host) => url.includes(host))) {
         return {
           safe: false,
-          reason: `Blocked request to sensitive host: ${url}`
+          reason: `Blocked request to sensitive host: ${url}`,
         };
       }
     }
@@ -254,10 +254,10 @@ export class PermissionManager extends EventEmitter {
       const command = context.params?.command || '';
       const dangerousCommands = ['rm -rf', 'dd if=', 'mkfs', ':(){:|:&};:'];
 
-      if (dangerousCommands.some(cmd => command.includes(cmd))) {
+      if (dangerousCommands.some((cmd) => command.includes(cmd))) {
         return {
           safe: false,
-          reason: `Blocked dangerous shell command`
+          reason: `Blocked dangerous shell command`,
         };
       }
     }
@@ -275,7 +275,7 @@ export class PermissionManager extends EventEmitter {
       action: request.action,
       status,
       reason,
-      timestamp: request.timestamp
+      timestamp: request.timestamp,
     };
 
     this.auditLog.push(entry);

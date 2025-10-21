@@ -1,4 +1,5 @@
 # Production Operations Guide
+
 ## LLM Multi-Provider Framework - Deployed Optimizations
 
 Quick reference for operating the production deployment.
@@ -8,6 +9,7 @@ Quick reference for operating the production deployment.
 ## Quick Start
 
 ### Start Full System
+
 ```bash
 # Option 1: Full system with monitoring
 npm run system:start
@@ -20,6 +22,7 @@ npm run bridge:start
 ```
 
 ### Access Dashboards
+
 - **Redis Commander**: http://localhost:8081
 - **Grafana**: http://localhost:3000 (admin/admin)
 - **Prometheus**: http://localhost:9090
@@ -30,11 +33,13 @@ npm run bridge:start
 ## Health Monitoring
 
 ### Quick Health Check
+
 ```bash
 npm run locks:health
 ```
 
 Output:
+
 ```
 ✓ Initialization
 ✓ Redis Cluster Health (3/3 nodes)
@@ -46,17 +51,20 @@ Output:
 ```
 
 ### Continuous Monitoring
+
 ```bash
 # Watch mode (refreshes every 5 seconds)
 npm run health:watch
 ```
 
 ### System Health
+
 ```bash
 npm run health:system
 ```
 
 Checks:
+
 - Port availability
 - Node.js process count
 - Memory usage
@@ -68,6 +76,7 @@ Checks:
 ## Redis Cluster Management
 
 ### Start/Stop/Restart
+
 ```bash
 npm run redis:start      # Start 3-node cluster
 npm run redis:stop       # Stop all nodes
@@ -76,11 +85,13 @@ npm run redis:logs       # View logs
 ```
 
 ### Check Node Status
+
 ```bash
 docker ps --filter name=redis-node
 ```
 
 Expected output:
+
 ```
 redis-node-1    Up X minutes (healthy)
 redis-node-2    Up X minutes (healthy)
@@ -88,6 +99,7 @@ redis-node-3    Up X minutes (healthy)
 ```
 
 ### Manual Redis Commands
+
 ```bash
 # Connect to node 1
 docker exec -it redis-node-1 redis-cli
@@ -108,16 +120,19 @@ docker exec redis-node-1 redis-cli KEYS "*"
 ## Performance Monitoring
 
 ### Run Benchmark
+
 ```bash
 npm run locks:benchmark
 ```
 
 Key metrics to watch:
+
 - **Lock Acquisition P95**: Should be <120ms
 - **Throughput**: Should be >50 ops/sec
 - **Memory Per Lock**: Should be <10KB
 
 ### View Metrics in Grafana
+
 1. Open http://localhost:3000
 2. Login: admin/admin
 3. Navigate to "Redis Dashboard"
@@ -128,9 +143,11 @@ Key metrics to watch:
    - Keyspace hits/misses
 
 ### Prometheus Queries
+
 Open http://localhost:9090/graph
 
 Useful queries:
+
 ```promql
 # Lock acquisition latency (P95)
 histogram_quantile(0.95, rate(lock_acquisition_duration_bucket[5m]))
@@ -151,6 +168,7 @@ sum(rate(lock_acquisition_success[5m])) / sum(rate(lock_acquisition_total[5m])) 
 **Symptom**: "ECONNREFUSED" or "Connection timeout"
 
 **Solution**:
+
 ```bash
 # 1. Check if containers are running
 docker ps --filter name=redis-node
@@ -172,6 +190,7 @@ npm run locks:health
 **Symptom**: "Insufficient Redis nodes ready"
 
 **Solution**:
+
 ```bash
 # 1. Check quorum (need 2/3 nodes)
 docker exec redis-node-1 redis-cli ping
@@ -190,6 +209,7 @@ docker restart redis-node-X
 **Symptom**: Lock acquisition >120ms P95
 
 **Solution**:
+
 ```bash
 # 1. Check Redis slowlog
 docker exec redis-node-1 redis-cli SLOWLOG GET 10
@@ -211,6 +231,7 @@ npm run health:system
 **Symptom**: Redis memory usage >80%
 
 **Solution**:
+
 ```bash
 # 1. Check current usage
 docker exec redis-node-1 redis-cli INFO memory | grep used_memory_human
@@ -231,6 +252,7 @@ docker exec redis-node-1 redis-cli FLUSHDB
 **Symptom**: "Port already allocated"
 
 **Solution**:
+
 ```bash
 # 1. Check what's using the port
 netstat -ano | findstr :6379
@@ -253,11 +275,13 @@ npm run redis:restart
 **Increase Redis Memory**:
 
 Edit `config/redis.conf`:
+
 ```conf
 maxmemory 4gb  # Increase from 2gb
 ```
 
 Restart containers:
+
 ```bash
 npm run redis:restart
 ```
@@ -265,10 +289,11 @@ npm run redis:restart
 **Increase Connection Pool**:
 
 Edit application config:
+
 ```javascript
 const poolConfig = {
-  min: 10,  // Increase from 5
-  max: 50   // Increase from 20
+  min: 10, // Increase from 5
+  max: 50, // Increase from 20
 };
 ```
 
@@ -277,12 +302,13 @@ const poolConfig = {
 **Add 4th Redis Node**:
 
 Edit `docker-compose.redis.yml`:
+
 ```yaml
 redis-4:
   image: redis:7-alpine
   container_name: redis-node-4
   ports:
-    - "6382:6379"
+    - '6382:6379'
   volumes:
     - redis-4-data:/data
     - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
@@ -291,6 +317,7 @@ redis-4:
 ```
 
 Update environment variables:
+
 ```bash
 export REDIS_HOST_4=localhost
 export REDIS_PORT_4=6382
@@ -305,6 +332,7 @@ Update code to use 4 nodes (requires quorum of 3/4).
 ### Backup Redis Data
 
 **Manual Snapshot**:
+
 ```bash
 # Trigger background save
 docker exec redis-node-1 redis-cli BGSAVE
@@ -314,6 +342,7 @@ docker cp redis-node-1:/data/dump.rdb ./backups/dump-$(date +%Y%m%d-%H%M%S).rdb
 ```
 
 **Automated Backup** (cron job):
+
 ```bash
 # Add to crontab (every 6 hours)
 0 */6 * * * docker exec redis-node-1 redis-cli BGSAVE && docker cp redis-node-1:/data/dump.rdb /backups/redis/dump-$(date +\%Y\%m\%d-\%H\%M\%S).rdb
@@ -352,28 +381,33 @@ cp prisma/dev.db backups/prisma-$(date +%Y%m%d-%H%M%S).db
 ### Enable Redis Authentication
 
 1. Generate secure password:
+
 ```bash
 openssl rand -base64 32
 ```
 
 2. Edit `config/redis.conf`:
+
 ```conf
 requirepass YOUR_SECURE_PASSWORD_HERE
 ```
 
 3. Restart Redis:
+
 ```bash
 npm run redis:restart
 ```
 
 4. Update application config:
+
 ```javascript
 const redisConfig = {
-  password: process.env.REDIS_PASSWORD
+  password: process.env.REDIS_PASSWORD,
 };
 ```
 
 5. Test connection:
+
 ```bash
 docker exec redis-node-1 redis-cli -a YOUR_SECURE_PASSWORD_HERE ping
 ```
@@ -381,12 +415,14 @@ docker exec redis-node-1 redis-cli -a YOUR_SECURE_PASSWORD_HERE ping
 ### Enable Protected Mode
 
 Edit `config/redis.conf`:
+
 ```conf
 protected-mode yes
 bind 127.0.0.1  # Only allow local connections
 ```
 
 Restart Redis:
+
 ```bash
 npm run redis:restart
 ```
@@ -394,6 +430,7 @@ npm run redis:restart
 ### Network Security
 
 **Firewall Rules** (production):
+
 ```bash
 # Allow only necessary ports
 ufw allow 65028/tcp  # AI Bridge WebSocket
@@ -404,12 +441,13 @@ ufw deny 6381/tcp
 ```
 
 **Docker Network Isolation**:
+
 ```yaml
 # In docker-compose.redis.yml
 networks:
   ai-bridge-network:
     driver: bridge
-    internal: true  # Prevent external access
+    internal: true # Prevent external access
 ```
 
 ---
@@ -419,11 +457,13 @@ networks:
 ### Email Alerts (via Prometheus Alertmanager)
 
 1. Install Alertmanager:
+
 ```bash
 docker run -d -p 9093:9093 prom/alertmanager
 ```
 
 2. Configure alerts (`config/alerts.yml`):
+
 ```yaml
 groups:
   - name: redis_alerts
@@ -432,19 +472,19 @@ groups:
         expr: redis_up == 0
         for: 1m
         annotations:
-          summary: "Redis node {{ $labels.instance }} is down"
+          summary: 'Redis node {{ $labels.instance }} is down'
 
       - alert: RedisMemoryHigh
         expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
         for: 5m
         annotations:
-          summary: "Redis memory usage >80%"
+          summary: 'Redis memory usage >80%'
 
       - alert: LockLatencyHigh
         expr: lock_acquisition_p95 > 120
         for: 2m
         annotations:
-          summary: "Lock acquisition latency >120ms"
+          summary: 'Lock acquisition latency >120ms'
 ```
 
 3. Configure email notifications in Alertmanager.
@@ -452,6 +492,7 @@ groups:
 ### Slack Alerts
 
 Use Prometheus Alertmanager webhook integration:
+
 ```yaml
 receivers:
   - name: 'slack'
@@ -468,23 +509,27 @@ receivers:
 ### Redis Optimization
 
 **Increase Memory**:
+
 ```conf
 maxmemory 4gb
 ```
 
 **Optimize Eviction**:
+
 ```conf
 maxmemory-policy allkeys-lru  # Evict least recently used keys
 maxmemory-samples 10          # More samples = better eviction
 ```
 
 **Disable Persistence** (if acceptable):
+
 ```conf
 save ""              # Disable RDB snapshots
 appendonly no        # Disable AOF
 ```
 
 **Increase Backlog**:
+
 ```conf
 tcp-backlog 2048     # Increase from 511
 ```
@@ -492,25 +537,28 @@ tcp-backlog 2048     # Increase from 511
 ### Application Optimization
 
 **Connection Pooling**:
+
 ```javascript
 const poolConfig = {
   min: 10,
   max: 50,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000
+  connectionTimeoutMillis: 2000,
 };
 ```
 
 **Lock TTL Tuning**:
+
 ```javascript
 const lockConfig = {
-  lockTTL: 5000,      // Increase if operations are slow
-  retryCount: 3,      // Increase for high contention
-  retryDelay: 100     // Decrease for lower latency
+  lockTTL: 5000, // Increase if operations are slow
+  retryCount: 3, // Increase for high contention
+  retryDelay: 100, // Decrease for lower latency
 };
 ```
 
 **Batch Operations**:
+
 ```javascript
 // Instead of:
 for (const item of items) {
@@ -518,7 +566,7 @@ for (const item of items) {
 }
 
 // Use:
-await Promise.all(items.map(item => acquireLock(item)));
+await Promise.all(items.map((item) => acquireLock(item)));
 ```
 
 ---
@@ -527,13 +575,13 @@ await Promise.all(items.map(item => acquireLock(item)));
 
 ### Critical Metrics
 
-| Metric | Command | Threshold |
-|--------|---------|-----------|
-| Redis health | `npm run locks:health` | 3/3 nodes |
-| Lock latency P95 | `npm run locks:benchmark` | <120ms |
-| Throughput | `npm run locks:benchmark` | >50 ops/sec |
-| Memory usage | `docker exec redis-node-1 redis-cli INFO memory` | <80% |
-| Error rate | Check Grafana dashboard | <0.1% |
+| Metric           | Command                                          | Threshold   |
+| ---------------- | ------------------------------------------------ | ----------- |
+| Redis health     | `npm run locks:health`                           | 3/3 nodes   |
+| Lock latency P95 | `npm run locks:benchmark`                        | <120ms      |
+| Throughput       | `npm run locks:benchmark`                        | >50 ops/sec |
+| Memory usage     | `docker exec redis-node-1 redis-cli INFO memory` | <80%        |
+| Error rate       | Check Grafana dashboard                          | <0.1%       |
 
 ### Quick Diagnostics
 
@@ -558,16 +606,19 @@ docker logs --tail 50 redis-node-1
 ### Recommended Schedule
 
 **Daily**:
+
 - Check health dashboards (Grafana)
 - Review error logs
 - Verify backup completion
 
 **Weekly**:
+
 - Run full benchmark suite
 - Review performance trends
 - Check for outdated dependencies
 
 **Monthly**:
+
 - Update Docker images
 - Review and rotate logs
 - Capacity planning review
@@ -604,6 +655,7 @@ docker logs --tail 50 redis-node-1
 **Deployment Report**: C:\Users\scarm\DEPLOYMENT_REPORT.md
 
 **Emergency Rollback**:
+
 ```bash
 # Quick rollback to pre-optimization state
 export USE_DISTRIBUTED_LOCKS=false

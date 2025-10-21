@@ -21,11 +21,10 @@ async function orchestrateCodeAnalysis() {
   const repositoryUrl = 'https://github.com/my-org/my-app.git';
   const branch = 'main';
 
-  const analysisResult = await mcpIntegration.callTool(
-    'CodeAnalysisServer',
-    'analyze_code',
-    { repositoryUrl, branch }
-  );
+  const analysisResult = await mcpIntegration.callTool('CodeAnalysisServer', 'analyze_code', {
+    repositoryUrl,
+    branch,
+  });
 
   console.log('Code Analysis Result:', analysisResult);
 

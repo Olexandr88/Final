@@ -13,15 +13,15 @@ const services = {
     cmd: 'node',
     args: ['src/ai-bridge.js'],
     healthUrl: 'http://localhost:4568/health',
-    restartDelay: 3000
+    restartDelay: 3000,
   },
   a2a: {
     name: 'A2A Server',
     cmd: 'node',
     args: ['src/enhanced-a2a-server.js'],
     healthUrl: 'http://localhost:3001/health',
-    restartDelay: 3000
-  }
+    restartDelay: 3000,
+  },
 };
 
 const processes = new Map();
@@ -29,14 +29,17 @@ const processes = new Map();
 async function checkHealth(url) {
   return new Promise((resolve) => {
     const urlObj = new URL(url);
-    const req = http.get({
-      hostname: urlObj.hostname,
-      port: urlObj.port,
-      path: urlObj.pathname,
-      timeout: 2000
-    }, (res) => {
-      resolve(res.statusCode === 200);
-    });
+    const req = http.get(
+      {
+        hostname: urlObj.hostname,
+        port: urlObj.port,
+        path: urlObj.pathname,
+        timeout: 2000,
+      },
+      (res) => {
+        resolve(res.statusCode === 200);
+      }
+    );
     req.on('error', () => resolve(false));
     req.on('timeout', () => {
       req.destroy();
@@ -50,7 +53,7 @@ function startService(key, config) {
 
   const proc = spawn(config.cmd, config.args, {
     stdio: 'pipe',
-    shell: true
+    shell: true,
   });
 
   proc.stdout.on('data', (data) => {
@@ -93,7 +96,7 @@ console.log('🎯 A2A Auto-Deployment Starting...\n');
 
 for (const [key, config] of Object.entries(services)) {
   startService(key, config);
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 }
 
 // Health monitoring every 30s

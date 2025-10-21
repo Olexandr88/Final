@@ -20,9 +20,7 @@ describe('index.js', () => {
         assert.strictEqual(true, true);
       } catch (error) {
         // Expected to fail without real API key, but should not throw syntax errors
-        assert.ok(
-          error.message.includes('API') || error.message.includes('key') || error.killed
-        );
+        assert.ok(error.message.includes('API') || error.message.includes('key') || error.killed);
       }
     });
 
@@ -37,9 +35,7 @@ describe('index.js', () => {
       try {
         const content = readFileSync(modulePath, 'utf-8');
         assert.ok(content.length > 0);
-        assert.ok(
-          content.includes('import') || content.includes('require')
-        );
+        assert.ok(content.includes('import') || content.includes('require'));
       } catch (error) {
         throw new Error(`Failed to read module: ${error.message}`);
       }

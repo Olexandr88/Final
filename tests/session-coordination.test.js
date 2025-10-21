@@ -71,7 +71,7 @@ describe('Session Coordination', () => {
         coordinator.safeWrite(testFile, async () => {
           const content = fs.readFileSync(testFile, 'utf8');
           // Simulate some work
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise((resolve) => setTimeout(resolve, 50));
           fs.writeFileSync(testFile, content + `write-${i}\n`);
         })
       );
@@ -137,11 +137,11 @@ describe('Session Coordination', () => {
 
   it('should cleanup stale sessions', async () => {
     // Wait for heartbeat to run
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const sessions = coordinator.listSessions();
     // All sessions should still be active (heartbeat is running)
-    sessions.forEach(session => {
+    sessions.forEach((session) => {
       assert.ok(session.lastHeartbeatAge < 10000);
     });
   }, 10000);
@@ -162,7 +162,9 @@ describe('Multi-Session Coordination', () => {
 
     // Create a simple script that uses session coordination (ESM format)
     const scriptPath = path.join(__dirname, '.test-sessions', 'worker.js');
-    fs.writeFileSync(scriptPath, `
+    fs.writeFileSync(
+      scriptPath,
+      `
       import SessionCoordinator from '../src/session-coordinator.js';
       import fs from 'fs';
 
@@ -187,20 +189,23 @@ describe('Multi-Session Coordination', () => {
       }
 
       work().catch(console.error);
-    `);
+    `
+    );
 
     // Spawn 3 worker processes
     const workers = [];
     for (let i = 0; i < 3; i++) {
       const worker = spawn('node', [scriptPath, testFile, i], {
-        stdio: 'inherit'
+        stdio: 'inherit',
       });
-      workers.push(new Promise((resolve, reject) => {
-        worker.on('close', code => {
-          if (code === 0) resolve();
-          else reject(new Error(`Worker ${i} exited with code ${code}`));
-        });
-      }));
+      workers.push(
+        new Promise((resolve, reject) => {
+          worker.on('close', (code) => {
+            if (code === 0) resolve();
+            else reject(new Error(`Worker ${i} exited with code ${code}`));
+          });
+        })
+      );
     }
 
     // Wait for all workers to complete

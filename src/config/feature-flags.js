@@ -20,7 +20,7 @@ export const FEATURE_FLAGS = {
   ORM_ROLLOUT_PERCENTAGE: parseInt(process.env.ORM_ROLLOUT_PERCENTAGE || '0', 10),
 
   // Debug mode (logs which implementation is used)
-  ORM_DEBUG: process.env.ORM_DEBUG === 'true' || false
+  ORM_DEBUG: process.env.ORM_DEBUG === 'true' || false,
 };
 
 /**
@@ -60,7 +60,7 @@ export function logImplementation(module, usingORM) {
       implementation: usingORM ? 'Prisma ORM' : 'Raw SQL',
       masterSwitch: FEATURE_FLAGS.USE_ORM,
       moduleFlag: FEATURE_FLAGS[`ORM_MODULE_${module}`],
-      rolloutPercentage: FEATURE_FLAGS.ORM_ROLLOUT_PERCENTAGE
+      rolloutPercentage: FEATURE_FLAGS.ORM_ROLLOUT_PERCENTAGE,
     });
   }
 }
@@ -75,10 +75,10 @@ export function getFeatureFlagStatus() {
     modules: {
       selectionStore: FEATURE_FLAGS.ORM_MODULE_SELECTION_STORE,
       sessionManager: FEATURE_FLAGS.ORM_MODULE_SESSION_MANAGER,
-      lockManager: FEATURE_FLAGS.ORM_MODULE_LOCK_MANAGER
+      lockManager: FEATURE_FLAGS.ORM_MODULE_LOCK_MANAGER,
     },
     rolloutPercentage: FEATURE_FLAGS.ORM_ROLLOUT_PERCENTAGE,
-    debug: FEATURE_FLAGS.ORM_DEBUG
+    debug: FEATURE_FLAGS.ORM_DEBUG,
   };
 }
 

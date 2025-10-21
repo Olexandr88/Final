@@ -17,13 +17,22 @@ class DistributedLockBenchmark {
 
     this.lockManager = new RedisRedlockManager({
       redisNodes: [
-        { host: process.env.REDIS_HOST_1 || 'localhost', port: parseInt(process.env.REDIS_PORT_1 || '6379') },
-        { host: process.env.REDIS_HOST_2 || 'localhost', port: parseInt(process.env.REDIS_PORT_2 || '6380') },
-        { host: process.env.REDIS_HOST_3 || 'localhost', port: parseInt(process.env.REDIS_PORT_3 || '6381') }
+        {
+          host: process.env.REDIS_HOST_1 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_1 || '6379'),
+        },
+        {
+          host: process.env.REDIS_HOST_2 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_2 || '6380'),
+        },
+        {
+          host: process.env.REDIS_HOST_3 || 'localhost',
+          port: parseInt(process.env.REDIS_PORT_3 || '6381'),
+        },
       ],
       lockTTL: 10000,
       retryCount: 3,
-      retryDelay: 200
+      retryDelay: 200,
     });
 
     await this.lockManager.initialize();
@@ -65,7 +74,7 @@ class DistributedLockBenchmark {
       max: max.toFixed(2),
       p50: p50.toFixed(2),
       p95: p95.toFixed(2),
-      p99: p99.toFixed(2)
+      p99: p99.toFixed(2),
     };
 
     console.log(`Iterations: ${iterations}`);
@@ -100,7 +109,7 @@ class DistributedLockBenchmark {
     this.results.throughput = {
       operations,
       duration: actualDuration.toFixed(2),
-      opsPerSec
+      opsPerSec,
     };
 
     console.log(`Operations:  ${operations}`);
@@ -141,7 +150,7 @@ class DistributedLockBenchmark {
       totalFailures,
       successRate: ((totalSuccess / totalAttempts) * 100).toFixed(2),
       totalDuration: totalDuration.toFixed(2),
-      avgWaitTime: avgWaitTime.toFixed(2)
+      avgWaitTime: avgWaitTime.toFixed(2),
     };
 
     console.log(`Clients:       ${clients}`);
@@ -168,7 +177,7 @@ class DistributedLockBenchmark {
         waitTimes.push(waitTime);
 
         // Hold lock for 50ms
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
 
         await this.lockManager.releaseLock(resource);
         success++;
@@ -181,9 +190,8 @@ class DistributedLockBenchmark {
       clientId,
       success,
       failures,
-      avgWaitTime: waitTimes.length > 0
-        ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length
-        : 0
+      avgWaitTime:
+        waitTimes.length > 0 ? waitTimes.reduce((a, b) => a + b, 0) / waitTimes.length : 0,
     };
   }
 
@@ -216,7 +224,7 @@ class DistributedLockBenchmark {
       iterations,
       avg: avg.toFixed(2),
       min: min.toFixed(2),
-      max: max.toFixed(2)
+      max: max.toFixed(2),
     };
 
     console.log(`Iterations:  ${iterations}`);
@@ -246,7 +254,7 @@ class DistributedLockBenchmark {
 
     this.results.nodeFailure = {
       fullClusterTime: fullClusterTime.toFixed(2),
-      note: 'Partial failure tolerance built into Redlock algorithm'
+      note: 'Partial failure tolerance built into Redlock algorithm',
     };
   }
 
@@ -274,7 +282,7 @@ class DistributedLockBenchmark {
     }
 
     if (global.gc) global.gc();
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const endMem = process.memoryUsage();
 
@@ -287,7 +295,7 @@ class DistributedLockBenchmark {
       peakHeapMB: (peakMem.heapUsed / 1024 / 1024).toFixed(2),
       endHeapMB: (endMem.heapUsed / 1024 / 1024).toFixed(2),
       totalIncreaseMB: memoryIncrease.toFixed(2),
-      memoryPerLockKB: (memoryPerLock * 1024).toFixed(2)
+      memoryPerLockKB: (memoryPerLock * 1024).toFixed(2),
     };
 
     console.log(`Locks Created:     ${lockCount}`);
@@ -318,7 +326,7 @@ class DistributedLockBenchmark {
 
     this.results.healthCheck = {
       iterations,
-      avg: avg.toFixed(2)
+      avg: avg.toFixed(2),
     };
 
     console.log(`Iterations:  ${iterations}`);
@@ -346,45 +354,47 @@ class DistributedLockBenchmark {
         value: parseFloat(this.results.acquisitionLatency.p95),
         target: 120,
         unit: 'ms',
-        pass: parseFloat(this.results.acquisitionLatency.p95) < 120
+        pass: parseFloat(this.results.acquisitionLatency.p95) < 120,
       },
       {
         metric: 'Throughput',
         value: parseFloat(this.results.throughput.opsPerSec),
         target: 50,
         unit: 'ops/sec',
-        pass: parseFloat(this.results.throughput.opsPerSec) > 50
+        pass: parseFloat(this.results.throughput.opsPerSec) > 50,
       },
       {
         metric: 'Contention Success Rate',
         value: parseFloat(this.results.contention.successRate),
         target: 80,
         unit: '%',
-        pass: parseFloat(this.results.contention.successRate) > 80
+        pass: parseFloat(this.results.contention.successRate) > 80,
       },
       {
         metric: 'Memory Per Lock',
         value: parseFloat(this.results.memoryUsage.memoryPerLockKB),
         target: 10,
         unit: 'KB',
-        pass: parseFloat(this.results.memoryUsage.memoryPerLockKB) < 10
+        pass: parseFloat(this.results.memoryUsage.memoryPerLockKB) < 10,
       },
       {
         metric: 'Health Check Time',
         value: parseFloat(this.results.healthCheck.avg),
         target: 100,
         unit: 'ms',
-        pass: parseFloat(this.results.healthCheck.avg) < 100
-      }
+        pass: parseFloat(this.results.healthCheck.avg) < 100,
+      },
     ];
 
     console.log();
-    checks.forEach(check => {
+    checks.forEach((check) => {
       const status = check.pass ? '✓ PASS' : '✗ FAIL';
-      console.log(`${status} | ${check.metric}: ${check.value}${check.unit} (target: ${check.target}${check.unit})`);
+      console.log(
+        `${status} | ${check.metric}: ${check.value}${check.unit} (target: ${check.target}${check.unit})`
+      );
     });
 
-    const allPassed = checks.every(c => c.pass);
+    const allPassed = checks.every((c) => c.pass);
     console.log();
     console.log('='.repeat(70));
     console.log(allPassed ? '✓ ALL BENCHMARKS PASSED' : '✗ SOME BENCHMARKS FAILED');
@@ -413,7 +423,6 @@ class DistributedLockBenchmark {
       this.generateReport();
 
       await this.cleanup();
-
     } catch (error) {
       console.error('Benchmark failed:', error);
       await this.cleanup();

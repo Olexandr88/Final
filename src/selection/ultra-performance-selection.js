@@ -7,7 +7,7 @@
 // Debounce utility for selection events with proper cleanup
 function debounce(func, wait = 100) {
   let timeout = null;
-  
+
   const debouncedFn = function executedFunction(...args) {
     const later = () => {
       timeout = null;
@@ -17,21 +17,21 @@ function debounce(func, wait = 100) {
         console.error('Debounced function error:', error);
       }
     };
-    
+
     if (timeout !== null) {
       clearTimeout(timeout);
     }
     timeout = setTimeout(later, wait);
   };
-  
+
   // Cleanup method to prevent memory leaks
-  debouncedFn.cancel = function() {
+  debouncedFn.cancel = function () {
     if (timeout !== null) {
       clearTimeout(timeout);
       timeout = null;
     }
   };
-  
+
   return debouncedFn;
 }
 
@@ -56,12 +56,13 @@ class BatchUpdateQueue {
 
   scheduleProcess() {
     this.isProcessing = true;
-    
+
     // Use requestAnimationFrame with fallback
-    const raf = typeof requestAnimationFrame !== 'undefined' 
-      ? requestAnimationFrame 
-      : (cb) => setTimeout(cb, 16);
-    
+    const raf =
+      typeof requestAnimationFrame !== 'undefined'
+        ? requestAnimationFrame
+        : (cb) => setTimeout(cb, 16);
+
     this.rafId = raf(() => this.process());
   }
 
@@ -74,7 +75,7 @@ class BatchUpdateQueue {
     try {
       // Process all queued updates iteratively (not recursively)
       const updates = this.queue.splice(0, this.queue.length);
-      
+
       for (const update of updates) {
         try {
           update();
@@ -86,7 +87,7 @@ class BatchUpdateQueue {
       console.error('BatchUpdateQueue process error:', error);
     } finally {
       this.isProcessing = false;
-      
+
       // If new items were added during processing, schedule another process
       if (this.queue.length > 0) {
         this.scheduleProcess();
@@ -98,9 +99,7 @@ class BatchUpdateQueue {
     this.queue = [];
     this.isProcessing = false;
     if (this.rafId !== null) {
-      const caf = typeof cancelAnimationFrame !== 'undefined'
-        ? cancelAnimationFrame
-        : clearTimeout;
+      const caf = typeof cancelAnimationFrame !== 'undefined' ? cancelAnimationFrame : clearTimeout;
       caf(this.rafId);
       this.rafId = null;
     }
@@ -115,31 +114,28 @@ class UltraPerformanceSelection {
     this.lastSelection = null;
     this.listeners = new Set();
     this.isActive = false;
-    
+
     // Bind methods to preserve context
-    this.handleSelectionChange = debounce(
-      this._processSelection.bind(this),
-      this.debounceTime
-    );
+    this.handleSelectionChange = debounce(this._processSelection.bind(this), this.debounceTime);
   }
 
   _processSelection() {
     try {
       const selection = window.getSelection();
-      
+
       if (!selection || selection.rangeCount === 0) {
         return;
       }
 
       const currentSelection = this._captureSelection(selection);
-      
+
       // Skip if selection hasn't changed
       if (this._isSameSelection(currentSelection, this.lastSelection)) {
         return;
       }
 
       this.lastSelection = currentSelection;
-      
+
       // Batch notify all listeners
       this.batchQueue.add(() => {
         this._notifyListeners(currentSelection);
@@ -163,7 +159,7 @@ class UltraPerformanceSelection {
         startOffset: range.startOffset,
         endOffset: range.endOffset,
         collapsed: selection.isCollapsed,
-        rangeCount: selection.rangeCount
+        rangeCount: selection.rangeCount,
       };
     } catch (error) {
       console.error('Capture selection error:', error);

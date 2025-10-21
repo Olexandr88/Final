@@ -10,7 +10,7 @@ export class DashboardOptimizer {
       networkCalls: 0,
       cacheHits: 0,
       cacheMisses: 0,
-      memoryUsage: []
+      memoryUsage: [],
     };
 
     this.cache = new Map();
@@ -24,7 +24,7 @@ export class DashboardOptimizer {
   batchDOMUpdates(updates) {
     requestAnimationFrame(() => {
       const fragment = document.createDocumentFragment();
-      updates.forEach(update => {
+      updates.forEach((update) => {
         fragment.appendChild(update);
       });
       return fragment;
@@ -38,7 +38,7 @@ export class DashboardOptimizer {
     let timeout = null;
     let lastExecution = 0;
 
-    return function(...args) {
+    return function (...args) {
       const now = Date.now();
       const timeSinceLastExec = now - lastExecution;
 
@@ -61,7 +61,7 @@ export class DashboardOptimizer {
    */
   debounce(func, delay = 300) {
     let timeout;
-    return function(...args) {
+    return function (...args) {
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), delay);
     };
@@ -74,7 +74,7 @@ export class DashboardOptimizer {
     this.cache.set(key, {
       value,
       timestamp: Date.now(),
-      ttl
+      ttl,
     });
   }
 
@@ -110,7 +110,7 @@ export class DashboardOptimizer {
     return {
       visibleItems,
       offsetY,
-      totalHeight
+      totalHeight,
     };
   }
 
@@ -138,7 +138,7 @@ export class DashboardOptimizer {
 
     return {
       markDirty,
-      stop: () => cancelAnimationFrame(animationId)
+      stop: () => cancelAnimationFrame(animationId),
     };
   }
 
@@ -147,7 +147,7 @@ export class DashboardOptimizer {
    */
   lazyLoad(elements, options = {}) {
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const element = entry.target;
           const src = element.dataset.src;
@@ -159,7 +159,7 @@ export class DashboardOptimizer {
       });
     }, options);
 
-    elements.forEach(el => observer.observe(el));
+    elements.forEach((el) => observer.observe(el));
     return observer;
   }
 
@@ -168,17 +168,18 @@ export class DashboardOptimizer {
    */
   getMetrics() {
     const cacheTotal = this.metrics.cacheHits + this.metrics.cacheMisses;
-    const hitRate = cacheTotal > 0
-      ? ((this.metrics.cacheHits / cacheTotal) * 100).toFixed(2)
-      : 0;
+    const hitRate = cacheTotal > 0 ? ((this.metrics.cacheHits / cacheTotal) * 100).toFixed(2) : 0;
 
     return {
       ...this.metrics,
       cacheHitRate: `${hitRate}%`,
       cacheSize: this.cache.size,
-      avgRenderTime: this.metrics.renderTime.length > 0
-        ? (this.metrics.renderTime.reduce((a, b) => a + b, 0) / this.metrics.renderTime.length).toFixed(2)
-        : 0
+      avgRenderTime:
+        this.metrics.renderTime.length > 0
+          ? (
+              this.metrics.renderTime.reduce((a, b) => a + b, 0) / this.metrics.renderTime.length
+            ).toFixed(2)
+          : 0,
     };
   }
 
@@ -218,7 +219,7 @@ export class DashboardOptimizer {
       this.metrics.memoryUsage.push({
         usedJSHeapSize: performance.memory.usedJSHeapSize,
         totalJSHeapSize: performance.memory.totalJSHeapSize,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       // Keep only last 100 measurements

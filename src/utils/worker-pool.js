@@ -25,7 +25,7 @@ export class WorkerPool {
 
   createWorker(id) {
     const worker = new Worker(this.workerPath, {
-      workerData: { workerId: id }
+      workerData: { workerId: id },
     });
 
     worker.workerId = id;
@@ -76,7 +76,7 @@ export class WorkerPool {
         timeout: setTimeout(() => {
           reject(new Error('Worker task timeout'));
           this.handleTaskTimeout(task);
-        }, timeout)
+        }, timeout),
       };
 
       if (this.availableWorkers.length > 0) {
@@ -141,7 +141,7 @@ export class WorkerPool {
       poolSize: this.poolSize,
       available: this.availableWorkers.length,
       active: this.activeWorkers.size,
-      queued: this.taskQueue.length
+      queued: this.taskQueue.length,
     };
   }
 
@@ -156,7 +156,7 @@ export class WorkerPool {
     this.taskQueue = [];
 
     // Terminate all workers
-    await Promise.all(this.workers.map(w => w.terminate()));
+    await Promise.all(this.workers.map((w) => w.terminate()));
     this.workers = [];
     this.availableWorkers = [];
     this.activeWorkers.clear();

@@ -15,8 +15,12 @@ export default [
       '.claude/**',
       '.gemini/**',
       '.codex/**',
-      'tmp/**'
-    ]
+      'tmp/**',
+      'electron/vendor/**',
+      'electron/ai-orchestrator-renderer.js',
+      'electron/**/*.min.js',
+      'electron/scripts/**',
+    ],
   },
   // Configuration for TypeScript files
   {

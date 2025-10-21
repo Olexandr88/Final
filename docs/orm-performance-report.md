@@ -1,4 +1,5 @@
 # ORM Performance Benchmark Report
+
 ## LLM Multi-Provider Framework - Prisma vs Raw SQL Analysis
 
 **Report Date**: 2025-10-20
@@ -38,9 +39,9 @@ For the LLM Framework's actual workload (processing agent communications, managi
 
 ```javascript
 const ITERATIONS = {
-  simple: 1000,    // Simple CRUD operations
-  complex: 500,    // Joins and relations
-  bulk: 100        // Bulk inserts
+  simple: 1000, // Simple CRUD operations
+  complex: 500, // Joins and relations
+  bulk: 100, // Bulk inserts
 };
 ```
 
@@ -57,6 +58,7 @@ const ITERATIONS = {
 ### Database Optimizations Applied
 
 Both implementations tested with:
+
 - **WAL Mode**: Enabled for better concurrency
 - **Optimized Indexes**: Composite indexes on common query patterns
 - **Connection Pooling**: Prisma internal pool vs DatabasePool class
@@ -69,12 +71,12 @@ Both implementations tested with:
 
 **Test**: Insert a single session record
 
-| Metric | Raw SQL | Prisma ORM | Overhead |
-|--------|---------|------------|----------|
-| Average | 0.10ms | 3.79ms | +3,810% |
-| Median | 0.03ms | 3.51ms | +11,600% |
-| P95 | 0.06ms | 5.03ms | +8,283% |
-| P99 | 3.05ms | 7.73ms | +153% |
+| Metric  | Raw SQL | Prisma ORM | Overhead |
+| ------- | ------- | ---------- | -------- |
+| Average | 0.10ms  | 3.79ms     | +3,810%  |
+| Median  | 0.03ms  | 3.51ms     | +11,600% |
+| P95     | 0.06ms  | 5.03ms     | +8,283%  |
+| P99     | 3.05ms  | 7.73ms     | +153%    |
 
 **Analysis**:
 
@@ -86,11 +88,12 @@ Both implementations tested with:
   - Internal connection management
 
 **Real-World Impact**:
+
 - For 100 inserts/sec: adds 370ms total overhead (negligible)
 - For 1,000 inserts/sec: adds 3.7s overhead (acceptable for batch operations)
 
 **Verdict**: ✓ ACCEPTABLE
-*Despite high percentage, absolute overhead is negligible for framework use case*
+_Despite high percentage, absolute overhead is negligible for framework use case_
 
 ---
 
@@ -98,12 +101,12 @@ Both implementations tested with:
 
 **Test**: Query session with related locks (JOIN operation)
 
-| Metric | Raw SQL | Prisma ORM | Overhead |
-|--------|---------|------------|----------|
-| Average | 0.03ms | 0.32ms | +934% |
-| Median | 0.03ms | 0.31ms | +933% |
-| P95 | 0.05ms | 0.48ms | +860% |
-| P99 | 0.06ms | 0.67ms | +1,017% |
+| Metric  | Raw SQL | Prisma ORM | Overhead |
+| ------- | ------- | ---------- | -------- |
+| Average | 0.03ms  | 0.32ms     | +934%    |
+| Median  | 0.03ms  | 0.31ms     | +933%    |
+| P95     | 0.05ms  | 0.48ms     | +860%    |
+| P99     | 0.06ms  | 0.67ms     | +1,017%  |
 
 **Code Comparison**:
 
@@ -116,7 +119,7 @@ return { ...session, locks };
 // Prisma ORM (1 query, automatic JOIN)
 return prisma.session.findUnique({
   where: { id },
-  include: { locks: true }
+  include: { locks: true },
 });
 ```
 
@@ -127,13 +130,14 @@ return prisma.session.findUnique({
 - Absolute cost: **0.29ms per query** (acceptable)
 
 **Benefits of ORM**:
+
 - Type safety (compile-time errors vs runtime crashes)
 - Automatic N+1 prevention
 - Relation management
 - Cleaner code (9 lines → 5 lines)
 
 **Verdict**: ✓ ACCEPTABLE
-*Type safety and developer productivity worth 0.29ms per query*
+_Type safety and developer productivity worth 0.29ms per query_
 
 ---
 
@@ -141,12 +145,12 @@ return prisma.session.findUnique({
 
 **Test**: Full-text search across 100 selection records
 
-| Metric | Raw SQL | Prisma ORM | Overhead |
-|--------|---------|------------|----------|
-| Average | 0.08ms | 0.55ms | +610% |
-| Median | 0.07ms | 0.53ms | +657% |
-| P95 | 0.09ms | 0.83ms | +822% |
-| P99 | 0.11ms | 0.92ms | +736% |
+| Metric  | Raw SQL | Prisma ORM | Overhead |
+| ------- | ------- | ---------- | -------- |
+| Average | 0.08ms  | 0.55ms     | +610%    |
+| Median  | 0.07ms  | 0.53ms     | +657%    |
+| P95     | 0.09ms  | 0.83ms     | +822%    |
+| P99     | 0.11ms  | 0.92ms     | +736%    |
 
 **Query Pattern**:
 
@@ -178,11 +182,12 @@ prisma.selection.findMany({
 - Composite index on `(source, created_at DESC)` improves both implementations
 
 **Recommendation**:
+
 - Use Prisma for most searches (type-safe, maintainable)
 - Use raw SQL for FTS5 full-text search (not supported by Prisma)
 
 **Verdict**: ✓ ACCEPTABLE
-*0.47ms overhead acceptable for RAG context retrieval*
+_0.47ms overhead acceptable for RAG context retrieval_
 
 ---
 
@@ -211,11 +216,11 @@ CREATE INDEX idx_selections_source_time ON selections(source, created_at DESC);
 
 ### Impact of Composite Indexes
 
-| Query Type | Without Composite Index | With Composite Index | Improvement |
-|------------|------------------------|---------------------|-------------|
-| Stale session cleanup | 2.4ms | 0.8ms | **67% faster** |
-| Lock acquisition check | 1.2ms | 0.4ms | **67% faster** |
-| Recent selections by source | 3.1ms | 1.1ms | **65% faster** |
+| Query Type                  | Without Composite Index | With Composite Index | Improvement    |
+| --------------------------- | ----------------------- | -------------------- | -------------- |
+| Stale session cleanup       | 2.4ms                   | 0.8ms                | **67% faster** |
+| Lock acquisition check      | 1.2ms                   | 0.4ms                | **67% faster** |
+| Recent selections by source | 3.1ms                   | 1.1ms                | **65% faster** |
 
 **Key Insight**: Composite indexes provide 60-70% performance improvement for common query patterns in both Raw SQL and Prisma.
 
@@ -247,11 +252,11 @@ export class DatabasePool {
 
 ### Pooling Metrics (Under Load)
 
-| Metric | Without Pooling | With Pooling (Size 10) | Improvement |
-|--------|----------------|----------------------|-------------|
-| Connection creation overhead | 12ms/connection | 0.1ms/reuse | **120x faster** |
-| Concurrent request handling | 50 req/sec | 500 req/sec | **10x throughput** |
-| Connection exhaustion errors | 12% failure rate | 0% failure rate | **100% reliability** |
+| Metric                       | Without Pooling  | With Pooling (Size 10) | Improvement          |
+| ---------------------------- | ---------------- | ---------------------- | -------------------- |
+| Connection creation overhead | 12ms/connection  | 0.1ms/reuse            | **120x faster**      |
+| Concurrent request handling  | 50 req/sec       | 500 req/sec            | **10x throughput**   |
+| Connection exhaustion errors | 12% failure rate | 0% failure rate        | **100% reliability** |
 
 **Prisma Internal Pooling**: Prisma uses connection pooling by default, contributing to its consistent performance across all benchmark tests.
 
@@ -280,7 +285,7 @@ class PrismaMetrics {
       queryCount: this.queryCount,
       avgDuration: (this.totalDuration / this.queryCount).toFixed(2),
       slowQueryCount: this.slowQueries.length,
-      errors: this.errors
+      errors: this.errors,
     };
   }
 }
@@ -324,13 +329,14 @@ export const FEATURE_FLAGS = {
   ORM_MODULE_LOCK_MANAGER: process.env.ORM_LOCK_MANAGER === 'true',
 
   // Percentage-based rollout (0-100)
-  ORM_ROLLOUT_PERCENTAGE: parseInt(process.env.ORM_ROLLOUT_PERCENTAGE || '0', 10)
+  ORM_ROLLOUT_PERCENTAGE: parseInt(process.env.ORM_ROLLOUT_PERCENTAGE || '0', 10),
 };
 ```
 
 ### Rollout Strategy
 
 #### Phase 1: SelectionStore (Week 1)
+
 ```bash
 # .env
 ENABLE_ORM=true
@@ -342,6 +348,7 @@ ORM_ROLLOUT_PERCENTAGE=10
 **Rationale**: SelectionStore is write-heavy with infrequent reads
 
 #### Phase 2: SessionManager (Week 2-3)
+
 ```bash
 ORM_SESSION_MANAGER=true
 ORM_ROLLOUT_PERCENTAGE=25
@@ -351,6 +358,7 @@ ORM_ROLLOUT_PERCENTAGE=25
 **Rationale**: Session management is critical but low-frequency
 
 #### Phase 3: LockManager (Week 4)
+
 ```bash
 ORM_LOCK_MANAGER=true
 ORM_ROLLOUT_PERCENTAGE=50
@@ -360,6 +368,7 @@ ORM_ROLLOUT_PERCENTAGE=50
 **Rationale**: Lock operations are performance-sensitive
 
 #### Phase 4: Full Rollout (Week 5-6)
+
 ```bash
 ENABLE_ORM=true
 # Remove module-specific flags
@@ -373,20 +382,26 @@ ORM_ROLLOUT_PERCENTAGE=100
 ### Identified Performance Bottlenecks
 
 #### 1. Type Validation Overhead
+
 **Impact**: ~1.5ms per Prisma operation
 **Mitigation**:
+
 - Use `$queryRaw` for performance-critical paths
 - Batch operations with `$transaction`
 
 #### 2. Query Builder Abstraction
+
 **Impact**: ~0.8ms per operation
 **Mitigation**:
+
 - Cache prepared statements (Prisma does this internally)
 - Use `select` to fetch only needed fields
 
 #### 3. Result Transformation
+
 **Impact**: ~0.5ms per operation
 **Mitigation**:
+
 - Use raw queries when transformation not needed
 - Implement custom result mappers
 
@@ -395,7 +410,7 @@ ORM_ROLLOUT_PERCENTAGE=100
 ```javascript
 // Use Prisma for 90% of operations
 const sessions = await prisma.session.findMany({
-  where: { status: 'active' }
+  where: { status: 'active' },
 });
 
 // Use raw SQL for performance-critical 10%
@@ -420,33 +435,40 @@ const stats = await prisma.$queryRaw`
 ### DO Use Prisma ORM For:
 
 ✅ **New Feature Development**
+
 - Type safety catches bugs at compile-time
 - Faster development velocity
 
 ✅ **Relation-Heavy Queries**
+
 - Automatic JOIN generation
 - N+1 query prevention
 
 ✅ **CRUD Operations**
+
 - Clean, maintainable code
 - Automatic migrations
 
 ✅ **Complex Transactions**
+
 - Atomic operations with automatic rollback
 - Better error handling
 
 ### DON'T Use Prisma ORM For:
 
 ❌ **Extreme Performance Requirements**
+
 - Sub-millisecond latency needed
 - Batch operations >1,000 rows/sec
 
 ❌ **Complex Analytics Queries**
+
 - Window functions
 - Recursive CTEs
 - Full-text search (FTS5)
 
 ❌ **Bulk Data Import**
+
 - Use raw SQL transactions
 - Or external tools (sqlite3 CLI)
 
@@ -458,7 +480,7 @@ class SessionManager {
   async getActiveSession(id) {
     return prisma.session.findUnique({
       where: { id },
-      include: { locks: true }
+      include: { locks: true },
     });
   }
 
@@ -515,7 +537,7 @@ async function verifyDataIntegrity() {
 
   // 2. Verify referential integrity
   const orphanedLocks = await prisma.lock.count({
-    where: { session: null }
+    where: { session: null },
   });
   assert(orphanedLocks === 0, 'Orphaned locks detected');
 
@@ -534,6 +556,7 @@ async function verifyDataIntegrity() {
 One of the biggest advantages of Prisma: **zero-code PostgreSQL migration**.
 
 #### Current Schema (SQLite)
+
 ```prisma
 datasource db {
   provider = "sqlite"
@@ -548,6 +571,7 @@ model Session {
 ```
 
 #### Future Schema (PostgreSQL)
+
 ```prisma
 datasource db {
   provider = "postgresql"
@@ -562,6 +586,7 @@ model Session {
 ```
 
 #### Migration Command
+
 ```bash
 # 1. Update schema.prisma (provider = "postgresql")
 # 2. Update .env (DATABASE_URL="postgresql://...")
@@ -587,21 +612,23 @@ npx prisma migrate deploy
 
 ### Development Time Savings
 
-| Task | Raw SQL | Prisma ORM | Time Saved |
-|------|---------|------------|------------|
-| Write simple query | 5 min | 2 min | 60% |
-| Write complex query | 20 min | 8 min | 60% |
-| Handle TypeScript types | 15 min | 0 min | 100% |
-| Debug N+1 query | 30 min | 0 min | 100% |
-| Refactor schema | 60 min | 10 min | 83% |
+| Task                    | Raw SQL | Prisma ORM | Time Saved |
+| ----------------------- | ------- | ---------- | ---------- |
+| Write simple query      | 5 min   | 2 min      | 60%        |
+| Write complex query     | 20 min  | 8 min      | 60%        |
+| Handle TypeScript types | 15 min  | 0 min      | 100%       |
+| Debug N+1 query         | 30 min  | 0 min      | 100%       |
+| Refactor schema         | 60 min  | 10 min     | 83%        |
 
 **Annual Savings** (1 developer, 20% time on DB work):
+
 - Developer time: **~240 hours/year**
 - Cost savings: **$24,000/year** (at $100/hour)
 
 ### Performance Cost
 
 **Worst Case Overhead** (from benchmarks):
+
 - Average latency: +3.7ms per operation
 - For 10,000 operations/day: **+37 seconds total**
 
@@ -674,11 +701,11 @@ The performance benchmarks show significant **percentage** overhead, but the **a
 
 #### Performance Impact Summary
 
-| Operation | Absolute Overhead | Real-World Impact |
-|-----------|------------------|-------------------|
-| Simple Insert | +3.7ms | Negligible for agent coordination |
-| Complex Query | +0.3ms | Imperceptible for session queries |
-| Search Query | +0.5ms | Acceptable for RAG context retrieval |
+| Operation     | Absolute Overhead | Real-World Impact                    |
+| ------------- | ----------------- | ------------------------------------ |
+| Simple Insert | +3.7ms            | Negligible for agent coordination    |
+| Complex Query | +0.3ms            | Imperceptible for session queries    |
+| Search Query  | +0.5ms            | Acceptable for RAG context retrieval |
 
 #### Business Value
 
@@ -711,6 +738,7 @@ The overhead is **acceptable** and the benefits are **substantial**. Proceed wit
 ### Simple Insert (1,000 iterations)
 
 **Raw SQL**:
+
 ```
 avg:    0.10ms
 median: 0.03ms
@@ -721,6 +749,7 @@ max:    8.12ms
 ```
 
 **Prisma ORM**:
+
 ```
 avg:    3.79ms
 median: 3.51ms
@@ -733,6 +762,7 @@ max:    15.21ms
 ### Complex Query (500 iterations)
 
 **Raw SQL**:
+
 ```
 avg:    0.03ms
 median: 0.03ms
@@ -743,6 +773,7 @@ max:    0.12ms
 ```
 
 **Prisma ORM**:
+
 ```
 avg:    0.32ms
 median: 0.31ms
@@ -755,6 +786,7 @@ max:    1.23ms
 ### Search Query (500 iterations)
 
 **Raw SQL**:
+
 ```
 avg:    0.08ms
 median: 0.07ms
@@ -765,6 +797,7 @@ max:    0.18ms
 ```
 
 **Prisma ORM**:
+
 ```
 avg:    0.55ms
 median: 0.53ms
@@ -779,6 +812,7 @@ max:    1.52ms
 ## Appendix B: Configuration Files
 
 ### .env Configuration
+
 ```bash
 # ORM Feature Flags
 ENABLE_ORM=true
@@ -801,6 +835,7 @@ LOG_LEVEL=info
 ```
 
 ### Prisma Schema Optimizations
+
 ```prisma
 // Optimized indexes added in schema.prisma v2.1
 @@index([status, lastHeartbeat], name: "idx_sessions_status_heartbeat")

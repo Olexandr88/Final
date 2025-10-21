@@ -15,7 +15,9 @@ const execAsync = promisify(exec);
 export class EnvironmentManager extends EventEmitter {
   constructor(options = {}) {
     super();
-    this.baseWorkspace = options.baseWorkspace || path.join(process.env.HOME || process.env.USERPROFILE, 'claude-workspace');
+    this.baseWorkspace =
+      options.baseWorkspace ||
+      path.join(process.env.HOME || process.env.USERPROFILE, 'claude-workspace');
   }
 
   async createIsolatedWorkspace(projectName, options = {}) {
@@ -26,7 +28,7 @@ export class EnvironmentManager extends EventEmitter {
       path: workspacePath,
       created: Date.now(),
       structure: options.structure || ['src', 'tests', 'db', 'bin'],
-      isolated: true
+      isolated: true,
     };
 
     try {
@@ -45,7 +47,6 @@ export class EnvironmentManager extends EventEmitter {
       this.emit('workspace:created', workspace);
 
       return workspace;
-
     } catch (error) {
       this.emit('workspace:error', { error, workspace });
       throw error;
@@ -136,7 +137,7 @@ temp/
       path: workspacePath,
       valid: true,
       issues: [],
-      checks: {}
+      checks: {},
     };
 
     try {
@@ -171,10 +172,10 @@ temp/
       '/etc',
       '/var',
       'C:\\Windows',
-      'C:\\Program Files'
+      'C:\\Program Files',
     ];
 
-    const isDangerous = dangerousPaths.some(p => workspacePath.startsWith(p));
+    const isDangerous = dangerousPaths.some((p) => workspacePath.startsWith(p));
     if (isDangerous) {
       validation.valid = false;
       validation.issues.push('Workspace in dangerous system directory');
@@ -190,7 +191,7 @@ temp/
   async checkIsolation(workspacePath) {
     const isolation = {
       isolated: true,
-      risks: []
+      risks: [],
     };
 
     const parentPath = path.dirname(workspacePath);
@@ -247,7 +248,6 @@ exit 0
       }
 
       this.emit('safety-checks:installed', { path: workspacePath });
-
     } catch (error) {
       this.emit('safety-checks:error', { error, path: workspacePath });
     }
@@ -262,8 +262,8 @@ exit 0
       settings: {
         autoCommit: config.autoCommit !== false,
         requireTests: config.requireTests !== false,
-        enforceLinting: config.enforceLinting || false
-      }
+        enforceLinting: config.enforceLinting || false,
+      },
     };
 
     await writeFile(
@@ -302,12 +302,11 @@ exit 0
           name,
           path: wsPath,
           valid: validation.valid,
-          config
+          config,
         });
       }
 
       return details;
-
     } catch {
       return [];
     }

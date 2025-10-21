@@ -25,9 +25,9 @@ export class ArchitectAgent extends BaseAgent {
         code_analysis: true,
         command_exec: false,
         git_operations: false,
-        test_execution: false
+        test_execution: false,
       },
-      ...config
+      ...config,
     });
 
     // Ollama configuration
@@ -66,7 +66,7 @@ export class ArchitectAgent extends BaseAgent {
       this.send({
         intent: 'error',
         to: message.from,
-        payload: { error: error.message }
+        payload: { error: error.message },
       });
     }
   }
@@ -96,8 +96,8 @@ export class ArchitectAgent extends BaseAgent {
         agent: this.config.clientId,
         task: payload.description,
         deliverable: filepath,
-        summary: response.substring(0, 200)
-      }
+        summary: response.substring(0, 200),
+      },
     });
   }
 
@@ -110,7 +110,7 @@ export class ArchitectAgent extends BaseAgent {
 ${payload.description}
 
 Requirements:
-${payload.requirements?.map(r => `- ${r}`).join('\n') || 'See description'}
+${payload.requirements?.map((r) => `- ${r}`).join('\n') || 'See description'}
 
 Provide:
 1. High-level architecture diagram (text/ASCII)
@@ -137,8 +137,8 @@ Provide:
       payload: {
         type: 'system',
         deliverable: filepath,
-        summary: response.substring(0, 200)
-      }
+        summary: response.substring(0, 200),
+      },
     });
   }
 
@@ -173,8 +173,8 @@ Provide:
       to: payload.requester || 'coordinator',
       payload: {
         type: 'api',
-        deliverable: filepath
-      }
+        deliverable: filepath,
+      },
     });
   }
 
@@ -189,8 +189,8 @@ Provide:
         body: JSON.stringify({
           model: this.model,
           prompt: prompt,
-          stream: false
-        })
+          stream: false,
+        }),
       });
 
       if (!response.ok) {
@@ -214,7 +214,7 @@ Provide:
 TASK: ${task.description}
 
 SUCCESS CRITERIA:
-${task.criteria?.map(c => `- ${c}`).join('\n') || 'Complete the task successfully'}
+${task.criteria?.map((c) => `- ${c}`).join('\n') || 'Complete the task successfully'}
 
 PRIORITY: ${task.priority || 'medium'}
 ESTIMATED TIME: ${task.estimatedTime || 'unknown'}
@@ -235,11 +235,13 @@ Be detailed and specific.`;
    */
   send(message) {
     if (this.isConnected && this.ws) {
-      this.ws.send(JSON.stringify({
-        from: this.config.clientId,
-        timestamp: Date.now(),
-        ...message
-      }));
+      this.ws.send(
+        JSON.stringify({
+          from: this.config.clientId,
+          timestamp: Date.now(),
+          ...message,
+        })
+      );
     } else {
       logger.warn('Not connected, queueing message');
       this.messageQueue.push(message);

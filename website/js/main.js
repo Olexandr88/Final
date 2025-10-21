@@ -44,7 +44,7 @@ class ScarmonitWebsite {
     }
 
     // Smooth scrolling for navigation links
-    navLinks.forEach(link => {
+    navLinks.forEach((link) => {
       link.addEventListener('click', (e) => {
         const href = link.getAttribute('href');
         if (href.startsWith('#')) {
@@ -57,7 +57,7 @@ class ScarmonitWebsite {
 
             window.scrollTo({
               top: offsetPosition,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
 
             // Close mobile menu if open
@@ -74,7 +74,7 @@ class ScarmonitWebsite {
     let lastScrollY = window.scrollY;
     const scrollHandler = this.debounce(() => {
       const currentScrollY = window.scrollY;
-      
+
       if (currentScrollY > 100) {
         nav.classList.add('nav--scrolled');
       } else {
@@ -87,7 +87,7 @@ class ScarmonitWebsite {
       } else {
         nav.style.transform = 'translateY(0)';
       }
-      
+
       lastScrollY = currentScrollY;
     }, 10);
 
@@ -99,7 +99,7 @@ class ScarmonitWebsite {
    */
   setupFormHandling() {
     const waitlistForm = document.getElementById('waitlist-form');
-    
+
     if (waitlistForm) {
       // Handle form submission
       waitlistForm.addEventListener('submit', async (e) => {
@@ -109,7 +109,7 @@ class ScarmonitWebsite {
 
       // Real-time validation
       const inputs = waitlistForm.querySelectorAll('input, select, textarea');
-      inputs.forEach(input => {
+      inputs.forEach((input) => {
         input.addEventListener('blur', () => this.validateField(input));
         input.addEventListener('input', () => this.clearFieldError(input));
       });
@@ -124,11 +124,11 @@ class ScarmonitWebsite {
   async handleWaitlistSubmission(form) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
-    
+
     // Remove Netlify-specific fields
     delete data['bot-field'];
     delete data['form-name'];
-    
+
     // Validate form
     if (!this.validateForm(form)) {
       return;
@@ -136,7 +136,7 @@ class ScarmonitWebsite {
 
     const submitButton = form.querySelector('button[type="submit"]');
     const originalText = submitButton.innerHTML;
-    
+
     // Show loading state
     this.setButtonLoading(submitButton, true);
 
@@ -148,24 +148,24 @@ class ScarmonitWebsite {
         // Fallback to Netlify forms or local storage
         await this.submitToWaitlist(data);
       }
-      
+
       // Success state
       this.showFormSuccess(form);
-      this.trackEvent('waitlist_signup', { 
+      this.showSuccess('Successfully joined the waitlist!');
+      this.trackEvent('waitlist_signup', {
         priority: data.priority,
         source: 'website',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
-      
     } catch (error) {
       // Error state
       this.showFormError(form, 'Something went wrong. Please try again.');
+      this.showNotification('error', 'Failed to join waitlist. Please try again.');
       console.error('Waitlist submission error:', error);
-      this.trackEvent('form_error', { 
+      this.trackEvent('form_error', {
         error: error.message,
-        form: 'waitlist'
+        form: 'waitlist',
       });
-      
     } finally {
       // Reset button
       this.setButtonLoading(submitButton, false, originalText);
@@ -174,14 +174,14 @@ class ScarmonitWebsite {
 
   async submitToBackend(data) {
     const endpoint = this.config.api.baseUrl + this.config.api.endpoints.waitlist;
-    
+
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XMLHttpRequest'
+        'X-Requested-With': 'XMLHttpRequest',
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
 
     if (!response.ok) {
@@ -200,7 +200,7 @@ class ScarmonitWebsite {
         waitlistEntries.push({
           ...data,
           timestamp: new Date().toISOString(),
-          id: Date.now()
+          id: Date.now(),
         });
         localStorage.setItem('waitlistEntries', JSON.stringify(waitlistEntries));
         resolve({ success: true });
@@ -234,7 +234,7 @@ class ScarmonitWebsite {
     const inputs = form.querySelectorAll('input[required], select[required]');
     let isValid = true;
 
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       if (!this.validateField(input)) {
         isValid = false;
       }
@@ -283,7 +283,7 @@ class ScarmonitWebsite {
 
   showFieldError(field, message) {
     field.classList.add('field-error');
-    
+
     // Remove existing error message
     const existingError = field.parentNode.querySelector('.field-error-message');
     if (existingError) {
@@ -294,7 +294,7 @@ class ScarmonitWebsite {
     const errorElement = document.createElement('span');
     errorElement.className = 'field-error-message';
     errorElement.textContent = message;
-    
+
     field.parentNode.appendChild(errorElement);
   }
 
@@ -306,10 +306,38 @@ class ScarmonitWebsite {
     }
   }
 
+  showNotification(type, message) {
+    const notificationDiv = document.createElement('div');
+    notificationDiv.className = `notification ${type}`;
+    notificationDiv.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 0.5rem;">${type === 'error' ? '⚠️ Error' : '✅ Success'}</div>
+        <div>${this.escapeHtml(message)}</div>
+    `;
+
+    document.body.appendChild(notificationDiv);
+
+    setTimeout(() => {
+      notificationDiv.style.animation = 'slideOutNotification 0.5s ease-in forwards';
+      notificationDiv.addEventListener(
+        'animationend',
+        () => {
+          if (document.body.contains(notificationDiv)) {
+            document.body.removeChild(notificationDiv);
+          }
+        },
+        { once: true }
+      );
+    }, 5000); // Notification disappears after 5 seconds
+  }
+
+  showSuccess(message) {
+    this.showNotification('success', message);
+  }
+
   showFormSuccess(form) {
     const formContainer = form.parentNode;
     const queuePosition = Math.floor(Math.random() * 1000) + 2000;
-    
+
     formContainer.innerHTML = `
       <div class="success-message text-center">
         <div class="success-icon">✅</div>
@@ -345,9 +373,10 @@ class ScarmonitWebsite {
    */
   setupBackendIntegration() {
     // Check if we're in development mode
-    const isDevelopment = window.location.hostname === 'localhost' || 
-                         window.location.hostname === '127.0.0.1' ||
-                         window.location.hostname.includes('github.io');
+    const isDevelopment =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1' ||
+      window.location.hostname.includes('github.io');
 
     if (isDevelopment) {
       console.log('Development mode detected. API calls will use mock responses.');
@@ -362,7 +391,7 @@ class ScarmonitWebsite {
     // Set up default headers for API requests
     this.defaultHeaders = {
       'Content-Type': 'application/json',
-      'X-Requested-With': 'XMLHttpRequest'
+      'X-Requested-With': 'XMLHttpRequest',
     };
 
     if (this.csrfToken) {
@@ -378,11 +407,11 @@ class ScarmonitWebsite {
 
     const observerOptions = {
       threshold: 0.1,
-      rootMargin: '0px 0px -50px 0px'
+      rootMargin: '0px 0px -50px 0px',
     };
 
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
+      entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('animate-fade-in-up');
           observer.unobserve(entry.target);
@@ -394,8 +423,8 @@ class ScarmonitWebsite {
     const animatedElements = document.querySelectorAll(
       '.feature-card, .metric-card, .section-header, .cta-content, .flow-step, .security-item'
     );
-    
-    animatedElements.forEach(el => {
+
+    animatedElements.forEach((el) => {
       observer.observe(el);
     });
 
@@ -428,35 +457,38 @@ class ScarmonitWebsite {
     this.trackEvent('page_view', {
       page: window.location.pathname,
       title: document.title,
-      referrer: document.referrer
+      referrer: document.referrer,
     });
 
     // Track CTA clicks
     const ctaButtons = document.querySelectorAll('.btn-primary');
-    ctaButtons.forEach(button => {
+    ctaButtons.forEach((button) => {
       button.addEventListener('click', () => {
         this.trackEvent('cta_click', {
           text: button.textContent.trim(),
           location: this.getElementLocation(button),
-          href: button.getAttribute('href')
+          href: button.getAttribute('href'),
         });
       });
     });
 
     // Track section views
     const sections = document.querySelectorAll('section[id]');
-    const sectionObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
-          this.trackEvent('section_view', {
-            section: entry.target.id,
-            time_viewed: Date.now()
-          });
-        }
-      });
-    }, { threshold: 0.5 });
+    const sectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+            this.trackEvent('section_view', {
+              section: entry.target.id,
+              time_viewed: Date.now(),
+            });
+          }
+        });
+      },
+      { threshold: 0.5 }
+    );
 
-    sections.forEach(section => {
+    sections.forEach((section) => {
       sectionObserver.observe(section);
     });
 
@@ -466,14 +498,14 @@ class ScarmonitWebsite {
       const scrollPercentage = Math.round(
         (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100
       );
-      
+
       if (scrollPercentage > maxScroll) {
         maxScroll = scrollPercentage;
-        
+
         // Track milestone scroll depths
         if ([25, 50, 75, 90].includes(scrollPercentage)) {
           this.trackEvent('scroll_depth', {
-            percentage: scrollPercentage
+            percentage: scrollPercentage,
           });
         }
       }
@@ -487,19 +519,19 @@ class ScarmonitWebsite {
       ...data,
       timestamp: new Date().toISOString(),
       user_agent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
     };
 
     // Google Analytics 4
     if (window.gtag && this.config.analytics?.googleAnalytics?.enabled) {
       window.gtag('event', eventName, eventData);
     }
-    
+
     // Mixpanel
     if (window.mixpanel && this.config.analytics?.mixpanel?.enabled) {
       window.mixpanel.track(eventName, eventData);
     }
-    
+
     // Console log for development
     if (this.config.development?.logAnalytics) {
       console.log('Analytics Event:', eventName, eventData);
@@ -510,8 +542,8 @@ class ScarmonitWebsite {
       fetch(this.config.api.baseUrl + this.config.api.endpoints.analytics, {
         method: 'POST',
         headers: this.defaultHeaders,
-        body: JSON.stringify({ event: eventName, data: eventData })
-      }).catch(err => console.warn('Analytics tracking failed:', err));
+        body: JSON.stringify({ event: eventName, data: eventData }),
+      }).catch((err) => console.warn('Analytics tracking failed:', err));
     }
   }
 
@@ -526,13 +558,13 @@ class ScarmonitWebsite {
   setupAccessibility() {
     // Skip link functionality
     this.createSkipLink();
-    
+
     // Keyboard navigation for custom elements
     this.setupKeyboardNavigation();
-    
+
     // Focus management
     this.setupFocusManagement();
-    
+
     // Reduced motion preferences
     this.respectMotionPreferences();
   }
@@ -542,7 +574,7 @@ class ScarmonitWebsite {
     skipLink.href = '#hero';
     skipLink.textContent = 'Skip to main content';
     skipLink.className = 'skip-link';
-    
+
     document.body.insertBefore(skipLink, document.body.firstChild);
   }
 
@@ -551,13 +583,13 @@ class ScarmonitWebsite {
     const interactiveElements = document.querySelectorAll(
       'button, a, input, select, textarea, [tabindex]'
     );
-    
-    interactiveElements.forEach(element => {
+
+    interactiveElements.forEach((element) => {
       if (!element.hasAttribute('tabindex') && element.tabIndex === -1) {
         element.tabIndex = 0;
       }
     });
-    
+
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       // Escape key closes mobile menu
@@ -587,7 +619,7 @@ class ScarmonitWebsite {
 
   respectMotionPreferences() {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    
+
     if (prefersReducedMotion.matches) {
       document.documentElement.style.setProperty('--transition-fast', '0ms');
       document.documentElement.style.setProperty('--transition-normal', '0ms');
@@ -622,15 +654,15 @@ window.ScarmonitUtils = {
   formatCurrency(amount, currency = 'USD') {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency
+      currency: currency,
     }).format(amount);
   },
-  
+
   // Format numbers with commas
   formatNumber(number) {
     return new Intl.NumberFormat('en-US').format(number);
   },
-  
+
   // Check if element is in viewport
   isInViewport(element) {
     const rect = element.getBoundingClientRect();
@@ -650,5 +682,5 @@ window.ScarmonitUtils = {
   // Clear stored data
   clearStoredData() {
     localStorage.removeItem('waitlistEntries');
-  }
+  },
 };

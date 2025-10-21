@@ -20,51 +20,51 @@ export class ProductionValidator {
     // Security checks
     this.registerCheck('secrets', this._checkSecrets.bind(this), {
       severity: 'critical',
-      description: 'Ensure no secrets in code'
+      description: 'Ensure no secrets in code',
     });
 
     this.registerCheck('dependencies', this._checkDependencies.bind(this), {
       severity: 'high',
-      description: 'Check for vulnerable dependencies'
+      description: 'Check for vulnerable dependencies',
     });
 
     // Code quality checks
     this.registerCheck('tests', this._checkTests.bind(this), {
       severity: 'high',
-      description: 'Ensure test coverage'
+      description: 'Ensure test coverage',
     });
 
     this.registerCheck('linting', this._checkLinting.bind(this), {
       severity: 'medium',
-      description: 'Check code style compliance'
+      description: 'Check code style compliance',
     });
 
     this.registerCheck('typing', this._checkTyping.bind(this), {
       severity: 'medium',
-      description: 'Check type safety'
+      description: 'Check type safety',
     });
 
     // Setup checks
     this.registerCheck('gitignore', this._checkGitignore.bind(this), {
       severity: 'medium',
-      description: 'Verify .gitignore completeness'
+      description: 'Verify .gitignore completeness',
     });
 
     this.registerCheck('env', this._checkEnvSetup.bind(this), {
       severity: 'medium',
-      description: 'Check environment configuration'
+      description: 'Check environment configuration',
     });
 
     // Performance checks
     this.registerCheck('bundle-size', this._checkBundleSize.bind(this), {
       severity: 'low',
-      description: 'Check bundle size limits'
+      description: 'Check bundle size limits',
     });
 
     // Accessibility checks
     this.registerCheck('accessibility', this._checkAccessibility.bind(this), {
       severity: 'medium',
-      description: 'Check accessibility compliance'
+      description: 'Check accessibility compliance',
     });
 
     this.logger.info('Production validator initialized with default checks');
@@ -79,7 +79,7 @@ export class ProductionValidator {
       check: checkFunction,
       severity: metadata.severity || 'medium',
       description: metadata.description || '',
-      enabled: metadata.enabled !== false
+      enabled: metadata.enabled !== false,
     });
   }
 
@@ -87,11 +87,7 @@ export class ProductionValidator {
    * Run all validation checks
    */
   async validate(options = {}) {
-    const {
-      rootDir = process.cwd(),
-      checks = null,
-      failFast = false
-    } = options;
+    const { rootDir = process.cwd(), checks = null, failFast = false } = options;
 
     const results = {
       passed: true,
@@ -99,11 +95,11 @@ export class ProductionValidator {
       checks: [],
       errors: [],
       warnings: [],
-      info: []
+      info: [],
     };
 
     const checksToRun = checks
-      ? Array.from(this.checks.values()).filter(c => checks.includes(c.name))
+      ? Array.from(this.checks.values()).filter((c) => checks.includes(c.name))
       : Array.from(this.checks.values());
 
     for (const checkDef of checksToRun) {
@@ -118,7 +114,7 @@ export class ProductionValidator {
           passed: result.passed,
           severity: checkDef.severity,
           issues: result.issues || [],
-          metadata: result.metadata || {}
+          metadata: result.metadata || {},
         });
 
         // Categorize issues
@@ -141,7 +137,7 @@ export class ProductionValidator {
         this.logger.error(`Check failed: ${checkDef.name}`, error);
         results.errors.push({
           check: checkDef.name,
-          error: error.message
+          error: error.message,
         });
         results.passed = false;
       }
@@ -159,16 +155,16 @@ export class ProductionValidator {
         passed: validationResults.passed,
         timestamp: validationResults.timestamp,
         totalChecks: validationResults.checks.length,
-        passed: validationResults.checks.filter(c => c.passed).length,
-        failed: validationResults.checks.filter(c => !c.passed).length,
+        passed: validationResults.checks.filter((c) => c.passed).length,
+        failed: validationResults.checks.filter((c) => !c.passed).length,
         errors: validationResults.errors.length,
         warnings: validationResults.warnings.length,
-        info: validationResults.info.length
+        info: validationResults.info.length,
       },
       checks: validationResults.checks,
       errors: validationResults.errors,
       warnings: validationResults.warnings,
-      info: validationResults.info
+      info: validationResults.info,
     };
 
     if (outputPath) {
@@ -189,7 +185,7 @@ export class ProductionValidator {
       /password\s*=\s*['"][^'"]+['"]/i,
       /secret\s*=\s*['"][^'"]+['"]/i,
       /token\s*=\s*['"][^'"]+['"]/i,
-      /[a-f0-9]{32,}/  // Long hex strings
+      /[a-f0-9]{32,}/, // Long hex strings
     ];
 
     // Simulate checking (real impl would scan all files)
@@ -200,8 +196,8 @@ export class ProductionValidator {
       issues,
       metadata: {
         filesScanned: 0,
-        patternsChecked: secretPatterns.length
-      }
+        patternsChecked: secretPatterns.length,
+      },
     };
   }
 
@@ -222,13 +218,13 @@ export class ProductionValidator {
         issues,
         metadata: {
           vulnerabilities: 0,
-          dependencies: 0
-        }
+          dependencies: 0,
+        },
       };
     } catch {
       return {
         passed: false,
-        issues: [{ description: 'package.json not found' }]
+        issues: [{ description: 'package.json not found' }],
       };
     }
   }
@@ -244,13 +240,17 @@ export class ProductionValidator {
 
     return {
       passed,
-      issues: passed ? [] : [{
-        description: `Test coverage ${currentCoverage}% < ${minCoverage}%`
-      }],
+      issues: passed
+        ? []
+        : [
+            {
+              description: `Test coverage ${currentCoverage}% < ${minCoverage}%`,
+            },
+          ],
       metadata: {
         coverage: currentCoverage,
-        threshold: minCoverage
-      }
+        threshold: minCoverage,
+      },
     };
   }
 
@@ -262,8 +262,8 @@ export class ProductionValidator {
       passed: true,
       issues: [],
       metadata: {
-        linter: 'eslint'
-      }
+        linter: 'eslint',
+      },
     };
   }
 
@@ -275,8 +275,8 @@ export class ProductionValidator {
       passed: true,
       issues: [],
       metadata: {
-        typeChecker: 'typescript'
-      }
+        typeChecker: 'typescript',
+      },
     };
   }
 
@@ -284,25 +284,19 @@ export class ProductionValidator {
    * Check .gitignore completeness
    */
   async _checkGitignore(rootDir) {
-    const requiredEntries = [
-      'node_modules',
-      '.env',
-      '*.log',
-      'dist',
-      'build'
-    ];
+    const requiredEntries = ['node_modules', '.env', '*.log', 'dist', 'build'];
 
     const gitignorePath = path.join(rootDir, '.gitignore');
     const issues = [];
 
     try {
       const content = await fs.readFile(gitignorePath, 'utf-8');
-      const entries = content.split('\n').map(l => l.trim());
+      const entries = content.split('\n').map((l) => l.trim());
 
       for (const required of requiredEntries) {
         if (!entries.includes(required)) {
           issues.push({
-            description: `Missing .gitignore entry: ${required}`
+            description: `Missing .gitignore entry: ${required}`,
           });
         }
       }
@@ -314,8 +308,8 @@ export class ProductionValidator {
       passed: issues.length === 0,
       issues,
       metadata: {
-        requiredEntries: requiredEntries.length
-      }
+        requiredEntries: requiredEntries.length,
+      },
     };
   }
 
@@ -341,7 +335,7 @@ export class ProductionValidator {
 
     return {
       passed: issues.length === 0,
-      issues
+      issues,
     };
   }
 
@@ -354,8 +348,8 @@ export class ProductionValidator {
       issues: [],
       metadata: {
         bundleSize: 0,
-        limit: 250000
-      }
+        limit: 250000,
+      },
     };
   }
 
@@ -367,8 +361,8 @@ export class ProductionValidator {
       passed: true,
       issues: [],
       metadata: {
-        wcagLevel: 'AA'
-      }
+        wcagLevel: 'AA',
+      },
     };
   }
 }

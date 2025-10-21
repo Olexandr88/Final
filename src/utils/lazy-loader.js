@@ -23,7 +23,7 @@ export class LazyLoader {
       importFn,
       module: null,
       loading: null,
-      loadTime: null
+      loadTime: null,
     });
   }
 
@@ -50,15 +50,16 @@ export class LazyLoader {
 
     // Start loading
     const startTime = Date.now();
-    entry.loading = entry.importFn()
-      .then(module => {
+    entry.loading = entry
+      .importFn()
+      .then((module) => {
         entry.module = module;
         entry.loading = null;
         entry.loadTime = Date.now() - startTime;
         logger.debug(`Lazy loaded ${name} in ${entry.loadTime}ms`);
         return module;
       })
-      .catch(error => {
+      .catch((error) => {
         entry.loading = null;
         logger.error(`Failed to lazy load ${name}:`, error);
         throw error;
@@ -84,7 +85,7 @@ export class LazyLoader {
       loaded: 0,
       loading: 0,
       pending: 0,
-      totalLoadTime: 0
+      totalLoadTime: 0,
     };
 
     for (const entry of this.modules.values()) {
@@ -105,9 +106,11 @@ export class LazyLoader {
    * Preload modules in background
    */
   async preload(names) {
-    const promises = names.map(name => this.get(name).catch(err => {
-      logger.warn(`Preload failed for ${name}:`, err.message);
-    }));
+    const promises = names.map((name) =>
+      this.get(name).catch((err) => {
+        logger.warn(`Preload failed for ${name}:`, err.message);
+      })
+    );
 
     await Promise.allSettled(promises);
   }
@@ -136,7 +139,7 @@ export function createLazyModule(importFn) {
       if (module) return module;
       if (loading) return loading;
 
-      loading = importFn().then(m => {
+      loading = importFn().then((m) => {
         module = m;
         loading = null;
         return m;
@@ -147,7 +150,7 @@ export function createLazyModule(importFn) {
 
     isLoaded() {
       return module !== null;
-    }
+    },
   };
 }
 

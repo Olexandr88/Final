@@ -14,14 +14,14 @@ export async function startAgentCoordinator(options = {}) {
 
   // Register clients on connect - emit event after registration
   const originalRegisterClient = bridge.registerClient.bind(bridge);
-  bridge.registerClient = function(ws, registration) {
+  bridge.registerClient = function (ws, registration) {
     const meta = originalRegisterClient(ws, registration);
     if (meta && meta.id) {
       const reg = registry.register({
         id: meta.id,
         role: meta.role,
         skills: Array.from(meta.labels || []),
-        intents: Array.from(meta.intents || [])
+        intents: Array.from(meta.intents || []),
       });
       bridge.logger?.log?.(`[Coordinator] Registered ${reg.id} role=${reg.role}`);
       bridge.emit('clientRegistered', meta);
@@ -73,7 +73,7 @@ export async function startAgentCoordinator(options = {}) {
               to: envelope.from,
               taskId: envelope.taskId,
               trace: { hop },
-              payload: { reason: 'no-available-agent', role }
+              payload: { reason: 'no-available-agent', role },
             });
           }
           return;
@@ -87,7 +87,7 @@ export async function startAgentCoordinator(options = {}) {
           taskId: envelope.taskId,
           trace: { hop },
           context: envelope.context || {},
-          payload: req
+          payload: req,
         });
         return;
       }
@@ -104,7 +104,7 @@ export async function startAgentCoordinator(options = {}) {
           taskId: envelope.taskId,
           trace: { hop },
           context: envelope.context || {},
-          payload: envelope.payload || {}
+          payload: envelope.payload || {},
         });
         return;
       }
@@ -118,7 +118,7 @@ export async function startAgentCoordinator(options = {}) {
           taskId: envelope.taskId,
           trace: { hop },
           context: envelope.context || {},
-          payload: envelope.payload || {}
+          payload: envelope.payload || {},
         });
         return;
       }

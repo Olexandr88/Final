@@ -29,7 +29,7 @@ describe('ProviderDetector', () => {
     it('should detect all providers without health checks', async () => {
       const results = await detector.detectProviders({
         includeHealth: false,
-        includeModels: false
+        includeModels: false,
       });
 
       assert.ok(results.timestamp);
@@ -54,7 +54,7 @@ describe('ProviderDetector', () => {
 
     it('should detect Claude configuration correctly', async () => {
       const results = await detector.detectProviders();
-      const claude = results.providers.find(p => p.name === 'claude');
+      const claude = results.providers.find((p) => p.name === 'claude');
 
       assert.ok(claude);
       assert.strictEqual(claude.displayName, 'Anthropic Claude');
@@ -64,7 +64,7 @@ describe('ProviderDetector', () => {
 
     it('should detect Ollama configuration correctly', async () => {
       const results = await detector.detectProviders();
-      const ollama = results.providers.find(p => p.name === 'ollama');
+      const ollama = results.providers.find((p) => p.name === 'ollama');
 
       assert.ok(ollama);
       assert.strictEqual(ollama.displayName, 'Ollama (Local)');
@@ -76,7 +76,7 @@ describe('ProviderDetector', () => {
       const results = await detector.detectProviders();
 
       // Check that unconfigured providers are marked correctly
-      const unconfigured = results.providers.filter(p => !p.configured);
+      const unconfigured = results.providers.filter((p) => !p.configured);
       for (const provider of unconfigured) {
         assert.strictEqual(provider.available, false);
         assert.strictEqual(provider.healthy, false);
@@ -100,7 +100,7 @@ describe('ProviderDetector', () => {
     it('should work as standalone function', async () => {
       const results = await detectProviders({
         includeHealth: false,
-        includeModels: false
+        includeModels: false,
       });
 
       assert.ok(results.providers);
@@ -113,7 +113,7 @@ describe('ProviderDetector', () => {
     it('should execute as MCP tool', async () => {
       const result = await detector.executeTool({
         includeHealth: false,
-        includeModels: false
+        includeModels: false,
       });
 
       assert.ok(result.content);
@@ -138,10 +138,10 @@ describe('ProviderDetector', () => {
     it('should detect Ollama availability if running', async () => {
       const results = await detector.detectProviders({
         includeHealth: false,
-        includeModels: false
+        includeModels: false,
       });
 
-      const ollama = results.providers.find(p => p.name === 'ollama');
+      const ollama = results.providers.find((p) => p.name === 'ollama');
 
       // Ollama availability depends on whether it's running
       // Test should pass regardless of whether it's available
@@ -156,10 +156,10 @@ describe('ProviderDetector', () => {
     it('should include models when requested for Ollama', async () => {
       const results = await detector.detectProviders({
         includeHealth: false,
-        includeModels: true
+        includeModels: true,
       });
 
-      const ollama = results.providers.find(p => p.name === 'ollama');
+      const ollama = results.providers.find((p) => p.name === 'ollama');
 
       if (ollama.available) {
         // If Ollama is running, models should be populated
@@ -173,7 +173,7 @@ describe('ProviderDetector', () => {
 
       const results = await fastDetector.detectProviders({
         includeHealth: true,
-        includeModels: false
+        includeModels: false,
       });
 
       // Should still return results even with errors
@@ -187,15 +187,17 @@ describe('ProviderDetector', () => {
       const results = await detector.detectProviders();
 
       // Claude configuration
-      const claude = results.providers.find(p => p.name === 'claude');
-      const hasClaudeKey = !!(process.env.ANTHROPIC_API_KEY &&
+      const claude = results.providers.find((p) => p.name === 'claude');
+      const hasClaudeKey = !!(
+        process.env.ANTHROPIC_API_KEY &&
         process.env.ANTHROPIC_API_KEY.trim() &&
-        !process.env.ANTHROPIC_API_KEY.includes('your-'));
+        !process.env.ANTHROPIC_API_KEY.includes('your-')
+      );
 
       assert.strictEqual(claude.configured, hasClaudeKey);
 
       // Ollama is always configured (no API key)
-      const ollama = results.providers.find(p => p.name === 'ollama');
+      const ollama = results.providers.find((p) => p.name === 'ollama');
       assert.strictEqual(ollama.configured, true);
     });
   });
@@ -204,7 +206,7 @@ describe('ProviderDetector', () => {
     it('should collect metadata for available providers', async () => {
       const results = await detector.detectProviders({
         includeHealth: false,
-        includeModels: false
+        includeModels: false,
       });
 
       for (const provider of results.providers) {
@@ -218,10 +220,10 @@ describe('ProviderDetector', () => {
     it('should include endpoint information when available', async () => {
       const results = await detector.detectProviders();
 
-      const ollama = results.providers.find(p => p.name === 'ollama');
+      const ollama = results.providers.find((p) => p.name === 'ollama');
       assert.ok(ollama.endpoint);
 
-      const jules = results.providers.find(p => p.name === 'jules');
+      const jules = results.providers.find((p) => p.name === 'jules');
       assert.ok(jules.endpoint);
     });
   });

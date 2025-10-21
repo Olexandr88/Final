@@ -41,7 +41,7 @@ class NetworkDiagnostics {
     try {
       if (isWindows) {
         const { stdout } = await execAsync(`netstat -ano | findstr :${port}`);
-        const lines = stdout.split('\n').filter(line => line.includes('LISTENING'));
+        const lines = stdout.split('\n').filter((line) => line.includes('LISTENING'));
         if (lines.length === 0) return null;
 
         const pid = lines[0].trim().split(/\s+/).pop();
@@ -56,7 +56,7 @@ class NetworkDiagnostics {
         return {
           port,
           pid: parts[1],
-          process: parts[0]
+          process: parts[0],
         };
       }
     } catch {
@@ -73,7 +73,7 @@ class NetworkDiagnostics {
     try {
       if (isWindows) {
         const { stdout } = await execAsync('netstat -ano | findstr LISTENING');
-        const lines = stdout.split('\n').filter(line => line.trim());
+        const lines = stdout.split('\n').filter((line) => line.trim());
 
         const ports = new Map();
 
@@ -94,15 +94,15 @@ class NetworkDiagnostics {
         return Array.from(ports.values()).slice(0, 20);
       } else {
         const { stdout } = await execAsync('lsof -Pni4 | grep LISTEN | head -20');
-        const lines = stdout.split('\n').filter(line => line.trim());
+        const lines = stdout.split('\n').filter((line) => line.trim());
 
         console.log(`  Found ${lines.length} listening ports`);
-        return lines.map(line => {
+        return lines.map((line) => {
           const parts = line.split(/\s+/);
           return {
             process: parts[0],
             pid: parts[1],
-            port: parts[8]?.split(':').pop()
+            port: parts[8]?.split(':').pop(),
           };
         });
       }
@@ -122,7 +122,7 @@ class NetworkDiagnostics {
       const startTime = Date.now();
       const response = await fetch(url, {
         method: 'HEAD',
-        signal: AbortSignal.timeout(5000)
+        signal: AbortSignal.timeout(5000),
       });
       const duration = Date.now() - startTime;
 
@@ -173,7 +173,7 @@ class NetworkDiagnostics {
     try {
       if (isWindows) {
         const { stdout } = await execAsync('netstat -an | findstr ESTABLISHED');
-        const lines = stdout.split('\n').filter(line => line.trim());
+        const lines = stdout.split('\n').filter((line) => line.trim());
 
         console.log(`  Found ${lines.length} established connections`);
 
@@ -198,7 +198,9 @@ class NetworkDiagnostics {
 
         return { total: lines.length, top: topConnections };
       } else {
-        const { stdout } = await execAsync("netstat -an | awk '/ESTABLISHED/ { split($5,ip,\":\"); if (ip[1] !~ /^$/) print ip[1] }' | sort | uniq -c | sort -nr | head -10");
+        const { stdout } = await execAsync(
+          'netstat -an | awk \'/ESTABLISHED/ { split($5,ip,":"); if (ip[1] !~ /^$/) print ip[1] }\' | sort | uniq -c | sort -nr | head -10'
+        );
         console.log('\n  Top remote addresses:');
         console.log(stdout);
         return stdout;
@@ -221,32 +223,34 @@ class NetworkDiagnostics {
 
       try {
         // Use dynamic import for ws library
-        import('ws').then(({ default: WebSocket }) => {
-          ws = new WebSocket(wsUrl);
+        import('ws')
+          .then(({ default: WebSocket }) => {
+            ws = new WebSocket(wsUrl);
 
-          const timeout = setTimeout(() => {
-            ws?.close();
-            console.log('  ❌ Connection timeout');
-            resolve({ wsUrl, success: false, error: 'Timeout' });
-          }, 5000);
+            const timeout = setTimeout(() => {
+              ws?.close();
+              console.log('  ❌ Connection timeout');
+              resolve({ wsUrl, success: false, error: 'Timeout' });
+            }, 5000);
 
-          ws.on('open', () => {
-            clearTimeout(timeout);
-            const duration = Date.now() - startTime;
-            console.log(`  ✓ Connected in ${duration}ms`);
-            ws.close();
-            resolve({ wsUrl, success: true, duration });
+            ws.on('open', () => {
+              clearTimeout(timeout);
+              const duration = Date.now() - startTime;
+              console.log(`  ✓ Connected in ${duration}ms`);
+              ws.close();
+              resolve({ wsUrl, success: true, duration });
+            });
+
+            ws.on('error', (error) => {
+              clearTimeout(timeout);
+              console.log(`  ❌ Failed: ${error.message}`);
+              resolve({ wsUrl, success: false, error: error.message });
+            });
+          })
+          .catch((error) => {
+            console.log(`  ⚠️  WebSocket library not available: ${error.message}`);
+            resolve({ wsUrl, success: false, error: 'Library not available' });
           });
-
-          ws.on('error', (error) => {
-            clearTimeout(timeout);
-            console.log(`  ❌ Failed: ${error.message}`);
-            resolve({ wsUrl, success: false, error: error.message });
-          });
-        }).catch(error => {
-          console.log(`  ⚠️  WebSocket library not available: ${error.message}`);
-          resolve({ wsUrl, success: false, error: 'Library not available' });
-        });
       } catch (error) {
         console.log(`  ❌ Failed: ${error.message}`);
         resolve({ wsUrl, success: false, error: error.message });
@@ -265,7 +269,7 @@ class NetworkDiagnostics {
       checkPorts = [3000, 8080, 9567, 65028, 65029],
       testUrls = ['http://localhost:3000/health'],
       testHosts = ['google.com'],
-      checkWs = []
+      checkWs = [],
     } = options;
 
     // Check specific ports
@@ -277,7 +281,9 @@ class NetworkDiagnostics {
         console.log(`  ✓ Port ${port} available`);
       } else {
         const processInfo = await this.findProcessByPort(port);
-        console.log(`  ⚠️  Port ${port} in use by ${processInfo?.process || 'unknown'} (PID: ${processInfo?.pid})`);
+        console.log(
+          `  ⚠️  Port ${port} in use by ${processInfo?.process || 'unknown'} (PID: ${processInfo?.pid})`
+        );
       }
     }
 
@@ -330,10 +336,10 @@ if (process.argv[1] === __filename || process.argv[1].endsWith('network-diagnost
     checkPorts: [3000, 8080, 9567, 65028, 65029],
     testUrls: process.argv[2] ? [process.argv[2]] : [],
     testHosts: ['google.com', 'github.com'],
-    checkWs: process.argv[3] ? [process.argv[3]] : []
+    checkWs: process.argv[3] ? [process.argv[3]] : [],
   };
 
-  diagnostics.runDiagnostics(options).catch(err => {
+  diagnostics.runDiagnostics(options).catch((err) => {
     console.error('Diagnostics failed:', err);
     process.exit(1);
   });

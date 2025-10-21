@@ -93,7 +93,7 @@ const envSchema = z.object({
 
   // Testing Configuration
   TEST_TIMEOUT: z.coerce.number().positive().default(30000),
-  TEST_CONCURRENCY: z.coerce.number().int().positive().default(4)
+  TEST_CONCURRENCY: z.coerce.number().int().positive().default(4),
 });
 
 /**
@@ -172,7 +172,7 @@ class ConfigManager {
       console.error('❌ Configuration Validation Errors:');
       console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-      result.errors.forEach(err => {
+      result.errors.forEach((err) => {
         const path = err.path?.join('.') || 'unknown';
         console.error(`  • ${path}: ${err.message}`);
       });
@@ -209,10 +209,10 @@ class ConfigManager {
         'DEEPSEEK_API_KEY',
         'GITHUB_TOKEN',
         'REDIS_PASSWORD',
-        'DATABASE_URL'
+        'DATABASE_URL',
       ];
 
-      sensitiveKeys.forEach(key => {
+      sensitiveKeys.forEach((key) => {
         if (summary[key]) {
           summary[key] = '***REDACTED***';
         }

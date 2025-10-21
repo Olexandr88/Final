@@ -13,7 +13,7 @@ const migrations = [
   { pattern: /console\.warn\((.*?)\);/g, replacement: 'logger.warn($1);' },
   { pattern: /console\.error\((.*?)\);/g, replacement: 'logger.error($1);' },
   { pattern: /console\.debug\((.*?)\);/g, replacement: 'logger.debug($1);' },
-  { pattern: /console\.info\((.*?)\);/g, replacement: 'logger.info($1);' }
+  { pattern: /console\.info\((.*?)\);/g, replacement: 'logger.info($1);' },
 ];
 
 async function migrateFile(filePath) {
@@ -36,8 +36,8 @@ async function migrateFile(filePath) {
 
   if (changed) {
     // Ensure logger import exists
-    const hasLoggerImport = content.includes("import { logger }") ||
-                           content.includes("import logger from");
+    const hasLoggerImport =
+      content.includes('import { logger }') || content.includes('import logger from');
 
     if (!hasLoggerImport) {
       // Calculate relative path to logger
@@ -106,7 +106,7 @@ async function main() {
   }
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('❌ Migration failed:', error.message);
   process.exit(1);
 });

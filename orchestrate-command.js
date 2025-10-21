@@ -19,11 +19,9 @@ async function orchestrateCommandExecution() {
   // 3. Call the 'execute_command' tool
   console.log('\n--- Executing a command via CommandExecutionServer ---');
   const commandToExecute = 'node -v';
-  const result = await mcpIntegration.callTool(
-    'CommandExecutionServer',
-    'execute_command',
-    { command: commandToExecute }
-  );
+  const result = await mcpIntegration.callTool('CommandExecutionServer', 'execute_command', {
+    command: commandToExecute,
+  });
 
   console.log('Command Execution Result:', result);
 

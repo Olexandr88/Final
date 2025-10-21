@@ -17,7 +17,10 @@ export class AntiPatternDetector extends EventEmitter {
     this.registerDetector('monolithic-tasking', this.detectMonolithicTasking.bind(this));
     this.registerDetector('context-neglect', this.detectContextNeglect.bind(this));
     this.registerDetector('blind-trust', this.detectBlindTrust.bind(this));
-    this.registerDetector('environmental-contamination', this.detectEnvironmentalContamination.bind(this));
+    this.registerDetector(
+      'environmental-contamination',
+      this.detectEnvironmentalContamination.bind(this)
+    );
     this.registerDetector('tool-ignorance', this.detectToolIgnorance.bind(this));
     this.registerDetector('premature-vibing', this.detectPrematureVibing.bind(this));
   }
@@ -31,7 +34,7 @@ export class AntiPatternDetector extends EventEmitter {
       timestamp: Date.now(),
       violations: [],
       warnings: [],
-      score: 100
+      score: 100,
     };
 
     for (const [name, detector] of this.detectors) {
@@ -43,7 +46,7 @@ export class AntiPatternDetector extends EventEmitter {
             type: name,
             severity: detection.severity || 'high',
             message: detection.message,
-            recommendation: detection.recommendation
+            recommendation: detection.recommendation,
           });
 
           results.score -= detection.penalty || 15;
@@ -53,12 +56,11 @@ export class AntiPatternDetector extends EventEmitter {
           results.warnings.push({
             type: name,
             message: detection.message,
-            recommendation: detection.recommendation
+            recommendation: detection.recommendation,
           });
 
           results.score -= detection.penalty || 5;
         }
-
       } catch (error) {
         this.emit('detector:error', { name, error });
       }
@@ -83,14 +85,16 @@ export class AntiPatternDetector extends EventEmitter {
     }
 
     const vagueWords = ['stuff', 'things', 'something', 'somehow', 'maybe', 'kinda', 'sort of'];
-    const hasVagueLanguage = vagueWords.some(word => prompt.toLowerCase().includes(word));
+    const hasVagueLanguage = vagueWords.some((word) => prompt.toLowerCase().includes(word));
 
     if (hasVagueLanguage) {
       issues.push('Contains vague language');
       violated = true;
     }
 
-    const hasNoSpecifics = !prompt.match(/\b(file|function|class|variable|table|column|endpoint|route)\b/i);
+    const hasNoSpecifics = !prompt.match(
+      /\b(file|function|class|variable|table|column|endpoint|route)\b/i
+    );
 
     if (hasNoSpecifics && prompt.length > 0 && prompt.length < 100) {
       issues.push('Lacks specific technical details');
@@ -103,7 +107,7 @@ export class AntiPatternDetector extends EventEmitter {
         severity: 'critical',
         message: `Vague prompting detected: ${issues.join(', ')}`,
         recommendation: 'Be specific: mention files, functions, tech stack, and desired outcome',
-        penalty: 20
+        penalty: 20,
       };
     }
 
@@ -119,10 +123,10 @@ export class AntiPatternDetector extends EventEmitter {
       /create.*complete/i,
       /build.*full/i,
       /entire.*system/i,
-      /whole.*application/i
+      /whole.*application/i,
     ];
 
-    const isMonolithic = monolithicIndicators.some(pattern => pattern.test(prompt));
+    const isMonolithic = monolithicIndicators.some((pattern) => pattern.test(prompt));
 
     const featureCount = (prompt.match(/\band\b/gi) || []).length;
     const hasManyFeatures = featureCount > 3;
@@ -132,8 +136,9 @@ export class AntiPatternDetector extends EventEmitter {
         violated: true,
         severity: 'high',
         message: `Monolithic task detected: Task appears too large and complex`,
-        recommendation: 'Break down into smaller, incremental tasks (use Explore → Plan → Code → Commit)',
-        penalty: 18
+        recommendation:
+          'Break down into smaller, incremental tasks (use Explore → Plan → Code → Commit)',
+        penalty: 18,
       };
     }
 
@@ -151,7 +156,7 @@ export class AntiPatternDetector extends EventEmitter {
         severity: 'high',
         message: `Context window bloat: ${messagesSinceClear} messages since last clear`,
         recommendation: 'Use /clear or /compact to manage context window',
-        penalty: 15
+        penalty: 15,
       };
     }
 
@@ -160,7 +165,7 @@ export class AntiPatternDetector extends EventEmitter {
         warning: true,
         message: `Context getting large: ${messagesSinceClear} messages`,
         recommendation: 'Consider using /compact to summarize',
-        penalty: 5
+        penalty: 5,
       };
     }
 
@@ -178,7 +183,7 @@ export class AntiPatternDetector extends EventEmitter {
         severity: 'high',
         message: 'Blind trust: No verification of AI output detected',
         recommendation: 'Always verify: run tests, review code, check claims',
-        penalty: 20
+        penalty: 20,
       };
     }
 
@@ -189,15 +194,9 @@ export class AntiPatternDetector extends EventEmitter {
     const workspacePath = context.workspacePath || '';
     const isIsolated = context.isIsolated || false;
 
-    const dangerousPaths = [
-      '/home/',
-      '/Users/',
-      'C:\\Users\\',
-      '/projects/',
-      '/workspace/'
-    ];
+    const dangerousPaths = ['/home/', '/Users/', 'C:\\Users\\', '/projects/', '/workspace/'];
 
-    const inDangerousPath = dangerousPaths.some(p => workspacePath.includes(p));
+    const inDangerousPath = dangerousPaths.some((p) => workspacePath.includes(p));
 
     if (inDangerousPath && !isIsolated) {
       return {
@@ -205,7 +204,7 @@ export class AntiPatternDetector extends EventEmitter {
         severity: 'critical',
         message: 'Environmental contamination: Running in non-isolated directory',
         recommendation: 'Create dedicated claude-workspace directory for AI operations',
-        penalty: 25
+        penalty: 25,
       };
     }
 
@@ -226,7 +225,7 @@ export class AntiPatternDetector extends EventEmitter {
         severity: 'high',
         message: 'Tool ignorance: Complex task without proper tooling',
         recommendation: 'Set up CLAUDE.md, sub-agents, hooks, and MCP connections',
-        penalty: 18
+        penalty: 18,
       };
     }
 
@@ -235,7 +234,7 @@ export class AntiPatternDetector extends EventEmitter {
         warning: true,
         message: 'Limited tooling for medium complexity task',
         recommendation: 'Consider adding CLAUDE.md and sub-agents',
-        penalty: 8
+        penalty: 8,
       };
     }
 
@@ -255,7 +254,7 @@ export class AntiPatternDetector extends EventEmitter {
         severity: 'critical',
         message: 'Premature vibing: No structure in place before starting',
         recommendation: 'Create CLAUDE.md, write plan, set up tests BEFORE coding',
-        penalty: 22
+        penalty: 22,
       };
     }
 
@@ -264,7 +263,7 @@ export class AntiPatternDetector extends EventEmitter {
         warning: true,
         message: 'Insufficient structure for vibe coding',
         recommendation: 'Add planning and testing infrastructure',
-        penalty: 10
+        penalty: 10,
       };
     }
 
@@ -288,11 +287,18 @@ export class AntiPatternDetector extends EventEmitter {
       summary: {
         violations: detectionResults.violations.length,
         warnings: detectionResults.warnings.length,
-        status: detectionResults.grade === 'F' ? 'FAILED' : detectionResults.grade === 'D' ? 'POOR' : detectionResults.grade === 'C' ? 'ACCEPTABLE' : 'GOOD'
+        status:
+          detectionResults.grade === 'F'
+            ? 'FAILED'
+            : detectionResults.grade === 'D'
+              ? 'POOR'
+              : detectionResults.grade === 'C'
+                ? 'ACCEPTABLE'
+                : 'GOOD',
       },
       violations: detectionResults.violations,
       warnings: detectionResults.warnings,
-      recommendations: this.generateRecommendations(detectionResults)
+      recommendations: this.generateRecommendations(detectionResults),
     };
 
     return report;
@@ -305,7 +311,7 @@ export class AntiPatternDetector extends EventEmitter {
       recommendations.push({
         priority: 'CRITICAL',
         action: 'Fix all violations before proceeding',
-        details: results.violations.map(v => `- ${v.message}: ${v.recommendation}`)
+        details: results.violations.map((v) => `- ${v.message}: ${v.recommendation}`),
       });
     }
 
@@ -313,7 +319,7 @@ export class AntiPatternDetector extends EventEmitter {
       recommendations.push({
         priority: 'HIGH',
         action: 'Address warnings to improve workflow quality',
-        details: results.warnings.map(w => `- ${w.message}: ${w.recommendation}`)
+        details: results.warnings.map((w) => `- ${w.message}: ${w.recommendation}`),
       });
     }
 
@@ -321,7 +327,7 @@ export class AntiPatternDetector extends EventEmitter {
       recommendations.push({
         priority: 'CRITICAL',
         action: 'Workflow quality below acceptable threshold',
-        details: ['Review vibe coding best practices', 'Set up proper environment and tooling']
+        details: ['Review vibe coding best practices', 'Set up proper environment and tooling'],
       });
     }
 

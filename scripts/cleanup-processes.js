@@ -21,7 +21,7 @@ async function killNodeProcesses() {
       // Kill all node.exe except the current process
       const currentPid = process.pid;
       const { stdout } = await execAsync('tasklist | findstr node.exe');
-      const processes = stdout.split('\n').filter(line => line.includes('node.exe'));
+      const processes = stdout.split('\n').filter((line) => line.includes('node.exe'));
 
       console.log(`Found ${processes.length} Node processes`);
 
@@ -42,7 +42,7 @@ async function killNodeProcesses() {
     } else {
       // Unix-like systems
       const { stdout } = await execAsync(`ps aux | grep node | grep -v grep`);
-      const processes = stdout.split('\n').filter(line => line.trim());
+      const processes = stdout.split('\n').filter((line) => line.trim());
 
       console.log(`Found ${processes.length} Node processes`);
 
@@ -75,7 +75,7 @@ function cleanupTestArtifacts() {
     'test-pid.txt',
     'test-final.txt',
     'test-run-output.txt',
-    'test_output.txt'
+    'test_output.txt',
   ];
 
   let cleaned = 0;
@@ -103,12 +103,7 @@ function cleanupTestArtifacts() {
 function cleanupTempFiles() {
   console.log('\n🗑️  Cleaning temporary files...');
 
-  const tempPatterns = [
-    'variableContent',
-    'NUL',
-    '*.tmp',
-    '*.log.old'
-  ];
+  const tempPatterns = ['variableContent', 'NUL', '*.tmp', '*.log.old'];
 
   let cleaned = 0;
 
@@ -137,7 +132,7 @@ async function main() {
   console.log('\n✨ Cleanup complete!\n');
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Cleanup failed:', err);
   process.exit(1);
 });

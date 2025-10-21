@@ -6,9 +6,10 @@
 const ScarmonitConfig = {
   // API Configuration - matches your current backend
   api: {
-    baseUrl: window.location.hostname === 'localhost' 
-      ? 'http://localhost:3000/api'
-      : 'https://api.scarmonit.com/api',
+    baseUrl:
+      window.location.hostname === 'localhost'
+        ? 'http://localhost:3000/api'
+        : 'https://api.scarmonit.com/api',
     endpoints: {
       waitlist: '/waitlist',
       contact: '/contact',
@@ -17,9 +18,9 @@ const ScarmonitConfig = {
       plaid: '/plaid',
       transactions: '/transactions',
       categories: '/categories',
-      insights: '/insights'
+      insights: '/insights',
     },
-    timeout: 10000
+    timeout: 10000,
   },
 
   // Form Configuration - matches your current form structure
@@ -31,25 +32,25 @@ const ScarmonitConfig = {
         name: { required: true, type: 'text' },
         email: { required: true, type: 'email' },
         priority: { required: true, type: 'select' },
-        note: { required: false, type: 'textarea' }
+        note: { required: false, type: 'textarea' },
       },
       successRedirect: '/thank-you',
       analytics: {
         event: 'waitlist_signup',
-        category: 'conversion'
-      }
-    }
+        category: 'conversion',
+      },
+    },
   },
 
   // Analytics Configuration
   analytics: {
     googleAnalytics: {
       measurementId: 'G-XXXXXXXXX', // Replace with your GA4 ID
-      enabled: true
+      enabled: true,
     },
     mixpanel: {
       token: 'your-mixpanel-token', // Replace with your Mixpanel token
-      enabled: false
+      enabled: false,
     },
     events: {
       pageView: 'page_view',
@@ -57,8 +58,8 @@ const ScarmonitConfig = {
       ctaClick: 'cta_click',
       sectionView: 'section_view',
       formSubmit: 'form_submit',
-      errorOccurred: 'error_occurred'
-    }
+      errorOccurred: 'error_occurred',
+    },
   },
 
   // Feature Flags - matches your roadmap
@@ -68,19 +69,19 @@ const ScarmonitConfig = {
     aiInsights: false, // GA phase
     mobileApp: false, // GA phase
     multiUser: false, // GA phase
-    exportFeatures: false // Beta phase
+    exportFeatures: false, // Beta phase
   },
 
   // Security Configuration
   security: {
     csrf: {
       enabled: true,
-      tokenName: '_token'
+      tokenName: '_token',
     },
     rateLimit: {
       waitlist: { requests: 5, window: 300 }, // 5 requests per 5 minutes
-      contact: { requests: 3, window: 600 }   // 3 requests per 10 minutes
-    }
+      contact: { requests: 3, window: 600 }, // 3 requests per 10 minutes
+    },
   },
 
   // UI Configuration
@@ -88,21 +89,21 @@ const ScarmonitConfig = {
     theme: {
       primary: '#2563eb',
       secondary: '#10b981',
-      accent: '#f59e0b'
+      accent: '#f59e0b',
     },
     animations: {
       enabled: !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
       duration: {
         fast: 150,
         normal: 300,
-        slow: 500
-      }
+        slow: 500,
+      },
     },
     breakpoints: {
       mobile: 768,
       tablet: 1024,
-      desktop: 1200
-    }
+      desktop: 1200,
+    },
   },
 
   // Integration with existing backend services
@@ -110,24 +111,24 @@ const ScarmonitConfig = {
     gmail: {
       watchEnabled: true,
       parseReceipts: true,
-      categories: ['receipts', 'confirmations', 'statements']
+      categories: ['receipts', 'confirmations', 'statements'],
     },
     plaid: {
       environment: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
       products: ['transactions', 'accounts', 'identity'],
-      countryCodes: ['US', 'CA']
+      countryCodes: ['US', 'CA'],
     },
     ai: {
       categorization: {
         enabled: true,
         confidence: 0.8,
-        fallbackToRules: true
+        fallbackToRules: true,
       },
       insights: {
         enabled: false, // Will be enabled in GA phase
-        refreshInterval: 3600000 // 1 hour
-      }
-    }
+        refreshInterval: 3600000, // 1 hour
+      },
+    },
   },
 
   // Error Handling
@@ -135,14 +136,14 @@ const ScarmonitConfig = {
     retry: {
       attempts: 3,
       delay: 1000,
-      exponential: true
+      exponential: true,
     },
     reporting: {
       enabled: true,
       endpoint: '/api/errors',
       includeUserAgent: true,
-      includeUrl: true
-    }
+      includeUrl: true,
+    },
   },
 
   // Development Configuration
@@ -150,8 +151,8 @@ const ScarmonitConfig = {
     debug: process.env.NODE_ENV === 'development',
     mockApi: false,
     showGrid: false,
-    logAnalytics: true
-  }
+    logAnalytics: true,
+  },
 };
 
 // Export for both Node.js and browser environments

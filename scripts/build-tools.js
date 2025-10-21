@@ -23,20 +23,21 @@ class OptimizedToolsBuilder {
       files: 0,
       compiled: 0,
       cached: 0,
-      errors: 0
+      errors: 0,
     };
   }
 
   log(message, type = 'info') {
     const timestamp = new Date().toISOString();
-    const prefix = {
-      info: '🔧',
-      success: '✅',
-      warning: '⚠️',
-      error: '❌',
-      build: '⚡'
-    }[type] || '🔧';
-    
+    const prefix =
+      {
+        info: '🔧',
+        success: '✅',
+        warning: '⚠️',
+        error: '❌',
+        build: '⚡',
+      }[type] || '🔧';
+
     console.log(`${prefix} [${timestamp}] ${message}`);
   }
 
@@ -44,7 +45,7 @@ class OptimizedToolsBuilder {
     const dirs = [
       path.join(rootDir, 'dist'),
       path.join(rootDir, 'dist', 'tools'),
-      path.join(rootDir, 'dist', 'src')
+      path.join(rootDir, 'dist', 'src'),
     ];
 
     for (const dir of dirs) {
@@ -55,10 +56,10 @@ class OptimizedToolsBuilder {
   async findTypescriptFiles() {
     const files = [];
     const toolsDir = path.join(rootDir, 'tools');
-    
+
     try {
       const entries = await fs.readdir(toolsDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isFile() && entry.name.endsWith('.ts')) {
           files.push(path.join(toolsDir, entry.name));
@@ -75,10 +76,10 @@ class OptimizedToolsBuilder {
     try {
       const relativePath = path.relative(rootDir, tsFile);
       const jsFile = path.join(rootDir, 'dist', relativePath.replace('.ts', '.js'));
-      
+
       const [tsStat, jsStat] = await Promise.all([
         fs.stat(tsFile),
-        fs.stat(jsFile).catch(() => null)
+        fs.stat(jsFile).catch(() => null),
       ]);
 
       // If JS file doesn't exist or is older than TS file, needs compilation
@@ -95,7 +96,7 @@ class OptimizedToolsBuilder {
       // Check if we have a tsconfig.json
       const tsconfigPath = path.join(rootDir, 'tsconfig.json');
       let tsconfigExists = false;
-      
+
       try {
         await fs.access(tsconfigPath);
         tsconfigExists = true;
@@ -106,15 +107,15 @@ class OptimizedToolsBuilder {
       }
 
       // Run TypeScript compiler
-      const tscCommand = tsconfigExists 
-        ? 'npx tsc --build --incremental' 
+      const tscCommand = tsconfigExists
+        ? 'npx tsc --build --incremental'
         : 'npx tsc tools/*.ts --outDir dist/tools --target es2020 --module es2020 --moduleResolution node --esModuleInterop --allowSyntheticDefaultImports --strict --skipLibCheck';
 
       this.log(`Running: ${tscCommand}`, 'info');
-      
-      const { stdout, stderr } = await execAsync(tscCommand, { 
+
+      const { stdout, stderr } = await execAsync(tscCommand, {
         cwd: rootDir,
-        maxBuffer: 1024 * 1024 // 1MB buffer
+        maxBuffer: 1024 * 1024, // 1MB buffer
       });
 
       if (stderr && !stderr.includes('warning')) {
@@ -128,7 +129,6 @@ class OptimizedToolsBuilder {
 
       this.log('TypeScript compilation completed successfully', 'success');
       return true;
-
     } catch (error) {
       this.log(`TypeScript compilation failed: ${error.message}`, 'warning');
       // Continue with fallback approach
@@ -138,11 +138,11 @@ class OptimizedToolsBuilder {
 
   async fallbackBuild() {
     this.log('Using fallback build approach...', 'build');
-    
+
     try {
       const distToolsDir = path.join(rootDir, 'dist', 'tools');
       await fs.mkdir(distToolsDir, { recursive: true });
-      
+
       // Create essential files that the server needs
       const browserHistoryContent = `// Browser History Tool - Compiled from TypeScript
 export default class BrowserHistoryTool {
@@ -189,10 +189,9 @@ export default {
 
       await fs.writeFile(path.join(distToolsDir, 'browser-history.js'), browserHistoryContent);
       await fs.writeFile(path.join(distToolsDir, 'index.js'), indexContent);
-      
+
       this.log('Fallback build completed successfully', 'success');
       return true;
-      
     } catch (error) {
       this.log(`Fallback build failed: ${error.message}`, 'error');
       this.buildStats.errors++;
@@ -202,33 +201,25 @@ export default {
 
   async createTsconfig() {
     const tsconfig = {
-      "compilerOptions": {
-        "target": "ES2020",
-        "module": "ES2020",
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true,
-        "outDir": "./dist",
-        "rootDir": "./",
-        "incremental": true,
-        "tsBuildInfoFile": "./dist/.tsbuildinfo"
+      compilerOptions: {
+        target: 'ES2020',
+        module: 'ES2020',
+        moduleResolution: 'node',
+        esModuleInterop: true,
+        allowSyntheticDefaultImports: true,
+        strict: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        declaration: true,
+        declarationMap: true,
+        sourceMap: true,
+        outDir: './dist',
+        rootDir: './',
+        incremental: true,
+        tsBuildInfoFile: './dist/.tsbuildinfo',
       },
-      "include": [
-        "tools/**/*",
-        "src/**/*"
-      ],
-      "exclude": [
-        "node_modules",
-        "dist",
-        "**/*.test.ts",
-        "**/*.spec.ts"
-      ]
+      include: ['tools/**/*', 'src/**/*'],
+      exclude: ['node_modules', 'dist', '**/*.test.ts', '**/*.spec.ts'],
     };
 
     const tsconfigPath = path.join(rootDir, 'tsconfig.json');
@@ -242,12 +233,12 @@ export default {
     try {
       const distToolsDir = path.join(rootDir, 'dist', 'tools');
       const files = await fs.readdir(distToolsDir);
-      
+
       for (const file of files) {
         if (file.endsWith('.js')) {
           const filePath = path.join(distToolsDir, file);
           let content = await fs.readFile(filePath, 'utf-8');
-          
+
           // Add ES module exports if missing
           if (!content.includes('export default') && !content.includes('module.exports')) {
             // Find the main class and export it
@@ -271,12 +262,12 @@ export default {
     try {
       const distToolsDir = path.join(rootDir, 'dist', 'tools');
       const files = await fs.readdir(distToolsDir);
-      
-      const jsFiles = files.filter(f => f.endsWith('.js'));
+
+      const jsFiles = files.filter((f) => f.endsWith('.js'));
       this.buildStats.compiled = jsFiles.length;
-      
+
       this.log(`Build validation complete: ${jsFiles.length} files compiled`, 'success');
-      
+
       // Check for critical files
       const criticalFiles = ['browser-history.js'];
       for (const file of criticalFiles) {
@@ -298,19 +289,19 @@ export default {
 
   async generateBuildReport() {
     const executionTime = Date.now() - this.startTime;
-    
+
     const report = {
       timestamp: new Date().toISOString(),
       execution_time_ms: executionTime,
       build_stats: this.buildStats,
       status: this.buildStats.errors === 0 ? 'success' : 'partial_failure',
       output_directory: path.join(rootDir, 'dist'),
-      typescript_config: path.join(rootDir, 'tsconfig.json')
+      typescript_config: path.join(rootDir, 'tsconfig.json'),
     };
 
     const reportPath = path.join(rootDir, 'build-report.json');
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2));
-    
+
     this.log(`Build report saved to: ${reportPath}`, 'info');
     return report;
   }
@@ -322,11 +313,11 @@ export default {
     try {
       // Ensure output directories exist
       await this.ensureDirectories();
-      
+
       // Find TypeScript files
       const tsFiles = await this.findTypescriptFiles();
       this.buildStats.files = tsFiles.length;
-      
+
       this.log(`Found ${tsFiles.length} TypeScript files to compile`, 'info');
 
       if (tsFiles.length === 0) {
@@ -335,30 +326,32 @@ export default {
       } else {
         // Compile TypeScript files
         const compilationSuccess = await this.compileTypeScript();
-        
+
         if (compilationSuccess) {
           // Optimize compiled files
           await this.optimizeCompiledFiles();
         }
       }
-      
+
       // Validate build output
       await this.validateBuild();
-      
+
       this.log('🎯 OPTIMIZED BUILD COMPLETE', 'success');
 
       // Generate build report
       const report = await this.generateBuildReport();
-      
+
       // Display summary
       this.log(`📊 Build Summary:`, 'info');
       this.log(`  • Files processed: ${this.buildStats.files}`, 'info');
       this.log(`  • Files compiled: ${this.buildStats.compiled}`, 'info');
-      this.log(`  • Errors: ${this.buildStats.errors}`, this.buildStats.errors > 0 ? 'error' : 'success');
+      this.log(
+        `  • Errors: ${this.buildStats.errors}`,
+        this.buildStats.errors > 0 ? 'error' : 'success'
+      );
       this.log(`  • Execution time: ${report.execution_time_ms}ms`, 'info');
 
       return report;
-
     } catch (error) {
       this.log(`Build process failed: ${error.message}`, 'error');
       // Ensure we have at least the basic files
@@ -371,8 +364,9 @@ export default {
 // CLI execution
 if (import.meta.url === `file://${process.argv[1]}`) {
   const builder = new OptimizedToolsBuilder();
-  
-  builder.build()
+
+  builder
+    .build()
     .then((report) => {
       process.exit(0); // Always exit successfully for CI/CD
     })

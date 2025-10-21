@@ -42,7 +42,7 @@ class SelfHealingRecovery {
         component: 'nodejs',
         severity: 'critical',
         message: 'Node.js not available',
-        error: error.message
+        error: error.message,
       });
     }
 
@@ -55,14 +55,14 @@ class SelfHealingRecovery {
         component: 'dependencies',
         severity: 'high',
         message: 'node_modules directory missing',
-        recovery: 'reinstall_dependencies'
+        recovery: 'reinstall_dependencies',
       });
     }
 
     // Check if A2A server is running
     try {
       const response = await fetch('http://localhost:3001/health', {
-        timeout: 2000
+        timeout: 2000,
       });
       if (response.ok) {
         this.log('info', 'A2A server is healthy');
@@ -71,7 +71,7 @@ class SelfHealingRecovery {
           component: 'a2a-server',
           severity: 'high',
           message: 'A2A server responding but not healthy',
-          recovery: 'restart_server'
+          recovery: 'restart_server',
         });
       }
     } catch (error) {
@@ -79,14 +79,14 @@ class SelfHealingRecovery {
         component: 'a2a-server',
         severity: 'high',
         message: 'A2A server not responding',
-        recovery: 'start_server'
+        recovery: 'start_server',
       });
     }
 
     // Check Ollama service
     try {
       const response = await fetch('http://localhost:11434/api/tags', {
-        timeout: 2000
+        timeout: 2000,
       });
       if (response.ok) {
         this.log('info', 'Ollama service is healthy');
@@ -95,7 +95,7 @@ class SelfHealingRecovery {
           component: 'ollama',
           severity: 'medium',
           message: 'Ollama service not responding correctly',
-          recovery: 'restart_ollama'
+          recovery: 'restart_ollama',
         });
       }
     } catch (error) {
@@ -103,14 +103,14 @@ class SelfHealingRecovery {
         component: 'ollama',
         severity: 'medium',
         message: 'Ollama service not available',
-        recovery: 'skip_ollama_tests'
+        recovery: 'skip_ollama_tests',
       });
     }
 
     // Check AI Bridge
     try {
       const response = await fetch('http://localhost:8080', {
-        timeout: 2000
+        timeout: 2000,
       });
       if (response.ok) {
         this.log('info', 'AI Bridge is healthy');
@@ -120,7 +120,7 @@ class SelfHealingRecovery {
         component: 'ai-bridge',
         severity: 'medium',
         message: 'AI Bridge not responding',
-        recovery: 'start_bridge'
+        recovery: 'start_bridge',
       });
     }
 
@@ -133,7 +133,7 @@ class SelfHealingRecovery {
         component: 'test-files',
         severity: 'critical',
         message: 'Test files not found',
-        recovery: 'pull_latest_code'
+        recovery: 'pull_latest_code',
       });
     }
 
@@ -157,11 +157,11 @@ class SelfHealingRecovery {
       this.recoveryAttempts.push({
         issue,
         result,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
-    const successfulRecoveries = recoveryResults.filter(r => r.success).length;
+    const successfulRecoveries = recoveryResults.filter((r) => r.success).length;
     const totalAttempts = recoveryResults.length;
 
     this.log('info', `Recovery complete: ${successfulRecoveries}/${totalAttempts} successful`);
@@ -170,7 +170,7 @@ class SelfHealingRecovery {
       recovered: successfulRecoveries > 0,
       total: totalAttempts,
       successful: successfulRecoveries,
-      results: recoveryResults
+      results: recoveryResults,
     };
   }
 
@@ -196,30 +196,35 @@ class SelfHealingRecovery {
           // Start new process
           const server = spawn('node', ['src/enhanced-a2a-server.js'], {
             detached: true,
-            stdio: 'ignore'
+            stdio: 'ignore',
           });
           server.unref();
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          await new Promise((resolve) => setTimeout(resolve, 3000));
           return { success: true, component, action: 'restarted server' };
 
         case 'start_bridge':
           this.log('info', 'Starting AI Bridge...');
           const bridge = spawn('node', ['src/ai-bridge.js'], {
             detached: true,
-            stdio: 'ignore'
+            stdio: 'ignore',
           });
           bridge.unref();
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           return { success: true, component, action: 'started bridge' };
 
         case 'restart_ollama':
           this.log('info', 'Attempting to restart Ollama...');
           try {
             await execAsync('systemctl restart ollama || docker restart ollama || true');
-            await new Promise(resolve => setTimeout(resolve, 5000));
+            await new Promise((resolve) => setTimeout(resolve, 5000));
             return { success: true, component, action: 'restarted ollama' };
           } catch (error) {
-            return { success: false, component, action: 'failed to restart ollama', error: error.message };
+            return {
+              success: false,
+              component,
+              action: 'failed to restart ollama',
+              error: error.message,
+            };
           }
 
         case 'skip_ollama_tests':
@@ -250,15 +255,12 @@ class SelfHealingRecovery {
       recovery_attempts: this.recoveryAttempts,
       summary: {
         total_issues: this.recoveryAttempts.length,
-        successful_recoveries: this.recoveryAttempts.filter(a => a.result.success).length,
-        failed_recoveries: this.recoveryAttempts.filter(a => !a.result.success).length
-      }
+        successful_recoveries: this.recoveryAttempts.filter((a) => a.result.success).length,
+        failed_recoveries: this.recoveryAttempts.filter((a) => !a.result.success).length,
+      },
     };
 
-    await fs.writeFile(
-      'self-healing-report.json',
-      JSON.stringify(report, null, 2)
-    );
+    await fs.writeFile('self-healing-report.json', JSON.stringify(report, null, 2));
 
     this.log('info', 'Recovery report saved to self-healing-report.json');
     return report;
@@ -272,7 +274,7 @@ class SelfHealingRecovery {
     this.log('info', 'Sending notification...');
 
     const summary = `Self-healing recovery completed: ${report.summary.successful_recoveries}/${report.summary.total_issues} successful`;
-    
+
     // In a real implementation, this would send to Slack, email, etc.
     console.log('\n=== RECOVERY NOTIFICATION ===');
     console.log(summary);
@@ -324,7 +326,7 @@ async function main() {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(error => {
+  main().catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
   });

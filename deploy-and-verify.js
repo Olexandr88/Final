@@ -21,34 +21,35 @@ class DeploymentAutomation {
 
   log(message, level = 'info') {
     const timestamp = new Date().toISOString();
-    const icon = {
-      info: '📋',
-      success: '✅',
-      warning: '⚠️',
-      error: '❌',
-      deploy: '🚀'
-    }[level] || '📋';
-    
+    const icon =
+      {
+        info: '📋',
+        success: '✅',
+        warning: '⚠️',
+        error: '❌',
+        deploy: '🚀',
+      }[level] || '📋';
+
     console.log(`${icon} [${timestamp}] ${message}`);
   }
 
   async executeCommand(command, description) {
     this.log(`${description}...`, 'info');
-    
+
     try {
-      const result = await execAsync(command, { 
+      const result = await execAsync(command, {
         maxBuffer: 1024 * 1024 * 10, // 10MB buffer
-        timeout: 300000 // 5 minute timeout
+        timeout: 300000, // 5 minute timeout
       });
-      
+
       if (this.verbose && result.stdout) {
         console.log(result.stdout);
       }
-      
+
       if (result.stderr && !result.stderr.includes('warning')) {
         this.log(`Warning: ${result.stderr}`, 'warning');
       }
-      
+
       this.log(`${description} completed`, 'success');
       return result;
     } catch (error) {
@@ -63,7 +64,7 @@ class DeploymentAutomation {
 
   async checkPrerequisites() {
     this.log('Checking deployment prerequisites', 'info');
-    
+
     // Check if fly CLI is available
     try {
       await execAsync('fly version');
@@ -94,14 +95,14 @@ class DeploymentAutomation {
 
   async prepareDeployment() {
     this.log('Preparing deployment environment', 'info');
-    
+
     // Create optimized environment file
     const envContent = [
       'NODE_ENV=production',
       'PORT=8080',
-      'NODE_OPTIONS=--max-old-space-size=400 --gc-interval=100'
+      'NODE_OPTIONS=--max-old-space-size=400 --gc-interval=100',
     ].join('\n');
-    
+
     await fs.writeFile('.env.production', envContent);
     this.log('Created production environment file', 'success');
 
@@ -115,11 +116,11 @@ class DeploymentAutomation {
 
   async testLocalStartup() {
     this.log('Testing local server startup', 'info');
-    
+
     return new Promise((resolve, reject) => {
       const server = spawn('npm', ['start'], {
         stdio: this.verbose ? 'inherit' : 'pipe',
-        env: { ...process.env, NODE_ENV: 'production' }
+        env: { ...process.env, NODE_ENV: 'production' },
       });
 
       let started = false;
@@ -157,7 +158,7 @@ class DeploymentAutomation {
 
   async deployToFly() {
     this.log('Deploying to Fly.io', 'deploy');
-    
+
     // Check if app exists
     let appExists = false;
     try {
@@ -180,11 +181,8 @@ class DeploymentAutomation {
         `fly launch --name ${this.appName} --yes --no-deploy`,
         'Creating new Fly.io application'
       );
-      
-      await this.executeCommand(
-        `fly deploy --app ${this.appName}`,
-        'Deploying new application'
-      );
+
+      await this.executeCommand(`fly deploy --app ${this.appName}`, 'Deploying new application');
     }
 
     this.log('Deployment completed', 'success');
@@ -192,17 +190,17 @@ class DeploymentAutomation {
 
   async waitForHealth() {
     this.log('Waiting for application health check', 'info');
-    
+
     const maxAttempts = 12; // 2 minutes with 10s intervals
     let attempt = 0;
-    
+
     while (attempt < maxAttempts) {
       try {
         const response = await fetch(`${this.baseUrl}/health`, {
           method: 'GET',
-          timeout: 10000
+          timeout: 10000,
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           this.log(`Health check passed: ${data.status}`, 'success');
@@ -211,36 +209,36 @@ class DeploymentAutomation {
       } catch (error) {
         // Continue trying
       }
-      
+
       attempt++;
       this.log(`Health check attempt ${attempt}/${maxAttempts}`, 'info');
-      await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
+      await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10 seconds
     }
-    
+
     throw new Error('Health check failed after maximum attempts');
   }
 
   async verifyEndpoints() {
     this.log('Verifying application endpoints', 'info');
-    
+
     const endpoints = [
       { path: '/', name: 'Root' },
       { path: '/health', name: 'Health' },
       { path: '/api/status', name: 'Status' },
       { path: '/metrics', name: 'Metrics' },
-      { path: '/history', name: 'History' }
+      { path: '/history', name: 'History' },
     ];
 
     const results = [];
-    
+
     for (const endpoint of endpoints) {
       try {
         const startTime = Date.now();
         const response = await fetch(`${this.baseUrl}${endpoint.path}`, {
-          timeout: 15000
+          timeout: 15000,
         });
         const responseTime = Date.now() - startTime;
-        
+
         if (response.ok) {
           this.log(`${endpoint.name} endpoint: OK (${responseTime}ms)`, 'success');
           results.push({ ...endpoint, status: 'OK', responseTime });
@@ -253,33 +251,31 @@ class DeploymentAutomation {
         results.push({ ...endpoint, status: 'ERROR', error: error.message });
       }
     }
-    
+
     return results;
   }
 
   async validateMetrics() {
     this.log('Validating metrics collection', 'info');
-    
+
     try {
       const response = await fetch(`${this.baseUrl}/metrics`);
       if (!response.ok) {
         throw new Error(`Metrics endpoint returned ${response.status}`);
       }
-      
+
       const metricsText = await response.text();
-      
+
       // Check for essential metrics
       const requiredMetrics = [
         'http_requests_total',
         'memory_usage_bytes',
         'app_uptime_seconds',
-        'flyio_deployment_status'
+        'flyio_deployment_status',
       ];
-      
-      const missingMetrics = requiredMetrics.filter(metric => 
-        !metricsText.includes(metric)
-      );
-      
+
+      const missingMetrics = requiredMetrics.filter((metric) => !metricsText.includes(metric));
+
       if (missingMetrics.length === 0) {
         this.log('All required metrics are present', 'success');
         return true;
@@ -295,66 +291,68 @@ class DeploymentAutomation {
 
   async generateReport(endpointResults) {
     const deploymentTime = Math.round((Date.now() - this.deploymentStart) / 1000);
-    
+
     const report = {
       deployment: {
         appName: this.appName,
         url: this.baseUrl,
         deploymentTime: `${deploymentTime}s`,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       },
       endpoints: endpointResults,
       monitoring: {
         grafanaUrl: 'https://fly-metrics.net/d/fly-app/fly-app?orgId=1308651',
         metricsUrl: `${this.baseUrl}/metrics`,
-        healthUrl: `${this.baseUrl}/health`
+        healthUrl: `${this.baseUrl}/health`,
       },
       commands: {
         logs: `fly logs --app ${this.appName} -f`,
         scale: `fly scale --app ${this.appName} show`,
-        status: `fly status --app ${this.appName}`
-      }
+        status: `fly status --app ${this.appName}`,
+      },
     };
 
     await fs.writeFile('deployment-report.json', JSON.stringify(report, null, 2));
     this.log('Deployment report saved to deployment-report.json', 'success');
-    
+
     return report;
   }
 
   async run() {
     try {
       this.log('🚀 Starting automated deployment and verification', 'deploy');
-      
+
       await this.checkPrerequisites();
       await this.prepareDeployment();
       await this.testLocalStartup();
       await this.deployToFly();
       await this.waitForHealth();
-      
+
       const endpointResults = await this.verifyEndpoints();
       const metricsValid = await this.validateMetrics();
-      
+
       const report = await this.generateReport(endpointResults);
-      
+
       this.log('\n📊 DEPLOYMENT SUMMARY:', 'success');
       this.log(`   App URL: ${this.baseUrl}`, 'info');
       this.log(`   Health: ${this.baseUrl}/health`, 'info');
       this.log(`   Metrics: ${this.baseUrl}/metrics`, 'info');
       this.log(`   Grafana: https://fly-metrics.net/d/fly-app/fly-app?orgId=1308651`, 'info');
-      this.log(`   Metrics Valid: ${metricsValid ? 'YES' : 'NO'}`, metricsValid ? 'success' : 'warning');
-      
+      this.log(
+        `   Metrics Valid: ${metricsValid ? 'YES' : 'NO'}`,
+        metricsValid ? 'success' : 'warning'
+      );
+
       if (metricsValid) {
         this.log('\n✅ DEPLOYMENT SUCCESSFUL - Metrics should now appear in Grafana!', 'success');
       } else {
         this.log('\n⚠️  DEPLOYMENT COMPLETED - Check metrics configuration', 'warning');
       }
-      
+
       return report;
-      
     } catch (error) {
       this.log(`\n❌ DEPLOYMENT FAILED: ${error.message}`, 'error');
-      
+
       // Try to get logs for debugging
       try {
         const logs = await execAsync(`fly logs --app ${this.appName} -n 20`);
@@ -363,7 +361,7 @@ class DeploymentAutomation {
       } catch (logError) {
         this.log('Could not retrieve logs', 'warning');
       }
-      
+
       throw error;
     }
   }
@@ -372,8 +370,9 @@ class DeploymentAutomation {
 // Run the deployment if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
   const automation = new DeploymentAutomation();
-  
-  automation.run()
+
+  automation
+    .run()
     .then(() => {
       console.log('\n🎉 Deployment automation completed successfully!');
       process.exit(0);

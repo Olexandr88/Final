@@ -26,13 +26,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         logger: {
           log: () => {},
           error: () => {},
-          warn: () => {}
-        }
+          warn: () => {},
+        },
       });
       BRIDGE_WS_PORT = bridgeServer.ports.ws;
       BRIDGE_HTTP_PORT = bridgeServer.ports.http;
       console.log(`Bridge started on WS:${BRIDGE_WS_PORT}, HTTP:${BRIDGE_HTTP_PORT}`);
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 200));
     } catch (error) {
       console.error('Failed to start bridge server:', error);
       throw error;
@@ -43,8 +43,8 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
     console.log('Cleaning up test resources...');
     try {
       // Close all WebSocket clients first
-      const closePromises = testClients.map(ws => {
-        return new Promise(resolve => {
+      const closePromises = testClients.map((ws) => {
+        return new Promise((resolve) => {
           if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
             ws.once('close', resolve);
             ws.close();
@@ -65,7 +65,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       }
 
       // Give time for ports to be released
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       console.log('Cleanup completed');
     } catch (error) {
       console.error('Error during cleanup:', error);
@@ -147,15 +147,17 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         const timeout = setTimeout(() => reject(new Error('Registration timeout')), 5000);
 
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'test-agent-1',
-            role: 'ai-assistant',
-            labels: ['test', 'ollama'],
-            tools: ['conversation'],
-            intents: ['ai.query'],
-            maxConcurrentTasks: 5
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'test-agent-1',
+              role: 'ai-assistant',
+              labels: ['test', 'ollama'],
+              tools: ['conversation'],
+              intents: ['ai.query'],
+              maxConcurrentTasks: 5,
+            })
+          );
         });
 
         ws.on('message', (data) => {
@@ -187,15 +189,20 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         testClients.push(ws);
 
         const promise = new Promise((resolve, reject) => {
-          const timeout = setTimeout(() => reject(new Error(`Registration timeout for ${agentId}`)), 5000);
+          const timeout = setTimeout(
+            () => reject(new Error(`Registration timeout for ${agentId}`)),
+            5000
+          );
 
           ws.on('open', () => {
-            ws.send(JSON.stringify({
-              type: 'register',
-              clientId: agentId,
-              role: 'ai-assistant',
-              labels: ['test']
-            }));
+            ws.send(
+              JSON.stringify({
+                type: 'register',
+                clientId: agentId,
+                role: 'ai-assistant',
+                labels: ['test'],
+              })
+            );
           });
 
           ws.on('message', (data) => {
@@ -220,13 +227,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
     });
 
     test('Registered agents appear in agents list', async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const response = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/agents`);
       const data = await response.json();
 
       assert.ok(data.agents.length > 0);
-      const agentIds = data.agents.map(a => a.id);
+      const agentIds = data.agents.map((a) => a.id);
       assert.ok(agentIds.includes('test-agent-1'));
     });
   });
@@ -240,11 +247,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       await Promise.all([
         new Promise((resolve) => {
           sender.on('open', () => {
-            sender.send(JSON.stringify({
-              type: 'register',
-              clientId: 'sender-agent',
-              role: 'ai-assistant'
-            }));
+            sender.send(
+              JSON.stringify({
+                type: 'register',
+                clientId: 'sender-agent',
+                role: 'ai-assistant',
+              })
+            );
           });
           sender.on('message', (data) => {
             const msg = JSON.parse(data.toString());
@@ -253,17 +262,19 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         }),
         new Promise((resolve) => {
           receiver.on('open', () => {
-            receiver.send(JSON.stringify({
-              type: 'register',
-              clientId: 'receiver-agent',
-              role: 'ai-assistant'
-            }));
+            receiver.send(
+              JSON.stringify({
+                type: 'register',
+                clientId: 'receiver-agent',
+                role: 'ai-assistant',
+              })
+            );
           });
           receiver.on('message', (data) => {
             const msg = JSON.parse(data.toString());
             if (msg.type === 'registered') resolve();
           });
-        })
+        }),
       ]);
 
       const receivedMessage = await new Promise((resolve, reject) => {
@@ -277,15 +288,17 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
           }
         });
 
-        sender.send(JSON.stringify({
-          type: 'envelope',
-          envelope: {
-            from: 'sender-agent',
-            to: 'receiver-agent',
-            intent: 'ai.query',
-            payload: { message: 'Hello receiver!' }
-          }
-        }));
+        sender.send(
+          JSON.stringify({
+            type: 'envelope',
+            envelope: {
+              from: 'sender-agent',
+              to: 'receiver-agent',
+              intent: 'ai.query',
+              payload: { message: 'Hello receiver!' },
+            },
+          })
+        );
       });
 
       assert.strictEqual(receivedMessage.from, 'sender-agent');
@@ -300,7 +313,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       const broadcaster = new WebSocket(`ws://localhost:${BRIDGE_WS_PORT}`);
       const listeners = [
         new WebSocket(`ws://localhost:${BRIDGE_WS_PORT}`),
-        new WebSocket(`ws://localhost:${BRIDGE_WS_PORT}`)
+        new WebSocket(`ws://localhost:${BRIDGE_WS_PORT}`),
       ];
       testClients.push(broadcaster, ...listeners);
 
@@ -338,11 +351,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       // Register broadcaster
       await new Promise((resolve) => {
         broadcaster.on('open', () => {
-          broadcaster.send(JSON.stringify({
-            type: 'register',
-            clientId: 'broadcaster-agent',
-            role: 'coordinator'
-          }));
+          broadcaster.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'broadcaster-agent',
+              role: 'coordinator',
+            })
+          );
         });
         broadcaster.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -354,11 +369,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       const registrationPromises = listeners.map((ws, idx) => {
         return new Promise((resolve) => {
           ws.on('open', () => {
-            ws.send(JSON.stringify({
-              type: 'register',
-              clientId: `listener-${idx}`,
-              role: 'ai-assistant'
-            }));
+            ws.send(
+              JSON.stringify({
+                type: 'register',
+                clientId: `listener-${idx}`,
+                role: 'ai-assistant',
+              })
+            );
           });
           const handler = (data) => {
             const msg = JSON.parse(data.toString());
@@ -374,22 +391,24 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       await Promise.all(registrationPromises);
 
       // Give a moment for everything to settle
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Send broadcast
-      broadcaster.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: 'broadcaster-agent',
-          intent: 'system.broadcast',
-          payload: { announcement: 'Message to all agents' }
-        }
-      }));
+      broadcaster.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: 'broadcaster-agent',
+            intent: 'system.broadcast',
+            payload: { announcement: 'Message to all agents' },
+          },
+        })
+      );
 
       const messages = await Promise.all(broadcastPromises);
 
       assert.strictEqual(messages.length, 2);
-      messages.forEach(msg => {
+      messages.forEach((msg) => {
         assert.ok(msg.from);
         assert.strictEqual(msg.from, 'broadcaster-agent');
         assert.strictEqual(msg.intent, 'system.broadcast');
@@ -397,14 +416,14 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
     });
 
     test('Messages are stored in history', async () => {
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const response = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/history`);
       const data = await response.json();
 
       assert.ok(data.history.length > 0);
-      assert.ok(data.history.some(msg => msg.from === 'sender-agent'));
-      assert.ok(data.history.some(msg => msg.intent === 'ai.query'));
+      assert.ok(data.history.some((msg) => msg.from === 'sender-agent'));
+      assert.ok(data.history.some((msg) => msg.intent === 'ai.query'));
     });
 
     test('HTTP POST /send endpoint works', async () => {
@@ -414,8 +433,8 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         body: JSON.stringify({
           to: 'receiver-agent',
           intent: 'api.message',
-          payload: { text: 'Message via HTTP' }
-        })
+          payload: { text: 'Message via HTTP' },
+        }),
       });
 
       assert.strictEqual(response.ok, true);
@@ -431,8 +450,8 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           intent: 'api.broadcast',
-          payload: { announcement: 'Broadcast via HTTP' }
-        })
+          payload: { announcement: 'Broadcast via HTTP' },
+        }),
       });
 
       assert.strictEqual(response.ok, true);
@@ -449,11 +468,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'monitor-client',
-            role: 'monitor'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'monitor-client',
+              role: 'monitor',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -477,7 +498,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       assert.ok(Array.isArray(clientList));
       assert.ok(clientList.length > 0);
-      assert.ok(clientList.some(c => c.id === 'monitor-client'));
+      assert.ok(clientList.some((c) => c.id === 'monitor-client'));
     });
 
     test('Stats query works', async () => {
@@ -486,11 +507,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'stats-client',
-            role: 'monitor'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'stats-client',
+              role: 'monitor',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -525,11 +548,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'heartbeat-client',
-            role: 'ai-assistant'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'heartbeat-client',
+              role: 'ai-assistant',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -539,11 +564,11 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       ws.send(JSON.stringify({ type: 'heartbeat' }));
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const response = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/agents`);
       const data = await response.json();
-      const heartbeatClient = data.agents.find(a => a.id === 'heartbeat-client');
+      const heartbeatClient = data.agents.find((a) => a.id === 'heartbeat-client');
 
       assert.ok(heartbeatClient);
       assert.ok(heartbeatClient.lastSeen);
@@ -561,7 +586,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       ws.send('invalid json{{{');
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       assert.strictEqual(ws.readyState, WebSocket.OPEN);
     });
@@ -572,8 +597,8 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           intent: 'test',
-          payload: { message: 'Missing to field' }
-        })
+          payload: { message: 'Missing to field' },
+        }),
       });
 
       assert.strictEqual(response.status, 400);
@@ -587,11 +612,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'unknown-type-client',
-            role: 'test'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'unknown-type-client',
+              role: 'test',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -601,7 +628,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       ws.send(JSON.stringify({ type: 'completely_unknown_type' }));
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       assert.strictEqual(ws.readyState, WebSocket.OPEN);
     });
@@ -612,11 +639,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'disconnect-test-client',
-            role: 'test'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'disconnect-test-client',
+              role: 'test',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -626,24 +655,26 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       let beforeResponse = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/agents`);
       let beforeData = await beforeResponse.json();
-      assert.ok(beforeData.agents.some(a => a.id === 'disconnect-test-client'));
+      assert.ok(beforeData.agents.some((a) => a.id === 'disconnect-test-client'));
 
       ws.close();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       let afterResponse = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/agents`);
       let afterData = await afterResponse.json();
-      assert.ok(!afterData.agents.some(a => a.id === 'disconnect-test-client'));
+      assert.ok(!afterData.agents.some((a) => a.id === 'disconnect-test-client'));
     });
   });
 
   describe('History and Filtering', () => {
     test('History can be filtered by agentId', async () => {
-      const response = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/history?agentId=sender-agent`);
+      const response = await fetch(
+        `http://localhost:${BRIDGE_HTTP_PORT}/history?agentId=sender-agent`
+      );
       const data = await response.json();
 
       assert.ok(Array.isArray(data.history));
-      data.history.forEach(msg => {
+      data.history.forEach((msg) => {
         assert.ok(msg.from === 'sender-agent' || msg.to === 'sender-agent');
       });
     });
@@ -653,7 +684,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       const data = await response.json();
 
       assert.ok(Array.isArray(data.history));
-      data.history.forEach(msg => {
+      data.history.forEach((msg) => {
         assert.strictEqual(msg.intent, 'ai.query');
       });
     });
@@ -674,11 +705,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'rapid-sender',
-            role: 'test'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'rapid-sender',
+              role: 'test',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -690,17 +723,19 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       const startTime = Date.now();
 
       for (let i = 0; i < messageCount; i++) {
-        ws.send(JSON.stringify({
-          type: 'envelope',
-          envelope: {
-            from: 'rapid-sender',
-            intent: 'performance.test',
-            payload: { index: i }
-          }
-        }));
+        ws.send(
+          JSON.stringify({
+            type: 'envelope',
+            envelope: {
+              from: 'rapid-sender',
+              intent: 'performance.test',
+              payload: { index: i },
+            },
+          })
+        );
       }
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const endTime = Date.now();
       const duration = endTime - startTime;
@@ -725,11 +760,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
       await new Promise((resolve) => {
         ws.on('open', () => {
-          ws.send(JSON.stringify({
-            type: 'register',
-            clientId: 'task-sender',
-            role: 'test'
-          }));
+          ws.send(
+            JSON.stringify({
+              type: 'register',
+              clientId: 'task-sender',
+              role: 'test',
+            })
+          );
         });
         ws.on('message', (data) => {
           const msg = JSON.parse(data.toString());
@@ -737,23 +774,25 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
         });
       });
 
-      ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: 'task-sender',
-          taskId: 'test-task-123',
-          intent: 'task.create',
-          payload: { description: 'Test task' }
-        }
-      }));
+      ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: 'task-sender',
+            taskId: 'test-task-123',
+            intent: 'task.create',
+            payload: { description: 'Test task' },
+          },
+        })
+      );
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const response = await fetch(`http://localhost:${BRIDGE_HTTP_PORT}/tasks`);
       const data = await response.json();
 
       assert.ok(Array.isArray(data.tasks));
-      const testTask = data.tasks.find(t => t.taskId === 'test-task-123');
+      const testTask = data.tasks.find((t) => t.taskId === 'test-task-123');
       assert.ok(testTask);
       assert.ok(Array.isArray(testTask.intents));
       assert.ok(Array.isArray(testTask.participants));
@@ -771,11 +810,13 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
 
         const promise = new Promise((resolve) => {
           ws.on('open', () => {
-            ws.send(JSON.stringify({
-              type: 'register',
-              clientId: `load-test-${i}`,
-              role: 'test'
-            }));
+            ws.send(
+              JSON.stringify({
+                type: 'register',
+                clientId: `load-test-${i}`,
+                role: 'test',
+              })
+            );
           });
           ws.on('message', (data) => {
             const msg = JSON.parse(data.toString());
@@ -789,7 +830,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       const sockets = await Promise.all(connections);
 
       assert.strictEqual(sockets.length, connectionCount);
-      sockets.forEach(ws => {
+      sockets.forEach((ws) => {
         assert.strictEqual(ws.readyState, WebSocket.OPEN);
       });
 
@@ -813,7 +854,7 @@ describe('A2A Control Center Integration Tests', { timeout: TEST_TIMEOUT }, () =
       });
 
       ws.terminate();
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const newWs = new WebSocket(`ws://localhost:${BRIDGE_WS_PORT}`);
       testClients.push(newWs);

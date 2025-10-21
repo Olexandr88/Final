@@ -30,23 +30,25 @@ class WorkflowCoordinator {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'Workflow Orchestrator',
-      labels: ['coordinator', 'orchestrator', 'workflow-manager'],
-      tools: ['workflow_orchestration', 'dependency_resolution', 'task_routing'],
-      intents: [
-        'workflow.create',
-        'workflow.execute',
-        'workflow.status',
-        'workflow.cancel',
-        'agent.discover'
-      ],
-      maxConcurrentTasks: 20
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'Workflow Orchestrator',
+        labels: ['coordinator', 'orchestrator', 'workflow-manager'],
+        tools: ['workflow_orchestration', 'dependency_resolution', 'task_routing'],
+        intents: [
+          'workflow.create',
+          'workflow.execute',
+          'workflow.status',
+          'workflow.cancel',
+          'agent.discover',
+        ],
+        maxConcurrentTasks: 20,
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info(`✅ ${this.agentId} ready\n`);
 
     this.setupHandlers();
@@ -105,29 +107,32 @@ class WorkflowCoordinator {
           result = { error: 'Unknown intent' };
       }
 
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: `${intent}.result`,
-          replyTo: id,
-          payload: result
-        }
-      }));
-
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: `${intent}.result`,
+            replyTo: id,
+            payload: result,
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Error processing task:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: 'workflow.error',
-          replyTo: id,
-          payload: { error: error.message }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: 'workflow.error',
+            replyTo: id,
+            payload: { error: error.message },
+          },
+        })
+      );
     }
   }
 
@@ -140,41 +145,43 @@ class WorkflowCoordinator {
     // Query meta-agent-factory for available agents
     const discoveryId = `discovery-${Date.now()}`;
 
-    this.ws.send(JSON.stringify({
-      type: 'envelope',
-      envelope: {
-        id: discoveryId,
-        from: this.agentId,
-        to: 'meta-agent-factory',
-        intent: 'agent.list',
-        payload: {}
-      }
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'envelope',
+        envelope: {
+          id: discoveryId,
+          from: this.agentId,
+          to: 'meta-agent-factory',
+          intent: 'agent.list',
+          payload: {},
+        },
+      })
+    );
 
     // Store known agent capabilities
     this.agentCapabilities.set('data-proc-workflow-1', {
       type: 'data-processor',
-      capabilities: ['json_transform', 'csv_parse', 'data_validation']
+      capabilities: ['json_transform', 'csv_parse', 'data_validation'],
     });
 
     this.agentCapabilities.set('test-gen-workflow-1', {
       type: 'test-generator',
-      capabilities: ['unit_test_gen', 'integration_test_gen', 'e2e_test_gen']
+      capabilities: ['unit_test_gen', 'integration_test_gen', 'e2e_test_gen'],
     });
 
     this.agentCapabilities.set('deploy-workflow-1', {
       type: 'deployment-agent',
-      capabilities: ['docker_build', 'k8s_deploy', 'ci_cd_trigger']
+      capabilities: ['docker_build', 'k8s_deploy', 'ci_cd_trigger'],
     });
 
     this.agentCapabilities.set('refactor-workflow-1', {
       type: 'refactoring-agent',
-      capabilities: ['extract_method', 'rename_variable', 'optimize_imports']
+      capabilities: ['extract_method', 'rename_variable', 'optimize_imports'],
     });
 
     this.agentCapabilities.set('api-test-workflow-1', {
       type: 'api-tester',
-      capabilities: ['rest_test', 'graphql_test', 'load_test']
+      capabilities: ['rest_test', 'graphql_test', 'load_test'],
     });
 
     logger.info(`✓ Discovered ${this.agentCapabilities.size} agents\n`);
@@ -182,8 +189,8 @@ class WorkflowCoordinator {
     return {
       agents: Array.from(this.agentCapabilities.entries()).map(([name, info]) => ({
         name,
-        ...info
-      }))
+        ...info,
+      })),
     };
   }
 
@@ -202,7 +209,7 @@ class WorkflowCoordinator {
       steps, // Array of { agent, intent, payload, dependsOn }
       status: 'created',
       createdAt: new Date().toISOString(),
-      results: []
+      results: [],
     };
 
     this.workflows.set(workflow.workflowId, workflow);
@@ -212,7 +219,7 @@ class WorkflowCoordinator {
     return {
       success: true,
       workflowId: workflow.workflowId,
-      steps: workflow.steps.length
+      steps: workflow.steps.length,
     };
   }
 
@@ -241,11 +248,9 @@ class WorkflowCoordinator {
 
         // Check dependencies
         if (step.dependsOn) {
-          const depResults = workflow.results.filter(r =>
-            step.dependsOn.includes(r.stepIndex)
-          );
+          const depResults = workflow.results.filter((r) => step.dependsOn.includes(r.stepIndex));
 
-          if (depResults.some(r => r.status !== 'success')) {
+          if (depResults.some((r) => r.status !== 'success')) {
             throw new Error(`Dependency failed for step ${i + 1}`);
           }
         }
@@ -255,7 +260,7 @@ class WorkflowCoordinator {
 
         workflow.results.push({
           stepIndex: i,
-          ...stepResult
+          ...stepResult,
         });
 
         if (stepResult.status !== 'success') {
@@ -272,9 +277,8 @@ class WorkflowCoordinator {
         success: true,
         workflowId,
         status: 'completed',
-        results: workflow.results
+        results: workflow.results,
       };
-
     } catch (error) {
       workflow.status = 'failed';
       workflow.error = error.message;
@@ -286,7 +290,7 @@ class WorkflowCoordinator {
         success: false,
         workflowId,
         status: 'failed',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -301,28 +305,30 @@ class WorkflowCoordinator {
       // Merge previous results into payload if needed
       const enhancedPayload = {
         ...step.payload,
-        previousResults: step.dependsOn ?
-          previousResults.filter(r => step.dependsOn.includes(r.stepIndex)) :
-          []
+        previousResults: step.dependsOn
+          ? previousResults.filter((r) => step.dependsOn.includes(r.stepIndex))
+          : [],
       };
 
       // Send message to target agent
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          id: stepId,
-          from: this.agentId,
-          to: step.agent,
-          intent: step.intent,
-          payload: enhancedPayload
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            id: stepId,
+            from: this.agentId,
+            to: step.agent,
+            intent: step.intent,
+            payload: enhancedPayload,
+          },
+        })
+      );
 
       // Wait for response (with timeout)
       const timeout = setTimeout(() => {
         resolve({
           status: 'timeout',
-          error: 'Step execution timed out'
+          error: 'Step execution timed out',
         });
       }, 30000);
 
@@ -336,7 +342,7 @@ class WorkflowCoordinator {
 
             resolve({
               status: 'success',
-              result: envelope.payload
+              result: envelope.payload,
             });
           }
         }
@@ -366,7 +372,7 @@ class WorkflowCoordinator {
       createdAt: workflow.createdAt,
       startedAt: workflow.startedAt,
       completedAt: workflow.completedAt,
-      error: workflow.error
+      error: workflow.error,
     };
   }
 
@@ -393,14 +399,14 @@ class WorkflowCoordinator {
     return {
       success: true,
       workflowId,
-      status: 'cancelled'
+      status: 'cancelled',
     };
   }
 }
 
 // Start coordinator
 const coordinator = new WorkflowCoordinator();
-coordinator.connect().catch(err => {
+coordinator.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

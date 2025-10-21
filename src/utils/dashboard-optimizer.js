@@ -35,7 +35,7 @@ export class VisibilityOptimizer {
    * Notify all callbacks
    */
   _notifyCallbacks() {
-    this.callbacks.forEach(cb => {
+    this.callbacks.forEach((cb) => {
       try {
         cb(this.isVisible);
       } catch (error) {
@@ -64,7 +64,7 @@ export class AdaptiveUpdateManager {
       normalInterval: options.normalInterval || 5000,
       reducedInterval: options.reducedInterval || 30000,
       idleThreshold: options.idleThreshold || 60000, // 1 minute
-      ...options
+      ...options,
     };
 
     this.isVisible = true;
@@ -156,7 +156,7 @@ export class AdaptiveUpdateManager {
       }
     };
 
-    events.forEach(event => {
+    events.forEach((event) => {
       document.addEventListener(event, resetIdle, { passive: true });
     });
 
@@ -212,7 +212,7 @@ export class DOMUpdateBatcher {
     const updates = this.pendingUpdates.splice(0);
     this.scheduled = false;
 
-    updates.forEach(updateFn => {
+    updates.forEach((updateFn) => {
       try {
         updateFn();
       } catch (error) {
@@ -241,7 +241,7 @@ export class VirtualScrollList {
       itemHeight: options.itemHeight || 50,
       bufferSize: options.bufferSize || 5,
       renderItem: options.renderItem || ((item) => item.toString()),
-      ...options
+      ...options,
     };
 
     this.items = [];
@@ -263,9 +263,13 @@ export class VirtualScrollList {
    * Setup scroll listener
    */
   _setupScroll() {
-    this.container.addEventListener('scroll', () => {
-      this._render();
-    }, { passive: true });
+    this.container.addEventListener(
+      'scroll',
+      () => {
+        this._render();
+      },
+      { passive: true }
+    );
   }
 
   /**
@@ -276,7 +280,10 @@ export class VirtualScrollList {
     const containerHeight = this.container.clientHeight;
 
     // Calculate visible range with buffer
-    const start = Math.max(0, Math.floor(scrollTop / this.options.itemHeight) - this.options.bufferSize);
+    const start = Math.max(
+      0,
+      Math.floor(scrollTop / this.options.itemHeight) - this.options.bufferSize
+    );
     const end = Math.min(
       this.items.length,
       Math.ceil((scrollTop + containerHeight) / this.options.itemHeight) + this.options.bufferSize
@@ -297,7 +304,10 @@ export class VirtualScrollList {
     const html = `
       <div style="height: ${totalHeight}px; position: relative;">
         <div style="transform: translateY(${offsetY}px);">
-          ${this.items.slice(start, end).map(item => this.options.renderItem(item)).join('')}
+          ${this.items
+            .slice(start, end)
+            .map((item) => this.options.renderItem(item))
+            .join('')}
         </div>
       </div>
     `;
@@ -345,5 +355,5 @@ export default {
   AdaptiveUpdateManager,
   DOMUpdateBatcher,
   VirtualScrollList,
-  injectDashboardOptimizations
+  injectDashboardOptimizations,
 };

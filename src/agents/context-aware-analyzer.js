@@ -30,10 +30,10 @@ class ContextAwareAnalyzer {
       'src/agents/self-modifying-analyzer.js',
       'src/agents/verification-loop.js',
       'src/agents/code-analyzer-agent.js',
-      'src/agents/code-fixer-agent.js'
+      'src/agents/code-fixer-agent.js',
     ];
 
-    selfFiles.forEach(file => {
+    selfFiles.forEach((file) => {
       this.selfFilePaths.add(path.normalize(file));
       this.selfFilePaths.add(path.resolve(file));
     });
@@ -48,12 +48,14 @@ class ContextAwareAnalyzer {
     const normalizedPath = path.normalize(filePath);
     const resolvedPath = path.resolve(filePath);
 
-    return this.selfFilePaths.has(normalizedPath) ||
-           this.selfFilePaths.has(resolvedPath) ||
-           normalizedPath.includes('code-analyzer') ||
-           normalizedPath.includes('ast-parser') ||
-           normalizedPath.includes('self-modifying') ||
-           normalizedPath.includes('verification-loop');
+    return (
+      this.selfFilePaths.has(normalizedPath) ||
+      this.selfFilePaths.has(resolvedPath) ||
+      normalizedPath.includes('code-analyzer') ||
+      normalizedPath.includes('ast-parser') ||
+      normalizedPath.includes('self-modifying') ||
+      normalizedPath.includes('verification-loop')
+    );
   }
 
   /**
@@ -76,7 +78,7 @@ class ContextAwareAnalyzer {
           filePath,
           selfAnalysis: true,
           depthLimitReached: true,
-          message: 'Self-analysis depth limit reached to prevent recursion'
+          message: 'Self-analysis depth limit reached to prevent recursion',
         };
       }
 
@@ -98,10 +100,10 @@ class ContextAwareAnalyzer {
         environment: {
           nodeVersion: process.version,
           platform: process.platform,
-          cwd: process.cwd()
-        }
+          cwd: process.cwd(),
+        },
       },
-      recommendations: []
+      recommendations: [],
     };
 
     // Add self-aware recommendations
@@ -109,8 +111,9 @@ class ContextAwareAnalyzer {
       contextualAnalysis.recommendations.push({
         type: 'self-improvement',
         priority: 'high',
-        message: 'This is a self-analysis. Consider improvements that enhance analysis capabilities.',
-        suggestions: this.generateSelfImprovementSuggestions(analysis)
+        message:
+          'This is a self-analysis. Consider improvements that enhance analysis capabilities.',
+        suggestions: this.generateSelfImprovementSuggestions(analysis),
       });
     }
 
@@ -121,7 +124,7 @@ class ContextAwareAnalyzer {
           type: 'refactoring',
           priority: 'high',
           message: 'High complexity detected. Consider refactoring.',
-          metrics: { complexity: analysis.metrics.complexity }
+          metrics: { complexity: analysis.metrics.complexity },
         });
       }
 
@@ -130,7 +133,7 @@ class ContextAwareAnalyzer {
           type: 'architecture',
           priority: 'medium',
           message: 'Consider using classes to organize multiple functions.',
-          metrics: { functions: analysis.metrics.functions }
+          metrics: { functions: analysis.metrics.functions },
         });
       }
     }
@@ -141,7 +144,7 @@ class ContextAwareAnalyzer {
       timestamp: Date.now(),
       isSelfAnalysis,
       issueCount: analysis.issues?.length || 0,
-      qualityScore: analysis.metrics?.qualityScore
+      qualityScore: analysis.metrics?.qualityScore,
     });
 
     if (isSelfAnalysis) {
@@ -165,7 +168,7 @@ class ContextAwareAnalyzer {
       suggestions.push('Address TODO comments to improve code completeness');
     }
 
-    if (analysis.issues?.some(i => i.type === 'console-log')) {
+    if (analysis.issues?.some((i) => i.type === 'console-log')) {
       suggestions.push('Replace console.log with proper logging framework');
     }
 
@@ -181,17 +184,18 @@ class ContextAwareAnalyzer {
    */
   getAnalysisStats() {
     const total = this.analysisHistory.length;
-    const selfAnalysisCount = this.analysisHistory.filter(h => h.isSelfAnalysis).length;
+    const selfAnalysisCount = this.analysisHistory.filter((h) => h.isSelfAnalysis).length;
 
     return {
       totalAnalyses: total,
       selfAnalyses: selfAnalysisCount,
       externalAnalyses: total - selfAnalysisCount,
-      selfAnalysisRatio: total > 0 ? (selfAnalysisCount / total) : 0,
-      averageQualityScore: total > 0
-        ? this.analysisHistory.reduce((sum, h) => sum + (h.qualityScore || 0), 0) / total
-        : 0,
-      recentAnalyses: this.analysisHistory.slice(-10)
+      selfAnalysisRatio: total > 0 ? selfAnalysisCount / total : 0,
+      averageQualityScore:
+        total > 0
+          ? this.analysisHistory.reduce((sum, h) => sum + (h.qualityScore || 0), 0) / total
+          : 0,
+      recentAnalyses: this.analysisHistory.slice(-10),
     };
   }
 
@@ -207,14 +211,14 @@ class ContextAwareAnalyzer {
         const code = fs.readFileSync(file, 'utf8');
         const analysis = this.analyzeWithContext(code, file, {
           source: 'directory-scan',
-          recursive: options.recursive
+          recursive: options.recursive,
         });
         results.push(analysis);
       } catch (error) {
         results.push({
           filePath: file,
           error: error.message,
-          context: { source: 'directory-scan' }
+          context: { source: 'directory-scan' },
         });
       }
     }
@@ -223,7 +227,7 @@ class ContextAwareAnalyzer {
       directory: dirPath,
       fileCount: files.length,
       results,
-      summary: this.summarizeResults(results)
+      summary: this.summarizeResults(results),
     };
   }
 
@@ -258,7 +262,8 @@ class ContextAwareAnalyzer {
    */
   summarizeResults(results) {
     const totalIssues = results.reduce((sum, r) => sum + (r.issues?.length || 0), 0);
-    const avgQuality = results.reduce((sum, r) => sum + (r.metrics?.qualityScore || 0), 0) / results.length;
+    const avgQuality =
+      results.reduce((sum, r) => sum + (r.metrics?.qualityScore || 0), 0) / results.length;
 
     return {
       totalFiles: results.length,
@@ -266,7 +271,7 @@ class ContextAwareAnalyzer {
       averageQualityScore: avgQuality,
       issuesByType: this.groupIssuesByType(results),
       severityCounts: this.countBySeverity(results),
-      selfAnalysisFiles: results.filter(r => r.context?.isSelfAnalysis).length
+      selfAnalysisFiles: results.filter((r) => r.context?.isSelfAnalysis).length,
     };
   }
 
@@ -276,8 +281,8 @@ class ContextAwareAnalyzer {
   groupIssuesByType(results) {
     const grouped = {};
 
-    results.forEach(result => {
-      result.issues?.forEach(issue => {
+    results.forEach((result) => {
+      result.issues?.forEach((issue) => {
         grouped[issue.type] = (grouped[issue.type] || 0) + 1;
       });
     });
@@ -291,8 +296,8 @@ class ContextAwareAnalyzer {
   countBySeverity(results) {
     const counts = { error: 0, warning: 0, info: 0 };
 
-    results.forEach(result => {
-      result.issues?.forEach(issue => {
+    results.forEach((result) => {
+      result.issues?.forEach((issue) => {
         counts[issue.severity] = (counts[issue.severity] || 0) + 1;
       });
     });

@@ -20,22 +20,22 @@ class FullOptimization {
       timestamp: new Date().toISOString(),
       optimizations: [],
       errors: [],
-      metrics: {}
+      metrics: {},
     };
   }
 
   async run() {
     console.log('🚀 Starting Full Optimization System...');
-    
+
     try {
       // Run all optimization phases in parallel
       await Promise.all([
         this.optimizeSystem(),
         this.optimizePerformance(),
         this.optimizeDependencies(),
-        this.optimizeRuntime()
+        this.optimizeRuntime(),
       ]);
-      
+
       await this.generateReport();
       console.log('✅ Full optimization completed successfully!');
     } catch (error) {
@@ -96,7 +96,7 @@ class FullOptimization {
     return new Promise((resolve, reject) => {
       const child = spawn('node', [path.join(__dirname, scriptName)], {
         stdio: 'pipe',
-        env: { ...process.env, OPTIMIZATION_MODE: 'full' }
+        env: { ...process.env, OPTIMIZATION_MODE: 'full' },
       });
 
       child.on('close', (code) => {
@@ -116,7 +116,7 @@ class FullOptimization {
     this.results.metrics = {
       totalTime: duration,
       successfulOptimizations: this.results.optimizations.length,
-      failedOptimizations: this.results.errors.length
+      failedOptimizations: this.results.errors.length,
     };
 
     try {

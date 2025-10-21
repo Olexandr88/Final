@@ -8,7 +8,7 @@
     "dev": "nitric start",
     "build": "nitric build",
     "deploy:aws": "nitric up --provider aws",
-    "deploy:azure": "nitric up --provider azure", 
+    "deploy:azure": "nitric up --provider azure",
     "deploy:gcp": "nitric up --provider gcp",
     "local": "nitric start --verbose",
     "test": "node test.js"

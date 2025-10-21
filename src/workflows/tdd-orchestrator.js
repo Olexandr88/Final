@@ -19,13 +19,7 @@ export class TDDOrchestrator {
    * Red phase: Write failing test
    */
   async red(testSpec) {
-    const {
-      feature,
-      description,
-      testFile,
-      testName,
-      expectations
-    } = testSpec;
+    const { feature, description, testFile, testName, expectations } = testSpec;
 
     console.log(`\n🔴 RED: Writing failing test for ${feature}\n`);
 
@@ -35,7 +29,7 @@ export class TDDOrchestrator {
       testName,
       description,
       expectations,
-      shouldFail: true
+      shouldFail: true,
     });
 
     // Write test file
@@ -64,13 +58,13 @@ export class TDDOrchestrator {
       feature,
       testFile,
       testName,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return {
       testPath,
       testName,
-      failed: true
+      failed: true,
     };
   }
 
@@ -78,12 +72,7 @@ export class TDDOrchestrator {
    * Green phase: Implement minimum code to pass
    */
   async green(implementation) {
-    const {
-      feature,
-      sourceFile,
-      code,
-      testFile
-    } = implementation;
+    const { feature, sourceFile, code, testFile } = implementation;
 
     console.log(`\n🟢 GREEN: Implementing ${feature}\n`);
 
@@ -101,7 +90,7 @@ export class TDDOrchestrator {
       return {
         passed: false,
         failures: result.failures,
-        needsIteration: true
+        needsIteration: true,
       };
     }
 
@@ -111,12 +100,12 @@ export class TDDOrchestrator {
       phase: 'green',
       feature,
       sourceFile,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
 
     return {
       passed: true,
-      coverage: result.coverage
+      coverage: result.coverage,
     };
   }
 
@@ -124,12 +113,7 @@ export class TDDOrchestrator {
    * Refactor phase: Improve code while keeping tests green
    */
   async refactor(refactorSpec) {
-    const {
-      feature,
-      sourceFile,
-      refactoredCode,
-      reason
-    } = refactorSpec;
+    const { feature, sourceFile, refactoredCode, reason } = refactorSpec;
 
     console.log(`\n🔵 REFACTOR: ${reason}\n`);
 
@@ -157,12 +141,12 @@ export class TDDOrchestrator {
         feature,
         sourceFile,
         reason,
-        timestamp: Date.now()
+        timestamp: Date.now(),
       });
 
       return {
         success: true,
-        testsPass: true
+        testsPass: true,
       };
     } catch (error) {
       // Revert on any error
@@ -175,12 +159,7 @@ export class TDDOrchestrator {
    * Full TDD cycle: Red → Green → Refactor
    */
   async cycle(spec) {
-    const {
-      feature,
-      testSpec,
-      implementation,
-      refactoring
-    } = spec;
+    const { feature, testSpec, implementation, refactoring } = spec;
 
     console.log(`\n═══════════════════════════════════════`);
     console.log(`  TDD Cycle: ${feature}`);
@@ -189,7 +168,7 @@ export class TDDOrchestrator {
     const results = {
       feature,
       phases: {},
-      success: false
+      success: false,
     };
 
     try {
@@ -204,7 +183,7 @@ export class TDDOrchestrator {
       do {
         greenResult = await this.green({
           ...implementation,
-          attempt: attempts + 1
+          attempt: attempts + 1,
         });
         attempts++;
 
@@ -270,7 +249,7 @@ export class TDDOrchestrator {
       return {
         passed: true,
         failures: [],
-        coverage: results.coverage || null
+        coverage: results.coverage || null,
       };
     } catch (error) {
       // Parse failures
@@ -286,7 +265,7 @@ export class TDDOrchestrator {
       return {
         passed: false,
         failures,
-        coverage: null
+        coverage: null,
       };
     }
   }
@@ -318,7 +297,7 @@ export class TDDOrchestrator {
     return `
 describe('${testName}', () => {
   test('${description}', () => {
-    ${expectations.map(exp => `expect(${exp.actual}).${exp.matcher}(${exp.expected});`).join('\n    ')}
+    ${expectations.map((exp) => `expect(${exp.actual}).${exp.matcher}(${exp.expected});`).join('\n    ')}
   });
 });
 `;
@@ -333,7 +312,7 @@ describe('${testName}', () => {
     return `
 def test_${testName.replace(/\s+/g, '_').toLowerCase()}():
     """${description}"""
-    ${expectations.map(exp => `assert ${exp.actual} ${exp.matcher} ${exp.expected}`).join('\n    ')}
+    ${expectations.map((exp) => `assert ${exp.actual} ${exp.matcher} ${exp.expected}`).join('\n    ')}
 `;
   }
 
@@ -346,7 +325,7 @@ def test_${testName.replace(/\s+/g, '_').toLowerCase()}():
     return `
 describe('${testName}', function() {
   it('${description}', function() {
-    ${expectations.map(exp => `expect(${exp.actual}).to.${exp.matcher}(${exp.expected});`).join('\n    ')}
+    ${expectations.map((exp) => `expect(${exp.actual}).to.${exp.matcher}(${exp.expected});`).join('\n    ')}
   });
 });
 `;
@@ -366,12 +345,12 @@ describe('${testName}', function() {
     const report = {
       totalCycles: this.testHistory.length,
       phases: {
-        red: this.testHistory.filter(h => h.phase === 'red').length,
-        green: this.testHistory.filter(h => h.phase === 'green').length,
-        refactor: this.testHistory.filter(h => h.phase === 'refactor').length
+        red: this.testHistory.filter((h) => h.phase === 'red').length,
+        green: this.testHistory.filter((h) => h.phase === 'green').length,
+        refactor: this.testHistory.filter((h) => h.phase === 'refactor').length,
       },
-      features: [...new Set(this.testHistory.map(h => h.feature))],
-      timeline: this.testHistory
+      features: [...new Set(this.testHistory.map((h) => h.feature))],
+      timeline: this.testHistory,
     };
 
     return report;

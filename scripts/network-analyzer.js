@@ -21,7 +21,7 @@ const NETWORK_COMMANDS = {
       console.log('Note: This is a Windows system. Use Wireshark or tcpdump equivalent.\n');
       console.log(`Recommended: netsh trace start capture=yes tracefile=port${port}.etl`);
       console.log(`Stop with: netsh trace stop`);
-    }
+    },
   },
 
   'scan-ports': {
@@ -57,7 +57,7 @@ const NETWORK_COMMANDS = {
       if (openPorts.length > 0) {
         console.log(`Open ports: ${openPorts.join(', ')}`);
       }
-    }
+    },
   },
 
   'dns-lookup': {
@@ -71,20 +71,19 @@ const NETWORK_COMMANDS = {
       const resolvers = [
         { name: 'Cloudflare', ip: '1.1.1.1' },
         { name: 'Google', ip: '8.8.8.8' },
-        { name: 'Quad9', ip: '9.9.9.9' }
+        { name: 'Quad9', ip: '9.9.9.9' },
       ];
 
       for (const resolver of resolvers) {
         try {
-          const { stdout } = await execAsync(
-            `nslookup ${domain} ${resolver.ip}`,
-            { timeout: 3000 }
-          );
+          const { stdout } = await execAsync(`nslookup ${domain} ${resolver.ip}`, {
+            timeout: 3000,
+          });
 
           const addresses = stdout.match(/Address(?:es)?:\s+([^\r\n]+)/g);
           if (addresses) {
             console.log(`${resolver.name} (${resolver.ip}):`);
-            addresses.forEach(addr => {
+            addresses.forEach((addr) => {
               const ip = addr.split(':')[1]?.trim();
               if (ip && ip !== resolver.ip) {
                 console.log(`  → ${ip}`);
@@ -95,7 +94,7 @@ const NETWORK_COMMANDS = {
           console.log(`${resolver.name}: ❌ Failed`);
         }
       }
-    }
+    },
   },
 
   'dns-reverse': {
@@ -118,7 +117,7 @@ const NETWORK_COMMANDS = {
       } catch (err) {
         console.log('❌ Lookup failed:', err.message);
       }
-    }
+    },
   },
 
   'route-trace': {
@@ -130,16 +129,13 @@ const NETWORK_COMMANDS = {
       console.log(`🗺️  Tracing route to ${target}\n`);
 
       try {
-        const { stdout } = await execAsync(
-          `tracert -h ${maxHops} ${target}`,
-          { timeout: 60000 }
-        );
+        const { stdout } = await execAsync(`tracert -h ${maxHops} ${target}`, { timeout: 60000 });
 
         console.log(stdout);
       } catch (err) {
         console.log('❌ Trace failed:', err.message);
       }
-    }
+    },
   },
 
   'connections-summary': {
@@ -149,12 +145,10 @@ const NETWORK_COMMANDS = {
 
       try {
         // Block 225 - Connection summary (adapted for Windows)
-        const { stdout } = await execAsync(
-          'netstat -an | findstr ESTABLISHED'
-        );
+        const { stdout } = await execAsync('netstat -an | findstr ESTABLISHED');
 
         const connections = new Map();
-        stdout.split('\n').forEach(line => {
+        stdout.split('\n').forEach((line) => {
           const match = line.match(/(\d+\.\d+\.\d+\.\d+):(\d+)/);
           if (match && match[1] !== '127.0.0.1' && !match[1].startsWith('0.0.0.0')) {
             const ip = match[1];
@@ -162,9 +156,7 @@ const NETWORK_COMMANDS = {
           }
         });
 
-        const sorted = [...connections.entries()]
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 20);
+        const sorted = [...connections.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
 
         console.log('Top IPs by connection count:\n');
         sorted.forEach(([ip, count]) => {
@@ -176,7 +168,7 @@ const NETWORK_COMMANDS = {
       } catch (err) {
         console.log('❌ Error:', err.message);
       }
-    }
+    },
   },
 
   'port-watch': {
@@ -190,9 +182,7 @@ const NETWORK_COMMANDS = {
 
       const watch = async () => {
         try {
-          const { stdout } = await execAsync(
-            `netstat -an | findstr :${port}`
-          );
+          const { stdout } = await execAsync(`netstat -an | findstr :${port}`);
 
           process.stdout.write('\x1Bc'); // Clear screen
           console.log(`Port ${port} Connections - ${new Date().toLocaleTimeString()}\n`);
@@ -214,7 +204,7 @@ const NETWORK_COMMANDS = {
         console.log('\n\nStopped watching');
         process.exit(0);
       });
-    }
+    },
   },
 
   'bandwidth-monitor': {
@@ -235,7 +225,7 @@ const NETWORK_COMMANDS = {
           );
 
           const lines = stdout.split('\n');
-          const dataLine = lines.find(l => l.includes(interface_name));
+          const dataLine = lines.find((l) => l.includes(interface_name));
 
           if (dataLine) {
             const parts = dataLine.trim().split(/\s+/);
@@ -271,10 +261,10 @@ const NETWORK_COMMANDS = {
         console.log('\nStopped monitoring');
         process.exit(0);
       });
-    }
+    },
   },
 
-  'whois': {
+  whois: {
     desc: 'WHOIS lookup for domain or IP',
     async run(args) {
       const target = args[0] || 'google.com';
@@ -294,7 +284,7 @@ const NETWORK_COMMANDS = {
         console.log('Tip: Use online whois service or install whois utility');
         console.log(`https://whois.com/whois/${target}`);
       }
-    }
+    },
   },
 
   'http-headers': {
@@ -306,10 +296,7 @@ const NETWORK_COMMANDS = {
 
       try {
         // Block 154-156 - HTTP header inspection
-        const { stdout } = await execAsync(
-          `curl -Iks "${url}"`,
-          { timeout: 10000 }
-        );
+        const { stdout } = await execAsync(`curl -Iks "${url}"`, { timeout: 10000 });
 
         console.log(stdout);
       } catch (err) {
@@ -317,7 +304,7 @@ const NETWORK_COMMANDS = {
         console.log('Tip: Install curl or use PowerShell:');
         console.log(`  Invoke-WebRequest -Uri "${url}" -Method Head`);
       }
-    }
+    },
   },
 
   'ssl-check': {
@@ -340,8 +327,8 @@ const NETWORK_COMMANDS = {
       } catch (err) {
         console.log('❌ SSL/TLS check failed:', err.message);
       }
-    }
-  }
+    },
+  },
 };
 
 async function main() {
@@ -376,7 +363,7 @@ async function main() {
   await cmd.run(args);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error('❌ Error:', err.message);
   process.exit(1);
 });

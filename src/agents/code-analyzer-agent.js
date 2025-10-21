@@ -30,15 +30,17 @@ class CodeAnalyzerAgent {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: 'code-analyzer',
-      role: 'analyzer',
-      skills: ['analyze_code', 'find_bugs', 'code_review'],
-      intents: ['code.analyze', 'code.review']
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: 'code-analyzer',
+        role: 'analyzer',
+        skills: ['analyze_code', 'find_bugs', 'code_review'],
+        intents: ['code.analyze', 'code.review'],
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info('✅ Code Analyzer ready\n');
 
     this.setupHandlers();
@@ -76,7 +78,7 @@ class CodeAnalyzerAgent {
 
   analyzeCode(code, filepath = 'unknown') {
     return this.analyzer.analyzeWithContext(code, filepath, {
-      source: 'code-analyzer-agent'
+      source: 'code-analyzer-agent',
     });
   }
 
@@ -93,54 +95,69 @@ class CodeAnalyzerAgent {
 
       logger.info(`✅ Analysis complete - ${analysis.issues.length} issues found\n`);
 
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'code.analysis_result',
-          from: 'code-analyzer',
-          to: envelope.from,
-          taskId: envelope.taskId,
-          replyTo: envelope.id,
-          payload: {
-            filePath: analysis.filePath,
-            analysis: {
-              quality_score: analysis.metrics?.qualityScore,
-              bugs: analysis.issues?.filter(i => i.severity === 'error')
-                .map(i => `Line ${i.line}: ${i.message}`) || [],
-              security_issues: analysis.issues?.filter(i =>
-                i.message?.toLowerCase().includes('security') ||
-                i.message?.toLowerCase().includes('password')) || [],
-              performance_issues: analysis.issues?.filter(i =>
-                i.message?.toLowerCase().includes('performance')) || [],
-              warnings: analysis.issues?.filter(i => i.severity === 'warning')
-                .map(i => `Line ${i.line}: ${i.message}`) || [],
-              info: analysis.issues?.filter(i => i.severity === 'info')
-                .map(i => `Line ${i.line}: ${i.message}`) || [],
-              context: analysis.context,
-              recommendations: analysis.recommendations
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            intent: 'code.analysis_result',
+            from: 'code-analyzer',
+            to: envelope.from,
+            taskId: envelope.taskId,
+            replyTo: envelope.id,
+            payload: {
+              filePath: analysis.filePath,
+              analysis: {
+                quality_score: analysis.metrics?.qualityScore,
+                bugs:
+                  analysis.issues
+                    ?.filter((i) => i.severity === 'error')
+                    .map((i) => `Line ${i.line}: ${i.message}`) || [],
+                security_issues:
+                  analysis.issues?.filter(
+                    (i) =>
+                      i.message?.toLowerCase().includes('security') ||
+                      i.message?.toLowerCase().includes('password')
+                  ) || [],
+                performance_issues:
+                  analysis.issues?.filter((i) =>
+                    i.message?.toLowerCase().includes('performance')
+                  ) || [],
+                warnings:
+                  analysis.issues
+                    ?.filter((i) => i.severity === 'warning')
+                    .map((i) => `Line ${i.line}: ${i.message}`) || [],
+                info:
+                  analysis.issues
+                    ?.filter((i) => i.severity === 'info')
+                    .map((i) => `Line ${i.line}: ${i.message}`) || [],
+                context: analysis.context,
+                recommendations: analysis.recommendations,
+              },
+              timestamp: Date.now(),
             },
-            timestamp: Date.now()
-          }
-        }
-      }));
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Analysis error:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          intent: 'agent.error',
-          from: 'code-analyzer',
-          to: envelope.from,
-          taskId: envelope.taskId,
-          payload: { error: error.message }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            intent: 'agent.error',
+            from: 'code-analyzer',
+            to: envelope.from,
+            taskId: envelope.taskId,
+            payload: { error: error.message },
+          },
+        })
+      );
     }
   }
 }
 
 const agent = new CodeAnalyzerAgent();
-agent.connect().catch(err => {
+agent.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

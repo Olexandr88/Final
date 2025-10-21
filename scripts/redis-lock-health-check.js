@@ -10,7 +10,7 @@ class LockHealthCheck {
     this.results = {
       timestamp: new Date().toISOString(),
       overall: 'UNKNOWN',
-      checks: []
+      checks: [],
     };
   }
 
@@ -19,7 +19,7 @@ class LockHealthCheck {
       name,
       status,
       message,
-      ...details
+      ...details,
     });
   }
 
@@ -27,13 +27,22 @@ class LockHealthCheck {
     try {
       this.lockManager = new RedisRedlockManager({
         redisNodes: [
-          { host: process.env.REDIS_HOST_1 || 'localhost', port: parseInt(process.env.REDIS_PORT_1 || '6379') },
-          { host: process.env.REDIS_HOST_2 || 'localhost', port: parseInt(process.env.REDIS_PORT_2 || '6380') },
-          { host: process.env.REDIS_HOST_3 || 'localhost', port: parseInt(process.env.REDIS_PORT_3 || '6381') }
+          {
+            host: process.env.REDIS_HOST_1 || 'localhost',
+            port: parseInt(process.env.REDIS_PORT_1 || '6379'),
+          },
+          {
+            host: process.env.REDIS_HOST_2 || 'localhost',
+            port: parseInt(process.env.REDIS_PORT_2 || '6380'),
+          },
+          {
+            host: process.env.REDIS_HOST_3 || 'localhost',
+            port: parseInt(process.env.REDIS_PORT_3 || '6381'),
+          },
         ],
         lockTTL: 5000,
         retryCount: 2,
-        retryDelay: 100
+        retryDelay: 100,
       });
 
       const startTime = performance.now();
@@ -41,7 +50,7 @@ class LockHealthCheck {
       const initTime = performance.now() - startTime;
 
       this.addCheck('Initialization', 'PASS', 'Lock manager initialized successfully', {
-        duration: `${initTime.toFixed(2)}ms`
+        duration: `${initTime.toFixed(2)}ms`,
       });
 
       return true;
@@ -55,22 +64,32 @@ class LockHealthCheck {
     try {
       const health = await this.lockManager.getHealthStatus();
 
-      const healthyCount = health.nodes.filter(n => n.healthy).length;
+      const healthyCount = health.nodes.filter((n) => n.healthy).length;
       const requiredQuorum = health.requiredQuorum;
 
       if (healthyCount >= requiredQuorum) {
-        this.addCheck('Redis Cluster Health', 'PASS', `${healthyCount}/${health.totalNodes} nodes healthy (quorum: ${requiredQuorum})`, {
-          nodes: health.nodes.map(n => ({
-            host: `${n.node.host}:${n.node.port}`,
-            healthy: n.healthy,
-            latency: n.latency || 'N/A',
-            status: n.status
-          }))
-        });
+        this.addCheck(
+          'Redis Cluster Health',
+          'PASS',
+          `${healthyCount}/${health.totalNodes} nodes healthy (quorum: ${requiredQuorum})`,
+          {
+            nodes: health.nodes.map((n) => ({
+              host: `${n.node.host}:${n.node.port}`,
+              healthy: n.healthy,
+              latency: n.latency || 'N/A',
+              status: n.status,
+            })),
+          }
+        );
       } else {
-        this.addCheck('Redis Cluster Health', 'FAIL', `Insufficient nodes (${healthyCount}/${health.totalNodes}, need ${requiredQuorum})`, {
-          nodes: health.nodes
-        });
+        this.addCheck(
+          'Redis Cluster Health',
+          'FAIL',
+          `Insufficient nodes (${healthyCount}/${health.totalNodes}, need ${requiredQuorum})`,
+          {
+            nodes: health.nodes,
+          }
+        );
       }
 
       return healthyCount >= requiredQuorum;
@@ -94,7 +113,7 @@ class LockHealthCheck {
       this.addCheck('Lock Acquisition', status, `Lock acquired in ${acquireTime.toFixed(2)}ms`, {
         duration: `${acquireTime.toFixed(2)}ms`,
         threshold: '200ms',
-        resource
+        resource,
       });
 
       return true;
@@ -117,7 +136,7 @@ class LockHealthCheck {
       const status = releaseTime < 100 ? 'PASS' : 'WARN';
       this.addCheck('Lock Release', status, `Lock released in ${releaseTime.toFixed(2)}ms`, {
         duration: `${releaseTime.toFixed(2)}ms`,
-        threshold: '100ms'
+        threshold: '100ms',
       });
 
       return true;
@@ -135,9 +154,10 @@ class LockHealthCheck {
       // Try 5 concurrent lock acquisitions
       for (let i = 0; i < 5; i++) {
         promises.push(
-          this.lockManager.acquireLock(resource, 1000)
+          this.lockManager
+            .acquireLock(resource, 1000)
             .then(async () => {
-              await new Promise(resolve => setTimeout(resolve, 100));
+              await new Promise((resolve) => setTimeout(resolve, 100));
               await this.lockManager.releaseLock(resource);
               return true;
             })
@@ -146,11 +166,15 @@ class LockHealthCheck {
       }
 
       const results = await Promise.allSettled(promises);
-      const successCount = results.filter(r => r.status === 'fulfilled' && r.value).length;
+      const successCount = results.filter((r) => r.status === 'fulfilled' && r.value).length;
 
       // At least one should succeed
       if (successCount > 0) {
-        this.addCheck('Concurrency Control', 'PASS', `${successCount}/5 lock attempts succeeded (mutual exclusion enforced)`);
+        this.addCheck(
+          'Concurrency Control',
+          'PASS',
+          `${successCount}/5 lock attempts succeeded (mutual exclusion enforced)`
+        );
       } else {
         this.addCheck('Concurrency Control', 'FAIL', 'No lock acquisition succeeded');
       }
@@ -166,12 +190,11 @@ class LockHealthCheck {
     try {
       const metrics = this.lockManager.getMetrics();
 
-      const hasValidMetrics = (
+      const hasValidMetrics =
         typeof metrics.locksAcquired === 'number' &&
         typeof metrics.locksFailed === 'number' &&
         typeof metrics.locksReleased === 'number' &&
-        metrics.avgAcquireTime !== undefined
-      );
+        metrics.avgAcquireTime !== undefined;
 
       if (hasValidMetrics) {
         this.addCheck('Metrics Collection', 'PASS', 'All metrics collected successfully', {
@@ -180,8 +203,8 @@ class LockHealthCheck {
             failed: metrics.locksFailed,
             released: metrics.locksReleased,
             avgAcquireTime: metrics.avgAcquireTime + 'ms',
-            successRate: metrics.successRate + '%'
-          }
+            successRate: metrics.successRate + '%',
+          },
         });
       } else {
         this.addCheck('Metrics Collection', 'FAIL', 'Invalid metrics data');
@@ -199,18 +222,31 @@ class LockHealthCheck {
     try {
       const health = await this.lockManager.getHealthStatus();
 
-      const allNodesHealthy = health.nodes.every(n => n.healthy);
+      const allNodesHealthy = health.nodes.every((n) => n.healthy);
 
       if (allNodesHealthy) {
-        this.addCheck('Failover Readiness', 'PASS', 'All nodes healthy - system can tolerate 1 node failure', {
-          note: 'Redlock requires 2/3 nodes for operation'
-        });
+        this.addCheck(
+          'Failover Readiness',
+          'PASS',
+          'All nodes healthy - system can tolerate 1 node failure',
+          {
+            note: 'Redlock requires 2/3 nodes for operation',
+          }
+        );
       } else {
-        const healthyCount = health.nodes.filter(n => n.healthy).length;
+        const healthyCount = health.nodes.filter((n) => n.healthy).length;
         if (healthyCount >= 2) {
-          this.addCheck('Failover Readiness', 'WARN', `${healthyCount}/3 nodes healthy - still operational but degraded`);
+          this.addCheck(
+            'Failover Readiness',
+            'WARN',
+            `${healthyCount}/3 nodes healthy - still operational but degraded`
+          );
         } else {
-          this.addCheck('Failover Readiness', 'FAIL', `Only ${healthyCount}/3 nodes healthy - quorum lost`);
+          this.addCheck(
+            'Failover Readiness',
+            'FAIL',
+            `Only ${healthyCount}/3 nodes healthy - quorum lost`
+          );
         }
       }
 
@@ -222,8 +258,8 @@ class LockHealthCheck {
   }
 
   determineOverallStatus() {
-    const failCount = this.results.checks.filter(c => c.status === 'FAIL').length;
-    const warnCount = this.results.checks.filter(c => c.status === 'WARN').length;
+    const failCount = this.results.checks.filter((c) => c.status === 'FAIL').length;
+    const warnCount = this.results.checks.filter((c) => c.status === 'WARN').length;
 
     if (failCount > 0) {
       this.results.overall = 'FAIL';
@@ -245,7 +281,8 @@ class LockHealthCheck {
 
     this.results.checks.forEach((check, index) => {
       const icon = check.status === 'PASS' ? '✓' : check.status === 'WARN' ? '⚠' : '✗';
-      const color = check.status === 'PASS' ? '\x1b[32m' : check.status === 'WARN' ? '\x1b[33m' : '\x1b[31m';
+      const color =
+        check.status === 'PASS' ? '\x1b[32m' : check.status === 'WARN' ? '\x1b[33m' : '\x1b[31m';
       const reset = '\x1b[0m';
 
       console.log(`${color}${icon} ${check.name}${reset}`);
@@ -258,9 +295,11 @@ class LockHealthCheck {
 
       if (check.nodes) {
         console.log('  Nodes:');
-        check.nodes.forEach(node => {
+        check.nodes.forEach((node) => {
           const nodeIcon = node.healthy ? '✓' : '✗';
-          console.log(`    ${nodeIcon} ${node.host} - ${node.healthy ? 'HEALTHY' : 'UNHEALTHY'} (${node.latency})`);
+          console.log(
+            `    ${nodeIcon} ${node.host} - ${node.healthy ? 'HEALTHY' : 'UNHEALTHY'} (${node.latency})`
+          );
         });
       }
 
@@ -278,9 +317,9 @@ class LockHealthCheck {
 
     const summary = {
       total: this.results.checks.length,
-      passed: this.results.checks.filter(c => c.status === 'PASS').length,
-      warned: this.results.checks.filter(c => c.status === 'WARN').length,
-      failed: this.results.checks.filter(c => c.status === 'FAIL').length
+      passed: this.results.checks.filter((c) => c.status === 'PASS').length,
+      warned: this.results.checks.filter((c) => c.status === 'WARN').length,
+      failed: this.results.checks.filter((c) => c.status === 'FAIL').length,
     };
 
     console.log('SUMMARY');
@@ -333,7 +372,6 @@ class LockHealthCheck {
 
       await this.cleanup();
       process.exit(exitCode);
-
     } catch (error) {
       console.error('Health check error:', error);
       await this.cleanup();

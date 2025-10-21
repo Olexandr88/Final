@@ -18,7 +18,7 @@ class CloudSQLOptimizer {
       idleTimeoutMillis: config.idleTimeoutMillis || 30000,
       connectionTimeoutMillis: config.connectionTimeoutMillis || 10000,
       maxUses: config.maxUses || 7500,
-      ssl: config.ssl || false
+      ssl: config.ssl || false,
     };
     this.pool = null;
     this.metrics = {
@@ -32,8 +32,8 @@ class CloudSQLOptimizer {
       connectionStats: {
         created: 0,
         closed: 0,
-        errors: 0
-      }
+        errors: 0,
+      },
     };
     this.slowQueryThreshold = config.slowQueryThreshold || 1000; // ms
     this.cacheEnabled = config.cacheEnabled !== false;
@@ -46,28 +46,28 @@ class CloudSQLOptimizer {
   async initialize() {
     try {
       this.pool = new Pool(this.config);
-      
+
       // Pool event handlers
       this.pool.on('connect', () => {
         this.metrics.connectionStats.created++;
         console.log('[CloudSQL] New client connected');
       });
-      
+
       this.pool.on('remove', () => {
         this.metrics.connectionStats.closed++;
         console.log('[CloudSQL] Client removed from pool');
       });
-      
+
       this.pool.on('error', (err) => {
         this.metrics.connectionStats.errors++;
         console.error('[CloudSQL] Pool error:', err.message);
       });
-      
+
       // Test connection
       const client = await this.pool.connect();
       await client.query('SELECT NOW()');
       client.release();
-      
+
       console.log('[CloudSQL] Connection pool initialized successfully');
       return true;
     } catch (error) {
@@ -81,22 +81,24 @@ class CloudSQLOptimizer {
    */
   optimizeQuery(query) {
     let optimized = query.trim();
-    
+
     // Remove unnecessary whitespace
     optimized = optimized.replace(/\s+/g, ' ');
-    
+
     // Add LIMIT if not present for SELECT queries
-    if (optimized.toUpperCase().startsWith('SELECT') && 
-        !optimized.toUpperCase().includes('LIMIT')) {
+    if (
+      optimized.toUpperCase().startsWith('SELECT') &&
+      !optimized.toUpperCase().includes('LIMIT')
+    ) {
       optimized += ' LIMIT 1000';
     }
-    
+
     // Suggest indexes for WHERE clauses
     const whereMatch = optimized.match(/WHERE\s+(\w+)/i);
     if (whereMatch) {
       console.log(`[CloudSQL] Consider adding index on: ${whereMatch[1]}`);
     }
-    
+
     return optimized;
   }
 
@@ -106,9 +108,9 @@ class CloudSQLOptimizer {
   async query(sql, params = [], options = {}) {
     const startTime = performance.now();
     const queryId = this.generateQueryId(sql, params);
-    
+
     this.metrics.totalQueries++;
-    
+
     try {
       // Check cache
       if (this.cacheEnabled && !options.skipCache) {
@@ -118,31 +120,31 @@ class CloudSQLOptimizer {
           return cached;
         }
       }
-      
+
       // Optimize query
       const optimizedSQL = options.skipOptimization ? sql : this.optimizeQuery(sql);
-      
+
       // Execute query
       const result = await this.pool.query(optimizedSQL, params);
-      
+
       const endTime = performance.now();
       const duration = endTime - startTime;
-      
+
       // Update metrics
       this.metrics.successfulQueries++;
       this.metrics.totalQueryTime += duration;
       this.metrics.avgQueryTime = this.metrics.totalQueryTime / this.metrics.successfulQueries;
-      
+
       if (duration > this.slowQueryThreshold) {
         this.metrics.slowQueries++;
         console.warn(`[CloudSQL] Slow query detected (${duration.toFixed(2)}ms):`, optimizedSQL);
       }
-      
+
       // Cache result
       if (this.cacheEnabled && sql.toUpperCase().startsWith('SELECT')) {
         this.addToCache(queryId, result);
       }
-      
+
       console.log(`[CloudSQL] Query executed in ${duration.toFixed(2)}ms`);
       return result;
     } catch (error) {
@@ -157,7 +159,7 @@ class CloudSQLOptimizer {
    */
   async transaction(callback) {
     const client = await this.pool.connect();
-    
+
     try {
       await client.query('BEGIN');
       const result = await callback(client);
@@ -179,7 +181,7 @@ class CloudSQLOptimizer {
   async batchQuery(queries) {
     const results = [];
     const client = await this.pool.connect();
-    
+
     try {
       for (const { sql, params } of queries) {
         const result = await client.query(sql, params);
@@ -205,20 +207,20 @@ class CloudSQLOptimizer {
   addToCache(key, value) {
     this.metrics.queryCache.set(key, {
       value,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
   getFromCache(key) {
     const cached = this.metrics.queryCache.get(key);
     if (!cached) return null;
-    
+
     const age = Date.now() - cached.timestamp;
     if (age > this.cacheTTL) {
       this.metrics.queryCache.delete(key);
       return null;
     }
-    
+
     return cached.value;
   }
 
@@ -236,12 +238,13 @@ class CloudSQLOptimizer {
       poolStats: {
         total: this.pool?.totalCount || 0,
         idle: this.pool?.idleCount || 0,
-        waiting: this.pool?.waitingCount || 0
+        waiting: this.pool?.waitingCount || 0,
       },
       cacheSize: this.metrics.queryCache.size,
-      successRate: this.metrics.totalQueries > 0 
-        ? (this.metrics.successfulQueries / this.metrics.totalQueries * 100).toFixed(2) + '%'
-        : '0%'
+      successRate:
+        this.metrics.totalQueries > 0
+          ? ((this.metrics.successfulQueries / this.metrics.totalQueries) * 100).toFixed(2) + '%'
+          : '0%',
     };
   }
 
@@ -255,8 +258,12 @@ class CloudSQLOptimizer {
     console.log(`Avg Query Time: ${metrics.avgQueryTime.toFixed(2)}ms`);
     console.log(`Success Rate: ${metrics.successRate}`);
     console.log(`Cache Size: ${metrics.cacheSize}`);
-    console.log(`Pool - Total: ${metrics.poolStats.total}, Idle: ${metrics.poolStats.idle}, Waiting: ${metrics.poolStats.waiting}`);
-    console.log(`Connections - Created: ${metrics.connectionStats.created}, Closed: ${metrics.connectionStats.closed}, Errors: ${metrics.connectionStats.errors}`);
+    console.log(
+      `Pool - Total: ${metrics.poolStats.total}, Idle: ${metrics.poolStats.idle}, Waiting: ${metrics.poolStats.waiting}`
+    );
+    console.log(
+      `Connections - Created: ${metrics.connectionStats.created}, Closed: ${metrics.connectionStats.closed}, Errors: ${metrics.connectionStats.errors}`
+    );
     console.log('==================================\n');
   }
 
@@ -272,14 +279,14 @@ class CloudSQLOptimizer {
         poolHealth: {
           total: this.pool?.totalCount || 0,
           idle: this.pool?.idleCount || 0,
-          waiting: this.pool?.waitingCount || 0
-        }
+          waiting: this.pool?.waitingCount || 0,
+        },
       };
     } catch (error) {
       return {
         status: 'unhealthy',
         error: error.message,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     }
   }
@@ -289,17 +296,17 @@ class CloudSQLOptimizer {
    */
   async analyzeQuery(sql, params = []) {
     const explainQuery = `EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON) ${sql}`;
-    
+
     try {
       const result = await this.pool.query(explainQuery, params);
       const plan = result.rows[0]['QUERY PLAN'][0];
-      
+
       console.log('\n=== Query Analysis ===');
       console.log(`Execution Time: ${plan['Execution Time']}ms`);
       console.log(`Planning Time: ${plan['Planning Time']}ms`);
       console.log(`Total Cost: ${plan['Plan']['Total Cost']}`);
       console.log('======================\n');
-      
+
       return plan;
     } catch (error) {
       console.error('[CloudSQL] Query analysis failed:', error.message);
@@ -340,20 +347,20 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   (async () => {
     const optimizer = new CloudSQLOptimizer({
       database: process.env.DB_NAME || 'testdb',
-      user: process.env.DB_USER || 'postgres'
+      user: process.env.DB_USER || 'postgres',
     });
-    
+
     try {
       await optimizer.initialize();
-      
+
       // Example queries
       await optimizer.query('SELECT * FROM users WHERE active = $1', [true]);
       await optimizer.query('SELECT COUNT(*) FROM orders');
-      
+
       // Health check
       const health = await optimizer.healthCheck();
       console.log('Health Check:', health);
-      
+
       // Print metrics
       optimizer.printMetrics();
     } catch (error) {

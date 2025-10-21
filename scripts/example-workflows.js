@@ -18,17 +18,17 @@ export async function featureDevelopmentWorkflow() {
       'Span tracking across agents',
       'OpenTelemetry export integration',
       'Minimal performance overhead (<5ms latency)',
-      'Create architecture diagram and implementation plan'
+      'Create architecture diagram and implementation plan',
     ],
     dependencies: 'None',
     priority: 'high',
-    estimatedTime: '30 minutes'
+    estimatedTime: '30 minutes',
   });
 
   console.log('✅ Task assigned to Architect Claude\n');
 
   // Developer: Implement the feature (waits for architect)
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   await assignTask('developer', {
     description: 'Implement the distributed tracing system based on Architect plan',
@@ -37,17 +37,17 @@ export async function featureDevelopmentWorkflow() {
       'Add span tracking to agent messages',
       'Integrate OpenTelemetry exporter',
       'Add configuration options',
-      'Write inline documentation'
+      'Write inline documentation',
     ],
     dependencies: 'architect - Wait for architecture plan',
     priority: 'high',
-    estimatedTime: '45 minutes'
+    estimatedTime: '45 minutes',
   });
 
   console.log('✅ Task assigned to Developer Claude\n');
 
   // Tester: Create tests and validate (waits for developer)
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   await assignTask('tester', {
     description: 'Create comprehensive tests for distributed tracing system',
@@ -56,11 +56,11 @@ export async function featureDevelopmentWorkflow() {
       'Integration tests for end-to-end tracing',
       'Performance tests (verify <5ms overhead)',
       'Test error handling and edge cases',
-      'Run full test suite and report results'
+      'Run full test suite and report results',
     ],
     dependencies: 'developer - Wait for implementation',
     priority: 'high',
-    estimatedTime: '30 minutes'
+    estimatedTime: '30 minutes',
   });
 
   console.log('✅ Task assigned to Tester Claude\n');
@@ -79,16 +79,16 @@ export async function codeReviewWorkflow() {
       'Identify code duplication',
       'Assess scalability concerns',
       'Document architectural debt',
-      'Create refactoring recommendations'
+      'Create refactoring recommendations',
     ],
     dependencies: 'None',
     priority: 'medium',
-    estimatedTime: '25 minutes'
+    estimatedTime: '25 minutes',
   });
 
   console.log('✅ Task assigned to Architect Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Developer: Implement refactoring
   await assignTask('developer', {
@@ -98,16 +98,16 @@ export async function codeReviewWorkflow() {
       'Implement shared error handling',
       'Create agent factory pattern',
       'Update all agents to use new structure',
-      'Maintain backward compatibility'
+      'Maintain backward compatibility',
     ],
     dependencies: 'architect',
     priority: 'medium',
-    estimatedTime: '40 minutes'
+    estimatedTime: '40 minutes',
   });
 
   console.log('✅ Task assigned to Developer Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Tester: Validate refactoring
   await assignTask('tester', {
@@ -117,11 +117,11 @@ export async function codeReviewWorkflow() {
       'Create tests for new base class',
       'Test backward compatibility',
       'Performance regression testing',
-      'Integration test suite'
+      'Integration test suite',
     ],
     dependencies: 'developer',
     priority: 'medium',
-    estimatedTime: '30 minutes'
+    estimatedTime: '30 minutes',
   });
 
   console.log('✅ Task assigned to Tester Claude\n');
@@ -139,16 +139,16 @@ export async function bugFixWorkflow() {
       'Review keepalive implementation',
       'Check error logs and patterns',
       'Identify root cause',
-      'Propose solution approach'
+      'Propose solution approach',
     ],
     dependencies: 'None',
     priority: 'critical',
-    estimatedTime: '20 minutes'
+    estimatedTime: '20 minutes',
   });
 
   console.log('✅ Task assigned to Architect Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Developer: Implement the fix
   await assignTask('developer', {
@@ -158,16 +158,16 @@ export async function bugFixWorkflow() {
       'Add better error logging',
       'Improve keepalive mechanism',
       'Add reconnection logic',
-      'Test with multiple agents'
+      'Test with multiple agents',
     ],
     dependencies: 'architect',
     priority: 'critical',
-    estimatedTime: '30 minutes'
+    estimatedTime: '30 minutes',
   });
 
   console.log('✅ Task assigned to Developer Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Tester: Validate the fix
   await assignTask('tester', {
@@ -177,11 +177,11 @@ export async function bugFixWorkflow() {
       'Verify fix resolves issue',
       'Stress test with many agents',
       'Test edge cases',
-      'Add regression test'
+      'Add regression test',
     ],
     dependencies: 'developer',
     priority: 'critical',
-    estimatedTime: '25 minutes'
+    estimatedTime: '25 minutes',
   });
 
   console.log('✅ Task assigned to Tester Claude\n');
@@ -199,16 +199,16 @@ export async function documentationWorkflow() {
       'Agent communication protocol docs',
       'Message format specifications',
       'Deployment architecture',
-      'Scalability considerations'
+      'Scalability considerations',
     ],
     dependencies: 'None',
     priority: 'low',
-    estimatedTime: '35 minutes'
+    estimatedTime: '35 minutes',
   });
 
   console.log('✅ Task assigned to Architect Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Developer: API documentation
   await assignTask('developer', {
@@ -218,16 +218,16 @@ export async function documentationWorkflow() {
       'Create usage examples',
       'Document message types',
       'Add JSDoc comments to code',
-      'Generate API reference'
+      'Generate API reference',
     ],
     dependencies: 'None (parallel with architect)',
     priority: 'low',
-    estimatedTime: '40 minutes'
+    estimatedTime: '40 minutes',
   });
 
   console.log('✅ Task assigned to Developer Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Tester: Testing documentation
   await assignTask('tester', {
@@ -237,11 +237,11 @@ export async function documentationWorkflow() {
       'Create testing guide',
       'Generate coverage report',
       'Document how to run tests',
-      'Add examples of common test patterns'
+      'Add examples of common test patterns',
     ],
     dependencies: 'None (parallel)',
     priority: 'low',
-    estimatedTime: '30 minutes'
+    estimatedTime: '30 minutes',
   });
 
   console.log('✅ Task assigned to Tester Claude\n');
@@ -259,16 +259,16 @@ export async function performanceWorkflow() {
       'Identify slow operations',
       'Analyze memory usage patterns',
       'Review connection pooling',
-      'Create optimization plan'
+      'Create optimization plan',
     ],
     dependencies: 'None',
     priority: 'high',
-    estimatedTime: '30 minutes'
+    estimatedTime: '30 minutes',
   });
 
   console.log('✅ Task assigned to Architect Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Developer: Implement optimizations
   await assignTask('developer', {
@@ -278,16 +278,16 @@ export async function performanceWorkflow() {
       'Add message compression',
       'Implement connection pooling',
       'Add caching where appropriate',
-      'Reduce memory allocations'
+      'Reduce memory allocations',
     ],
     dependencies: 'architect',
     priority: 'high',
-    estimatedTime: '50 minutes'
+    estimatedTime: '50 minutes',
   });
 
   console.log('✅ Task assigned to Developer Claude\n');
 
-  await new Promise(resolve => setTimeout(resolve, 2000));
+  await new Promise((resolve) => setTimeout(resolve, 2000));
 
   // Tester: Benchmark and validate
   await assignTask('tester', {
@@ -297,11 +297,11 @@ export async function performanceWorkflow() {
       'Compare before/after metrics',
       'Test under load (1000+ messages)',
       'Memory leak testing',
-      'Generate performance report'
+      'Generate performance report',
     ],
     dependencies: 'developer',
     priority: 'high',
-    estimatedTime: '35 minutes'
+    estimatedTime: '35 minutes',
   });
 
   console.log('✅ Task assigned to Tester Claude\n');
@@ -313,7 +313,7 @@ const workflows = {
   review: codeReviewWorkflow,
   bugfix: bugFixWorkflow,
   docs: documentationWorkflow,
-  perf: performanceWorkflow
+  perf: performanceWorkflow,
 };
 
 if (import.meta.url === `file://${process.argv[1]}`) {

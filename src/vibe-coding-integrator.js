@@ -71,7 +71,7 @@ export class VibeCodingSystem extends EventEmitter {
       agentsUsed: [],
       hooksExecuted: [],
       contextUpdates: 0,
-      startTime: Date.now()
+      startTime: Date.now(),
     };
 
     try {
@@ -92,7 +92,7 @@ export class VibeCodingSystem extends EventEmitter {
       this.context.add(`Task completed: ${taskDescription}`, {
         type: 'task_complete',
         taskId,
-        result
+        result,
       });
       result.contextUpdates = 1;
 
@@ -109,7 +109,7 @@ export class VibeCodingSystem extends EventEmitter {
 
       this.context.add(`Task failed: ${taskDescription} - ${error.message}`, {
         type: 'task_error',
-        taskId
+        taskId,
       });
 
       console.error(`\n❌ Task failed: ${error.message}\n`);
@@ -123,8 +123,7 @@ export class VibeCodingSystem extends EventEmitter {
    */
   async _planTask(taskDescription, options) {
     // Delegate to planner sub-agent
-    const plannerAgent = this.subAgents.listAgents()
-      .find(a => a.name === 'planner');
+    const plannerAgent = this.subAgents.listAgents().find((a) => a.name === 'planner');
 
     if (plannerAgent) {
       const plan = await this.subAgents.invoke(
@@ -138,12 +137,7 @@ export class VibeCodingSystem extends EventEmitter {
 
     // Fallback: basic planning
     return {
-      steps: [
-        'Analyze codebase context',
-        'Implement changes',
-        'Run tests',
-        'Validate results'
-      ]
+      steps: ['Analyze codebase context', 'Implement changes', 'Run tests', 'Validate results'],
     };
   }
 
@@ -153,7 +147,7 @@ export class VibeCodingSystem extends EventEmitter {
   async _executeTask(plan, options) {
     const execution = {
       agentsUsed: [],
-      results: []
+      results: [],
     };
 
     // Determine which agents to use based on task type
@@ -161,27 +155,19 @@ export class VibeCodingSystem extends EventEmitter {
 
     if (taskType === 'code_change') {
       // Use code-related agents
-      const reviewerAgent = this.subAgents.listAgents()
-        .find(a => a.name === 'code-reviewer');
+      const reviewerAgent = this.subAgents.listAgents().find((a) => a.name === 'code-reviewer');
 
       if (reviewerAgent) {
-        const review = await this.subAgents.invoke(
-          reviewerAgent.id,
-          'Review planned changes'
-        );
+        const review = await this.subAgents.invoke(reviewerAgent.id, 'Review planned changes');
         execution.agentsUsed.push('code-reviewer');
         execution.results.push(review);
       }
     } else if (taskType === 'ui_change') {
       // Use UI-related agents
-      const uiAgent = this.subAgents.listAgents()
-        .find(a => a.name === 'ui-designer');
+      const uiAgent = this.subAgents.listAgents().find((a) => a.name === 'ui-designer');
 
       if (uiAgent) {
-        const uiDesign = await this.subAgents.invoke(
-          uiAgent.id,
-          'Design UI changes'
-        );
+        const uiDesign = await this.subAgents.invoke(uiAgent.id, 'Design UI changes');
         execution.agentsUsed.push('ui-designer');
         execution.results.push(uiDesign);
       }
@@ -197,7 +183,7 @@ export class VibeCodingSystem extends EventEmitter {
     const validation = {
       tests: { passed: true },
       visualRegression: null,
-      codeQuality: null
+      codeQuality: null,
     };
 
     // Run tests if applicable
@@ -205,7 +191,7 @@ export class VibeCodingSystem extends EventEmitter {
       try {
         await this.hooks.execute('PreToolUse', {
           tool: 'Bash',
-          params: { command: 'npm test' }
+          params: { command: 'npm test' },
         });
         validation.tests.passed = true;
       } catch (error) {
@@ -216,9 +202,7 @@ export class VibeCodingSystem extends EventEmitter {
 
     // Visual regression testing for UI changes
     if (options.visualRegression && options.routes) {
-      validation.visualRegression = await this.visualTesting.runTestSuite(
-        options.routes
-      );
+      validation.visualRegression = await this.visualTesting.runTestSuite(options.routes);
     }
 
     return validation;
@@ -250,25 +234,25 @@ export class VibeCodingSystem extends EventEmitter {
       subAgents: {
         total: this.subAgents.listAgents().length,
         active: Array.from(this.subAgents.activeAgents.keys()).length,
-        agents: this.subAgents.listAgents().map(a => ({
+        agents: this.subAgents.listAgents().map((a) => ({
           name: a.name,
           expertise: a.expertise,
-          status: a.status
-        }))
+          status: a.status,
+        })),
       },
       context: this.context.getStats(),
       codebase: {
         indexed: this.codebase.fileIndex.size > 0,
         files: this.codebase.metrics.totalFiles,
-        lines: this.codebase.metrics.totalLines
+        lines: this.codebase.metrics.totalLines,
       },
       hooks: {
         registered: Array.from(this.hooks.hooks.values()).reduce(
           (sum, hooks) => sum + hooks.length,
           0
         ),
-        enabled: this.hooks.enabled
-      }
+        enabled: this.hooks.enabled,
+      },
     };
   }
 
@@ -280,7 +264,7 @@ export class VibeCodingSystem extends EventEmitter {
       timestamp: new Date().toISOString(),
       system: this.getSystemStatus(),
       codebase: this.codebase.generateReport(),
-      context: this.context.getStats()
+      context: this.context.getStats(),
     };
 
     return report;

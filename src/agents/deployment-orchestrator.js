@@ -32,23 +32,25 @@ class DeploymentOrchestrator {
       this.ws.on('error', reject);
     });
 
-    this.ws.send(JSON.stringify({
-      type: 'register',
-      clientId: this.agentId,
-      role: 'Deployment Orchestration Master',
-      labels: ['deployment', 'ci-cd', 'orchestrator', 'production'],
-      tools: ['pipeline_execution', 'rollback_management', 'health_monitoring'],
-      intents: [
-        'pipeline.execute',
-        'pipeline.status',
-        'deployment.rollback',
-        'deployment.validate',
-        'refactor.coordinate'
-      ],
-      maxConcurrentTasks: 5
-    }));
+    this.ws.send(
+      JSON.stringify({
+        type: 'register',
+        clientId: this.agentId,
+        role: 'Deployment Orchestration Master',
+        labels: ['deployment', 'ci-cd', 'orchestrator', 'production'],
+        tools: ['pipeline_execution', 'rollback_management', 'health_monitoring'],
+        intents: [
+          'pipeline.execute',
+          'pipeline.status',
+          'deployment.rollback',
+          'deployment.validate',
+          'refactor.coordinate',
+        ],
+        maxConcurrentTasks: 5,
+      })
+    );
 
-    await new Promise(r => this.ws.once('message', r));
+    await new Promise((r) => this.ws.once('message', r));
     logger.info(`✅ ${this.agentId} ready\n`);
 
     this.setupHandlers();
@@ -106,29 +108,32 @@ class DeploymentOrchestrator {
           result = { error: 'Unknown intent' };
       }
 
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: `${intent}.result`,
-          replyTo: id,
-          payload: result
-        }
-      }));
-
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: `${intent}.result`,
+            replyTo: id,
+            payload: result,
+          },
+        })
+      );
     } catch (error) {
       logger.error('❌ Error:', error.message);
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          from: this.agentId,
-          to: from,
-          intent: 'deployment.error',
-          replyTo: id,
-          payload: { error: error.message, stack: error.stack }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: 'deployment.error',
+            replyTo: id,
+            payload: { error: error.message, stack: error.stack },
+          },
+        })
+      );
     }
   }
 
@@ -146,7 +151,7 @@ class DeploymentOrchestrator {
       environment,
       startedAt: new Date().toISOString(),
       status: 'running',
-      steps: []
+      steps: [],
     };
 
     this.activeDeployments.set(deploymentId, deployment);
@@ -176,7 +181,7 @@ class DeploymentOrchestrator {
         deployment.steps.push({
           stepIndex: i,
           name: step.name,
-          ...stepResult
+          ...stepResult,
         });
 
         if (stepResult.status !== 'success') {
@@ -197,9 +202,8 @@ class DeploymentOrchestrator {
         environment,
         status: 'completed',
         steps: deployment.steps.length,
-        duration: Date.now() - new Date(deployment.startedAt).getTime()
+        duration: Date.now() - new Date(deployment.startedAt).getTime(),
       };
-
     } catch (error) {
       deployment.status = 'failed';
       deployment.error = error.message;
@@ -217,7 +221,7 @@ class DeploymentOrchestrator {
         success: false,
         deploymentId,
         status: 'failed',
-        error: error.message
+        error: error.message,
       };
     }
   }
@@ -230,14 +234,12 @@ class DeploymentOrchestrator {
 
     // Check dependencies
     if (step.dependsOn) {
-      const depResults = previousSteps.filter(s =>
-        step.dependsOn.includes(s.stepIndex)
-      );
+      const depResults = previousSteps.filter((s) => step.dependsOn.includes(s.stepIndex));
 
-      if (depResults.some(r => r.status !== 'success')) {
+      if (depResults.some((r) => r.status !== 'success')) {
         return {
           status: 'skipped',
-          reason: 'Dependency failed'
+          reason: 'Dependency failed',
         };
       }
     }
@@ -252,26 +254,28 @@ class DeploymentOrchestrator {
         resolve({
           status: 'timeout',
           error: `Step timed out after ${timeout}ms`,
-          duration: Date.now() - startTime
+          duration: Date.now() - startTime,
         });
       }, timeout);
 
       // Send to target agent
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          id: stepId,
-          from: this.agentId,
-          to: step.agent,
-          intent: step.intent,
-          payload: {
-            ...step.payload,
-            previousSteps: step.dependsOn ?
-              previousSteps.filter(s => step.dependsOn.includes(s.stepIndex)) :
-              []
-          }
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            id: stepId,
+            from: this.agentId,
+            to: step.agent,
+            intent: step.intent,
+            payload: {
+              ...step.payload,
+              previousSteps: step.dependsOn
+                ? previousSteps.filter((s) => step.dependsOn.includes(s.stepIndex))
+                : [],
+            },
+          },
+        })
+      );
 
       // Wait for response
       const messageHandler = (data) => {
@@ -286,7 +290,7 @@ class DeploymentOrchestrator {
               status: 'success',
               result: envelope.payload,
               duration: Date.now() - startTime,
-              agent: step.agent
+              agent: step.agent,
             });
           }
         }
@@ -309,8 +313,8 @@ class DeploymentOrchestrator {
           intent: 'refactor.analyze',
           payload: {
             files: ['src/'],
-            metrics: ['complexity', 'maintainability']
-          }
+            metrics: ['complexity', 'maintainability'],
+          },
         },
         {
           name: 'deployment',
@@ -319,9 +323,9 @@ class DeploymentOrchestrator {
           payload: {
             environment,
             version: 'latest',
-            strategy: 'rolling'
+            strategy: 'rolling',
           },
-          dependsOn: [0]
+          dependsOn: [0],
         },
         {
           name: 'validation',
@@ -329,11 +333,11 @@ class DeploymentOrchestrator {
           intent: 'api.validate',
           payload: {
             environment,
-            healthCheck: true
+            healthCheck: true,
           },
-          dependsOn: [1]
-        }
-      ]
+          dependsOn: [1],
+        },
+      ],
     };
   }
 
@@ -350,21 +354,21 @@ class DeploymentOrchestrator {
     // Step 1: Analyze code
     const analysisResult = await this.sendToAgent('refactor-workflow-1', 'refactor.analyze', {
       target,
-      patterns
+      patterns,
     });
 
     // Step 2: Generate suggestions
     const suggestionsResult = await this.sendToAgent('refactor-workflow-1', 'refactor.suggest', {
       target,
       patterns,
-      analysisResult
+      analysisResult,
     });
 
     // Step 3: Auto-apply if enabled
     let applyResult = null;
     if (autoApply) {
       applyResult = await this.sendToAgent('refactor-workflow-1', 'refactor.apply', {
-        suggestions: suggestionsResult.suggestions
+        suggestions: suggestionsResult.suggestions,
       });
     }
 
@@ -374,7 +378,7 @@ class DeploymentOrchestrator {
       analysis: analysisResult,
       suggestions: suggestionsResult,
       applied: applyResult,
-      autoApplied: autoApply
+      autoApplied: autoApply,
     };
   }
 
@@ -395,7 +399,7 @@ class DeploymentOrchestrator {
     const rollbackResult = await this.sendToAgent('deploy-workflow-1', 'deploy.rollback', {
       deploymentId,
       environment: deployment.environment,
-      reason
+      reason,
     });
 
     deployment.status = 'rolled-back';
@@ -408,7 +412,7 @@ class DeploymentOrchestrator {
       success: true,
       deploymentId,
       status: 'rolled-back',
-      rollbackResult
+      rollbackResult,
     };
   }
 
@@ -422,13 +426,13 @@ class DeploymentOrchestrator {
 
     // Health check
     const healthResult = await this.sendToAgent('deploy-workflow-1', 'deploy.status', {
-      environment
+      environment,
     });
 
     // API validation
     const apiResult = await this.sendToAgent('api-test-workflow-1', 'api.validate', {
       environment,
-      comprehensive
+      comprehensive,
     });
 
     const isHealthy = healthResult.status === 'healthy' && apiResult.passed;
@@ -439,7 +443,7 @@ class DeploymentOrchestrator {
       healthy: isHealthy,
       healthCheck: healthResult,
       apiValidation: apiResult,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -452,12 +456,12 @@ class DeploymentOrchestrator {
     const deployment = this.activeDeployments.get(deploymentId);
     if (!deployment) {
       // Check history
-      const historical = this.deploymentHistory.find(d => d.deploymentId === deploymentId);
+      const historical = this.deploymentHistory.find((d) => d.deploymentId === deploymentId);
       if (historical) {
         return {
           found: true,
           ...historical,
-          historical: true
+          historical: true,
         };
       }
       throw new Error(`Deployment not found: ${deploymentId}`);
@@ -471,7 +475,7 @@ class DeploymentOrchestrator {
       startedAt: deployment.startedAt,
       completedAt: deployment.completedAt,
       steps: deployment.steps.length,
-      currentStep: deployment.steps[deployment.steps.length - 1]?.name
+      currentStep: deployment.steps[deployment.steps.length - 1]?.name,
     };
   }
 
@@ -487,16 +491,18 @@ class DeploymentOrchestrator {
         reject(new Error('Agent response timeout'));
       }, 30000);
 
-      this.ws.send(JSON.stringify({
-        type: 'envelope',
-        envelope: {
-          id: messageId,
-          from: this.agentId,
-          to: agent,
-          intent,
-          payload
-        }
-      }));
+      this.ws.send(
+        JSON.stringify({
+          type: 'envelope',
+          envelope: {
+            id: messageId,
+            from: this.agentId,
+            to: agent,
+            intent,
+            payload,
+          },
+        })
+      );
 
       const handler = (data) => {
         const msg = JSON.parse(data.toString());
@@ -517,7 +523,7 @@ class DeploymentOrchestrator {
 
 // Start orchestrator
 const orchestrator = new DeploymentOrchestrator();
-orchestrator.connect().catch(err => {
+orchestrator.connect().catch((err) => {
   logger.error('❌ Failed to connect:', err.message);
   process.exit(1);
 });

@@ -24,7 +24,7 @@ export class SubAgentManager extends EventEmitter {
       systemPrompt,
       tools = [],
       contextWindow = 100000,
-      filterOutput = false
+      filterOutput = false,
     } = config;
 
     this.agents.set(name, {
@@ -34,7 +34,7 @@ export class SubAgentManager extends EventEmitter {
       tools,
       contextWindow,
       filterOutput,
-      created: Date.now()
+      created: Date.now(),
     });
 
     logger.info(`Registered sub-agent: ${name} (${expertise})`);
@@ -50,7 +50,7 @@ export class SubAgentManager extends EventEmitter {
       original: originalPrompt,
       enhanced: `${agentContext.systemPrompt}\n\nTask: ${originalPrompt}`,
       context: agentContext.expertise,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
     logger.debug(`Refined prompt for ${agentContext.name}`, { refined });
@@ -85,28 +85,27 @@ export class SubAgentManager extends EventEmitter {
           agent: agentName,
           input: refinedPrompt,
           rawOutput,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
 
       // Apply filter unless bypassed
-      const finalOutput = bypassFilter || !agent.filterOutput
-        ? rawOutput
-        : this._applyMainAgentFilter(rawOutput);
+      const finalOutput =
+        bypassFilter || !agent.filterOutput ? rawOutput : this._applyMainAgentFilter(rawOutput);
 
       this.emit('task-complete', {
         taskId,
         agentName,
         rawOutput,
         filteredOutput: finalOutput,
-        wasFiltered: finalOutput !== rawOutput
+        wasFiltered: finalOutput !== rawOutput,
       });
 
       return {
         taskId,
         output: finalOutput,
         rawOutput: captureRaw ? rawOutput : undefined,
-        agent: agentName
+        agent: agentName,
       };
     } finally {
       this.activeAgents.delete(agentName);
@@ -128,7 +127,7 @@ export class SubAgentManager extends EventEmitter {
     if (filtered !== rawOutput) {
       logger.warn('Main agent applied output filter', {
         original: rawOutput.substring(0, 100),
-        filtered: filtered.substring(0, 100)
+        filtered: filtered.substring(0, 100),
       });
     }
 
@@ -170,7 +169,7 @@ export class SubAgentManager extends EventEmitter {
       hasFilteredIssues: true,
       rawIssues: rawOutput,
       filteredVersion: filteredOutput,
-      recommendation: 'Review raw output for critical details'
+      recommendation: 'Review raw output for critical details',
     };
   }
 
@@ -182,36 +181,40 @@ export class SubAgentManager extends EventEmitter {
     this.registerAgent({
       name: 'code-reviewer',
       expertise: 'Code quality, security, best practices',
-      systemPrompt: 'You are a strict code reviewer. Provide honest, critical feedback on code quality, security vulnerabilities, and architectural issues. Be blunt about problems.',
+      systemPrompt:
+        'You are a strict code reviewer. Provide honest, critical feedback on code quality, security vulnerabilities, and architectural issues. Be blunt about problems.',
       tools: ['read', 'grep', 'glob'],
-      filterOutput: true // Main agent will filter this
+      filterOutput: true, // Main agent will filter this
     });
 
     // UI Designer
     this.registerAgent({
       name: 'ui-designer',
       expertise: 'Frontend design, UX principles, visual aesthetics',
-      systemPrompt: 'You are a UI/UX expert. Analyze interfaces for design consistency, accessibility, and modern best practices.',
+      systemPrompt:
+        'You are a UI/UX expert. Analyze interfaces for design consistency, accessibility, and modern best practices.',
       tools: ['read', 'write', 'browser'],
-      filterOutput: false
+      filterOutput: false,
     });
 
     // Test Specialist
     this.registerAgent({
       name: 'test-specialist',
       expertise: 'Test coverage, TDD, edge cases',
-      systemPrompt: 'You are a testing expert. Write comprehensive tests with high coverage and identify untested edge cases.',
+      systemPrompt:
+        'You are a testing expert. Write comprehensive tests with high coverage and identify untested edge cases.',
       tools: ['read', 'write', 'bash'],
-      filterOutput: false
+      filterOutput: false,
     });
 
     // Security Auditor
     this.registerAgent({
       name: 'security-auditor',
       expertise: 'Security vulnerabilities, defensive coding',
-      systemPrompt: 'You are a security expert. Identify vulnerabilities, insecure patterns, and recommend defensive solutions.',
+      systemPrompt:
+        'You are a security expert. Identify vulnerabilities, insecure patterns, and recommend defensive solutions.',
       tools: ['read', 'grep', 'bash'],
-      filterOutput: true
+      filterOutput: true,
     });
 
     logger.info('Created default vibe coding sub-agents');
@@ -236,7 +239,7 @@ export class SubAgentManager extends EventEmitter {
       totalAgents: this.agents.size,
       activeAgents: this.activeAgents.size,
       totalTranscripts: this.rawTranscripts.size,
-      agents: Array.from(this.agents.keys())
+      agents: Array.from(this.agents.keys()),
     };
   }
 }

@@ -28,7 +28,7 @@ const agent = new AutonomousClaudeAgent({
   clientId: 'autonomous-demo-agent',
   role: 'autonomous-assistant',
   extendedThinking: true,
-  thinkingBudget: 8000
+  thinkingBudget: 8000,
 });
 
 // Capture responses
@@ -37,11 +37,11 @@ agent.on('response', (response) => {
 });
 
 // Override sendResponse to capture locally
-agent.sendResponse = function(envelope, response) {
+agent.sendResponse = function (envelope, response) {
   console.log(`\n📤 Agent Response to: ${envelope.taskId}`);
   console.log(`Status: ${response.status}`);
   if (response.tool_calls && response.tool_calls.length > 0) {
-    console.log(`Tools used: ${response.tool_calls.map(t => t.name).join(', ')}`);
+    console.log(`Tools used: ${response.tool_calls.map((t) => t.name).join(', ')}`);
   }
   if (response.thinking) {
     console.log(`Thinking tokens: ${response.thinking.split(' ').length}`);
@@ -67,15 +67,17 @@ async function test1_AutonomousFileRead() {
     taskId: 'test-1-read',
     intent: 'file.read',
     payload: {
-      message: 'Read the package.json file and tell me the project name and current version.'
-    }
+      message: 'Read the package.json file and tell me the project name and current version.',
+    },
   };
 
   return new Promise((resolve) => {
     agent.once('response', (response) => {
       console.log('\n✅ TEST 1 RESULT:');
       console.log(`  - Status: ${response.status}`);
-      console.log(`  - Used tools: ${response.tool_calls?.map(t => t.name).join(', ') || 'none'}`);
+      console.log(
+        `  - Used tools: ${response.tool_calls?.map((t) => t.name).join(', ') || 'none'}`
+      );
       console.log(`  - Autonomous: ${response.tool_calls?.length > 0 ? 'YES ✅' : 'NO ❌'}`);
       resolve(response);
     });
@@ -98,17 +100,21 @@ async function test2_AutonomousFileWrite() {
     taskId: 'test-2-write',
     intent: 'file.write',
     payload: {
-      message: `Create a new file called ${filename} with the following content: "This file was created autonomously by Claude Agent at ${new Date().toISOString()}. No human intervention was required."`
-    }
+      message: `Create a new file called ${filename} with the following content: "This file was created autonomously by Claude Agent at ${new Date().toISOString()}. No human intervention was required."`,
+    },
   };
 
   return new Promise((resolve) => {
     agent.once('response', (response) => {
       console.log('\n✅ TEST 2 RESULT:');
       console.log(`  - Status: ${response.status}`);
-      console.log(`  - Used tools: ${response.tool_calls?.map(t => t.name).join(', ') || 'none'}`);
+      console.log(
+        `  - Used tools: ${response.tool_calls?.map((t) => t.name).join(', ') || 'none'}`
+      );
       console.log(`  - File created: ${filename}`);
-      console.log(`  - Autonomous: ${response.tool_calls?.some(t => t.name === 'write') ? 'YES ✅' : 'NO ❌'}`);
+      console.log(
+        `  - Autonomous: ${response.tool_calls?.some((t) => t.name === 'write') ? 'YES ✅' : 'NO ❌'}`
+      );
       resolve(response);
     });
 
@@ -129,17 +135,22 @@ async function test3_MultiToolWorkflow() {
     taskId: 'test-3-workflow',
     intent: 'code.analyze',
     payload: {
-      message: 'Find all JavaScript files in src/agents/ using glob, then read the autonomous-claude-agent.js file, and tell me how many tools it supports.'
-    }
+      message:
+        'Find all JavaScript files in src/agents/ using glob, then read the autonomous-claude-agent.js file, and tell me how many tools it supports.',
+    },
   };
 
   return new Promise((resolve) => {
     agent.once('response', (response) => {
       console.log('\n✅ TEST 3 RESULT:');
       console.log(`  - Status: ${response.status}`);
-      console.log(`  - Tools used (in order): ${response.tool_calls?.map(t => t.name).join(' → ') || 'none'}`);
+      console.log(
+        `  - Tools used (in order): ${response.tool_calls?.map((t) => t.name).join(' → ') || 'none'}`
+      );
       console.log(`  - Number of tools: ${response.tool_calls?.length || 0}`);
-      console.log(`  - Multi-tool autonomous: ${response.tool_calls?.length >= 2 ? 'YES ✅' : 'NO ❌'}`);
+      console.log(
+        `  - Multi-tool autonomous: ${response.tool_calls?.length >= 2 ? 'YES ✅' : 'NO ❌'}`
+      );
       resolve(response);
     });
 
@@ -167,16 +178,20 @@ async function test4_CodeImplementation() {
 3. Proper JSDoc documentation
 4. Export both functions
 
-Implement this completely without asking for permission.`
-    }
+Implement this completely without asking for permission.`,
+    },
   };
 
   return new Promise((resolve) => {
     agent.once('response', (response) => {
       console.log('\n✅ TEST 4 RESULT:');
       console.log(`  - Status: ${response.status}`);
-      console.log(`  - Used tools: ${response.tool_calls?.map(t => t.name).join(', ') || 'none'}`);
-      console.log(`  - Implementation autonomous: ${response.tool_calls?.some(t => t.name === 'write') ? 'YES ✅' : 'NO ❌'}`);
+      console.log(
+        `  - Used tools: ${response.tool_calls?.map((t) => t.name).join(', ') || 'none'}`
+      );
+      console.log(
+        `  - Implementation autonomous: ${response.tool_calls?.some((t) => t.name === 'write') ? 'YES ✅' : 'NO ❌'}`
+      );
       resolve(response);
     });
 
@@ -197,16 +212,21 @@ async function test5_BashExecution() {
     taskId: 'test-5-bash',
     intent: 'command.execute',
     payload: {
-      message: 'Execute "ls -la" to list files in the current directory and tell me how many files you found.'
-    }
+      message:
+        'Execute "ls -la" to list files in the current directory and tell me how many files you found.',
+    },
   };
 
   return new Promise((resolve) => {
     agent.once('response', (response) => {
       console.log('\n✅ TEST 5 RESULT:');
       console.log(`  - Status: ${response.status}`);
-      console.log(`  - Used tools: ${response.tool_calls?.map(t => t.name).join(', ') || 'none'}`);
-      console.log(`  - Command executed: ${response.tool_calls?.some(t => t.name === 'bash') ? 'YES ✅' : 'NO ❌'}`);
+      console.log(
+        `  - Used tools: ${response.tool_calls?.map((t) => t.name).join(', ') || 'none'}`
+      );
+      console.log(
+        `  - Command executed: ${response.tool_calls?.some((t) => t.name === 'bash') ? 'YES ✅' : 'NO ❌'}`
+      );
       resolve(response);
     });
 
@@ -219,7 +239,9 @@ async function test5_BashExecution() {
   try {
     console.log('⏳ Waiting for agent initialization...\n');
     await agent._initPromise;
-    console.log(`✅ Agent initialized with ${agent.toolExecutor.getAvailableTools().length} tools\n`);
+    console.log(
+      `✅ Agent initialized with ${agent.toolExecutor.getAvailableTools().length} tools\n`
+    );
     console.log(`Available tools: ${agent.toolExecutor.getAvailableTools().join(', ')}\n`);
 
     await test1_AutonomousFileRead();
@@ -239,7 +261,6 @@ async function test5_BashExecution() {
     console.log(`Success rate: ${stats.successRate}`);
     console.log(`\n✅ AUTONOMOUS EXECUTION PROVEN`);
     console.log(`   The agent executed ${stats.successfulCalls} tools without human intervention.`);
-
   } catch (error) {
     console.error('\n❌ Test suite failed:', error);
     process.exit(1);

@@ -10,7 +10,9 @@ import { logger } from '../utils/logger.js';
 export class ClaudeMemory {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
-    this.globalPath = options.globalPath || join(process.env.HOME || process.env.USERPROFILE, '.claude', 'CLAUDE.md');
+    this.globalPath =
+      options.globalPath ||
+      join(process.env.HOME || process.env.USERPROFILE, '.claude', 'CLAUDE.md');
     this.cache = new Map();
   }
 
@@ -189,7 +191,7 @@ npm run build        # Build for production
       commands: '',
       conventions: '',
       antiPatterns: '',
-      rules: ''
+      rules: '',
     };
 
     const lines = content.split('\n');
@@ -281,7 +283,7 @@ ${sections.rules}
       if (inAntiPatterns && line.trim().startsWith('❌')) {
         patterns.push({
           antiPattern: line.replace('❌', '').trim(),
-          severity: 'error'
+          severity: 'error',
         });
       }
     }
@@ -296,10 +298,10 @@ ${sections.rules}
     const contexts = await this.load(projectPath);
 
     const merged = {
-      scopes: contexts.map(c => c.scope),
-      fullContext: contexts.map(c => `### ${c.scope.toUpperCase()}\n${c.content}`).join('\n\n'),
+      scopes: contexts.map((c) => c.scope),
+      fullContext: contexts.map((c) => `### ${c.scope.toUpperCase()}\n${c.content}`).join('\n\n'),
       antiPatterns: [],
-      conventions: []
+      conventions: [],
     };
 
     // Extract anti-patterns from all contexts
@@ -323,14 +325,14 @@ ${sections.rules}
       if (this._checkViolation(code, pattern.antiPattern)) {
         violations.push({
           pattern: pattern.antiPattern,
-          severity: pattern.severity
+          severity: pattern.severity,
         });
       }
     }
 
     return {
       valid: violations.length === 0,
-      violations
+      violations,
     };
   }
 
@@ -341,7 +343,7 @@ ${sections.rules}
     const checks = {
       'Never use raw SQL strings': /\$\{.*\}.*SELECT|INSERT|UPDATE|DELETE/i,
       'Never hardcode secrets': /api[_-]?key\s*=\s*['"][^'"]+['"]/i,
-      "Don't write monolithic functions": code => code.split('\n').length > 100
+      "Don't write monolithic functions": (code) => code.split('\n').length > 100,
     };
 
     for (const [key, check] of Object.entries(checks)) {

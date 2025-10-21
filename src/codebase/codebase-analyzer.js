@@ -23,21 +23,21 @@ export class CodebaseAnalyzer {
       'build',
       'coverage',
       '.next',
-      '.cache'
+      '.cache',
     ];
     this.fileIndex = new Map();
     this.dependencyGraph = new Map();
     this.metrics = {
       totalFiles: 0,
       totalLines: 0,
-      languages: {}
+      languages: {},
     };
 
     // Add file content cache for better performance
     this.fileContentCache = new FileContentCache({
-      maxSize: 1000,        // Cache up to 1000 files
-      maxMemory: 100000,    // 100MB max
-      ttl: 600000           // 10 minutes TTL
+      maxSize: 1000, // Cache up to 1000 files
+      maxMemory: 100000, // 100MB max
+      ttl: 600000, // 10 minutes TTL
     });
 
     // Add worker pool for CPU-intensive analysis (optional)
@@ -45,7 +45,7 @@ export class CodebaseAnalyzer {
     if (this.useWorkerPool) {
       const workerPath = path.join(__dirname, '../workers/code-analysis-worker.js');
       this.workerPool = new WorkerPool(workerPath, {
-        poolSize: options.workerPoolSize || 4
+        poolSize: options.workerPoolSize || 4,
       });
     }
   }
@@ -74,7 +74,7 @@ export class CodebaseAnalyzer {
 
     return {
       files: this.fileIndex,
-      metrics: this.metrics
+      metrics: this.metrics,
     };
   }
 
@@ -120,7 +120,8 @@ export class CodebaseAnalyzer {
           this.fileIndex.set(relativePath, cached);
           this.metrics.totalFiles++;
           this.metrics.totalLines += cached.lines;
-          this.metrics.languages[cached.extension] = (this.metrics.languages[cached.extension] || 0) + 1;
+          this.metrics.languages[cached.extension] =
+            (this.metrics.languages[cached.extension] || 0) + 1;
           return;
         }
 
@@ -139,7 +140,7 @@ export class CodebaseAnalyzer {
           imports: this._extractImports(content, ext),
           exports: this._extractExports(content, ext),
           functions: this._extractFunctions(content, ext),
-          classes: this._extractClasses(content, ext)
+          classes: this._extractClasses(content, ext),
         };
 
         // Store in cache
@@ -278,9 +279,7 @@ export class CodebaseAnalyzer {
       for (const importPath of fileData.imports) {
         // Resolve relative imports
         if (importPath.startsWith('.')) {
-          const resolvedPath = path.normalize(
-            path.join(path.dirname(filePath), importPath)
-          );
+          const resolvedPath = path.normalize(path.join(path.dirname(filePath), importPath));
 
           // Try common extensions
           for (const ext of ['.js', '.jsx', '.ts', '.tsx', '/index.js', '/index.ts']) {
@@ -324,13 +323,10 @@ export class CodebaseAnalyzer {
     const results = [];
 
     for (const [filePath, fileData] of this.fileIndex) {
-      if (
-        fileData.functions.includes(name) ||
-        fileData.classes.includes(name)
-      ) {
+      if (fileData.functions.includes(name) || fileData.classes.includes(name)) {
         results.push({
           file: filePath,
-          type: fileData.functions.includes(name) ? 'function' : 'class'
+          type: fileData.functions.includes(name) ? 'function' : 'class',
         });
       }
     }
@@ -345,7 +341,7 @@ export class CodebaseAnalyzer {
     const results = [];
 
     for (const [filePath, fileData] of this.fileIndex) {
-      if (fileData.imports.some(imp => imp.includes(modulePath))) {
+      if (fileData.imports.some((imp) => imp.includes(modulePath))) {
         results.push(filePath);
       }
     }
@@ -394,14 +390,14 @@ export class CodebaseAnalyzer {
       ...this.metrics,
       filesByLanguage: {},
       largestFiles: [],
-      mostImported: []
+      mostImported: [],
     };
 
     // Files by language
     for (const [ext, count] of Object.entries(this.metrics.languages)) {
       stats.filesByLanguage[ext] = {
         count,
-        percentage: Math.round((count / this.metrics.totalFiles) * 100)
+        percentage: Math.round((count / this.metrics.totalFiles) * 100),
       };
     }
 
@@ -410,10 +406,10 @@ export class CodebaseAnalyzer {
       .sort((a, b) => b.lines - a.lines)
       .slice(0, 10);
 
-    stats.largestFiles = filesBySize.map(f => ({
+    stats.largestFiles = filesBySize.map((f) => ({
       path: f.path,
       lines: f.lines,
-      size: f.size
+      size: f.size,
     }));
 
     // Most imported files
@@ -477,9 +473,7 @@ export class CodebaseAnalyzer {
     }
 
     return globalPerformanceMonitor.timeAsync('analyzeFileDeep', async () => {
-      const fullPath = path.isAbsolute(filePath)
-        ? filePath
-        : path.join(this.rootDir, filePath);
+      const fullPath = path.isAbsolute(filePath) ? filePath : path.join(this.rootDir, filePath);
 
       const content = fs.readFileSync(fullPath, 'utf-8');
       const ext = path.extname(fullPath).slice(1);
@@ -488,7 +482,7 @@ export class CodebaseAnalyzer {
       const result = await this.workerPool.execute({
         code: content,
         language: ext || 'javascript',
-        filePath
+        filePath,
       });
 
       return result;
@@ -505,9 +499,7 @@ export class CodebaseAnalyzer {
       throw new Error('Worker pool not initialized. Set useWorkerPool: true in constructor');
     }
 
-    const analyses = await Promise.all(
-      filePaths.map(filePath => this.analyzeFileDeep(filePath))
-    );
+    const analyses = await Promise.all(filePaths.map((filePath) => this.analyzeFileDeep(filePath)));
 
     return analyses;
   }
@@ -522,7 +514,7 @@ export class CodebaseAnalyzer {
 
     return {
       enabled: true,
-      ...this.workerPool.getStats()
+      ...this.workerPool.getStats(),
     };
   }
 
@@ -530,7 +522,7 @@ export class CodebaseAnalyzer {
    * Check if path should be ignored
    */
   _shouldIgnore(relativePath) {
-    return this.ignorePatterns.some(pattern => relativePath.includes(pattern));
+    return this.ignorePatterns.some((pattern) => relativePath.includes(pattern));
   }
 }
 
