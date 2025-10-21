@@ -4,8 +4,8 @@
   "description": "Final repository with Jules automation for CI/CD and auto-fixing",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Running tests...\" && node scripts/test.js || echo \"Tests passed\"",
-    "build": "echo \"Building project...\" && node scripts/build.js || echo \"Build successful\"",
+    "test": "echo \"Running tests...\" && node scripts/test.js",
+    "build": "echo \"Building project...\" && node scripts/build.js",
     "jules:analyze": "echo \"Jules: Analyzing repository for issues...\"",
     "jules:fix": "echo \"Jules: Auto-fixing common problems...\"",
     "jules:optimize": "echo \"Jules: Optimizing code and configurations...\"",
