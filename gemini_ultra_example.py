@@ -8,6 +8,7 @@ functionality.
 
 import os
 import sys
+import concurrent.futures
 from typing import List, Dict
 from gemini_ultra_config import GeminiUltraConfig
 
@@ -122,23 +123,29 @@ def example_problem_solving():
 def example_parallel_operations():
     """Demonstrate parallel/batch operations concept."""
     print_section("Example 6: Parallel Operations Concept")
-    
+
     config = GeminiUltraConfig()
     if not config.configure():
         print("Error: Failed to configure Gemini Ultra")
         return
-    
+
     prompts = [
         "Define machine learning in one sentence.",
         "What is cloud computing?",
         "Explain API in simple terms."
     ]
-    
-    print("Processing multiple prompts sequentially (parallel processing would be faster):\n")
-    
-    for i, prompt in enumerate(prompts, 1):
+
+    print("Processing multiple prompts in parallel:\n")
+
+    def process_prompt(prompt):
+        """Helper function to process a single prompt."""
+        return config.generate_content(prompt)
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        responses = list(executor.map(process_prompt, prompts))
+
+    for i, (prompt, response) in enumerate(zip(prompts, responses), 1):
         print(f"Query {i}: {prompt}")
-        response = config.generate_content(prompt)
         if response:
             print(f"Response: {response}\n")
         else:
