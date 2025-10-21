@@ -23,7 +23,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install ALL dependencies (including devDependencies for build)
-RUN npm ci --include=dev
+RUN npm install
 
 # -----------------------------------------------------------------------------
 # Stage 2: Builder
@@ -69,8 +69,9 @@ USER nodejs
 # Copy package files
 COPY --chown=nodejs:nodejs package*.json ./
 
-# Install ONLY production dependencies
-RUN npm ci --omit=dev && npm cache clean --force
+# Install dependencies using npm install (more lenient than npm ci)
+# Since we only have devDependencies, we need to install them
+RUN npm install && npm cache clean --force
 
 # Copy application code from builder
 COPY --chown=nodejs:nodejs --from=builder /app .
@@ -99,4 +100,3 @@ ENV NODE_ENV=production \
 
 # Start the cloud agent
 CMD ["npm", "run", "agent:cloud"]
-
