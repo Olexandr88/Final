@@ -12,6 +12,10 @@
     "jules:validate": "echo \"Jules: Validating repository health...\"",
     "jules:full": "npm run jules:analyze && npm run jules:fix && npm run jules:optimize && npm run jules:validate",
     "ci": "npm run jules:full && npm test && npm run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "prepare": "echo \"Preparing repository...\"",
     "postinstall": "echo \"Jules automation configured and ready!\""
   },
@@ -58,6 +62,11 @@
       "cicd": true
     }
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "prettier": "^3.2.5"
+  },
   "dependencies": {}
 }
