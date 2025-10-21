@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Final repository with Jules automation for CI/CD and auto-fixing",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Running tests...\" && node scripts/test.js",
     "build": "echo \"Building project...\" && node scripts/build.js",
@@ -10,7 +11,9 @@
     "jules:fix": "echo \"Jules: Auto-fixing common problems...\"",
     "jules:optimize": "echo \"Jules: Optimizing code and configurations...\"",
     "jules:validate": "echo \"Jules: Validating repository health...\"",
-    "jules:full": "npm run jules:analyze && npm run jules:fix && npm run jules:optimize && npm run jules:validate",
+    "lint": "eslint scripts/*.js",
+    "security-check": "npm audit",
+    "jules:full": "npm run jules:analyze && npm run jules:fix && npm run jules:optimize && npm run jules:validate && npm run lint && npm run security-check",
     "ci": "npm run jules:full && npm test && npm run build",
     "prepare": "echo \"Preparing repository...\"",
     "postinstall": "echo \"Jules automation configured and ready!\""
@@ -58,6 +61,8 @@
       "cicd": true
     }
   },
-  "devDependencies": {},
-  "dependencies": {}
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "eslint": "^9.38.0"
+  }
 }

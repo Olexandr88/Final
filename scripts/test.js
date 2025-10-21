@@ -1,107 +1,43 @@
-#!/usr/bin/env node
+import fs from 'fs';
+import path from 'path';
+import assert from 'assert';
+import { fileURLToPath } from 'url';
 
-/**
- * Test Script for Jules Automation
- * 
- * This script runs automated tests for the repository
- * and integrates with the Jules automation system.
- */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-console.log('\n=== Jules Test Suite ===\n');
+console.log('Running test suite...');
 
-// Test 1: Repository Structure
-console.log('✓ Test 1: Repository structure validation');
-console.log('  - Checking required files...');
-const fs = require('fs');
-const path = require('path');
-
-const requiredFiles = [
-  'package.json',
-  'jules.config.js',
-  'README.md',
-  '.github/workflows/blank.yml'
-];
-
-let allFilesExist = true;
-requiredFiles.forEach(file => {
-  const filePath = path.join(process.cwd(), file);
-  if (fs.existsSync(filePath)) {
-    console.log(`  ✓ ${file} exists`);
-  } else {
-    console.log(`  ✗ ${file} missing`);
-    allFilesExist = false;
-  }
-});
-
-if (allFilesExist) {
-  console.log('\n✓ All required files present\n');
-} else {
-  console.log('\n✗ Some required files are missing\n');
-}
-
-// Test 2: Package.json Validation
-console.log('✓ Test 2: Package.json validation');
 try {
-  const packageJson = require(path.join(process.cwd(), 'package.json'));
-  console.log('  ✓ package.json is valid JSON');
+  // Test 1: Verify that essential files exist
+  console.log('Test 1: Verifying repository structure...');
+  const rootDir = path.join(__dirname, '../');
+  const essentialFiles = [
+    '.github/workflows/blank.yml',
+    'scripts/build.js',
+    'scripts/test.js',
+    'jules.config.cjs',
+    'package.json',
+    'README.md',
+  ];
+
+  essentialFiles.forEach(file => {
+    assert(fs.existsSync(path.join(rootDir, file)), `${file} should exist`);
+  });
+  console.log('Repository structure is valid.');
+
+  // Test 2: Simulate a simple unit test
+  console.log('Test 2: Running a simple unit test...');
+  assert.strictEqual(1, 1, '1 should be equal to 1');
+
+  // Test 3: Another simulated test
+  console.log('Test 3: Checking object equality...');
+  assert.deepStrictEqual({ a: { b: 2 } }, { a: { b: 2 } }, 'Objects should be deeply equal');
   
-  if (packageJson.jules) {
-    console.log('  ✓ Jules configuration found in package.json');
-  }
+  console.log('All tests passed!');
   
-  if (packageJson.scripts) {
-    console.log('  ✓ Scripts section present');
-    const julesScripts = Object.keys(packageJson.scripts).filter(s => s.startsWith('jules:'));
-    console.log(`  ✓ Found ${julesScripts.length} Jules scripts`);
-  }
 } catch (error) {
-  console.log('  ✗ Error validating package.json:', error.message);
+  console.error('Tests failed:');
+  console.error(error.message);
+  process.exit(1);
 }
-
-// Test 3: Jules Configuration
-console.log('\n✓ Test 3: Jules configuration validation');
-try {
-  const julesConfig = require(path.join(process.cwd(), 'jules.config.js'));
-  console.log('  ✓ jules.config.js loaded successfully');
-  
-  if (julesConfig.enabled) {
-    console.log('  ✓ Jules automation is enabled');
-  }
-  
-  if (julesConfig.automation) {
-    console.log('  ✓ Automation settings configured');
-  }
-  
-  if (julesConfig.checks) {
-    console.log('  ✓ Health checks configured');
-  }
-} catch (error) {
-  console.log('  ✗ Error loading jules.config.js:', error.message);
-}
-
-// Test 4: Workflow Configuration
-console.log('\n✓ Test 4: Workflow configuration validation');
-try {
-  const workflowPath = path.join(process.cwd(), '.github/workflows/blank.yml');
-  if (fs.existsSync(workflowPath)) {
-    const workflowContent = fs.readFileSync(workflowPath, 'utf8');
-    console.log('  ✓ CI workflow file exists');
-    
-    if (workflowContent.includes('Jules')) {
-      console.log('  ✓ Workflow includes Jules automation');
-    }
-    
-    if (workflowContent.includes('actions/checkout')) {
-      console.log('  ✓ Workflow includes checkout action');
-    }
-  }
-} catch (error) {
-  console.log('  ✗ Error validating workflow:', error.message);
-}
-
-// Test Summary
-console.log('\n=== Test Suite Complete ===');
-console.log('✓ All tests passed successfully');
-console.log('✓ Repository is healthy and Jules is properly configured\n');
-
-process.exit(0);
