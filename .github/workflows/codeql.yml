@@ -1,9 +1,9 @@
 name: "CodeQL"
 on:
   push:
-    branches: [ "Scarmonit" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "Scarmonit" ]
+    branches: [ "main" ]
   schedule:
     - cron: '0 0 * * 0'
   workflow_dispatch:
