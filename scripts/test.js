@@ -99,6 +99,25 @@ try {
   console.log('  ✗ Error validating workflow:', error.message);
 }
 
+// Test 5: Scraper Script
+console.log('\n✓ Test 5: Scraper script execution');
+const { exec } = require('child_process');
+exec('node scripts/scraper.js https://example.com', (error, stdout, stderr) => {
+  if (error) {
+    console.error(`  ✗ Scraper script failed: ${error}`);
+    return;
+  }
+  if (stderr) {
+    console.error(`  ✗ Scraper script stderr: ${stderr}`);
+    return;
+  }
+  if (stdout.includes('Links:')) {
+    console.log('  ✓ Scraper output contains "Links:"');
+  } else {
+    console.error('  ✗ Scraper output does not contain "Links:"');
+  }
+});
+
 // Test Summary
 console.log('\n=== Test Suite Complete ===');
 console.log('✓ All tests passed successfully');
