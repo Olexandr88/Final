@@ -1,0 +1,50 @@
+# Railway Deployment - Ollama Autonomous Agent
+# Includes full Ollama server with CodeLlama model
+
+FROM node:18-bullseye
+
+# Install Ollama
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install Node dependencies
+RUN npm ci --only=production
+
+# Copy application code
+COPY . .
+
+# Expose port for health check (if needed)
+EXPOSE 8080
+
+# Create startup script that runs Ollama + Agent
+RUN echo '#!/bin/bash\n\
+echo "🚀 Starting Ollama server..."\n\
+ollama serve &\n\
+OLLAMA_PID=$!\n\
+\n\
+echo "⏳ Waiting for Ollama to be ready..."\n\
+until curl -s http://localhost:11434/api/tags > /dev/null; do\n\
+  sleep 2\n\
+done\n\
+\n\
+echo "📦 Pulling CodeLlama model..."\n\
+ollama pull codellama\n\
+\n\
+echo "✅ Ollama ready! Starting autonomous agent..."\n\
+npm run agent:ollama-autonomous\n\
+\n\
+# Keep Ollama alive\n\
+wait $OLLAMA_PID\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
+CMD ["/app/start.sh"]
