@@ -6,9 +6,14 @@ permissions:
   issues: write
   contents: write
   pull-requests: write
+# Add concurrency to prevent duplicate runs
+concurrency:
+  group: copilot-assign-${{ github.event.issue.number }}
+  cancel-in-progress: false
 jobs:
   assign-copilot:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Add Copilot Comment to Issue
         uses: actions/github-script@v7
