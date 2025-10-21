@@ -7,12 +7,15 @@ main = "workers/webhook-handler.js"
 compatibility_date = "2024-01-01"
 
 # Custom Domain Routes for www.scarmonit.com
-# Uncomment and add your Cloudflare zone_id after setting up the domain
-# routes = [
-#   { pattern = "www.scarmonit.com/webhook", zone_id = "YOUR_ZONE_ID" },
-#   { pattern = "www.scarmonit.com/health", zone_id = "YOUR_ZONE_ID" },
-#   { pattern = "www.scarmonit.com/api/*", zone_id = "YOUR_ZONE_ID" }
-# ]
+# Add your Cloudflare zone_id from https://dash.cloudflare.com/
+routes = [
+  { pattern = "www.scarmonit.com/", zone_id = "YOUR_ZONE_ID" },
+  { pattern = "www.scarmonit.com/dashboard", zone_id = "YOUR_ZONE_ID" },
+  { pattern = "www.scarmonit.com/webhook", zone_id = "YOUR_ZONE_ID" },
+  { pattern = "www.scarmonit.com/health", zone_id = "YOUR_ZONE_ID" },
+  { pattern = "www.scarmonit.com/api/*", zone_id = "YOUR_ZONE_ID" },
+  { pattern = "www.scarmonit.com/solve", zone_id = "YOUR_ZONE_ID" }
+]
 
 # Workers AI binding
 [ai]

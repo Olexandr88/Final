@@ -4,9 +4,12 @@
  * Railway HTTP Server with Health Check
  * Provides HTTP endpoint for Railway deployment
  * Runs autonomous agents in the background
+ * Serves interactive AI dashboard
  */
 
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const { spawn } = require('child_process');
 
 const PORT = process.env.PORT || 8080;
@@ -29,8 +32,23 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // Dashboard route
+  if (req.url === '/' || req.url === '/dashboard') {
+    const dashboardPath = path.join(__dirname, 'public', 'dashboard.html');
+    fs.readFile(dashboardPath, 'utf8', (err, content) => {
+      if (err) {
+        res.writeHead(500, { 'Content-Type': 'text/plain' });
+        res.end('Error loading dashboard');
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'text/html' });
+      res.end(content);
+    });
+    return;
+  }
+
   // Health check endpoint
-  if (req.url === '/health' || req.url === '/') {
+  if (req.url === '/health') {
     const healthStatus = {
       status: isHealthy ? 'healthy' : 'starting',
       uptime: process.uptime(),
@@ -107,7 +125,8 @@ function startAgent() {
 // Start the server
 server.listen(PORT, HOST, () => {
   console.log(`🚀 Railway server running on http://${HOST}:${PORT}`);
-  console.log(`📊 Health check: http://${HOST}:${PORT}/health`);
+  console.log(`📊 Dashboard: http://${HOST}:${PORT}/dashboard`);
+  console.log(`🏥 Health check: http://${HOST}:${PORT}/health`);
   console.log(`📈 Status: http://${HOST}:${PORT}/status`);
   
   // Start agent after server is ready
