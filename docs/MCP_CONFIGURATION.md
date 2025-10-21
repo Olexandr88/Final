@@ -173,7 +173,7 @@ Dashboard monitoring includes:
 **Issue**: Filesystem MCP server can't access files
 
 **Solutions**:
-1. Verify paths are within `/home/user/Final`
+1. Verify paths are within `<project-root>` (replace with your actual project directory)
 2. Check file permissions: `ls -la <file>`
 3. Ensure Claude Code has read/write access
 4. Review permission rules in `/permissions`
