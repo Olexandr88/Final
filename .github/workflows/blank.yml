@@ -14,10 +14,10 @@ permissions:
   pull-requests: write
   issues: write
 
-# Optimized concurrency - allow parallel workflow types, cancel-in-progress for PRs
+# Only use concurrency for PR runs - allow main branch runs to proceed in parallel
 concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || 'main-' }}${{ github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   build-and-test:
