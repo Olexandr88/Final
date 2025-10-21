@@ -2,21 +2,19 @@ name: Gemini Ultra Integration & Testing
 # Parallel workflow execution demonstrating Gemini Ultra integration
 on:
   push:
-    branches: [ main, Scarmonit ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, Scarmonit ]
+    branches: [ main ]
   workflow_dispatch:
     inputs:
       run_examples:
         description: 'Run example scripts'
         required: false
         default: 'true'
-
 # Optimized concurrency controls - allow parallel main branch pushes
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
   # Job 1: Setup and validate environment (runs in parallel with linting)
   setup-and-validate:
@@ -118,7 +116,7 @@ jobs:
     - name: Check for hardcoded secrets
       run: |
         echo "Scanning for potential hardcoded secrets..."
-        if grep -r "GEMINI_API_KEY.*=.*['\"]sk-" .; then
+        if grep -r "GEMINI_API_KEY.*=.*['\"sk-" .; then
           echo "✗ Warning: Potential hardcoded API key found"
           exit 1
         else
