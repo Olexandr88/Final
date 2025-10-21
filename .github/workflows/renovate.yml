@@ -1,0 +1,15 @@
+name: Renovate
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Runs on the first day of every month
+  workflow_dispatch: {}
+jobs:
+  renovate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Renovate
+        uses: renovatebot/github-action@v39.1.4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
