@@ -1,0 +1,173 @@
+{
+  "workflowId": "ci-cd-production-pipeline",
+  "name": "Production CI/CD Pipeline",
+  "description": "Complete CI/CD workflow with testing, refactoring, and deployment",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "name": "code-quality-check",
+      "agent": "refactor-workflow-1",
+      "intent": "refactor.analyze",
+      "payload": {
+        "files": [
+          "src/ai-bridge.js",
+          "src/agents/meta-agent-factory.js",
+          "src/agents/workflow-coordinator.js"
+        ],
+        "metrics": [
+          "cyclomatic-complexity",
+          "maintainability-index",
+          "code-duplication"
+        ],
+        "thresholds": {
+          "complexity": 10,
+          "maintainability": 70
+        }
+      },
+      "timeout": 30000,
+      "retries": 2
+    },
+    {
+      "name": "automated-testing",
+      "agent": "test-gen-workflow-1",
+      "intent": "test.run",
+      "payload": {
+        "suites": ["unit", "integration"],
+        "coverage": {
+          "enabled": true,
+          "threshold": 80
+        },
+        "parallel": true
+      },
+      "dependsOn": [0],
+      "timeout": 60000
+    },
+    {
+      "name": "refactoring-suggestions",
+      "agent": "refactor-workflow-1",
+      "intent": "refactor.suggest",
+      "payload": {
+        "target": "src/agents/",
+        "patterns": [
+          "extract-method",
+          "reduce-complexity",
+          "remove-duplication"
+        ],
+        "autoApply": false
+      },
+      "dependsOn": [0, 1]
+    },
+    {
+      "name": "api-validation",
+      "agent": "api-test-workflow-1",
+      "intent": "api.validate",
+      "payload": {
+        "endpoints": [
+          "/health",
+          "/api/send",
+          "/api/send/batch",
+          "/api/status"
+        ],
+        "timeout": 5000,
+        "expectedStatus": [200, 201]
+      },
+      "dependsOn": [1]
+    },
+    {
+      "name": "staging-deployment",
+      "agent": "deploy-workflow-1",
+      "intent": "deploy.start",
+      "payload": {
+        "environment": "staging",
+        "version": "v2.1.1-parallel-optimized",
+        "strategy": "blue-green",
+        "healthCheck": {
+          "enabled": true,
+          "endpoint": "/health",
+          "retries": 5,
+          "interval": 2000
+        },
+        "rollbackOnFailure": true
+      },
+      "dependsOn": [1, 3],
+      "timeout": 120000
+    },
+    {
+      "name": "smoke-testing",
+      "agent": "api-test-workflow-1",
+      "intent": "api.test",
+      "payload": {
+        "environment": "staging",
+        "tests": [
+          "health-check",
+          "agent-registration",
+          "message-routing",
+          "batch-processing"
+        ]
+      },
+      "dependsOn": [4]
+    },
+    {
+      "name": "production-deployment",
+      "agent": "deploy-workflow-1",
+      "intent": "deploy.start",
+      "payload": {
+        "environment": "production",
+        "version": "v2.1.1-parallel-optimized",
+        "strategy": "canary",
+        "canary": {
+          "percentage": 10,
+          "duration": 300000,
+          "autoPromote": true
+        },
+        "healthCheck": {
+          "enabled": true,
+          "endpoint": "/health",
+          "retries": 10,
+          "interval": 3000
+        },
+        "notifications": {
+          "slack": true,
+          "email": true
+        },
+        "rollbackOnFailure": true
+      },
+      "dependsOn": [5],
+      "timeout": 300000,
+      "critical": true
+    },
+    {
+      "name": "post-deployment-validation",
+      "agent": "api-test-workflow-1",
+      "intent": "api.validate",
+      "payload": {
+        "environment": "production",
+        "comprehensive": true,
+        "loadTest": {
+          "enabled": true,
+          "duration": 60000,
+          "concurrency": 50
+        }
+      },
+      "dependsOn": [6]
+    }
+  ],
+  "notifications": {
+    "onSuccess": {
+      "channels": ["slack", "email"],
+      "message": "Production deployment successful: {{version}}"
+    },
+    "onFailure": {
+      "channels": ["slack", "email", "pagerduty"],
+      "message": "Production deployment failed at step: {{failedStep}}"
+    }
+  },
+  "rollback": {
+    "automatic": true,
+    "conditions": [
+      "any_step_fails",
+      "health_check_fails",
+      "error_rate_exceeds_5_percent"
+    ]
+  }
+}

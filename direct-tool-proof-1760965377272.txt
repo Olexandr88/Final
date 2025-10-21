@@ -1,0 +1,54 @@
+{
+  "timestamp": "2025-10-20T13:02:57.303Z",
+  "tests": [
+    {
+      "name": "Write File",
+      "success": true,
+      "tool": "write",
+      "duration": 1,
+      "result": {
+        "file_path": "C:\\Users\\scarm\\autonomous-test-workspace\\tool-test.js",
+        "bytes_written": 334,
+        "success": true
+      }
+    },
+    {
+      "name": "Read File",
+      "success": true,
+      "tool": "read",
+      "duration": 0,
+      "lines": 15,
+      "size": 334
+    },
+    {
+      "name": "Bash Command",
+      "success": true,
+      "tool": "bash",
+      "duration": 23,
+      "exitCode": 0,
+      "stdout": "total 513\ndrwxr-xr-x 1 scarm 197609   0 Oct 20 09:02 .\ndrwxr-xr-x 1 scarm 197609   0 Oct 20 09:02 ..\n-rw-r--r-- 1 scarm 197609 334 Oct 20 09:02 tool-test.js"
+    },
+    {
+      "name": "Glob Search",
+      "success": true,
+      "tool": "glob",
+      "duration": 6,
+      "filesFound": 1
+    },
+    {
+      "name": "Git Status",
+      "success": true,
+      "tool": "git_status",
+      "duration": 61,
+      "isRepository": true,
+      "branch": "feat/selection-capture-and-metrics"
+    }
+  ],
+  "metrics": {
+    "totalExecutions": 5,
+    "successCount": 5,
+    "errorCount": 0,
+    "averageLatency": 18.2,
+    "successRate": "100.00%"
+  }
+}

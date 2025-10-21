@@ -1,0 +1,1 @@
+Get-CimInstance Win32_Process | Where-Object { /bin/bash.Name -eq 'node.exe' } | Select-Object ProcessId, CommandLine

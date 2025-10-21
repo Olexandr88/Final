@@ -1,0 +1,52 @@
+model = "gpt-5-codex"
+model_reasoning_effort = "high"
+windows_wsl_setup_acknowledged = true
+
+[features]
+rmcp_client = true
+
+[projects.'\\?\C:\Users\scarm']
+trust_level = "trusted"
+mcp_servers = ["llm-framework", "sequential-thinking", "ship-mode", "filesystem", "memory", "sqlite", "puppeteer", "a2a-knowledge", "rube"]
+
+[mcp_servers.a2a-knowledge]
+command = "python"
+args = ['C:\\Users\\scarm\\.claude\\mcp\\servers\\a2a-knowledge\\server.py']
+
+[mcp_servers.filesystem]
+command = "C:\\Users\\scarm\\AppData\\Roaming\\npm\\npx.cmd"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "C:/Users/scarm"]
+
+[mcp_servers.llm-framework]
+command = "node"
+args = ['C:\\Users\\scarm\\src\\mcp\\index.js']
+
+[mcp_servers.llm-framework.env]
+AI_BRIDGE_HTTP_PORT = "65029"
+AI_BRIDGE_PORT = "65028"
+LOG_LEVEL = "info"
+NODE_ENV = "production"
+PORT = "8080"
+
+[mcp_servers.memory]
+command = "C:\\Users\\scarm\\AppData\\Roaming\\npm\\npx.cmd"
+args = ["-y", "@modelcontextprotocol/server-memory"]
+
+[mcp_servers.puppeteer]
+command = "C:\\Users\\scarm\\AppData\\Roaming\\npm\\npx.cmd"
+args = ["-y", "@modelcontextprotocol/server-puppeteer"]
+
+[mcp_servers.rube]
+url = "https://rube.app/mcp"
+
+[mcp_servers.sequential-thinking]
+command = "C:\\Users\\scarm\\AppData\\Roaming\\npm\\npx.cmd"
+args = ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+
+[mcp_servers.ship-mode]
+command = "python"
+args = ['C:\\Users\\scarm\\.claude\\mcp\\servers\\ship-mode\\server.py']
+
+[mcp_servers.sqlite]
+command = "C:\\Users\\scarm\\AppData\\Roaming\\npm\\npx.cmd"
+args = ["-y", "mcp-server-sqlite-npx", "C:/Users/scarm/.claude/data/claude.db"]

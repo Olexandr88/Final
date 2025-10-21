@@ -1,0 +1,198 @@
+name: A2A Agent CI/CD
+
+on:
+  push:
+    branches: [main, develop, feat/**]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  a2a-integration-test:
+    name: A2A Hub & Agent Integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Python dependencies
+        run: |
+          pip install websockets aiohttp
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Start A2A Hub
+        run: |
+          python a2a-hub-server.py &
+          echo $! > a2a-hub.pid
+          sleep 5
+
+      - name: Verify Hub is running
+        run: |
+          curl -f http://localhost:3001/health || exit 1
+
+      - name: Connect test agents
+        run: |
+          python a2a-client.py test-agent-1 &
+          python a2a-client.py test-agent-2 &
+          sleep 3
+
+      - name: Run A2A integration tests
+        run: npm test tests/integration/a2a-self-test-framework.test.js
+
+      - name: Test Claude A2A Agent
+        run: |
+          node -e "
+          import('./src/claude-a2a-agent.js').then(async ({ ClaudeA2AAgent }) => {
+            const agent = new ClaudeA2AAgent('ci-test-agent');
+            await agent.connect();
+            console.log('Claude A2A agent connected successfully');
+            agent.disconnect();
+          });
+          "
+
+      - name: Test MCP Bridge
+        run: |
+          node -e "
+          import('./src/mcp-a2a-bridge.js').then(async ({ MCPtoA2ABridge }) => {
+            const bridge = new MCPtoA2ABridge();
+            await bridge.loadConfig();
+            console.log('MCP bridge configuration loaded');
+          });
+          "
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f a2a-hub.pid ]; then
+            kill $(cat a2a-hub.pid) || true
+          fi
+          pkill -f a2a-client.py || true
+
+  multi-agent-workflow:
+    name: Multi-Agent Workflow Test
+    runs-on: ubuntu-latest
+    needs: a2a-integration-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install websockets aiohttp
+          npm ci
+
+      - name: Start A2A Hub
+        run: |
+          python a2a-hub-server.py &
+          echo $! > a2a-hub.pid
+          sleep 5
+
+      - name: Run multi-agent collaboration test
+        run: |
+          curl -X POST http://localhost:3001/collaborate \
+            -H "Content-Type: application/json" \
+            -d '{"agents":["agent1","agent2","agent3"],"task":"Test collaboration workflow"}' \
+            | jq
+
+      - name: Run workflow orchestration test
+        run: |
+          curl -X POST http://localhost:3001/workflow \
+            -H "Content-Type: application/json" \
+            -d '{"id":"ci-workflow","steps":[{"action":"test"},{"action":"build"},{"action":"deploy"}]}' \
+            | jq
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f a2a-hub.pid ]; then
+            kill $(cat a2a-hub.pid) || true
+          fi
+
+  performance-test:
+    name: A2A Performance & Load Test
+    runs-on: ubuntu-latest
+    needs: a2a-integration-test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          pip install websockets aiohttp
+          npm ci
+
+      - name: Start A2A Hub
+        run: |
+          python a2a-hub-server.py &
+          echo $! > a2a-hub.pid
+          sleep 5
+
+      - name: Connect 10 concurrent agents
+        run: |
+          for i in {1..10}; do
+            python a2a-client.py "perf-agent-$i" &
+          done
+          sleep 5
+
+      - name: Load test - 100 messages
+        run: |
+          for i in {1..100}; do
+            curl -X POST http://localhost:3001/message \
+              -H "Content-Type: application/json" \
+              -d "{\"type\":\"test\",\"from\":\"ci\",\"to\":\"perf-agent-1\",\"payload\":{\"msg\":\"$i\"}}" &
+          done
+          wait
+
+      - name: Verify hub health after load
+        run: |
+          curl -f http://localhost:3001/health || exit 1
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f a2a-hub.pid ]; then
+            kill $(cat a2a-hub.pid) || true
+          fi
+          pkill -f a2a-client.py || true

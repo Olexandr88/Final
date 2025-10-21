@@ -1,0 +1,103 @@
+{
+  "timestamp": "2025-10-20T11:12:11.097Z",
+  "overall": "FAIL",
+  "phases": [
+    {
+      "name": "Docker Check",
+      "status": "PASS",
+      "message": "Docker is running",
+      "timestamp": "2025-10-20T11:12:11.299Z"
+    },
+    {
+      "name": "Node.js Check",
+      "status": "PASS",
+      "message": "Node.js version: v20.19.0",
+      "timestamp": "2025-10-20T11:12:11.325Z"
+    },
+    {
+      "name": "Dependencies Check",
+      "status": "PASS",
+      "message": "All dependencies installed",
+      "timestamp": "2025-10-20T11:12:11.771Z"
+    },
+    {
+      "name": "Redis Node 1",
+      "status": "PASS",
+      "message": "Node healthy",
+      "timestamp": "2025-10-20T11:12:24.320Z"
+    },
+    {
+      "name": "Redis Node 2",
+      "status": "PASS",
+      "message": "Node healthy",
+      "timestamp": "2025-10-20T11:12:24.488Z"
+    },
+    {
+      "name": "Redis Node 3",
+      "status": "PASS",
+      "message": "Node healthy",
+      "timestamp": "2025-10-20T11:12:24.659Z"
+    },
+    {
+      "name": "Redis Cluster",
+      "status": "PASS",
+      "message": "3/3 nodes healthy, quorum achieved",
+      "timestamp": "2025-10-20T11:12:24.659Z",
+      "nodes": 3,
+      "healthy": 3,
+      "quorum": 2,
+      "startTime": "2387.61ms"
+    },
+    {
+      "name": "Event Store",
+      "status": "WARN",
+      "message": "Event store may already exist",
+      "timestamp": "2025-10-20T11:12:24.814Z"
+    },
+    {
+      "name": "Event Append Performance",
+      "status": "WARN",
+      "message": "Average: 2025.00ms/event",
+      "timestamp": "2025-10-20T11:12:24.915Z",
+      "target": "<5ms",
+      "actual": 2025
+    },
+    {
+      "name": "Prisma Client",
+      "status": "PASS",
+      "message": "Prisma client generated",
+      "timestamp": "2025-10-20T11:12:26.907Z"
+    },
+    {
+      "name": "Database Migrations",
+      "status": "WARN",
+      "message": "Migrations may already be applied",
+      "timestamp": "2025-10-20T11:12:28.404Z"
+    },
+    {
+      "name": "Lock Health Check",
+      "status": "FAIL",
+      "message": "Lock system health check failed",
+      "timestamp": "2025-10-20T11:12:33.763Z"
+    },
+    {
+      "name": "Lock Benchmark",
+      "status": "WARN",
+      "message": "Benchmark not available",
+      "timestamp": "2025-10-20T11:12:39.085Z"
+    },
+    {
+      "name": "Container Status",
+      "status": "PASS",
+      "message": "3/3 Redis containers running",
+      "timestamp": "2025-10-20T11:12:39.178Z"
+    },
+    {
+      "name": "Redis Connectivity",
+      "status": "PASS",
+      "message": "Redis read/write operations successful",
+      "timestamp": "2025-10-20T11:12:39.429Z"
+    }
+  ],
+  "metrics": {}
+}

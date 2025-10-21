@@ -1,0 +1,30 @@
+{
+  "name": "standalone-tools",
+  "version": "1.0.0",
+  "description": "Standalone utility tools for text processing, data manipulation, file operations, math, and more - no MCP dependencies",
+  "type": "module",
+  "main": "tools.js",
+  "bin": {
+    "tools": "./tools.js"
+  },
+  "scripts": {
+    "help": "node tools.js help",
+    "test": "node test-tools.js"
+  },
+  "keywords": [
+    "utilities",
+    "tools",
+    "cli",
+    "text-processing",
+    "data-manipulation",
+    "file-tools",
+    "math",
+    "statistics",
+    "datetime"
+  ],
+  "author": "Parker Dunn",
+  "license": "ISC",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

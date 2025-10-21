@@ -1,0 +1,124 @@
+{
+  "regex_caching": {
+    "optimization": "Regex Pattern Caching with LRU Cache (128 patterns)",
+    "expected_speedup": "50-80% on repeated patterns",
+    "iterations": 1000,
+    "total_time_ms": 1.57,
+    "avg_time_ms": 0.0016,
+    "cache_stats": {
+      "hits": 1009,
+      "misses": 1,
+      "maxsize": 128,
+      "currsize": 1,
+      "hit_rate_percent": 99.9
+    },
+    "status": "OPTIMIZED",
+    "benefit": "Reuses compiled regex patterns, avoiding re-compilation overhead"
+  },
+  "text_analysis": {
+    "optimization": "Single-Pass Text Analysis",
+    "expected_speedup": "30-40% vs multiple passes",
+    "iterations": 500,
+    "total_time_ms": 243.53,
+    "avg_time_ms": 0.4871,
+    "sample_metrics": {
+      "characters": 13900,
+      "charactersNoSpaces": 9950,
+      "words": 1800,
+      "readingTimeMinutes": 9,
+      "lines": 401,
+      "sentences": 300,
+      "paragraphs": 101
+    },
+    "status": "OPTIMIZED",
+    "benefit": "Computes all metrics in one pass, avoiding redundant splits"
+  },
+  "file_hashing": {
+    "optimization": "Chunked File Hashing (64KB chunks)",
+    "expected_speedup": "99% memory reduction for large files",
+    "chunk_size": "65536 bytes (64KB)",
+    "results_by_size": {
+      "1KB": {
+        "iterations": 50,
+        "avg_time_ms": 0.031,
+        "throughput_mb_s": 31.51
+      },
+      "10KB": {
+        "iterations": 10,
+        "avg_time_ms": 0.0307,
+        "throughput_mb_s": 318.2
+      },
+      "100KB": {
+        "iterations": 10,
+        "avg_time_ms": 0.1234,
+        "throughput_mb_s": 791.51
+      },
+      "1024KB": {
+        "iterations": 10,
+        "avg_time_ms": 1.0306,
+        "throughput_mb_s": 970.35
+      }
+    },
+    "status": "OPTIMIZED",
+    "benefit": "Handles files >1GB without loading into memory"
+  },
+  "duplicate_detection": {
+    "optimization": "Size-Filtered Duplicate Detection",
+    "expected_speedup": "3-5x vs hashing all files",
+    "total_files": 50,
+    "files_hashed": 20,
+    "hashing_skipped": 30,
+    "skip_rate_percent": 60.0,
+    "execution_time_ms": 2.33,
+    "duplicate_groups": 10,
+    "status": "OPTIMIZED",
+    "benefit": "Only hashes files with duplicate sizes, skips unique-sized files"
+  },
+  "prime_check": {
+    "optimization": "Prime Check with Odd-Only Divisors + Caching",
+    "expected_speedup": "50% vs checking all divisors",
+    "iterations": 100,
+    "numbers_per_iteration": 7,
+    "total_time_ms": 0.09,
+    "avg_time_per_check_ms": 0.000127,
+    "cache_stats": {
+      "hits": 700,
+      "misses": 7,
+      "maxsize": 1024,
+      "currsize": 7,
+      "hit_rate_percent": 99.01
+    },
+    "individual_results": {
+      "2": {
+        "is_prime": true,
+        "time_ms": 0.0003
+      },
+      "17": {
+        "is_prime": true,
+        "time_ms": 0.0005
+      },
+      "97": {
+        "is_prime": true,
+        "time_ms": 0.0003
+      },
+      "1009": {
+        "is_prime": true,
+        "time_ms": 0.0003
+      },
+      "10007": {
+        "is_prime": true,
+        "time_ms": 0.0003
+      },
+      "104729": {
+        "is_prime": true,
+        "time_ms": 0.0002
+      },
+      "999983": {
+        "is_prime": true,
+        "time_ms": 0.0002
+      }
+    },
+    "status": "OPTIMIZED",
+    "benefit": "Skip even divisors (2x reduction), cache results for repeated checks"
+  }
+}

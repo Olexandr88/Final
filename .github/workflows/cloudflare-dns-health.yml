@@ -1,0 +1,58 @@
+name: Cloudflare DNS Health
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+jobs:
+  dns-health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install deps
+        run: pip install -r requirements-automation.txt
+      - name: DNS Health
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          python automation/dns_health_check.py \
+            --expected-www cname.vercel-dns.com \
+            --expected-apex 76.76.21.21 \
+            --domain scarmonit.com \
+            --json-output dns_health_report.json
+
+      - name: Redirect Validation
+        run: |
+          python automation/redirect_validation.py --domain scarmonit.com --json-output redirect_report.json
+
+      - name: Mail DNS (MX/SPF/DKIM)
+        run: |
+          python automation/mx_spf_dkim_check.py --domain scarmonit.com --json-output mail_dns_report.json || true
+          # Non-critical failure above still captured; aggregator will flag.
+
+      - name: Vercel Warmup (Optional)
+        env:
+          VERCEL_DEPLOYMENT_URL: ${{ secrets.VERCEL_DEPLOYMENT_URL }}
+        run: |
+          if [ -z "$VERCEL_DEPLOYMENT_URL" ]; then echo "Skipping warmup: VERCEL_DEPLOYMENT_URL not set"; else python automation/vercel_warmup.py --base-url $VERCEL_DEPLOYMENT_URL --json-output vercel_warmup_report.json || true; fi
+
+      - name: Aggregate & notify
+        if: always()
+        run: |
+          python automation/notify_reports.py --title "DNS Health Pipeline" --include-missing --strict
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dns-health-artifacts
+          path: |
+            dns_health_report.json
+            redirect_report.json
+            mail_dns_report.json
+            vercel_warmup_report.json

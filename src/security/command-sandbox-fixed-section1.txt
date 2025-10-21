@@ -1,0 +1,179 @@
+  /**
+   * Detect shell operators including encoded and obfuscated variants
+   * @private
+   */
+  _detectShellOperators(command) {
+    // Direct shell operators
+    const SHELL_OPERATORS = [
+      '&&', '||', ';', '|', '>', '<', '>>', '<<',
+      '$(', '`', '${', '&', '\n', '\r\n'
+    ];
+
+    // Windows-specific operators
+    const WINDOWS_OPERATORS = [
+      '&', '%', '^'
+    ];
+
+    // Check direct operators
+    for (const operator of SHELL_OPERATORS) {
+      if (command.includes(operator)) {
+        return {
+          valid: false,
+          reason: `Shell operator not allowed: ${operator}`,
+          severity: 'HIGH'
+        };
+      }
+    }
+
+    // Check Windows operators on Windows
+    if (process.platform === 'win32') {
+      for (const operator of WINDOWS_OPERATORS) {
+        if (command.includes(operator)) {
+          return {
+            valid: false,
+            reason: `Windows shell operator not allowed: ${operator}`,
+            severity: 'HIGH'
+          };
+        }
+      }
+    }
+
+    // Check URL-encoded variants
+    const ENCODED_OPERATORS = [
+      '%26%26', // &&
+      '%7C%7C', // ||
+      '%3B',    // ;
+      '%7C',    // |
+      '%3E',    // >
+      '%3C',    // <
+      '%0A',    // \n
+      '%0D',    // \r
+      '%24%28', // $(
+      '%60',    // `
+      '%24%7B'  // ${
+    ];
+
+    const upperCommand = command.toUpperCase();
+    for (const encoded of ENCODED_OPERATORS) {
+      if (upperCommand.includes(encoded)) {
+        return {
+          valid: false,
+          reason: `Encoded shell operator detected: ${encoded}`,
+          severity: 'CRITICAL'
+        };
+      }
+    }
+
+    // Check for HTML entity encoding
+    const HTML_ENTITIES = [
+      '&amp;', '&#38;', '&#x26;',
+      '&lt;', '&#60;', '&#x3C;',
+      '&gt;', '&#62;', '&#x3E;',
+      '&semi;', '&#59;', '&#x3B;'
+    ];
+
+    for (const entity of HTML_ENTITIES) {
+      if (command.includes(entity)) {
+        return {
+          valid: false,
+          reason: `HTML entity encoding detected: ${entity}`,
+          severity: 'CRITICAL'
+        };
+      }
+    }
+
+    // Check for Unicode homoglyphs (lookalike characters)
+    const HOMOGLYPHS = {
+      '\u037E': ';', // Greek question mark looks like semicolon
+      '\u0589': ':', // Armenian full stop
+      '\uFF1B': ';', // Fullwidth semicolon
+      '\uFF5C': '|', // Fullwidth vertical bar
+      '\u2223': '|'  // Divides operator
+    };
+
+    for (const [glyph, meaning] of Object.entries(HOMOGLYPHS)) {
+      if (command.includes(glyph)) {
+        return {
+          valid: false,
+          reason: `Unicode homoglyph detected (${meaning})`,
+          severity: 'CRITICAL'
+        };
+      }
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Validate and sanitize command before execution
+   * @param {string} command - Command to validate
+   * @returns {Object} Validation result
+   */
+  validateCommand(command) {
+    if (!command || typeof command !== 'string') {
+      return { valid: false, reason: 'Invalid command type' };
+    }
+
+    // Extract base command (first word)
+    const baseCommand = command.trim().split(/\s+/)[0];
+    const baseName = path.basename(baseCommand);
+
+    // Check deny list first (highest priority)
+    for (const denied of this.DANGEROUS_COMMANDS) {
+      if (baseName.toLowerCase().includes(denied.toLowerCase()) ||
+          command.toLowerCase().includes(denied.toLowerCase())) {
+        return {
+          valid: false,
+          reason: `Dangerous command detected: ${denied}`,
+          severity: 'CRITICAL'
+        };
+      }
+    }
+
+    // Check custom deny list
+    for (const denied of this.config.deniedCommands) {
+      if (command.toLowerCase().includes(denied.toLowerCase())) {
+        return {
+          valid: false,
+          reason: `Denied by policy: ${denied}`,
+          severity: 'HIGH'
+        };
+      }
+    }
+
+    // Check whitelist (if configured)
+    if (this.config.allowedCommands.length > 0) {
+      const isAllowed = this.config.allowedCommands.some(allowed =>
+        baseName.toLowerCase() === allowed.toLowerCase()
+      );
+
+      if (!isAllowed) {
+        return {
+          valid: false,
+          reason: `Command not in whitelist: ${baseName}`,
+          severity: 'MEDIUM'
+        };
+      }
+    } else {
+      // Default to safe commands list
+      const isSafe = this.SAFE_COMMANDS.some(safe =>
+        baseName.toLowerCase() === safe.toLowerCase()
+      );
+
+      if (!isSafe) {
+        return {
+          valid: false,
+          reason: `Command not in safe list: ${baseName}`,
+          severity: 'MEDIUM'
+        };
+      }
+    }
+
+    // Check for shell operators (ENHANCED with encoding detection)
+    const operatorCheck = this._detectShellOperators(command);
+    if (!operatorCheck.valid) {
+      return operatorCheck;
+    }
+
+    return { valid: true };
+  }

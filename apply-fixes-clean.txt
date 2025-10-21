@@ -1,0 +1,23 @@
+const fs = require('fs');
+const path = require('path');
+console.log('Applying clean security fixes');
+const sp = path.join(process.cwd(), 'src', 'security', 'command-sandbox-clean.js');
+let c = fs.readFileSync(sp, 'utf8');
+const validateIdx = c.indexOf('  /**\n   * Validate and sanitize command before execution');
+const newMethod = '  _detectShellOperators(command) {\n' +
+'    const ops = ["&&", "||", ";", "|", ">", "<", "$(", "`", "${", "&", "\n"];\n' +
+'    for (const o of ops) if (command.includes(o)) return {valid: false, reason: "Op: " + o, severity: "HIGH"};\n' +
+'    const enc = ["%26%26", "%7C%7C", "%3B", "%7C", "%3E", "%3C", "%0A", "%0D", "%24%28", "%60", "%24%7B"];\n' +
+'    const u = command.toUpperCase();\n' +
+'    for (const e of enc) if (u.includes(e)) return {valid: false, reason: "Enc: " + e, severity: "CRITICAL"};\n' +
+'    const html = ["&amp;", "&#38;", "&lt;", "&#60;", "&gt;", "&#62;", "&semi;", "&#59;"];\n' +
+'    for (const h of html) if (command.includes(h)) return {valid: false, reason: "HTML: " + h, severity: "CRITICAL"};\n' +
+'    return {valid: true};\n' +
+'  }\n\n';
+c = c.substring(0, validateIdx) + newMethod + c.substring(validateIdx);
+const oldStart = c.indexOf('    // Check for shell operators (command chaining)');
+const oldEnd = c.indexOf('    return { valid: true };', oldStart);
+c = c.substring(0, oldStart) + '    const operatorCheck = this._detectShellOperators(command);\n    if (!operatorCheck.valid) return operatorCheck;\n\n    return { valid: true };' + c.substring(oldEnd + 28);
+const mainPath = path.join(process.cwd(), 'src', 'security', 'command-sandbox.js');
+fs.writeFileSync(mainPath, c, 'utf8');
+console.log('P1 done');

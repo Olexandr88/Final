@@ -1,0 +1,42 @@
+name: Configure Admin Access
+
+on:
+  workflow_dispatch:
+
+jobs:
+  access-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Access Application
+        run: |
+          curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/1ccf287389f4312d3f219573a3658033/access/apps" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "name": "Admin Portal",
+              "domain": "scarmonit.com/admin",
+              "type": "self_hosted",
+              "session_duration": "24h"
+            }'
+
+      - name: Retrieve Application ID
+        id: get_app
+        run: |
+          APP_ID=$(curl -s -X GET "https://api.cloudflare.com/client/v4/accounts/1ccf287389f4312d3f219573a3658033/access/apps?name=Admin Portal" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            | jq -r '.result[0].id')
+          echo "app_id=$APP_ID" >> $GITHUB_OUTPUT
+          echo "Application ID: $APP_ID"
+
+      - name: Create Access Policy
+        run: |
+          curl -s -X POST "https://api.cloudflare.com/client/v4/accounts/1ccf287389f4312d3f219573a3658033/access/apps/${{ steps.get_app.outputs.app_id }}/policies" \
+            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            --data '{
+              "name": "Allow Google OAuth",
+              "precedence": 1,
+              "decision": "allow",
+              "include": [{"email": {"email": "scarmonit@gmail.com"}}]
+            }'

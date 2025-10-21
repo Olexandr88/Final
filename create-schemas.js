@@ -1,0 +1,1 @@
+const fs=require('fs');const schemas=Unknown tool: Missing: Unknown: wingetwinget type mismatch;fs.writeFileSync('src/tools/tool-schemas.js',schemas);console.log('Done');

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM AI Bridge - Nitric Powered</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .status-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .status-card h3 {
+            margin: 0 0 15px 0;
+            color: #00ff88;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+        .metrics {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .websocket-demo {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .success { color: #00ff88; }
+        .error { color: #ff6b6b; }
+        .loading { color: #ffd93d; }
+        #messages {
+            border: 1px solid #444;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 10px;
+        }
+        input {
+            padding: 8px;
+            margin-right: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 5px;
+        }
+        button {
+            padding: 8px 16px;
+            background: #00ff88;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #00cc66;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 LLM AI Bridge - Nitric Powered</h1>
+        
+        <div class="status-grid">
+            <div class="status-card">
+                <h3>🎯 System Health</h3>
+                <div class="metrics">
+                    <div>Status: <span id="system-status" class="loading">Loading...</span></div>
+                    <div>Uptime: <span id="uptime">--</span></div>
+                    <div>Memory: <span id="memory">--</span></div>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <h3>⚡ Nitric Performance</h3>
+                <div class="metrics">
+                    <div>Serverless: <span id="serverless-status" class="loading">Initializing...</span></div>
+                    <div>API Requests: <span id="api-requests">0</span></div>
+                    <div>CDN Cache Hit: <span id="cdn-hit">--</span></div>
+                </div>
+            </div>
+            
+            <div class="status-card">
+                <h3>🌐 WebSocket Status</h3>
+                <div class="metrics">
+                    <div>Connection: <span id="ws-status" class="error">Disconnected</span></div>
+                    <div>Messages: <span id="message-count">0</span></div>
+                    <div>Latency: <span id="latency">--</span></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="websocket-demo">
+            <h3>WebSocket Test</h3>
+            <div id="messages"></div>
+            <input type="text" id="messageInput" placeholder="Enter message..." />
+            <button onclick="sendMessage()">Send</button>
+            <button onclick="connect()">Connect</button>
+            <button onclick="disconnect()">Disconnect</button>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        let messageCount = 0;
+        let startTime = Date.now();
+
+        // Simulated system metrics
+        function updateMetrics() {
+            document.getElementById('uptime').textContent = formatUptime(Date.now() - startTime);
+            document.getElementById('memory').textContent = Math.round(Math.random() * 100) + 'MB';
+            document.getElementById('api-requests').textContent = Math.round(Math.random() * 1000);
+            document.getElementById('cdn-hit').textContent = (85 + Math.random() * 15).toFixed(1) + '%';
+        }
+
+        function formatUptime(ms) {
+            const seconds = Math.floor(ms / 1000) % 60;
+            const minutes = Math.floor(ms / (1000 * 60)) % 60;
+            const hours = Math.floor(ms / (1000 * 60 * 60));
+            return `${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        function connect() {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                return;
+            }
+            
+            try {
+                // In a real application, this would be your Nitric WebSocket endpoint
+                socket = new WebSocket('wss://echo.websocket.org/');
+                
+                socket.onopen = function(event) {
+                    document.getElementById('ws-status').className = 'success';
+                    document.getElementById('ws-status').textContent = 'Connected';
+                    addMessage('System: Connected to WebSocket');
+                };
+                
+                socket.onmessage = function(event) {
+                    messageCount++;
+                    document.getElementById('message-count').textContent = messageCount;
+                    addMessage('Received: ' + event.data);
+                };
+                
+                socket.onclose = function(event) {
+                    document.getElementById('ws-status').className = 'error';
+                    document.getElementById('ws-status').textContent = 'Disconnected';
+                    addMessage('System: Disconnected from WebSocket');
+                };
+                
+                socket.onerror = function(error) {
+                    addMessage('Error: ' + error.message);
+                };
+            } catch (error) {
+                addMessage('Connection failed: ' + error.message);
+            }
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.close();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message && socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(message);
+                addMessage('Sent: ' + message);
+                input.value = '';
+            }
+        }
+
+        function addMessage(content) {
+            const messages = document.getElementById('messages');
+            const timestamp = new Date().toLocaleTimeString();
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = `[${timestamp}] ${content}`;
+            messages.appendChild(messageDiv);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('system-status').className = 'success';
+            document.getElementById('system-status').textContent = 'Online';
+            document.getElementById('serverless-status').className = 'success';
+            document.getElementById('serverless-status').textContent = 'Ready';
+            
+            setInterval(updateMetrics, 2000);
+            updateMetrics();
+            
+            // Auto-connect on page load
+            setTimeout(connect, 1000);
+        });
+
+        // Enter key support for message input
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>

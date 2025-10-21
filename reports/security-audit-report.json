@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-10-20T11:32:38.424Z",
+  "vulnerabilities": {
+    "info": 0,
+    "low": 0,
+    "moderate": 2,
+    "high": 0,
+    "critical": 0,
+    "total": 2
+  },
+  "recommendations": [
+    {
+      "package": "axios",
+      "installed": "1.12.2",
+      "minimum": "1.6.0",
+      "reason": "SSRF vulnerability in older versions"
+    },
+    {
+      "package": "express",
+      "installed": "5.1.0",
+      "minimum": "4.18.0",
+      "reason": "Path traversal in older versions"
+    },
+    {
+      "package": "ws",
+      "installed": "8.16.0",
+      "minimum": "8.0.0",
+      "reason": "DoS vulnerability in older versions"
+    }
+  ],
+  "errors": []
+}

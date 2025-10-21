@@ -1,0 +1,72 @@
+// prisma/schema.prisma
+// Optimized ORM schema for LLM Framework database abstraction
+// Version: 2.1 - Performance Optimized with proper data types
+
+generator client {
+  provider = "prisma-client-js"
+  // Removed deprecated driverAdapters preview feature
+  binaryTargets = ["native"]
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Session management
+// Tracks active Claude Code sessions and their lifecycle
+model Session {
+  id            String   @id
+  pid           Int
+  startTime     BigInt   @map("start_time")
+  lastHeartbeat BigInt   @map("last_heartbeat")
+  status        String   @default("active")
+  currentTask   String?  @map("current_task")
+  cwd           String?
+
+  locks         Lock[]
+
+  // Optimized indexes for common query patterns
+  @@index([status], name: "idx_sessions_status")
+  @@index([lastHeartbeat], name: "idx_sessions_heartbeat")
+  @@index([status, lastHeartbeat], name: "idx_sessions_status_heartbeat")
+  @@map("sessions")
+}
+
+// Resource locks
+// Manages file/resource locking for concurrent operations
+model Lock {
+  id           Int      @id @default(autoincrement())
+  resourcePath String   @map("resource_path")
+  sessionId    String   @map("session_id")
+  acquiredAt   BigInt   @map("acquired_at")
+  lockType     String   @map("lock_type")
+
+  session      Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // Optimized indexes for lock acquisition and release
+  @@index([resourcePath], name: "idx_locks_resource")
+  @@index([sessionId], name: "idx_locks_session")
+  @@index([resourcePath, lockType], name: "idx_locks_resource_type")
+  @@index([sessionId, acquiredAt], name: "idx_locks_session_time")
+  @@map("locks")
+}
+
+// Browser text selections
+// Stores selected text from browser extensions for RAG context
+model Selection {
+  id           Int      @id @default(autoincrement())
+  url          String
+  title        String?
+  selectedText String   @map("selected_text")
+  source       String   @default("browser")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Optimized indexes for search and filtering
+  @@index([createdAt(sort: Desc)], name: "idx_selections_created_at")
+  @@index([url], name: "idx_selections_url")
+  @@index([source], name: "idx_selections_source")
+  @@index([source, createdAt(sort: Desc)], name: "idx_selections_source_time")
+  @@map("selections")
+}

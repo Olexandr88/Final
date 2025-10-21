@@ -1,0 +1,121 @@
+{
+  "timestamp": "2025-10-20T06:11:45.957323",
+  "scan_directory": "C:\\Users\\scarm\\standalone-tools",
+  "findings": {
+    "python_files": {
+      "count": 41,
+      "files": [
+        "C:\\Users\\scarm\\standalone-tools\\benchmark_results.py",
+        "C:\\Users\\scarm\\standalone-tools\\configure_mcp.py",
+        "C:\\Users\\scarm\\standalone-tools\\create_security.py",
+        "C:\\Users\\scarm\\standalone-tools\\data_tools.py",
+        "C:\\Users\\scarm\\standalone-tools\\data_tools_FIXED.py",
+        "C:\\Users\\scarm\\standalone-tools\\data_tools_SECURE.py",
+        "C:\\Users\\scarm\\standalone-tools\\demo_optimizations.py",
+        "C:\\Users\\scarm\\standalone-tools\\deploy.py",
+        "C:\\Users\\scarm\\standalone-tools\\deploy_fixes.py",
+        "C:\\Users\\scarm\\standalone-tools\\error_handler.py"
+      ]
+    },
+    "codebase_stats": {
+      "estimated_lines": 1843,
+      "total_files": 10,
+      "avg_file_size": 9239
+    },
+    "project_health_score": 50.0,
+    "file_organization": {
+      "test_files": {
+        "count": 13,
+        "files": [
+          "conftest.py",
+          "run_all_tests.py",
+          "run_tests.py",
+          "smoke_test.py",
+          "test_data_tools.py"
+        ]
+      },
+      "config_files": {
+        "count": 1,
+        "files": [
+          "configure_mcp.py"
+        ]
+      },
+      "fixed_files": {
+        "count": 4,
+        "files": [
+          "data_tools_FIXED.py",
+          "file_tools_FIXED.py",
+          "math_tools_FIXED.py",
+          "text_tools_FIXED.py"
+        ]
+      },
+      "secure_files": {
+        "count": 4,
+        "files": [
+          "data_tools_SECURE.py",
+          "file_tools_SECURE.py",
+          "math_tools_SECURE.py",
+          "text_tools_SECURE.py"
+        ]
+      }
+    },
+    "security_inventory": {
+      "deployment_files": {
+        "count": 2,
+        "files": [
+          "deploy.py",
+          "deploy_fixes.py"
+        ]
+      },
+      "validator_files": {
+        "count": 4,
+        "files": [
+          "run_validation.py",
+          "validate_setup.py",
+          "validate_all.py",
+          "validators.py"
+        ]
+      },
+      "error_handlers": {
+        "count": 1,
+        "files": [
+          "error_handler.py"
+        ]
+      },
+      "security_modules": {
+        "count": 3,
+        "files": [
+          "create_security.py",
+          "test_security_fixes.py",
+          "test_security_enhancements.py"
+        ]
+      }
+    },
+    "versioning_analysis": {
+      "total_files": 41,
+      "versioned_file_groups": 4,
+      "versioned_files": [
+        "data_tools.py",
+        "file_tools.py",
+        "math_tools.py",
+        "text_tools.py"
+      ]
+    }
+  },
+  "recommendations": [
+    {
+      "priority": "MEDIUM",
+      "category": "Code Organization",
+      "issue": "Multiple File Versions",
+      "action": "Found 4 files with multiple versions (FIXED, SECURE) - consolidate or use version control",
+      "impact": "Reduced confusion and better version tracking"
+    },
+    {
+      "priority": "LOW",
+      "category": "Refactoring",
+      "issue": "Large File Sizes",
+      "action": "Average file size is 9,239 bytes - consider breaking into smaller modules",
+      "impact": "Improved maintainability and testability"
+    }
+  ]
+}

@@ -1,0 +1,410 @@
+#!/usr/bin/env node
+/**
+ * Real Ollama Agent for A2A System with Response Caching
+ * Connects to A2A bridge and uses Ollama API to respond
+ * Enhanced with LRU cache for improved performance
+ */
+
+import WebSocket from 'ws';
+import dotenv from 'dotenv';
+import { MessageCache } from '../utils/message-cache.js';
+import { NETWORK, AGENTS, LLM } from '../config/constants.js';
+import { logger } from '../utils/logger.js';
+
+dotenv.config();
+
+const BRIDGE_URL = process.env.BRIDGE_WS || `ws://localhost:${NETWORK.BRIDGE_WS_PORT}`;
+const OLLAMA_URL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
+const AGENT_ID = 'ollama-agent-1';
+const MODEL = process.env.OLLAMA_MODEL || LLM.OLLAMA.DEFAULT_MODEL;
+
+class A2AOllamaAgent {
+  constructor() {
+    this.agentId = AGENT_ID;
+    this.ws = null;
+    this.conversationHistory = new Map();
+    this.messageCache = new MessageCache(); // Response caching
+    this.reconnectAttempts = 0;
+    this.maxReconnectDelay = NETWORK.RECONNECT_MAX_DELAY_MS;
+    this.baseReconnectDelay = NETWORK.RECONNECT_BASE_DELAY_MS;
+    this.ollamaAvailable = null; // Cache Ollama availability check
+
+    logger.info(`🤖 Starting Ollama Agent: ${this.agentId}`);
+    logger.info(`📡 Ollama URL: ${OLLAMA_URL}`);
+    logger.info(`🧠 Model: ${MODEL}`);
+    logger.info(`💾 Cache enabled (max ${LLM.CACHE.MAX_SIZE} entries, TTL ${LLM.CACHE.TTL_MS / 1000}s)`);
+
+    // Check Ollama availability before connecting
+    this.checkOllamaAvailability().then(available => {
+      if (!available) {
+        logger.warn('⚠️  WARNING: Ollama service not detected at ' + OLLAMA_URL);
+        logger.warn('⚠️  The agent will connect but may fail to process requests.');
+        logger.warn('⚠️  Please start Ollama: https://ollama.ai/download');
+      }
+      this.connect();
+    });
+  }
+
+  async checkOllamaAvailability() {
+    // Return cached result if checked recently (within 30 seconds)
+    if (this.ollamaAvailable !== null && Date.now() - this.ollamaAvailable.timestamp < 30000) {
+      return this.ollamaAvailable.available;
+    }
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000);
+
+      const response = await fetch(`${OLLAMA_URL}/api/tags`, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json'
+        }
+      });
+
+      clearTimeout(timeoutId);
+
+      const available = response.ok;
+      this.ollamaAvailable = { available, timestamp: Date.now() };
+
+      // Log availability status change
+      if (available && (!this.ollamaAvailable || !this.ollamaAvailable.available)) {
+        logger.info('✅ Ollama service is now available');
+      }
+
+      return available;
+    } catch (error) {
+      const wasAvailable = this.ollamaAvailable?.available || false;
+      this.ollamaAvailable = { available: false, timestamp: Date.now() };
+
+      // Only log if status changed
+      if (wasAvailable) {
+        logger.warn('⚠️  Ollama service became unavailable:', error.message);
+      }
+
+      return false;
+    }
+  }
+
+  connect() {
+    // CRITICAL: Clear existing interval before creating new one to prevent memory leak
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+
+    this.ws = new WebSocket(BRIDGE_URL);
+
+    this.ws.on('open', () => {
+      logger.info(`✅ Connected to A2A Bridge at ${BRIDGE_URL}`);
+      this.reconnectAttempts = 0; // Reset on successful connection
+      this.register();
+    });
+
+    this.ws.on('message', async (data) => {
+      try {
+        const msg = JSON.parse(data);
+        await this.handleMessage(msg);
+      } catch (error) {
+        logger.error('❌ Error handling message:', error.message);
+      }
+    });
+
+    this.ws.on('error', (error) => {
+      logger.error('❌ WebSocket error:', error.message);
+    });
+
+    this.ws.on('close', (code, reason) => {
+      logger.info(`🔌 Disconnected from A2A Bridge (code: ${code}, reason: ${reason || 'none'})`);
+
+      // Clear heartbeat interval on disconnect
+      if (this.heartbeatInterval) {
+        clearInterval(this.heartbeatInterval);
+        this.heartbeatInterval = null;
+      }
+
+      // Exponential backoff with jitter
+      this.reconnectAttempts++;
+      const backoffDelay = Math.min(
+        this.baseReconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
+        this.maxReconnectDelay
+      );
+      const jitter = Math.random() * NETWORK.RECONNECT_JITTER_MS;
+      const delay = backoffDelay + jitter;
+
+      // Don't reconnect if process is shutting down
+      if (this._shuttingDown) {
+        logger.info('⏹️ Shutdown in progress, skipping reconnect');
+        return;
+      }
+
+      logger.info(`🔄 Reconnecting in ${(delay/1000).toFixed(1)}s (attempt ${this.reconnectAttempts})...`);
+
+      // Store timeout reference for cleanup
+      this.reconnectTimeout = setTimeout(() => {
+        this.reconnectTimeout = null;
+        this.connect();
+      }, delay);
+    });
+
+    // Heartbeat and cache cleanup - optimized interval
+    this.heartbeatInterval = setInterval(() => {
+      if (this.ws && this.ws.readyState === 1) {
+        try {
+          this.ws.send(JSON.stringify({ type: 'heartbeat' }));
+
+          // Periodic cache cleanup (remove expired entries)
+          const removed = this.messageCache.cleanup();
+          if (removed > 0) {
+            logger.info(`🧹 Cleaned up ${removed} expired cache entries`);
+          }
+        } catch (err) {
+          logger.error('❌ Heartbeat failed:', err.message);
+        }
+      }
+    }, AGENTS.HEARTBEAT_INTERVAL_MS); // 2 minutes
+  }
+
+  register() {
+    const registration = {
+      type: 'register',
+      clientId: this.agentId,
+      role: 'ai-assistant',
+      labels: ['ollama', 'llm', 'ai', 'local', 'cached'],
+      tools: ['conversation', 'analysis', 'reasoning'],
+      intents: ['ai.query', 'ai.analyze', 'ai.converse'],
+      maxConcurrentTasks: 5
+    };
+
+    this.ws.send(JSON.stringify(registration));
+    logger.info(`📝 Registered as ${this.agentId}`);
+  }
+
+  async handleMessage(msg) {
+    if (msg.type === 'registered') {
+      logger.info('✅ Registration confirmed');
+      logger.info(`   Client ID: ${msg.client.id}`);
+      logger.info(`   Role: ${msg.client.role}`);
+      logger.info('🎧 Listening for messages...\n');
+      return;
+    }
+
+    if (msg[0] === 'env') {
+      const envelope = msg[1];
+      await this.handleEnvelope(envelope);
+    }
+  }
+
+  async handleEnvelope(envelope) {
+    const { from, to, intent, payload, id } = envelope;
+
+    // Only respond to messages directed at us
+    if (to !== this.agentId && to !== null) return;
+
+    logger.info(`\n📨 Received message from ${from}`);
+    logger.info(`   Intent: ${intent}`);
+    logger.info(`   Payload:`, JSON.stringify(payload).slice(0, 100));
+
+    try {
+      // Check if Ollama is available before processing
+      const isOllamaAvailable = await this.checkOllamaAvailability();
+      if (!isOllamaAvailable) {
+        throw new Error('Ollama service is not available. Please ensure Ollama is running on http://localhost:11434');
+      }
+
+      const userMessage = payload.message || payload.query || payload.question || JSON.stringify(payload);
+
+      // Check cache first
+      const cacheKey = this.messageCache.generateKey(userMessage, { model: MODEL });
+      const cachedResponse = this.messageCache.get(cacheKey);
+
+      if (cachedResponse) {
+        logger.info(`💾 Cache hit for message (key: ${cacheKey.substring(0, 8)}...)`);
+        logger.info(`✅ Returning cached response (${cachedResponse.length} chars)`);
+
+        // Send cached response
+        const responseEnvelope = {
+          type: 'envelope',
+          envelope: {
+            from: this.agentId,
+            to: from,
+            intent: 'ai.response',
+            replyTo: id,
+            payload: {
+              response: cachedResponse,
+              model: MODEL,
+              agent: this.agentId,
+              cached: true,
+              processed_at: new Date().toISOString()
+            }
+          }
+        };
+
+        this.ws.send(JSON.stringify(responseEnvelope));
+        logger.info(`📤 Sent cached response back to ${from}\n`);
+
+        // Log cache stats
+        const stats = this.messageCache.getStats();
+        logger.info(`📊 Cache stats: ${stats.hitRate} hit rate, ${stats.size}/${stats.maxSize} entries\n`);
+        return;
+      }
+
+      logger.info(`🤔 Processing with Ollama (${MODEL})...`);
+      logger.info(`   Cache miss - calling LLM API`);
+
+      // Call Ollama API with timeout and retry (optimized with keep-alive)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), LLM.OLLAMA.REQUEST_TIMEOUT_MS);
+
+      let response;
+      let retries = LLM.OLLAMA.MAX_RETRIES;
+
+      const requestBody = JSON.stringify({
+        model: MODEL,
+        prompt: userMessage,
+        stream: false,
+        options: {
+          temperature: LLM.OLLAMA.DEFAULT_TEMPERATURE,
+          top_p: LLM.OLLAMA.DEFAULT_TOP_P,
+          top_k: LLM.OLLAMA.DEFAULT_TOP_K,
+          num_predict: LLM.OLLAMA.DEFAULT_NUM_PREDICT,
+          num_ctx: LLM.OLLAMA.DEFAULT_NUM_CTX,
+          num_thread: LLM.OLLAMA.DEFAULT_NUM_THREAD
+        }
+      });
+
+      while (retries > 0) {
+        try {
+          response = await fetch(`${OLLAMA_URL}/api/generate`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Connection': 'keep-alive',
+              'Accept-Encoding': 'gzip, deflate'
+            },
+            body: requestBody,
+            signal: controller.signal,
+            keepalive: true
+          });
+          if (response.ok) break;
+          retries--;
+          if (retries > 0) await new Promise(r => setTimeout(r, LLM.OLLAMA.RETRY_DELAY_MS));
+        } catch (err) {
+          retries--;
+          if (retries === 0) throw err;
+          await new Promise(r => setTimeout(r, LLM.OLLAMA.RETRY_DELAY_MS));
+        }
+      }
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Ollama API error: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const aiResponse = result.response;
+
+      logger.info(`✅ Ollama responded (${aiResponse.length} chars)`);
+      logger.info(`   Response preview: ${aiResponse.slice(0, 100)}...`);
+
+      // Cache the response for future identical requests
+      this.messageCache.set(cacheKey, aiResponse);
+      logger.info(`💾 Cached response (key: ${cacheKey.substring(0, 8)}...)`);
+
+      // Send response back
+      const responseEnvelope = {
+        type: 'envelope',
+        envelope: {
+          from: this.agentId,
+          to: from,
+          intent: 'ai.response',
+          replyTo: id,
+          payload: {
+            response: aiResponse,
+            model: MODEL,
+            agent: this.agentId,
+            cached: false,
+            processed_at: new Date().toISOString()
+          }
+        }
+      };
+
+      this.ws.send(JSON.stringify(responseEnvelope));
+      logger.info(`📤 Sent response back to ${from}\n`);
+
+    } catch (error) {
+      logger.error(`❌ Error processing message:`, error.message);
+
+      // Sanitize error message for production
+      const sanitizedError = process.env.NODE_ENV === 'production'
+        ? 'An error occurred processing your request'
+        : error.message;
+
+      // Send error response
+      const errorEnvelope = {
+        type: 'envelope',
+        envelope: {
+          from: this.agentId,
+          to: from,
+          intent: 'ai.error',
+          replyTo: id,
+          payload: {
+            error: sanitizedError,
+            agent: this.agentId,
+            timestamp: new Date().toISOString()
+          }
+        }
+      };
+      this.ws.send(JSON.stringify(errorEnvelope));
+    }
+  }
+}
+
+// Start agent
+const agent = new A2AOllamaAgent();
+
+// Cleanup function
+function cleanup() {
+  logger.info('\n👋 Shutting down Ollama Agent...');
+
+  // Mark as shutting down to prevent reconnects
+  if (agent) {
+    agent._shuttingDown = true;
+
+    // Clear all timers
+    if (agent.heartbeatInterval) {
+      clearInterval(agent.heartbeatInterval);
+      agent.heartbeatInterval = null;
+    }
+
+    if (agent.reconnectTimeout) {
+      clearTimeout(agent.reconnectTimeout);
+      agent.reconnectTimeout = null;
+    }
+
+    // Close WebSocket connection
+    if (agent.ws && agent.ws.readyState === 1) {
+      agent.ws.close(1000, 'Agent shutdown');
+    }
+
+    // Log final cache stats and health
+    const stats = agent.messageCache.getStats();
+    const health = agent.messageCache.getHealth();
+
+    logger.info(`📊 Final cache stats: ${stats.hits} hits, ${stats.misses} misses (${stats.hitRate} hit rate)`);
+    logger.info(`🏥 Cache health: ${health.healthy ? 'Healthy' : 'Needs attention'} (utilization: ${health.utilization})`);
+
+    if (health.recommendations.length > 0) {
+      logger.info(`💡 Recommendations: ${health.recommendations.join(', ')}`);
+    }
+  }
+
+  process.exit(0);
+}
+
+// Handle shutdown signals
+process.on('SIGINT', cleanup);
+process.on('SIGTERM', cleanup);
+process.on('SIGHUP', cleanup); // Handle terminal close

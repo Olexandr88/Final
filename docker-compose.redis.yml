@@ -1,0 +1,201 @@
+version: '3.8'
+
+services:
+  # Redis Node 1 (Primary for Redlock)
+  redis-1:
+    image: redis:7-alpine
+    container_name: redis-node-1
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-1-data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --protected-mode no --requirepass ""
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - ai-bridge-network
+    environment:
+      - REDIS_NODE_ID=1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Node 2 (Secondary for Redlock)
+  redis-2:
+    image: redis:7-alpine
+    container_name: redis-node-2
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-2-data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --protected-mode no
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - ai-bridge-network
+    environment:
+      - REDIS_NODE_ID=2
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis Node 3 (Tertiary for Redlock)
+  redis-3:
+    image: redis:7-alpine
+    container_name: redis-node-3
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis-3-data:/data
+      - ./config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf --protected-mode no
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - ai-bridge-network
+    environment:
+      - REDIS_NODE_ID=3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # AI Bridge Server (hybrid mode - WebSocket + Redis)
+  ai-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-bridge-server
+    ports:
+      - "56427:56427"  # WebSocket
+      - "65038:65038"  # HTTP API
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis-1:6379
+      - MESSAGE_BROKER_MODE=hybrid
+      - AI_BRIDGE_PORT=56427
+      - AI_BRIDGE_HTTP_PORT=65038
+      - REDIS_STREAM_TTL=604800
+      - REDIS_MAX_STREAM_LENGTH=10000
+      - DLQ_MAX_RETRIES=3
+      - DLQ_RETRY_DELAY=5000
+      # Distributed locks configuration
+      - USE_DISTRIBUTED_LOCKS=true
+      - REDIS_HOST_1=redis-1
+      - REDIS_PORT_1=6379
+      - REDIS_HOST_2=redis-2
+      - REDIS_PORT_2=6379
+      - REDIS_HOST_3=redis-3
+      - REDIS_PORT_3=6379
+    depends_on:
+      redis-1:
+        condition: service_healthy
+      redis-2:
+        condition: service_healthy
+      redis-3:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - ai-bridge-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:65038/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "5"
+
+  # Redis Commander (Web UI for Redis)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    ports:
+      - "8081:8081"
+    environment:
+      - REDIS_HOSTS=node1:redis-1:6379,node2:redis-2:6379,node3:redis-3:6379
+    depends_on:
+      - redis-1
+      - redis-2
+      - redis-3
+    restart: unless-stopped
+    networks:
+      - ai-bridge-network
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ai-bridge-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    restart: unless-stopped
+    networks:
+      - ai-bridge-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ai-bridge-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=redis-datasource
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - ai-bridge-network
+
+volumes:
+  redis-1-data:
+    driver: local
+  redis-2-data:
+    driver: local
+  redis-3-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  ai-bridge-network:
+    driver: bridge

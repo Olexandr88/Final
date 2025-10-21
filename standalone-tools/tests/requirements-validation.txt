@@ -1,0 +1,23 @@
+# Validation Test Suite Requirements
+# Install with: pip install -r requirements-validation.txt
+
+# Core testing framework
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-xdist>=3.3.1  # Parallel test execution
+pytest-timeout>=2.1.0  # Timeout support for ReDoS tests
+
+# Performance profiling
+pytest-benchmark>=4.0.0
+memory-profiler>=0.61.0
+
+# Code coverage reporting
+coverage[toml]>=7.2.0
+
+# Additional utilities
+tabulate>=0.9.0  # Pretty table formatting
+colorama>=0.4.6  # Cross-platform colored terminal output
+
+# Optional: Security scanning
+bandit>=1.7.5  # Security issue scanner
+safety>=2.3.0  # Dependency vulnerability scanner

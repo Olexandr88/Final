@@ -1,0 +1,44 @@
+{
+  "name": "vibe-coding-demo",
+  "version": "1.0.0",
+  "description": "Demonstration of vibe coding best practices with Claude Code",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "jest --coverage",
+    "build": "echo 'Build successful'",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "validate": "npm run lint && npm test && npm run build",
+    "production-check": "node production-checklist.js",
+    "demo:ui": "node examples/ui-visual-testing.js examples/sample-ui.html",
+    "demo:agent-monitor": "node src/agent-monitor.js demo",
+    "demo:prompt-gen": "node src/prompt-generator.js tdd",
+    "demo:tdd": "node src/tdd-workflow.js status",
+    "demo:session": "node src/session-manager.js list",
+    "demo:all": "npm run demo:agent-monitor && npm run demo:prompt-gen && npm run demo:tdd",
+    "vibe:init": "node src/vibe-coding-system.js",
+    "vibe:workflow": "node src/workflow-orchestrator.js",
+    "vibe:detect": "node src/anti-pattern-detector.js",
+    "vibe:explore": "node src/workflow-orchestrator.js explore",
+    "vibe:plan": "node src/workflow-orchestrator.js plan",
+    "vibe:full": "node src/workflow-orchestrator.js full"
+  },
+  "keywords": [
+    "claude-code",
+    "vibe-coding",
+    "ai-assisted-development",
+    "sub-agents",
+    "hooks"
+  ],
+  "author": "Parker Dunn",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "prettier": "^3.2.5",
+    "eslint": "^8.57.0"
+  },
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

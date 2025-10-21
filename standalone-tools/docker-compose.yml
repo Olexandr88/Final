@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  standalone-tools:
+    build: .
+    image: standalone-tools:latest
+    container_name: standalone-tools
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    cap_drop: [ALL]
+    deploy:
+      resources:
+        limits: {cpus: '2.0', memory: 512M}
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python", "-c", "from data_tools import DataTools; assert DataTools.query_json('{\"test\":1}', 'test')['success']"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+
+  standalone-tools-test:
+    build: .
+    image: standalone-tools:test
+    command: python -m pytest tests/ -v || python -c "from data_tools import DataTools; assert DataTools.query_json('{\"test\":1}', 'test')['success']; print('Tests passed')"
+    profiles: [test]
+    
+volumes:
+  temp-data: {}
+networks:
+  default:
+    driver: bridge

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Coding - Sample Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #ffffff;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .subtitle {
+      opacity: 0.9;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h3 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+      color: #fff;
+    }
+
+    .card p {
+      opacity: 0.85;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .card .metric {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffd700;
+      margin: 0.5rem 0;
+    }
+
+    button {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+
+    .features {
+      margin-top: 3rem;
+      padding: 2rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 16px;
+    }
+
+    .features ul {
+      list-style: none;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .features li {
+      padding: 0.5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .features li::before {
+      content: '✓';
+      margin-right: 0.5rem;
+      color: #4ade80;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Vibe Coding Dashboard</h1>
+    <p class="subtitle">AI-Assisted Development at Scale</p>
+
+    <div class="dashboard">
+      <div class="card">
+        <h3>Sub-Agents</h3>
+        <p>Specialized AI assistants for different tasks</p>
+        <div class="metric">3</div>
+        <button>Configure Agents</button>
+      </div>
+
+      <div class="card">
+        <h3>Active Hooks</h3>
+        <p>Automated workflows and guardrails</p>
+        <div class="metric">4</div>
+        <button>Manage Hooks</button>
+      </div>
+
+      <div class="card">
+        <h3>Code Quality</h3>
+        <p>Test coverage and code health</p>
+        <div class="metric">92%</div>
+        <button>View Reports</button>
+      </div>
+
+      <div class="card">
+        <h3>Productivity</h3>
+        <p>Lines of code generated today</p>
+        <div class="metric">1,247</div>
+        <button>See Details</button>
+      </div>
+    </div>
+
+    <div class="features">
+      <h2>Vibe Coding Features</h2>
+      <ul>
+        <li>Whole-codebase reasoning</li>
+        <li>Direct action and tool use</li>
+        <li>Custom environment config</li>
+        <li>IDE integration</li>
+        <li>Safety controls</li>
+        <li>Sub-agent orchestration</li>
+        <li>Automated testing</li>
+        <li>Visual UI validation</li>
+        <li>Production-ready output</li>
+        <li>Context management</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    // Simulated interactivity
+    document.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        console.log('Button clicked:', btn.textContent);
+        btn.textContent = '✓ ' + btn.textContent;
+        setTimeout(() => {
+          btn.textContent = btn.textContent.replace('✓ ', '');
+        }, 1000);
+      });
+    });
+  </script>
+</body>
+</html>

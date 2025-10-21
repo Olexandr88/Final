@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: llm-ai-bridge
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: npm install --production
+    startCommand: node server-enhanced.js
+    healthCheckPath: /healthz
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: llm-ai-bridge
+          property: port
+      - key: AI_BRIDGE_HISTORY_LIMIT
+        value: "500"
+      - key: AI_BRIDGE_MAX_QUEUE
+        value: "1000"
+      - key: AI_BRIDGE_CORS_ORIGINS
+        value: "*"
+      - key: AI_BRIDGE_CLIENT_TTL_MS
+        value: "600000"
+      - key: AI_BRIDGE_CLEANUP_INTERVAL_MS
+        value: "30000"
+      - key: AI_BRIDGE_RATE_WINDOW_MS
+        value: "60000"
+      - key: AI_BRIDGE_RATE_MAX
+        value: "120"
+    autoDeploy: true
+    disk:
+      name: llm-data
+      mountPath: /opt/render/project/data
+      sizeGB: 1

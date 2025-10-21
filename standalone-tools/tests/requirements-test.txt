@@ -1,0 +1,38 @@
+# Testing Dependencies for Standalone Tools
+# Install with: pip install -r tests/requirements-test.txt
+
+# Core testing framework
+pytest>=7.4.0
+pytest-cov>=4.1.0          # Coverage reporting
+pytest-xdist>=3.3.0        # Parallel test execution
+pytest-timeout>=2.1.0      # Test timeout handling
+pytest-benchmark>=4.0.0    # Performance benchmarking
+
+# Test utilities
+pytest-mock>=3.11.0        # Enhanced mocking
+pytest-randomly>=3.13.0    # Randomize test order
+pytest-repeat>=0.9.1       # Repeat flaky tests
+pytest-sugar>=0.9.7        # Better test output
+
+# Code quality
+pytest-flake8>=1.1.1       # Style checking
+pytest-mypy>=0.10.3        # Type checking
+black>=23.7.0              # Code formatting
+isort>=5.12.0              # Import sorting
+
+# Coverage and reporting
+coverage>=7.2.0            # Coverage measurement
+pytest-html>=3.2.0         # HTML test reports
+pytest-json-report>=1.5.0  # JSON test reports
+
+# Security testing
+bandit>=1.7.5              # Security issue scanner
+safety>=2.3.0              # Dependency vulnerability scanner
+
+# Performance
+memory-profiler>=0.61.0    # Memory profiling
+py-spy>=0.3.14            # Sampling profiler
+
+# Optional but recommended
+hypothesis>=6.82.0         # Property-based testing
+faker>=19.2.0             # Fake data generation

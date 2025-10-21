@@ -1,0 +1,100 @@
+name: Complete Optimization Workflow
+on:
+  push:
+    branches: [ "feat/bridge-demo-hardened", "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      optimization_type:
+        description: 'Type of optimization to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - bridge-demo
+          - tab-analysis
+          - cloud-sql
+      custom_text:
+        description: 'Custom text for analysis (optional)'
+        required: false
+        type: string
+
+jobs:
+  bridge-hardened-test:
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.optimization_type, 'bridge-demo') || github.event.inputs.optimization_type == 'all' || github.event_name != 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: |
+          npm ci
+      - name: Run hardened bridge demo
+        env:
+          NODE_OPTIONS: "--experimental-modules"
+        run: |
+          echo "Running hardened bridge demo..."
+          node examples/bridge-demo-hardened.js | tee bridge-results.json
+          test -s bridge-results.json
+      - name: Upload bridge results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-demo-results
+          path: bridge-results.json
+      - name: Bridge demo summary
+        run: |
+          echo "### 🌉 Hardened Bridge Demo Results" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          cat bridge-results.json >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+  tab-text-optimization:
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.optimization_type, 'tab-analysis') || github.event.inputs.optimization_type == 'all' || github.event_name != 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Run tab and text optimization analysis
+        env:
+          CUSTOM_TEXT: ${{ github.event.inputs.custom_text }}
+        run: |
+          echo "Running tab and text optimization analysis..."
+          node scripts/tab-text-optimizer.js
+      - name: Upload optimization results
+        uses: actions/upload-artifact@v4
+        with:
+          name: optimization-results
+          path: optimization-results/
+      - name: Display optimization summary
+        run: |
+          echo "### 📊 Tab & Text Optimization Results" >> $GITHUB_STEP_SUMMARY
+          if [ -f optimization-results/summary.md ]; then
+            cat optimization-results/summary.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No optimization results generated" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  cloud-sql-optimization:
+    runs-on: ubuntu-latest
+    if: contains(github.event.inputs.optimization_type, 'cloud-sql') || github.event.inputs.optimization_type == 'all' || github.event_name != 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Run Cloud SQL optimization
+        run: |
+          echo "Running Cloud SQL optimization analysis..."
+          node scripts/cloud-sql-optimizer.js
+      - name: Cloud SQL optimization summary
+        run: |
+          echo "### ☁️ Cloud SQL Optimization Results" >> $GITHUB_STEP_SUMMARY
+          echo "Cloud SQL optimization complete" >> $GITHUB_STEP_SUMMARY
