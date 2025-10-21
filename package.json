@@ -17,7 +17,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "echo \"Preparing repository...\"",
-    "postinstall": "echo \"Jules automation configured and ready!\""
+    "postinstall": "echo \"Jules automation configured and ready!\"",
+    "agent:ollama-autonomous": "echo \"Starting Ollama autonomous agent...\" && node scripts/ollama-agent.js || echo \"Ollama agent script not found, running in echo mode\""
   },
   "repository": {
     "type": "git",
