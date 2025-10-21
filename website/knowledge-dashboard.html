@@ -6,177 +6,327 @@
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self';">
     <title>AI Knowledge Enhancement System - Scarmonit</title>
     <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #00d9ff;
+            --text-color: #e0e6ed;
+            --bg-dark: #0a0e1a;
+            --bg-light: #1a1f2e;
+            --card-bg: rgba(255, 255, 255, 0.08);
+            --card-border: rgba(255, 255, 255, 0.15);
+            --success-color: #00ff88;
+            --error-color: #ff6b6b;
+            --warning-color: #ffd93d;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-light) 100%);
             min-height: 100vh;
             padding: 2rem;
-            color: #333;
+            color: var(--text-color);
+            position: relative;
+            overflow-x: hidden;
         }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==') repeat;
+            animation: backgroundMove 60s linear infinite;
+            opacity: 0.1;
+            z-index: -1;
+        }
+
+        @keyframes backgroundMove {
+            from {
+                background-position: 0 0;
+            }
+            to {
+                background-position: 600px 600px;
+            }
+        }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            animation: fadeIn 1s ease-out;
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-link {
+            position: absolute;
+            top: 2rem;
+            left: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+            padding: 0.8rem 1.2rem;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(-5px);
+        }
+
         .header {
             text-align: center;
-            color: white;
+            color: var(--text-color);
             margin-bottom: 3rem;
         }
+
         .header h1 {
-            font-size: 2.5rem;
+            font-size: 3em;
             margin-bottom: 0.5rem;
+            color: var(--accent-color);
+            text-shadow: 2px 2px 8px rgba(0, 217, 255, 0.3);
         }
+
         .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
+            font-size: 1.1em;
+            opacity: 0.8;
         }
+
         .controls {
             display: flex;
             justify-content: center;
             margin-bottom: 2rem;
         }
+
         .refresh-btn {
-            background: white;
+            background: var(--accent-color);
             border: none;
             padding: 1rem 2rem;
             border-radius: 50px;
             font-size: 1rem;
             font-weight: 600;
-            color: #667eea;
+            color: var(--bg-dark);
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 0.5rem;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.3);
         }
+
         .refresh-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 6px 20px rgba(0, 217, 255, 0.5);
         }
+
         .refresh-btn:disabled {
-            opacity: 0.7;
+            opacity: 0.6;
             cursor: not-allowed;
         }
+
         .dashboard-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }
+
         .card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid var(--card-border);
+            animation: cardFadeIn 0.8s ease-out forwards;
+            opacity: 0;
         }
+
+        .card:nth-child(1) { animation-delay: 0.1s; }
+        .card:nth-child(2) { animation-delay: 0.2s; }
+        .card:nth-child(3) { animation-delay: 0.3s; }
+        .card:nth-child(4) { animation-delay: 0.4s; }
+        .card:nth-child(5) { animation-delay: 0.5s; }
+        .card:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes cardFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
         }
+
         .card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1rem;
         }
+
         .card-title {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--accent-color);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
         .card-icon {
-            font-size: 1.5rem;
+            font-size: 1.8rem;
+            color: var(--accent-color);
         }
+
         .card-value {
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 700;
-            color: #667eea;
+            color: var(--text-color);
             margin-bottom: 0.5rem;
+            text-shadow: 1px 1px 5px rgba(0, 217, 255, 0.2);
         }
+
         .card-description {
-            font-size: 0.9rem;
-            color: #999;
+            font-size: 0.95em;
+            color: rgba(255, 255, 255, 0.7);
         }
+
+        .error-message, .success-message {
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin: 2rem 0;
+            font-weight: 600;
+            animation: fadeIn 0.5s ease-out;
+        }
+
         .error-message {
-            background: #fee;
-            color: #c33;
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-            margin: 2rem 0;
+            background: rgba(255, 107, 107, 0.2);
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
         }
+
         .success-message {
-            background: #efe;
-            color: #3c3;
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-            margin: 2rem 0;
+            background: rgba(0, 255, 136, 0.2);
+            color: var(--success-color);
+            border: 1px solid var(--success-color);
         }
-        .loading {
+
+        .loading-state {
             text-align: center;
             padding: 3rem;
-            color: white;
+            color: var(--text-color);
             font-size: 1.2rem;
         }
+
         .spinner {
             display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: var(--accent-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin-bottom: 1rem;
         }
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
         .agents-list {
-            background: white;
+            background: var(--card-bg);
             border-radius: 15px;
             padding: 1.5rem;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            animation: fadeIn 1.2s ease-out;
         }
+
         .agents-list h2 {
-            margin-bottom: 1rem;
-            color: #667eea;
+            margin-bottom: 1.5rem;
+            color: var(--accent-color);
+            text-shadow: 1px 1px 5px rgba(0, 217, 255, 0.2);
         }
+
         .agent-item {
             padding: 1rem;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            transition: background 0.3s ease;
         }
+
         .agent-item:last-child {
             border-bottom: none;
         }
+
+        .agent-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
         .agent-name {
             font-weight: 600;
-            color: #333;
+            color: var(--text-color);
+            font-size: 1.1em;
         }
+
+        .agent-details {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.25rem;
+        }
+
         .agent-status {
-            padding: 0.25rem 0.75rem;
+            padding: 0.4rem 1rem;
             border-radius: 20px;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             font-weight: 600;
+            text-transform: uppercase;
         }
+
         .agent-status.active {
-            background: #d4edda;
-            color: #155724;
+            background: var(--success-color);
+            color: var(--bg-dark);
         }
+
         .agent-status.idle {
-            background: #fff3cd;
-            color: #856404;
+            background: var(--warning-color);
+            color: var(--bg-dark);
         }
+
         .api-status {
             position: fixed;
             top: 1rem;
@@ -186,24 +336,44 @@
             font-size: 0.8rem;
             font-weight: 600;
             z-index: 1000;
+            animation: fadeIn 0.5s ease-out;
         }
+
         .api-status.connected {
-            background: #d4edda;
-            color: #155724;
+            background: var(--success-color);
+            color: var(--bg-dark);
         }
+
         .api-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
+            background: var(--error-color);
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 2.2em;
+            }
+            .refresh-btn {
+                padding: 0.8rem 1.5rem;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <a href="./" class="nav-link">← Back to Home</a>
+    
     <div id="apiStatus" class="api-status disconnected">API Disconnected</div>
     
     <div class="container">
         <div class="header">
-            <h1>🚀 AI Knowledge Enhancement System</h1>
-            <p>Real-time insights into our multi-agent AI capabilities</p>
+            <h1>🧠 AI Knowledge Hub</h1>
+            <p>Real-time insights into our multi-agent AI capabilities and knowledge base.</p>
         </div>
 
         <div class="controls">
@@ -214,7 +384,7 @@
         </div>
 
         <div id="content">
-            <div class="loading">
+            <div class="loading-state">
                 <div class="spinner"></div>
                 <div>Loading dashboard data...</div>
             </div>
@@ -222,7 +392,6 @@
     </div>
 
     <script>
-        // Determine the correct API base URL
         const API_BASE = window.location.protocol + '//' + window.location.host;
         
         const API_ENDPOINTS = {
@@ -230,11 +399,9 @@
             agents: API_BASE + '/api/dashboard/agents'
         };
 
-        let refreshTimeout;
         let retryCount = 0;
         const maxRetries = 3;
 
-        // Update API status indicator
         function updateApiStatus(connected) {
             const statusEl = document.getElementById('apiStatus');
             if (connected) {
@@ -257,7 +424,6 @@
                 refreshIcon.textContent = '⏳';
                 refreshText.textContent = 'Refreshing...';
 
-                // Fetch data from real API endpoints
                 const [statsResponse, agentsResponse] = await Promise.all([
                     fetch(API_ENDPOINTS.stats, {
                         method: 'GET',
@@ -265,7 +431,7 @@
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         },
-                        timeout: 10000
+                        signal: AbortSignal.timeout(10000) // 10 second timeout
                     }),
                     fetch(API_ENDPOINTS.agents, {
                         method: 'GET',
@@ -273,7 +439,7 @@
                             'Accept': 'application/json',
                             'Content-Type': 'application/json'
                         },
-                        timeout: 10000
+                        signal: AbortSignal.timeout(10000) // 10 second timeout
                     })
                 ]);
 
@@ -290,9 +456,8 @@
 
                 displayDashboard(statsData.data, agentsData.data);
                 updateApiStatus(true);
-                retryCount = 0; // Reset retry count on success
+                retryCount = 0;
 
-                // Show success message briefly
                 const successMsg = document.createElement('div');
                 successMsg.className = 'success-message';
                 successMsg.textContent = `Dashboard data loaded successfully! (${new Date().toLocaleTimeString()})`;
@@ -307,7 +472,7 @@
                 let errorMessage = 'Failed to load dashboard data. ';
                 if (error.name === 'TypeError' && error.message.includes('fetch')) {
                     errorMessage += 'Cannot connect to server. Check if the server is running.';
-                } else if (error.message.includes('timeout')) {
+                } else if (error.name === 'AbortError') {
                     errorMessage += 'Request timed out. Server may be slow to respond.';
                 } else {
                     errorMessage += error.message;
@@ -330,11 +495,10 @@
                     </div>
                 `;
                 
-                // Auto retry with exponential backoff
                 if (retryCount < maxRetries) {
                     setTimeout(() => {
                         loadDashboardData();
-                    }, Math.pow(2, retryCount) * 2500); // 5s, 10s, 20s
+                    }, Math.pow(2, retryCount) * 2500); 
                 }
             } finally {
                 refreshBtn.disabled = false;
@@ -379,8 +543,8 @@
                             <div class="card-title">Response Time</div>
                             <div class="card-icon">⏱️</div>
                         </div>
-                        <div class="card-value">${stats.avgResponseTime}</div>
-                        <div class="card-description">Average response</div>
+                        <div class="card-value">${stats.avgResponseTime}ms</div>
+                        <div class="card-description">Average response time</div>
                     </div>
 
                     <div class="card">
@@ -389,7 +553,7 @@
                             <div class="card-icon">📊</div>
                         </div>
                         <div class="card-value">${stats.uptime}</div>
-                        <div class="card-description">Last 30 days</div>
+                        <div class="card-description">Overall system uptime</div>
                     </div>
 
                     <div class="card">
@@ -408,40 +572,35 @@
                         <div class="agent-item">
                             <div>
                                 <div class="agent-name">${agent.name}</div>
-                                <div style="font-size: 0.85rem; color: #666; margin-top: 0.25rem;">
-                                    ${agent.tasks} tasks completed
-                                    <br>
-                                    <em>Last seen: ${agent.lastSeen}</em>
+                                <div class="agent-details">
+                                    ${agent.tasks} tasks completed | Last seen: ${agent.lastSeen}
                                 </div>
                             </div>
-                            <span class="agent-status ${agent.status}">${agent.status.toUpperCase()}</span>
+                            <span class="agent-status ${agent.status.toLowerCase()}">${agent.status.toUpperCase()}</span>
                         </div>
                     `).join('')}
                 </div>
             `;
         }
 
-        // Event listeners
         document.getElementById('refreshBtn').addEventListener('click', loadDashboardData);
 
-        // Initial load
-        loadDashboardData();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            setInterval(loadDashboardData, 30000);
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadDashboardData, 30000);
-
-        // Health check every 10 seconds
-        setInterval(async () => {
-            try {
-                const response = await fetch(API_BASE + '/health', { 
-                    method: 'GET',
-                    timeout: 5000 
-                });
-                updateApiStatus(response.ok);
-            } catch (error) {
-                updateApiStatus(false);
-            }
-        }, 10000);
+            setInterval(async () => {
+                try {
+                    const response = await fetch(API_BASE + '/health', { 
+                        method: 'GET',
+                        signal: AbortSignal.timeout(5000) 
+                    });
+                    updateApiStatus(response.ok);
+                } catch (error) {
+                    updateApiStatus(false);
+                }
+            }, 10000);
+        });
     </script>
 </body>
 </html>
