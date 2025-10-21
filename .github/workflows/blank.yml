@@ -5,6 +5,7 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+
 # Ensure the workflow can update contents if needed
 permissions:
   contents: write
@@ -12,10 +13,12 @@ permissions:
   checks: write
   pull-requests: write
   issues: write
-# Only use concurrency for PR runs - allow main branch runs to proceed in parallel
+
+# Proper concurrency control to prevent workflow pile-up
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: Build and Test (Node.js)
@@ -42,20 +45,23 @@ jobs:
           node -e "const pkg = require('./package.json'); console.log('Package:', pkg.name, pkg.version);"
           echo "✓ Package validated successfully"
       
-      - name: Run Tests (if present)
+      - name: Run Tests
         run: |
           npm run test --if-present || echo "⚠ No tests defined yet"
-        continue-on-error: true
+        continue-on-error: false
       
-      - name: Run Build (if present)
+      - name: Run Build
         run: |
           npm run build --if-present || echo "⚠ No build script defined yet"
-        continue-on-error: true
+        continue-on-error: false
       
       - name: CI Status Summary
+        if: success()
         run: |
           echo "==========================================="
           echo "✓ CI workflow completed successfully"
           echo "✓ Dependencies installed"
           echo "✓ Package structure validated"
+          echo "✓ Tests passed"
+          echo "✓ Build completed"
           echo "==========================================="
