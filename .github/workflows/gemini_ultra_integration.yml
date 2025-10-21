@@ -11,18 +11,15 @@ on:
         description: 'Run example scripts'
         required: false
         default: 'true'
-
 # Improved concurrency controls to prevent queue buildup
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 env:
   # Set environment variables for consistent builds
   PYTHON_VERSION: '3.11'
   PIP_CACHE_DIR: ~/.cache/pip
   PYTHONPATH: ${{ github.workspace }}
-
 jobs:
   # Job 1: Quick validation and dependency check
   quick-validation:
@@ -43,7 +40,6 @@ jobs:
           echo "should-run=false" >> $GITHUB_OUTPUT
         fi
       continue-on-error: true
-
   # Job 2: Setup and validate environment (optimized)
   setup-and-validate:
     runs-on: ubuntu-latest
@@ -86,7 +82,6 @@ jobs:
           echo "Example script not found, skipping environment check"
         fi
       continue-on-error: true
-
   # Job 3: Code quality checks (optimized)
   code-quality:
     runs-on: ubuntu-latest
@@ -115,7 +110,6 @@ jobs:
         find . -name "*.py" -not -path "./.*" | head -10 | xargs pylint --exit-zero || echo "Pylint completed"
         find . -name "*.py" -not -path "./.*" | head -10 | xargs flake8 --exit-zero || echo "Flake8 completed"
       continue-on-error: true
-
   # Job 4: Integration tests (conditional)
   integration-tests:
     runs-on: ubuntu-latest
@@ -149,7 +143,6 @@ jobs:
           python -m pytest tests/ -v
         fi
       continue-on-error: true
-
   # Job 5: Deployment readiness check
   deployment-check:
     runs-on: ubuntu-latest
@@ -176,7 +169,6 @@ jobs:
           echo "✗ package.json not found"
           exit 1
         fi
-
   # Job 6: Final status report
   status-report:
     runs-on: ubuntu-latest
