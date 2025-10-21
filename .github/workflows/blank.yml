@@ -5,6 +5,7 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+
 # Ensure the workflow can update contents if needed
 permissions:
   contents: write
@@ -12,10 +13,12 @@ permissions:
   checks: write
   pull-requests: write
   issues: write
-# Optimized concurrency control - allow workflows to complete
+
+# Optimized concurrency control - cancel outdated runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: Build and Test (Node.js)
