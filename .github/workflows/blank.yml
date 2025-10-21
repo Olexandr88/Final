@@ -5,7 +5,6 @@ on:
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
-
 # Ensure the workflow can update contents if needed
 permissions:
   contents: write
@@ -13,12 +12,10 @@ permissions:
   checks: write
   pull-requests: write
   issues: write
-
 # Only use concurrency for PR runs - allow main branch runs to proceed in parallel
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || 'main-' }}${{ github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
   build-and-test:
     name: Build and Test (Node.js)
