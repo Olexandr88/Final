@@ -22,6 +22,7 @@ node scripts/deploy-production.js
 ```
 
 This will:
+
 1. Check prerequisites
 2. Install dependencies
 3. Run tests and build
@@ -108,10 +109,10 @@ After deployment, configure DNS records in Cloudflare:
 
 ### Required DNS Records
 
-| Type | Name | Content | Proxy Status | Purpose |
-|------|------|---------|--------------|------|
-| A | www | 192.0.2.1 | ☁️ Proxied | Main entry point |
-| CNAME | @ | www.scarmonit.com | ☁️ Proxied | Root domain redirect |
+| Type  | Name | Content           | Proxy Status | Purpose              |
+| ----- | ---- | ----------------- | ------------ | -------------------- |
+| A     | www  | 192.0.2.1         | ☁️ Proxied   | Main entry point     |
+| CNAME | @    | www.scarmonit.com | ☁️ Proxied   | Root domain redirect |
 
 **Note**: The A record IP is a placeholder. Cloudflare Workers handle all routing.
 
@@ -155,6 +156,7 @@ Your dashboard is now available at:
 **What**: Backend server with autonomous agent orchestration
 
 **Deployment**:
+
 1. Connect your GitHub repository to Railway
 2. Railway auto-detects `railway.json` and `Dockerfile.railway`
 3. Set environment variables in Railway dashboard:
@@ -171,6 +173,7 @@ Your dashboard is now available at:
 **What**: Serverless API functions and static hosting
 
 **Deployment**:
+
 1. Run `vercel --prod` or link via GitHub
 2. Vercel auto-detects `vercel.json`
 3. Set environment variables in Vercel dashboard
@@ -183,6 +186,7 @@ Your dashboard is now available at:
 **What**: Edge computing gateway, routes traffic to Railway/Vercel
 
 **Deployment**:
+
 1. Update `wrangler.toml` with your Zone ID
 2. Run `npx wrangler deploy`
 3. Set secrets: `wrangler secret put GITHUB_TOKEN`
@@ -214,6 +218,7 @@ open https://www.scarmonit.com/dashboard
 ```
 
 Expected responses:
+
 - **Dashboard**: Interactive HTML page with purple gradient
 - **Health**: `{"status":"healthy","uptime":..., "agent":"running"}`
 - **Status**: `{"agent":"running","pid":..., "memory":{...}}`
@@ -225,18 +230,21 @@ Expected responses:
 ### View Logs
 
 **Railway**:
+
 ```bash
 railway logs
 # Or via dashboard: https://railway.app/
 ```
 
 **Vercel**:
+
 ```bash
 vercel logs
 # Or via dashboard: https://vercel.com/dashboard
 ```
 
 **Cloudflare**:
+
 ```bash
 npx wrangler tail
 # Or via dashboard: Cloudflare → Workers → Logs
@@ -245,6 +253,7 @@ npx wrangler tail
 ### Health Checks
 
 The system includes:
+
 - **Railway**: HTTP health endpoint at `/health`
 - **Cloudflare**: Cron-based health checks every 30 minutes
 - **Dashboard**: Auto-refreshing metrics every 5 seconds
@@ -258,6 +267,7 @@ The system includes:
 **Cause**: DNS not propagated or routing issue
 
 **Fix**:
+
 1. Wait 5-10 minutes for DNS propagation
 2. Check `dig www.scarmonit.com` shows Cloudflare IPs
 3. Verify Cloudflare Workers routes are active
@@ -268,6 +278,7 @@ The system includes:
 **Cause**: Backend (Railway/Vercel) not responding
 
 **Fix**:
+
 1. Check Railway deployment is running
 2. Verify health endpoint responds: `curl https://railway-url/health`
 3. Review Railway logs for errors
@@ -278,6 +289,7 @@ The system includes:
 **Cause**: Agent process not fully initialized
 
 **Fix**:
+
 1. Wait 10-15 seconds after deployment
 2. Check Railway logs for "Agent marked as healthy"
 3. Restart Railway service if stuck
@@ -287,6 +299,7 @@ The system includes:
 **Cause**: Missing `public/dashboard.html` file
 
 **Fix**:
+
 1. Ensure `public/` directory exists
 2. Verify `dashboard.html` is committed to git
 3. Redeploy to Railway/Vercel

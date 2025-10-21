@@ -1,598 +1,673 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Scarmonit AI Dashboard - Real-time monitoring and control center for autonomous AI agents">
-    <meta name="keywords" content="AI, Dashboard, Monitoring, Automation, Jules, GitHub Actions">
-    <meta name="author" content="Scarmonit">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Scarmonit AI Dashboard - Real-time monitoring and control center for autonomous AI agents"
+    />
+    <meta
+      name="keywords"
+      content="AI, Dashboard, Monitoring, Automation, Jules, GitHub Actions"
+    />
+    <meta name="author" content="Scarmonit" />
     <title>Scarmonit AI Dashboard | www.scarmonit.com</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --info: #3b82f6;
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --border: #475569;
-        }
+      :root {
+        --primary: #2563eb;
+        --primary-dark: #1d4ed8;
+        --success: #10b981;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --info: #3b82f6;
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --border: #475569;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu,
+          Cantarell, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+      }
 
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+      .container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 20px;
+      }
 
-        header {
-            background: var(--bg-secondary);
-            border-bottom: 2px solid var(--primary);
-            padding: 20px 0;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        }
+      header {
+        background: var(--bg-secondary);
+        border-bottom: 2px solid var(--primary);
+        padding: 20px 0;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+      }
 
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
 
+      h1 {
+        font-size: 2rem;
+        background: linear-gradient(135deg, var(--primary), var(--info));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+      }
+
+      .status-operational {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success);
+      }
+      .status-warning {
+        background: rgba(245, 158, 11, 0.2);
+        color: var(--warning);
+      }
+      .status-error {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+      }
+
+      .pulse {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        transition:
+          transform 0.2s,
+          box-shadow 0.2s;
+      }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+
+      .card-icon {
+        width: 24px;
+        height: 24px;
+        opacity: 0.7;
+      }
+
+      .metric {
+        margin: 10px 0;
+      }
+
+      .metric-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-bottom: 5px;
+      }
+
+      .metric-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+      }
+
+      .metric-value.success {
+        color: var(--success);
+      }
+      .metric-value.warning {
+        color: var(--warning);
+      }
+      .metric-value.danger {
+        color: var(--danger);
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: var(--bg-tertiary);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 8px;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--info));
+        transition: width 0.3s ease;
+      }
+
+      .agent-list {
+        list-style: none;
+      }
+
+      .agent-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        margin: 8px 0;
+        background: var(--bg-tertiary);
+        border-radius: 8px;
+        border-left: 3px solid var(--primary);
+      }
+
+      .agent-name {
+        font-weight: 500;
+      }
+
+      .agent-status {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+
+      .agent-status.running {
+        background: rgba(16, 185, 129, 0.2);
+        color: var(--success);
+      }
+
+      .agent-status.stopped {
+        background: rgba(239, 68, 68, 0.2);
+        color: var(--danger);
+      }
+
+      .deployment-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+      }
+
+      .deployment-card {
+        background: var(--bg-tertiary);
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+        border: 2px solid transparent;
+        transition: border-color 0.3s;
+      }
+
+      .deployment-card.active {
+        border-color: var(--success);
+      }
+
+      .deployment-platform {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .deployment-status {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: var(--primary-dark);
+        transform: scale(1.05);
+      }
+
+      .btn-success {
+        background: var(--success);
+        color: white;
+      }
+
+      .btn-danger {
+        background: var(--danger);
+        color: white;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 15px;
+      }
+
+      .workflow-item {
+        background: var(--bg-tertiary);
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 8px;
+        border-left: 4px solid var(--info);
+      }
+
+      .workflow-name {
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+
+      .workflow-status {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.875rem;
+      }
+
+      footer {
+        text-align: center;
+        padding: 30px 20px;
+        color: var(--text-secondary);
+        border-top: 1px solid var(--border);
+        margin-top: 40px;
+      }
+
+      .link {
+        color: var(--primary);
+        text-decoration: none;
+      }
+
+      .link:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 768px) {
         h1 {
-            font-size: 2rem;
-            background: linear-gradient(135deg, var(--primary), var(--info));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+          font-size: 1.5rem;
         }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-
-        .status-operational { background: rgba(16, 185, 129, 0.2); color: var(--success); }
-        .status-warning { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
-        .status-error { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-
-        .pulse {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
         .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
+          grid-template-columns: 1fr;
         }
-
-        .card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .card-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        .card-icon {
-            width: 24px;
-            height: 24px;
-            opacity: 0.7;
-        }
-
-        .metric {
-            margin: 10px 0;
-        }
-
-        .metric-label {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            margin-bottom: 5px;
-        }
-
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .metric-value.success { color: var(--success); }
-        .metric-value.warning { color: var(--warning); }
-        .metric-value.danger { color: var(--danger); }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--bg-tertiary);
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 8px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--info));
-            transition: width 0.3s ease;
-        }
-
-        .agent-list {
-            list-style: none;
-        }
-
-        .agent-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            margin: 8px 0;
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            border-left: 3px solid var(--primary);
-        }
-
-        .agent-name {
-            font-weight: 500;
-        }
-
-        .agent-status {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .agent-status.running {
-            background: rgba(16, 185, 129, 0.2);
-            color: var(--success);
-        }
-
-        .agent-status.stopped {
-            background: rgba(239, 68, 68, 0.2);
-            color: var(--danger);
-        }
-
         .deployment-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
+          grid-template-columns: 1fr;
         }
+      }
 
-        .deployment-card {
-            background: var(--bg-tertiary);
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: border-color 0.3s;
-        }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+      }
 
-        .deployment-card.active {
-            border-color: var(--success);
-        }
+      .spinner {
+        border: 3px solid var(--bg-tertiary);
+        border-top: 3px solid var(--primary);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
 
-        .deployment-platform {
-            font-weight: 600;
-            margin-bottom: 8px;
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
         }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
 
-        .deployment-status {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 15px 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        display: none;
+      }
 
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
+      .toast.show {
+        display: block;
+        animation: slideIn 0.3s ease-out;
+      }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
         }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: scale(1.05);
+        to {
+          transform: translateX(0);
+          opacity: 1;
         }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-
-        .workflow-item {
-            background: var(--bg-tertiary);
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            border-left: 4px solid var(--info);
-        }
-
-        .workflow-name {
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .workflow-status {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.875rem;
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--text-secondary);
-            border-top: 1px solid var(--border);
-            margin-top: 40px;
-        }
-
-        .link {
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .link:hover {
-            text-decoration: underline;
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 1.5rem; }
-            .grid { grid-template-columns: 1fr; }
-            .deployment-grid { grid-template-columns: 1fr; }
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-
-        .spinner {
-            border: 3px solid var(--bg-tertiary);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-            z-index: 1000;
-            display: none;
-        }
-
-        .toast.show {
-            display: block;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(400px);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <header>
-        <div class="container">
-            <div class="header-content">
-                <h1>🤖 Scarmonit AI Dashboard</h1>
-                <div class="status-badge status-operational">
-                    <span class="pulse" style="background: var(--success);"></span>
-                    <span id="system-status">Operational</span>
-                </div>
-            </div>
+      <div class="container">
+        <div class="header-content">
+          <h1>🤖 Scarmonit AI Dashboard</h1>
+          <div class="status-badge status-operational">
+            <span class="pulse" style="background: var(--success)"></span>
+            <span id="system-status">Operational</span>
+          </div>
         </div>
+      </div>
     </header>
 
     <div class="container">
-        <!-- System Overview -->
+      <!-- System Overview -->
+      <div class="grid">
+        <!-- Agents Status -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">AI Agents</h2>
+            <span class="card-icon">🤖</span>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Active Agents</div>
+            <div class="metric-value success" id="active-agents">0</div>
+          </div>
+          <ul class="agent-list" id="agent-list">
+            <li class="loading">
+              <div class="spinner"></div>
+              Loading agents...
+            </li>
+          </ul>
+        </div>
+
+        <!-- Performance Metrics -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Performance</h2>
+            <span class="card-icon">📊</span>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Uptime</div>
+            <div class="metric-value" id="uptime">0h 0m</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Memory Usage</div>
+            <div class="metric-value" id="memory">0 MB</div>
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                id="memory-progress"
+                style="width: 0%"
+              ></div>
+            </div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Response Time</div>
+            <div class="metric-value success" id="response-time">0 ms</div>
+          </div>
+        </div>
+
+        <!-- Deployment Status -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">Deployments</h2>
+            <span class="card-icon">🚀</span>
+          </div>
+          <div class="deployment-grid" id="deployment-grid">
+            <div class="deployment-card active">
+              <div class="deployment-platform">Vercel</div>
+              <div class="deployment-status">✅ Active</div>
+            </div>
+            <div class="deployment-card">
+              <div class="deployment-platform">Railway</div>
+              <div class="deployment-status">⏸️ Idle</div>
+            </div>
+            <div class="deployment-card">
+              <div class="deployment-platform">Cloudflare</div>
+              <div class="deployment-status">⏸️ Idle</div>
+            </div>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-success" onclick="triggerDeploy('vercel')">
+              Deploy Vercel
+            </button>
+            <button class="btn btn-primary" onclick="triggerDeploy('railway')">
+              Deploy Railway
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- GitHub Actions Workflows -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">CI/CD Workflows</h2>
+          <span class="card-icon">⚙️</span>
+        </div>
+        <div id="workflows-list">
+          <div class="loading">
+            <div class="spinner"></div>
+            Loading workflows...
+          </div>
+        </div>
+      </div>
+
+      <!-- Jules Automation -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Jules Automation</h2>
+          <span class="card-icon">🔧</span>
+        </div>
         <div class="grid">
-            <!-- Agents Status -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">AI Agents</h2>
-                    <span class="card-icon">🤖</span>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Active Agents</div>
-                    <div class="metric-value success" id="active-agents">0</div>
-                </div>
-                <ul class="agent-list" id="agent-list">
-                    <li class="loading">
-                        <div class="spinner"></div>
-                        Loading agents...
-                    </li>
-                </ul>
-            </div>
-
-            <!-- Performance Metrics -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Performance</h2>
-                    <span class="card-icon">📊</span>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Uptime</div>
-                    <div class="metric-value" id="uptime">0h 0m</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Memory Usage</div>
-                    <div class="metric-value" id="memory">0 MB</div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="memory-progress" style="width: 0%;"></div>
-                    </div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Response Time</div>
-                    <div class="metric-value success" id="response-time">0 ms</div>
-                </div>
-            </div>
-
-            <!-- Deployment Status -->
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Deployments</h2>
-                    <span class="card-icon">🚀</span>
-                </div>
-                <div class="deployment-grid" id="deployment-grid">
-                    <div class="deployment-card active">
-                        <div class="deployment-platform">Vercel</div>
-                        <div class="deployment-status">✅ Active</div>
-                    </div>
-                    <div class="deployment-card">
-                        <div class="deployment-platform">Railway</div>
-                        <div class="deployment-status">⏸️ Idle</div>
-                    </div>
-                    <div class="deployment-card">
-                        <div class="deployment-platform">Cloudflare</div>
-                        <div class="deployment-status">⏸️ Idle</div>
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-success" onclick="triggerDeploy('vercel')">Deploy Vercel</button>
-                    <button class="btn btn-primary" onclick="triggerDeploy('railway')">Deploy Railway</button>
-                </div>
-            </div>
+          <div class="metric">
+            <div class="metric-label">Auto-Fixes Applied</div>
+            <div class="metric-value success" id="auto-fixes">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Optimizations</div>
+            <div class="metric-value" id="optimizations">0</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Issues Resolved</div>
+            <div class="metric-value success" id="issues-resolved">0</div>
+          </div>
         </div>
+      </div>
 
-        <!-- GitHub Actions Workflows -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">CI/CD Workflows</h2>
-                <span class="card-icon">⚙️</span>
-            </div>
-            <div id="workflows-list">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    Loading workflows...
-                </div>
-            </div>
+      <!-- Quick Actions -->
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Quick Actions</h2>
+          <span class="card-icon">⚡</span>
         </div>
-
-        <!-- Jules Automation -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Jules Automation</h2>
-                <span class="card-icon">🔧</span>
-            </div>
-            <div class="grid">
-                <div class="metric">
-                    <div class="metric-label">Auto-Fixes Applied</div>
-                    <div class="metric-value success" id="auto-fixes">0</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Optimizations</div>
-                    <div class="metric-value" id="optimizations">0</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-label">Issues Resolved</div>
-                    <div class="metric-value success" id="issues-resolved">0</div>
-                </div>
-            </div>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="runHealthCheck()">
+            🏥 Health Check
+          </button>
+          <button class="btn btn-success" onclick="startAgent()">
+            ▶️ Start Agent
+          </button>
+          <button class="btn btn-danger" onclick="stopAgent()">
+            ⏹️ Stop Agent
+          </button>
+          <a
+            href="https://github.com/Scarmonit/Final"
+            class="btn btn-primary"
+            target="_blank"
+            >📂 View Repo</a
+          >
+          <a
+            href="https://github.com/Scarmonit/Final/actions"
+            class="btn btn-primary"
+            target="_blank"
+            >🔄 Actions</a
+          >
         </div>
-
-        <!-- Quick Actions -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">Quick Actions</h2>
-                <span class="card-icon">⚡</span>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-primary" onclick="runHealthCheck()">🏥 Health Check</button>
-                <button class="btn btn-success" onclick="startAgent()">▶️ Start Agent</button>
-                <button class="btn btn-danger" onclick="stopAgent()">⏹️ Stop Agent</button>
-                <a href="https://github.com/Scarmonit/Final" class="btn btn-primary" target="_blank">📂 View Repo</a>
-                <a href="https://github.com/Scarmonit/Final/actions" class="btn btn-primary" target="_blank">🔄 Actions</a>
-            </div>
-        </div>
+      </div>
     </div>
 
     <footer>
-        <p>
-            <strong>Scarmonit AI Dashboard</strong> | 
-            <a href="https://www.scarmonit.com" class="link">www.scarmonit.com</a> | 
-            <a href="https://github.com/Scarmonit/Final" class="link">GitHub</a>
-        </p>
-        <p style="margin-top: 10px; font-size: 0.875rem;">
-            Last updated: <span id="last-updated">Never</span>
-        </p>
+      <p>
+        <strong>Scarmonit AI Dashboard</strong> |
+        <a href="https://www.scarmonit.com" class="link">www.scarmonit.com</a> |
+        <a href="https://github.com/Scarmonit/Final" class="link">GitHub</a>
+      </p>
+      <p style="margin-top: 10px; font-size: 0.875rem">
+        Last updated: <span id="last-updated">Never</span>
+      </p>
     </footer>
 
     <div class="toast" id="toast">
-        <div id="toast-message"></div>
+      <div id="toast-message"></div>
     </div>
 
     <script>
-        // Configuration
-        const API_BASE = window.location.hostname === 'localhost' 
-            ? 'http://localhost:8080'
-            : window.location.origin;
-        
-        const REFRESH_INTERVAL = 5000; // 5 seconds
+      // Configuration
+      const API_BASE =
+        window.location.hostname === 'localhost'
+          ? 'http://localhost:8080'
+          : window.location.origin;
 
-        // Initialize dashboard
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 Scarmonit AI Dashboard initialized');
-            loadDashboardData();
-            setInterval(loadDashboardData, REFRESH_INTERVAL);
-        });
+      const REFRESH_INTERVAL = 5000; // 5 seconds
 
-        // Load all dashboard data
-        async function loadDashboardData() {
-            await Promise.all([
-                loadHealthData(),
-                loadAgents(),
-                loadWorkflows(),
-                loadJulesMetrics()
-            ]);
-            updateLastUpdated();
+      // Initialize dashboard
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 Scarmonit AI Dashboard initialized');
+        loadDashboardData();
+        setInterval(loadDashboardData, REFRESH_INTERVAL);
+      });
+
+      // Load all dashboard data
+      async function loadDashboardData() {
+        await Promise.all([
+          loadHealthData(),
+          loadAgents(),
+          loadWorkflows(),
+          loadJulesMetrics(),
+        ]);
+        updateLastUpdated();
+      }
+
+      // Load health and performance data
+      async function loadHealthData() {
+        try {
+          const response = await fetch(`${API_BASE}/health`);
+          const data = await response.json();
+
+          // Update system status
+          const statusEl = document.getElementById('system-status');
+          statusEl.textContent = data.status || 'Unknown';
+
+          // Update uptime
+          const uptimeHours = Math.floor(data.uptime / 3600);
+          const uptimeMinutes = Math.floor((data.uptime % 3600) / 60);
+          document.getElementById('uptime').textContent =
+            `${uptimeHours}h ${uptimeMinutes}m`;
+
+          // Update memory
+          if (data.memory) {
+            const memoryMB = (data.memory.heapUsed / 1024 / 1024).toFixed(2);
+            const memoryMax = (data.memory.heapTotal / 1024 / 1024).toFixed(2);
+            const memoryPercent = (
+              (data.memory.heapUsed / data.memory.heapTotal) *
+              100
+            ).toFixed(1);
+
+            document.getElementById('memory').textContent =
+              `${memoryMB} / ${memoryMax} MB`;
+            document.getElementById('memory-progress').style.width =
+              `${memoryPercent}%`;
+          }
+        } catch (error) {
+          console.error('Failed to load health data:', error);
         }
+      }
 
-        // Load health and performance data
-        async function loadHealthData() {
-            try {
-                const response = await fetch(`${API_BASE}/health`);
-                const data = await response.json();
-                
-                // Update system status
-                const statusEl = document.getElementById('system-status');
-                statusEl.textContent = data.status || 'Unknown';
-                
-                // Update uptime
-                const uptimeHours = Math.floor(data.uptime / 3600);
-                const uptimeMinutes = Math.floor((data.uptime % 3600) / 60);
-                document.getElementById('uptime').textContent = `${uptimeHours}h ${uptimeMinutes}m`;
-                
-                // Update memory
-                if (data.memory) {
-                    const memoryMB = (data.memory.heapUsed / 1024 / 1024).toFixed(2);
-                    const memoryMax = (data.memory.heapTotal / 1024 / 1024).toFixed(2);
-                    const memoryPercent = ((data.memory.heapUsed / data.memory.heapTotal) * 100).toFixed(1);
-                    
-                    document.getElementById('memory').textContent = `${memoryMB} / ${memoryMax} MB`;
-                    document.getElementById('memory-progress').style.width = `${memoryPercent}%`;
-                }
-            } catch (error) {
-                console.error('Failed to load health data:', error);
-            }
-        }
+      // Load agents status
+      async function loadAgents() {
+        try {
+          const response = await fetch(`${API_BASE}/status`);
+          const data = await response.json();
 
-        // Load agents status
-        async function loadAgents() {
-            try {
-                const response = await fetch(`${API_BASE}/status`);
-                const data = await response.json();
-                
-                const agentsList = document.getElementById('agent-list');
-                const agents = [
-                    { name: 'Autonomous Orchestrator', status: data.agent || 'stopped' },
-                    { name: 'Cloud Agent', status: 'stopped' },
-                    { name: 'Ollama Agent', status: 'stopped' }
-                ];
-                
-                let activeCount = 0;
-                agentsList.innerHTML = agents.map(agent => {
-                    const isRunning = agent.status === 'running';
-                    if (isRunning) activeCount++;
-                    
-                    return `
+          const agentsList = document.getElementById('agent-list');
+          const agents = [
+            {
+              name: 'Autonomous Orchestrator',
+              status: data.agent || 'stopped',
+            },
+            { name: 'Cloud Agent', status: 'stopped' },
+            { name: 'Ollama Agent', status: 'stopped' },
+          ];
+
+          let activeCount = 0;
+          agentsList.innerHTML = agents
+            .map((agent) => {
+              const isRunning = agent.status === 'running';
+              if (isRunning) activeCount++;
+
+              return `
                         <li class="agent-item">
                             <span class="agent-name">${agent.name}</span>
                             <span class="agent-status ${isRunning ? 'running' : 'stopped'}">
@@ -600,26 +675,42 @@
                             </span>
                         </li>
                     `;
-                }).join('');
-                
-                document.getElementById('active-agents').textContent = activeCount;
-            } catch (error) {
-                console.error('Failed to load agents:', error);
-                document.getElementById('agent-list').innerHTML = '<li class="agent-item" style="color: var(--danger);">Failed to load agents</li>';
-            }
-        }
+            })
+            .join('');
 
-        // Load GitHub workflows
-        async function loadWorkflows() {
-            const workflowsList = document.getElementById('workflows-list');
-            const workflows = [
-                { name: 'Deploy to Vercel', status: 'success', lastRun: '2 minutes ago' },
-                { name: 'CI/CD Pipeline', status: 'success', lastRun: '15 minutes ago' },
-                { name: 'Jules Auto-Fix', status: 'running', lastRun: 'Running now' },
-                { name: 'Repository Validation', status: 'success', lastRun: '1 hour ago' }
-            ];
-            
-            workflowsList.innerHTML = workflows.map(workflow => `
+          document.getElementById('active-agents').textContent = activeCount;
+        } catch (error) {
+          console.error('Failed to load agents:', error);
+          document.getElementById('agent-list').innerHTML =
+            '<li class="agent-item" style="color: var(--danger);">Failed to load agents</li>';
+        }
+      }
+
+      // Load GitHub workflows
+      async function loadWorkflows() {
+        const workflowsList = document.getElementById('workflows-list');
+        const workflows = [
+          {
+            name: 'Deploy to Vercel',
+            status: 'success',
+            lastRun: '2 minutes ago',
+          },
+          {
+            name: 'CI/CD Pipeline',
+            status: 'success',
+            lastRun: '15 minutes ago',
+          },
+          { name: 'Jules Auto-Fix', status: 'running', lastRun: 'Running now' },
+          {
+            name: 'Repository Validation',
+            status: 'success',
+            lastRun: '1 hour ago',
+          },
+        ];
+
+        workflowsList.innerHTML = workflows
+          .map(
+            (workflow) => `
                 <div class="workflow-item">
                     <div class="workflow-name">${workflow.name}</div>
                     <div class="workflow-status">
@@ -627,78 +718,81 @@
                         <span>${workflow.lastRun}</span>
                     </div>
                 </div>
-            `).join('');
-        }
+            `
+          )
+          .join('');
+      }
 
-        // Load Jules automation metrics
-        async function loadJulesMetrics() {
-            // Simulated data - integrate with actual Jules API
-            document.getElementById('auto-fixes').textContent = '127';
-            document.getElementById('optimizations').textContent = '43';
-            document.getElementById('issues-resolved').textContent = '89';
-        }
+      // Load Jules automation metrics
+      async function loadJulesMetrics() {
+        // Simulated data - integrate with actual Jules API
+        document.getElementById('auto-fixes').textContent = '127';
+        document.getElementById('optimizations').textContent = '43';
+        document.getElementById('issues-resolved').textContent = '89';
+      }
 
-        // Quick Actions
-        async function runHealthCheck() {
-            showToast('Running health check...');
-            try {
-                const response = await fetch(`${API_BASE}/health`);
-                const data = await response.json();
-                showToast(`Health check complete: ${data.status}`, 'success');
-                await loadHealthData();
-            } catch (error) {
-                showToast('Health check failed', 'error');
-            }
+      // Quick Actions
+      async function runHealthCheck() {
+        showToast('Running health check...');
+        try {
+          const response = await fetch(`${API_BASE}/health`);
+          const data = await response.json();
+          showToast(`Health check complete: ${data.status}`, 'success');
+          await loadHealthData();
+        } catch (error) {
+          showToast('Health check failed', 'error');
         }
+      }
 
-        async function startAgent() {
-            showToast('Starting autonomous agent...', 'info');
-            setTimeout(() => {
-                showToast('Agent started successfully', 'success');
-                loadAgents();
-            }, 1000);
-        }
+      async function startAgent() {
+        showToast('Starting autonomous agent...', 'info');
+        setTimeout(() => {
+          showToast('Agent started successfully', 'success');
+          loadAgents();
+        }, 1000);
+      }
 
-        async function stopAgent() {
-            showToast('Stopping agent...', 'warning');
-            setTimeout(() => {
-                showToast('Agent stopped', 'warning');
-                loadAgents();
-            }, 1000);
-        }
+      async function stopAgent() {
+        showToast('Stopping agent...', 'warning');
+        setTimeout(() => {
+          showToast('Agent stopped', 'warning');
+          loadAgents();
+        }, 1000);
+      }
 
-        async function triggerDeploy(platform) {
-            showToast(`Triggering ${platform} deployment...`, 'info');
-            setTimeout(() => {
-                showToast(`${platform} deployment started`, 'success');
-            }, 1000);
-        }
+      async function triggerDeploy(platform) {
+        showToast(`Triggering ${platform} deployment...`, 'info');
+        setTimeout(() => {
+          showToast(`${platform} deployment started`, 'success');
+        }, 1000);
+      }
 
-        // Toast notification
-        function showToast(message, type = 'info') {
-            const toast = document.getElementById('toast');
-            const toastMessage = document.getElementById('toast-message');
-            
-            toastMessage.textContent = message;
-            toast.className = `toast show status-${type === 'success' ? 'operational' : type === 'error' ? 'error' : 'warning'}`;
-            
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+      // Toast notification
+      function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toast-message');
 
-        // Update last updated timestamp
-        function updateLastUpdated() {
-            const now = new Date();
-            document.getElementById('last-updated').textContent = now.toLocaleTimeString();
-        }
+        toastMessage.textContent = message;
+        toast.className = `toast show status-${type === 'success' ? 'operational' : type === 'error' ? 'error' : 'warning'}`;
 
-        // Measure response time
-        const startTime = performance.now();
-        window.addEventListener('load', () => {
-            const loadTime = Math.round(performance.now() - startTime);
-            document.getElementById('response-time').textContent = `${loadTime} ms`;
-        });
+        setTimeout(() => {
+          toast.classList.remove('show');
+        }, 3000);
+      }
+
+      // Update last updated timestamp
+      function updateLastUpdated() {
+        const now = new Date();
+        document.getElementById('last-updated').textContent =
+          now.toLocaleTimeString();
+      }
+
+      // Measure response time
+      const startTime = performance.now();
+      window.addEventListener('load', () => {
+        const loadTime = Math.round(performance.now() - startTime);
+        document.getElementById('response-time').textContent = `${loadTime} ms`;
+      });
     </script>
-</body>
+  </body>
 </html>

@@ -41,10 +41,10 @@ First, configure your DNS records in Cloudflare:
 
 Add the following DNS records:
 
-| Type | Name | Content | Proxy Status | TTL |
-|------|------|---------|--------------|-----|
-| A | www | 192.0.2.1 (placeholder) | Proxied (orange cloud) | Auto |
-| CNAME | @ | www.scarmonit.com | Proxied | Auto |
+| Type  | Name | Content                 | Proxy Status           | TTL  |
+| ----- | ---- | ----------------------- | ---------------------- | ---- |
+| A     | www  | 192.0.2.1 (placeholder) | Proxied (orange cloud) | Auto |
+| CNAME | @    | www.scarmonit.com       | Proxied                | Auto |
 
 > **Note**: The A record IP is a placeholder. Cloudflare Workers will handle the actual routing.
 
@@ -76,6 +76,7 @@ npx wrangler deploy
 ```
 
 **Verify Deployment:**
+
 ```bash
 curl https://www.scarmonit.com/health
 # Expected: {"status":"healthy","ai":"cloudflare-workers-ai"}
@@ -116,6 +117,7 @@ If you want a direct Railway subdomain:
    - Proxy: Off (grey cloud)
 
 **Verify Deployment:**
+
 ```bash
 # Check Railway logs for successful startup
 railway logs
@@ -162,6 +164,7 @@ GITHUB_REPO=Scarmonit/Final
 ```
 
 **Verify Deployment:**
+
 ```bash
 vercel ls
 # Check deployment status
@@ -172,6 +175,7 @@ vercel ls
 After deploying to all platforms, update your Cloudflare Workers routes:
 
 1. **Edit `wrangler.toml`**:
+
    ```toml
    routes = [
      { pattern = "www.scarmonit.com/health", zone_id = "your_actual_zone_id" },
@@ -181,6 +185,7 @@ After deploying to all platforms, update your Cloudflare Workers routes:
    ```
 
 2. **Redeploy Workers**:
+
    ```bash
    npx wrangler deploy
    ```
@@ -222,11 +227,11 @@ curl https://www.scarmonit.com/api/index
 
 ### Required Variables (All Platforms)
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `GITHUB_TOKEN` | GitHub Personal Access Token | `ghp_xxxxxxxxxxxx` |
-| `GITHUB_REPO` | Repository in owner/repo format | `Scarmonit/Final` |
-| `NODE_ENV` | Environment mode | `production` |
+| Variable       | Description                     | Example            |
+| -------------- | ------------------------------- | ------------------ |
+| `GITHUB_TOKEN` | GitHub Personal Access Token    | `ghp_xxxxxxxxxxxx` |
+| `GITHUB_REPO`  | Repository in owner/repo format | `Scarmonit/Final`  |
+| `NODE_ENV`     | Environment mode                | `production`       |
 
 ### Platform-Specific Variables
 
@@ -236,41 +241,53 @@ curl https://www.scarmonit.com/api/index
 | `PORT` | Server port | `8080` |
 
 **Vercel Only:**
+
 - Environment variables are set via Vercel Dashboard
 - Secrets prefixed with `@` in vercel.json
 
 **Cloudflare Workers:**
+
 - Set via `wrangler secret put` command
 - No env file needed
 
 ## 🚨 Troubleshooting
 
 ### Issue: DNS not resolving
-**Solution**: 
+
+**Solution**:
+
 - Wait 5-10 minutes for DNS propagation
 - Check DNS with: `dig www.scarmonit.com`
 - Ensure Cloudflare proxy is enabled (orange cloud)
 
 ### Issue: Workers not routing correctly
+
 **Solution**:
+
 - Verify Zone ID in wrangler.toml
 - Check Workers routes in Cloudflare Dashboard
 - Ensure routes are uncommented after deployment
 
 ### Issue: Railway build failing
+
 **Solution**:
+
 - Check Dockerfile.railway is valid
 - Verify all dependencies in package.json
 - Check Railway build logs for specific errors
 
 ### Issue: Vercel deployment failing
+
 **Solution**:
+
 - Ensure vercel.json is valid JSON
 - Check build command exists in package.json
 - Verify Node.js version compatibility (20+)
 
 ### Issue: 520 or 521 errors
+
 **Solution**:
+
 - Check if backend services (Railway/Vercel) are running
 - Verify health check endpoints are responding
 - Check Cloudflare SSL/TLS settings (should be "Full" or "Full (strict)")
@@ -278,6 +295,7 @@ curl https://www.scarmonit.com/api/index
 ## 📊 Monitoring & Logs
 
 ### Cloudflare Workers
+
 ```bash
 # View logs in real-time
 wrangler tail
@@ -287,6 +305,7 @@ wrangler tail
 ```
 
 ### Railway
+
 ```bash
 # View logs
 railway logs
@@ -296,6 +315,7 @@ railway logs
 ```
 
 ### Vercel
+
 ```bash
 # View logs
 vercel logs
@@ -354,4 +374,3 @@ npm run deploy:status
 
 **Last Updated**: October 2024
 **Maintained by**: Scarmonit Team
-

@@ -1,9 +1,11 @@
 # Gemini Ultra Integration Guide
 
 ## Overview
+
 This repository now includes full integration with Google's Gemini Ultra, the most capable AI model from Google. This integration enables advanced AI capabilities directly within your Final project.
 
 ## Features
+
 - 🚀 **Gemini Ultra API Integration** - Full access to Google's most advanced AI model
 - 🔐 **Multiple Authentication Methods** - Support for API keys and service account authentication
 - 🛠️ **Easy Configuration** - Simple setup with environment variables
@@ -13,6 +15,7 @@ This repository now includes full integration with Google's Gemini Ultra, the mo
 ## Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 pip install -r requirements_gemini_ultra.txt
 ```
@@ -20,16 +23,19 @@ pip install -r requirements_gemini_ultra.txt
 ### 2. Set Up Authentication
 
 #### Option A: Using API Key
+
 ```bash
 export GEMINI_API_KEY="your-api-key-here"
 ```
 
 #### Option B: Using Service Account
+
 ```bash
 export GOOGLE_SERVICE_ACCOUNT_PATH="/path/to/service-account.json"
 ```
 
 ### 3. Basic Usage
+
 ```python
 from gemini_ultra_config import GeminiUltraConfig
 
@@ -46,6 +52,7 @@ if config.configure():
 ## Advanced Usage
 
 ### Custom Configuration
+
 ```python
 # Direct API key initialization
 config = GeminiUltraConfig(api_key="your-api-key")
@@ -55,6 +62,7 @@ config = GeminiUltraConfig(service_account_path="/path/to/credentials.json")
 ```
 
 ### Generation Parameters
+
 ```python
 response = config.generate_content(
     "Write a poem about coding",
@@ -74,11 +82,13 @@ response = config.generate_content(
 ## Authentication Methods
 
 ### API Key (Recommended for Development)
+
 1. Get your API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
 2. Set as environment variable: `GEMINI_API_KEY`
 3. Use directly in code or let the config auto-detect from environment
 
 ### Service Account (Recommended for Production)
+
 1. Create a service account in [Google Cloud Console](https://console.cloud.google.com)
 2. Download the JSON credentials file
 3. Set path as environment variable: `GOOGLE_SERVICE_ACCOUNT_PATH`
@@ -95,6 +105,7 @@ GOOGLE_SERVICE_ACCOUNT_PATH=/path/to/service-account.json
 ## Use Cases
 
 ### Code Generation
+
 ```python
 code = config.generate_content(
     "Write a Python function to calculate fibonacci numbers"
@@ -102,6 +113,7 @@ code = config.generate_content(
 ```
 
 ### Content Creation
+
 ```python
 article = config.generate_content(
     "Write a technical blog post about machine learning"
@@ -109,6 +121,7 @@ article = config.generate_content(
 ```
 
 ### Data Analysis
+
 ```python
 analysis = config.generate_content(
     "Analyze this dataset and provide insights: [your data]"
@@ -120,16 +133,19 @@ analysis = config.generate_content(
 ### Common Issues
 
 **Issue: Authentication Error**
+
 - Verify API key is correct
 - Check service account has proper permissions
 - Ensure environment variables are set correctly
 
 **Issue: Rate Limiting**
+
 - Implement exponential backoff
 - Consider upgrading API quota
 - Use batch processing for multiple requests
 
 **Issue: Import Errors**
+
 - Run: `pip install -r requirements_gemini_ultra.txt`
 - Verify Python version >= 3.8
 
@@ -159,6 +175,7 @@ analysis = config.generate_content(
 ## Support
 
 For issues or questions:
+
 1. Check the [troubleshooting section](#troubleshooting)
 2. Review [Google's documentation](https://ai.google.dev/docs)
 3. Open an issue in this repository

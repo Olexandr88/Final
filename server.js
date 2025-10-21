@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Railway HTTP Server with Health Check
  * Provides HTTP endpoint for Railway deployment
@@ -55,7 +53,7 @@ const server = http.createServer((req, res) => {
       timestamp: new Date().toISOString(),
       agent: agentProcess ? 'running' : 'stopped',
       memory: process.memoryUsage(),
-      port: PORT
+      port: PORT,
     };
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -69,7 +67,7 @@ const server = http.createServer((req, res) => {
       agent: agentProcess ? 'running' : 'stopped',
       pid: agentProcess ? agentProcess.pid : null,
       uptime: process.uptime(),
-      memory: process.memoryUsage()
+      memory: process.memoryUsage(),
     };
 
     res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -85,11 +83,11 @@ const server = http.createServer((req, res) => {
 // Start autonomous agent in background
 function startAgent() {
   console.log('Starting autonomous agent...');
-  
+
   try {
     agentProcess = spawn('node', ['scripts/autonomous-orchestrator.js'], {
       stdio: 'inherit',
-      env: { ...process.env, NODE_ENV: 'production' }
+      env: { ...process.env, NODE_ENV: 'production' },
     });
 
     agentProcess.on('error', (error) => {
@@ -114,7 +112,6 @@ function startAgent() {
       isHealthy = true;
       console.log('Agent marked as healthy');
     }, 2000);
-
   } catch (error) {
     console.error('Failed to start agent:', error);
     isHealthy = false;
@@ -128,7 +125,7 @@ server.listen(PORT, HOST, () => {
   console.log(`📊 Dashboard: http://${HOST}:${PORT}/dashboard`);
   console.log(`🏥 Health check: http://${HOST}:${PORT}/health`);
   console.log(`📈 Status: http://${HOST}:${PORT}/status`);
-  
+
   // Start agent after server is ready
   startAgent();
 });

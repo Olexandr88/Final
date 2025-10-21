@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Ollama Autonomous Agent
  * Runs an autonomous agent using Ollama's local LLM
@@ -17,7 +15,7 @@ console.log(`Model: ${MODEL}`);
 // Start the Ollama server in the background
 const ollamaServer = spawn('ollama', ['serve'], {
   env: { ...process.env, OLLAMA_HOST },
-  stdio: 'inherit'
+  stdio: 'inherit',
 });
 
 ollamaServer.on('error', (err) => {
@@ -29,14 +27,14 @@ ollamaServer.on('error', (err) => {
 setTimeout(() => {
   console.log('Ollama server started successfully');
   console.log('Agent is now running in autonomous mode...');
-  
+
   // Keep the process alive
   process.on('SIGTERM', () => {
     console.log('Received SIGTERM, shutting down...');
     ollamaServer.kill();
     process.exit(0);
   });
-  
+
   process.on('SIGINT', () => {
     console.log('Received SIGINT, shutting down...');
     ollamaServer.kill();

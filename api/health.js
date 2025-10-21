@@ -27,7 +27,6 @@ export default async function handler(req, res) {
     uptime: process.uptime(),
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'production',
-    region: process.env.VERCEL_REGION || 'unknown'
+    region: process.env.VERCEL_REGION || 'unknown',
   });
 }
-

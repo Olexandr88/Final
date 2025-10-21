@@ -9,27 +9,32 @@ The Scarmonit AI Dashboard provides real-time monitoring and control of your AI 
 ## Features
 
 ### 1. Real-Time Monitoring
+
 - **Auto-refresh**: Updates every 5 seconds automatically
 - **System Health**: Live uptime, memory usage, and response times
 - **Agent Status**: Active agent count and operational status
 - **Performance Metrics**: Visual progress bars for resource utilization
 
 ### 2. Multi-Platform Deployment Status
+
 - **Vercel**: Edge deployment status and health
 - **Railway**: Server deployment monitoring
 - **Cloudflare Workers**: CDN and worker status
 
 ### 3. CI/CD Workflow Visualization
+
 - **GitHub Actions**: Real-time workflow execution status
 - **Build Status**: Success/failure indicators
 - **Deployment Pipeline**: Track deployments across environments
 
 ### 4. Jules Automation Metrics
+
 - **Auto-fixes Applied**: Count of automated fixes
 - **Optimizations**: Performance improvements made
 - **Issues Resolved**: Total issues automatically resolved
 
 ### 5. Quick Actions
+
 - **Health Check**: Manual health verification
 - **Start/Stop Agents**: Control agent execution
 - **GitHub Links**: Direct access to repository
@@ -62,11 +67,13 @@ The Scarmonit AI Dashboard provides real-time monitoring and control of your AI 
 ## API Endpoints
 
 ### Health Check
+
 ```bash
 GET https://www.scarmonit.com/health
 ```
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -82,6 +89,7 @@ GET https://www.scarmonit.com/health
 ```
 
 ### Dashboard Data
+
 ```bash
 GET https://www.scarmonit.com/api/dashboard
 ```
@@ -89,11 +97,13 @@ GET https://www.scarmonit.com/api/dashboard
 Returns the complete dashboard HTML with embedded real-time JavaScript.
 
 ### Deployment Status
+
 ```bash
 GET https://www.scarmonit.com/api/status
 ```
 
 **Response:**
+
 ```json
 {
   "vercel": {
@@ -194,6 +204,7 @@ npm run deploy:status
 ### Domain Configuration
 
 The dashboard is configured for:
+
 - Primary: `https://www.scarmonit.com/dashboard`
 - Alias: `https://scarmonit.com/dashboard`
 - Development: `https://final-ten-sigma-56.vercel.app/dashboard`
@@ -213,6 +224,7 @@ See [PRODUCTION_DEPLOYMENT.md](PRODUCTION_DEPLOYMENT.md) for complete DNS instru
 ### Health Checks
 
 The dashboard automatically monitors:
+
 - System uptime
 - Memory usage (RSS, heap)
 - Response times
@@ -222,6 +234,7 @@ The dashboard automatically monitors:
 ### Alerts
 
 Toast notifications appear for:
+
 - ✅ Successful operations
 - ⚠️ Warnings (high memory usage)
 - ❌ Errors (failed health checks)
@@ -229,6 +242,7 @@ Toast notifications appear for:
 ### Metrics Collection
 
 Metrics are collected via:
+
 1. `/health` endpoint (system metrics)
 2. GitHub API (workflow status)
 3. Platform APIs (deployment status)
@@ -240,6 +254,7 @@ Metrics are collected via:
 **Issue**: Dashboard shows blank page or 404
 
 **Solutions**:
+
 1. Verify Vercel deployment: `npm run deploy:status`
 2. Check DNS configuration: `nslookup www.scarmonit.com`
 3. Clear browser cache and reload
@@ -250,6 +265,7 @@ Metrics are collected via:
 **Issue**: Dashboard shows stale data
 
 **Solutions**:
+
 1. Check `/health` endpoint is responding: `curl https://www.scarmonit.com/health`
 2. Verify auto-refresh is enabled (check console logs)
 3. Check for CORS errors in browser console
@@ -260,6 +276,7 @@ Metrics are collected via:
 **Issue**: Memory metrics show >80% usage
 
 **Solutions**:
+
 1. Restart agents to clear memory leaks
 2. Review agent logs for memory issues
 3. Check for zombie processes
@@ -270,6 +287,7 @@ Metrics are collected via:
 **Issue**: Gateway errors when accessing dashboard
 
 **Solutions**:
+
 1. Check Railway server status
 2. Verify Vercel deployment health
 3. Check Cloudflare Workers status
@@ -329,6 +347,7 @@ res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
 ### Security Headers
 
 Vercel configuration includes:
+
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `X-XSS-Protection: 1; mode=block`
@@ -336,6 +355,7 @@ Vercel configuration includes:
 ### Rate Limiting
 
 API endpoints are rate-limited by Vercel:
+
 - 100 requests/minute per IP
 - Burst limit: 20 requests/second
 
@@ -351,6 +371,7 @@ API endpoints are rate-limited by Vercel:
 ### Lighthouse Scores
 
 Target metrics:
+
 - Performance: >90
 - Accessibility: >95
 - Best Practices: >90
@@ -359,14 +380,17 @@ Target metrics:
 ## Support
 
 ### Documentation
+
 - [Production Deployment Guide](PRODUCTION_DEPLOYMENT.md)
 - [GitHub Repository](https://github.com/Scarmonit/Final)
 - [Vercel Documentation](https://vercel.com/docs)
 
 ### Issues
+
 Report issues at: https://github.com/Scarmonit/Final/issues
 
 ### Contact
+
 Email: scarmonit@gmail.com
 
 ---

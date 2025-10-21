@@ -34,7 +34,10 @@ export default {
         const result = await solveGitHubIssue(env, issueNumber);
         return Response.json({ success: true, result });
       } catch (error) {
-        return Response.json({ success: false, error: error.message }, { status: 500 });
+        return Response.json(
+          { success: false, error: error.message },
+          { status: 500 }
+        );
       }
     }
 
@@ -43,13 +46,13 @@ export default {
       message: 'Ollama Autonomous Agent on Cloudflare Workers AI',
       endpoints: {
         health: '/health',
-        solve: 'POST /solve with { issueNumber: 123 }'
-      }
+        solve: 'POST /solve with { issueNumber: 123 }',
+      },
     });
   },
 
   // Scheduled job (runs daily)
-  async scheduled(event, env, ctx) {
+  async scheduled(event, env, _ctx) {
     console.log('🦙 Running scheduled autonomous agent...');
 
     try {
@@ -67,7 +70,7 @@ export default {
     } catch (error) {
       console.error('❌ Scheduled run failed:', error);
     }
-  }
+  },
 };
 
 /**
@@ -78,10 +81,10 @@ async function fetchOpenIssues(env) {
     `https://api.github.com/repos/scarmonit/Final/issues?state=open&per_page=10`,
     {
       headers: {
-        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'User-Agent': 'Cloudflare-Workers-Agent',
-        'Accept': 'application/vnd.github.v3+json'
-      }
+        Accept: 'application/vnd.github.v3+json',
+      },
     }
   );
 
@@ -90,7 +93,7 @@ async function fetchOpenIssues(env) {
   }
 
   const issues = await response.json();
-  return issues.filter(issue => !issue.pull_request);
+  return issues.filter((issue) => !issue.pull_request);
 }
 
 /**
@@ -104,10 +107,10 @@ async function solveGitHubIssue(env, issueNumber) {
     `https://api.github.com/repos/scarmonit/Final/issues/${issueNumber}`,
     {
       headers: {
-        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'User-Agent': 'Cloudflare-Workers-Agent',
-        'Accept': 'application/vnd.github.v3+json'
-      }
+        Accept: 'application/vnd.github.v3+json',
+      },
     }
   );
 
@@ -147,7 +150,7 @@ STEPS:
   const response = await env.AI.run('@cf/meta/llama-2-7b-chat-int8', {
     prompt,
     max_tokens: 512,
-    temperature: 0.7
+    temperature: 0.7,
   });
 
   return parseAnalysis(response.response);
@@ -175,7 +178,7 @@ Generate ONLY the code, no explanations.`;
   const response = await env.AI.run('@cf/meta/codellama-7b-instruct', {
     prompt,
     max_tokens: 2048,
-    temperature: 0.5
+    temperature: 0.5,
   });
 
   return response.response;
@@ -192,29 +195,26 @@ async function createPullRequest(env, issue, solution) {
     `https://api.github.com/repos/scarmonit/Final/git/refs/heads/Scarmonit`,
     {
       headers: {
-        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
-        'User-Agent': 'Cloudflare-Workers-Agent'
-      }
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+        'User-Agent': 'Cloudflare-Workers-Agent',
+      },
     }
   );
   const refData = await refResponse.json();
 
   // Create branch
-  await fetch(
-    `https://api.github.com/repos/scarmonit/Final/git/refs`,
-    {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
-        'User-Agent': 'Cloudflare-Workers-Agent',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        ref: `refs/heads/${branchName}`,
-        sha: refData.object.sha
-      })
-    }
-  );
+  await fetch(`https://api.github.com/repos/scarmonit/Final/git/refs`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      'User-Agent': 'Cloudflare-Workers-Agent',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ref: `refs/heads/${branchName}`,
+      sha: refData.object.sha,
+    }),
+  });
 
   // Create file
   const filePath = 'solution.js';
@@ -223,15 +223,15 @@ async function createPullRequest(env, issue, solution) {
     {
       method: 'PUT',
       headers: {
-        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'User-Agent': 'Cloudflare-Workers-Agent',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         message: `☁️ Cloudflare AI: Solve issue #${issue.number}`,
         content: btoa(solution),
-        branch: branchName
-      })
+        branch: branchName,
+      }),
     }
   );
 
@@ -241,9 +241,9 @@ async function createPullRequest(env, issue, solution) {
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${env.GITHUB_TOKEN}`,
         'User-Agent': 'Cloudflare-Workers-Agent',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         title: `☁️ [Cloudflare AI] ${issue.title}`,
@@ -256,8 +256,8 @@ async function createPullRequest(env, issue, solution) {
 **Model:** Llama 2 7B + CodeLlama 7B
 
 ---
-*Generated with Cloudflare Workers AI - FREE tier!*`
-      })
+*Generated with Cloudflare Workers AI - FREE tier!*`,
+      }),
     }
   );
 
@@ -275,6 +275,6 @@ function parseAnalysis(text) {
   return {
     complexity: complexityMatch ? complexityMatch[1] : 'medium',
     approach: approachMatch ? approachMatch[1].trim() : 'Implement solution',
-    rawAnalysis: text
+    rawAnalysis: text,
   };
 }

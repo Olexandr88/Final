@@ -23,36 +23,48 @@
     {
       "source": "/api/(.*)",
       "headers": [
-        {"key": "Access-Control-Allow-Origin", "value": "*"},
-        {"key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS"},
-        {"key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization"},
-        {"key": "X-Content-Type-Options", "value": "nosniff"},
-        {"key": "X-Frame-Options", "value": "DENY"},
-        {"key": "X-XSS-Protection", "value": "1; mode=block"}
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     },
     {
       "source": "/dashboard",
       "headers": [
-        {"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"},
-        {"key": "X-Content-Type-Options", "value": "nosniff"},
-        {"key": "X-Frame-Options", "value": "SAMEORIGIN"},
-        {"key": "X-XSS-Protection", "value": "1; mode=block"}
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     },
     {
       "source": "/(.*).html",
       "headers": [
-        {"key": "Cache-Control", "value": "public, max-age=0, must-revalidate"}
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     }
   ],
   "rewrites": [
-    {"source": "/", "destination": "/api/index"},
-    {"source": "/dashboard", "destination": "/api/dashboard"},
-    {"source": "/health", "destination": "/api/health"},
-    {"source": "/status", "destination": "/api/health"},
-    {"source": "/api/(.*)", "destination": "/api/$1"}
+    { "source": "/", "destination": "/api/index" },
+    { "source": "/dashboard", "destination": "/api/dashboard" },
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/status", "destination": "/api/health" },
+    { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
   "redirects": [
     {
