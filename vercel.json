@@ -12,8 +12,6 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
   "functions": {
     "api/**/*.js": {
       "maxDuration": 10
@@ -38,49 +36,34 @@
       ]
     },
     {
-      "source": "/dashboard",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" }
-      ]
-    },
-    {
       "source": "/(.*).html",
       "headers": [
         {
           "key": "Cache-Control",
           "value": "public, max-age=0, must-revalidate"
-        }
+        },
+        { "key": "Content-Type", "value": "text/html; charset=utf-8" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" }
       ]
     }
   ],
   "rewrites": [
-    { "source": "/", "destination": "/api/index" },
-    { "source": "/dashboard", "destination": "/api/dashboard" },
-    { "source": "/health", "destination": "/api/health" },
-    { "source": "/status", "destination": "/api/health" },
     { "source": "/api/(.*)", "destination": "/api/$1" }
   ],
   "redirects": [
     {
-      "source": "/index.html",
-      "destination": "/",
-      "permanent": true
-    },
-    {
-      "source": "/dashboard.html",
-      "destination": "/dashboard",
-      "permanent": true
+      "source": "/",
+      "destination": "/dashboard-interactive.html",
+      "permanent": false
     }
   ],
   "github": {
     "enabled": true,
     "autoAlias": true,
     "silent": false
-  }
+  },
+  "cleanUrls": true,
+  "trailingSlash": false
 }
