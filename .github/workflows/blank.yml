@@ -14,10 +14,10 @@ permissions:
   pull-requests: write
   issues: write
 
-# Improved concurrency settings - TEMPORARILY DISABLED to clear queue
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-#   cancel-in-progress: true
+# Improved concurrency settings - Re-enabled to prevent queue buildup
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
