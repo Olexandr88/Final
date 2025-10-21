@@ -1,5 +1,4 @@
 name: CI
-
 on:
   push:
     branches: [ "Scarmonit" ]
@@ -46,38 +45,38 @@ jobs:
       
       - name: Run Tests
         run: |
-          if npm run test --if-present; then
+          if npm run test --if-present 2>&1 | tee test.log; then
             echo "✓ Tests passed successfully"
           else
-            echo "✗ Tests failed or not configured"
-            exit 0
+            echo "✗ Tests failed"
+            exit 1
           fi
       
       - name: Run Build
         run: |
-          if npm run build --if-present; then
+          if npm run build --if-present 2>&1 | tee build.log; then
             echo "✓ Build completed successfully"
           else
-            echo "✗ Build failed or not configured"
-            exit 0
+            echo "✗ Build failed"
+            exit 1
           fi
       
       - name: Run Lint
         run: |
-          if npm run lint --if-present; then
+          if npm run lint --if-present 2>&1 | tee lint.log; then
             echo "✓ Lint passed successfully"
           else
-            echo "✗ Lint not configured or failed"
+            echo "✗ Lint failed or not configured"
+            exit 1
           fi
-        continue-on-error: true
       
-      - name: Jules Automation Check
-        run: |
-          echo "✓ Jules automation configuration validated"
-          if [ -f jules.config.js ]; then
-            echo "✓ Jules config found"
-          fi
-          if [ -f package.json ]; then
-            echo "✓ Package.json found"
-          fi
-        continue-on-error: true
+      - name: Upload test logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: |
+            test.log
+            build.log
+            lint.log
+          retention-days: 7
