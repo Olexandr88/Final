@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/autonomous-agent.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/solve",
+      "dest": "api/autonomous-agent.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "api/autonomous-agent.js"
+    }
+  ],
+  "env": {
+    "GITHUB_TOKEN": "@github_token",
+    "CLOUDFLARE_API_TOKEN": "@cloudflare_api_token",
+    "CLOUDFLARE_ACCOUNT_ID": "@cloudflare_account_id"
+  },
+  "crons": [
+    {
+      "path": "/api/cron",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}
