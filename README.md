@@ -53,6 +53,12 @@ npm run deploy:production
 - 📈 **Performance tracking** - Real-time metrics
 - 🛡️ **Health monitoring** - Auto-healing systems
 
+### MCP Server Integration
+- 🔗 **GitHub MCP** - Direct repository access and PR management
+- 📁 **Filesystem MCP** - Safe file operations within project scope
+- 🧠 **Sequential Thinking MCP** - Deep reasoning for complex problems
+- 🔌 **Extensible** - Ready for custom MCP server integration
+
 ## 📁 Project Structure
 
 ```
@@ -70,9 +76,11 @@ Final/
 │   └── build.js          # Build script
 ├── docs/                  # Documentation
 │   ├── PRODUCTION_DEPLOYMENT.md  # Deployment guide
-│   └── DASHBOARD_GUIDE.md       # Dashboard documentation
+│   ├── DASHBOARD_GUIDE.md       # Dashboard documentation
+│   └── MCP_CONFIGURATION.md     # MCP servers setup
 ├── .github/workflows/     # GitHub Actions CI/CD
 │   └── deploy.yml        # Deployment workflow
+├── .mcp.json             # MCP server configuration
 ├── server.js             # Railway server
 ├── wrangler.toml         # Cloudflare Workers config
 ├── vercel.json           # Vercel configuration
@@ -208,6 +216,7 @@ See [docs/PRODUCTION_DEPLOYMENT.md](docs/PRODUCTION_DEPLOYMENT.md) for detailed 
 
 - **[Production Deployment Guide](docs/PRODUCTION_DEPLOYMENT.md)** - Complete deployment instructions
 - **[Dashboard Guide](docs/DASHBOARD_GUIDE.md)** - Dashboard usage and customization
+- **[MCP Configuration](docs/MCP_CONFIGURATION.md)** - Model Context Protocol servers setup
 - **[GitHub Repository](https://github.com/Scarmonit/Final)** - Source code and issues
 
 ## 🏗️ Architecture
