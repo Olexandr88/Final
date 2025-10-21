@@ -1,6 +1,7 @@
 {
   "name": "final-repository",
   "version": "1.0.0",
+  "type": "module",
   "description": "Final repository with Jules automation for CI/CD and auto-fixing",
   "main": "index.js",
   "scripts": {
