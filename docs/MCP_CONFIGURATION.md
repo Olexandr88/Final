@@ -52,7 +52,7 @@ MCP servers enable Claude Code to interact with external tools and services. Thi
   "args": [
     "-y",
     "@modelcontextprotocol/server-filesystem",
-    "/home/user/Final"
+    "${PROJECT_DIR}"
   ]
 }
 ```
