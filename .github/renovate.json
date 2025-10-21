@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "all dependencies",
+      "groupSlug": "all-minor-patch",
+      "automerge": true
+    }
+  ],
+  "schedule": ["on the first day of the month"]
+}
