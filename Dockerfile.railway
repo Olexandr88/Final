@@ -1,6 +1,5 @@
 # Railway Deployment - Ollama Autonomous Agent
 # Includes full Ollama server with CodeLlama model
-
 FROM node:18-bullseye
 
 # Install Ollama
@@ -18,7 +17,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install Node dependencies
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy application code
 COPY . .
