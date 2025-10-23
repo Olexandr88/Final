@@ -1,0 +1,272 @@
+/* IDE Layout Styles - Visual Studio inspired */
+
+.ide-layout {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.ide-layout[data-theme="llm-dark"] {
+  --bg-primary: #1E1E1E;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2D2D30;
+  --bg-hover: #2A2D2E;
+  --border-color: #3E3E42;
+  --text-primary: #CCCCCC;
+  --text-secondary: #858585;
+  --accent-color: #007ACC;
+  --accent-hover: #1C97EA;
+  --tab-active: #1E1E1E;
+  --tab-inactive: #2D2D30;
+}
+
+.ide-layout[data-theme="llm-light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F3F3F3;
+  --bg-tertiary: #E8E8E8;
+  --bg-hover: #EDEDED;
+  --border-color: #D4D4D4;
+  --text-primary: #333333;
+  --text-secondary: #6B6B6B;
+  --accent-color: #0078D4;
+  --accent-hover: #1C97EA;
+  --tab-active: #FFFFFF;
+  --tab-inactive: #E8E8E8;
+}
+
+.ide-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.ide-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Activity Bar Styles */
+.activity-bar {
+  width: 48px;
+  background: var(--bg-tertiary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.activity-bar-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-bar-item {
+  width: 48px;
+  height: 48px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.2s;
+}
+
+.activity-bar-item:hover {
+  background: var(--bg-hover);
+}
+
+.activity-bar-item.active {
+  color: var(--text-primary);
+  border-left: 2px solid var(--accent-color);
+}
+
+.activity-bar-icon {
+  font-size: 24px;
+}
+
+.activity-bar-label {
+  display: none;
+  position: absolute;
+  left: 52px;
+  background: var(--bg-secondary);
+  padding: 4px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 1000;
+}
+
+.activity-bar-item:hover .activity-bar-label {
+  display: block;
+}
+
+/* Editor Area Styles */
+.editor-area {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+.editor-tabs {
+  display: flex;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--tab-inactive);
+  border-right: 1px solid var(--border-color);
+  cursor: pointer;
+  min-width: 120px;
+  max-width: 200px;
+  transition: background 0.2s;
+}
+
+.editor-tab:hover {
+  background: var(--bg-hover);
+}
+
+.editor-tab.active {
+  background: var(--tab-active);
+  border-top: 2px solid var(--accent-color);
+}
+
+.tab-icon {
+  font-size: 16px;
+}
+
+.tab-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.tab-close {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+
+.tab-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.editor-container {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.editor-loading,
+.editor-welcome {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-primary);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top-color: var(--accent-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.editor-welcome h2 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 300;
+}
+
+.editor-welcome p {
+  margin: 0 0 24px 0;
+  color: var(--text-secondary);
+}
+
+.welcome-shortcuts {
+  background: var(--bg-secondary);
+  padding: 16px 24px;
+  border-radius: 6px;
+  min-width: 300px;
+}
+
+.welcome-shortcuts h3 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.welcome-shortcuts ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.welcome-shortcuts li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.welcome-shortcuts kbd {
+  background: var(--bg-tertiary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  border: 1px solid var(--border-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .activity-bar {
+    width: 40px;
+  }
+
+  .activity-bar-item {
+    width: 40px;
+    height: 40px;
+  }
+
+  .activity-bar-icon {
+    font-size: 20px;
+  }
+}
