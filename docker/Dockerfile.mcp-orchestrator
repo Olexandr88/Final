@@ -1,0 +1,38 @@
+# Multi-stage Docker build for Enhanced MCP Orchestrator v2.0
+# Optimized for production deployment with security hardening
+
+FROM node:18-alpine AS base
+WORKDIR /app
+RUN apk add --no-cache dumb-init
+
+FROM base AS dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+FROM base AS build
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build 2>/dev/null || echo "No build step configured"
+
+FROM base AS production
+ENV NODE_ENV=production
+COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=build /app/src ./src
+COPY --from=build /app/package*.json ./
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+RUN chown -R nodejs:nodejs /app
+USER nodejs
+
+# Expose ports
+EXPOSE 65028 65029
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:65029/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"
+
+# Use dumb-init to handle signals properly
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "src/mcp/enhanced-mcp-orchestrator.js"]

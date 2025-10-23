@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mcp-orchestrator:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.mcp-orchestrator
+    container_name: mcp-orchestrator
+    ports:
+      - "65028:65028"  # WebSocket
+      - "65029:65029"  # HTTP/Health
+    environment:
+      - NODE_ENV=production
+      - ABLY_API_KEY=${ABLY_API_KEY}
+      - DATADOG_HOST=datadog-agent
+      - DATADOG_PORT=8125
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    networks:
+      - mcp-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:65029/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  datadog-agent:
+    image: datadog/agent:latest
+    container_name: datadog-agent
+    environment:
+      - DD_API_KEY=${DATADOG_API_KEY}
+      - DD_SITE=${DD_SITE:-datadoghq.com}
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_APM_ENABLED=true
+      - DD_LOGS_ENABLED=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    networks:
+      - mcp-network
+    restart: unless-stopped
+
+networks:
+  mcp-network:
+    driver: bridge
