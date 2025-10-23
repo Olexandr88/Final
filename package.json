@@ -6,7 +6,8 @@
   "type": "module",
   "bin": {
     "a2a": "./src/cli/a2a-cli.js",
-    "a2a-mcp": "./src/a2a-mcp-cli.js"
+    "a2a-mcp": "./src/a2a-mcp-cli.js",
+    "llmpacks": "./src/llmpacks/cli.js"
   },
   "scripts": {
     "a2a": "node src/cli/a2a-cli.js",
@@ -263,7 +264,13 @@
     "lint:js": "eslint \"electron/**/*.{js,cjs}\"",
     "lint:js:fix": "eslint \"electron/**/*.{js,cjs}\" --fix",
     "lint:css:fix": "stylelint \"electron/**/*.css\" --fix",
-    "lint:ui:fix": "npm run lint:css:fix && npm run lint:html"
+    "lint:ui:fix": "npm run lint:css:fix && npm run lint:html",
+    "llmpacks": "node src/llmpacks/cli.js",
+    "llmpacks:detect": "node src/llmpacks/cli.js detect",
+    "llmpacks:plan": "node src/llmpacks/cli.js plan",
+    "llmpacks:build": "node src/llmpacks/cli.js build",
+    "llmpacks:init": "node src/llmpacks/cli.js init",
+    "llmpacks:info": "node src/llmpacks/cli.js info"
   },
   "build": {
     "appId": "com.scarmonit.a2a-control-center",
