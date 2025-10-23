@@ -67,6 +67,16 @@ export const LLM = {
     MAX_RETRIES: 2,
     RETRY_DELAY_MS: 1000,
   },
+  FOUNDRY_LOCAL: {
+    DEFAULT_MODEL: 'phi-3.5-mini',
+    DEFAULT_TEMPERATURE: 0.7,
+    DEFAULT_MAX_TOKENS: 1024,
+    MODEL_TTL_MS: 600000, // 10 minutes
+    AUTO_START: true,
+    HARDWARE_PREFERENCE: 'auto', // auto|cpu|gpu|npu
+    REQUEST_TIMEOUT_MS: 30000,
+    MAX_CONCURRENT_REQUESTS: 2, // NPU memory constraint
+  },
   CACHE: {
     MAX_SIZE: 100,
     TTL_MS: 300000, // 5 minutes
