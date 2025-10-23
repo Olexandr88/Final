@@ -1,0 +1,196 @@
+{
+  "name": "llm-framework-companion",
+  "displayName": "LLM Framework Companion",
+  "description": "VS Code extension connecting to LLM Multi-Provider Framework AI Bridge for intelligent code assistance",
+  "version": "1.0.0",
+  "publisher": "scarmonit",
+  "icon": "images/icon.png",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Machine Learning",
+    "Programming Languages",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "llm",
+    "claude",
+    "ollama",
+    "code-assistant",
+    "refactoring",
+    "code-explanation",
+    "test-generation"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "llmFramework.explainCode",
+        "title": "LLM: Explain Selected Code",
+        "category": "LLM"
+      },
+      {
+        "command": "llmFramework.refactorCode",
+        "title": "LLM: Refactor Selection",
+        "category": "LLM"
+      },
+      {
+        "command": "llmFramework.generateTests",
+        "title": "LLM: Generate Tests",
+        "category": "LLM"
+      },
+      {
+        "command": "llmFramework.askAgent",
+        "title": "LLM: Ask Agent",
+        "category": "LLM"
+      },
+      {
+        "command": "llmFramework.connectBridge",
+        "title": "LLM: Connect to AI Bridge",
+        "category": "LLM"
+      },
+      {
+        "command": "llmFramework.disconnectBridge",
+        "title": "LLM: Disconnect from AI Bridge",
+        "category": "LLM"
+      },
+      {
+        "command": "llmFramework.refreshAgents",
+        "title": "LLM: Refresh Agent List",
+        "category": "LLM",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "llm-framework",
+          "title": "LLM Framework",
+          "icon": "resources/sidebar-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "llm-framework": [
+        {
+          "id": "llmAgents",
+          "name": "Connected Agents",
+          "icon": "resources/agents-icon.svg"
+        },
+        {
+          "id": "llmChat",
+          "name": "Agent Chat",
+          "type": "webview",
+          "icon": "resources/chat-icon.svg"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "llmAgents",
+        "contents": "Not connected to AI Bridge.\n[Connect](command:llmFramework.connectBridge)\nMake sure AI Bridge is running on port 65028."
+      }
+    ],
+    "configuration": {
+      "title": "LLM Framework",
+      "properties": {
+        "llmFramework.aiBridgeUrl": {
+          "type": "string",
+          "default": "ws://localhost:65028",
+          "description": "WebSocket URL for AI Bridge connection"
+        },
+        "llmFramework.preferredAgent": {
+          "type": "string",
+          "default": "claude",
+          "enum": [
+            "claude",
+            "ollama",
+            "jules",
+            "auto"
+          ],
+          "description": "Preferred agent for LLM operations"
+        },
+        "llmFramework.autoConnect": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically connect to AI Bridge on startup"
+        },
+        "llmFramework.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show connection status in status bar"
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "llmFramework.explainCode",
+          "when": "editorHasSelection",
+          "group": "llm@1"
+        },
+        {
+          "command": "llmFramework.refactorCode",
+          "when": "editorHasSelection",
+          "group": "llm@2"
+        },
+        {
+          "command": "llmFramework.generateTests",
+          "when": "editorHasSelection",
+          "group": "llm@3"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "llmFramework.refreshAgents",
+          "when": "view == llmAgents",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "pretest": "npm run compile-tests && npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "vscode-test"
+  },
+  "devDependencies": {
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.x",
+    "@types/vscode": "^1.85.0",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vscode/test-cli": "^0.0.4",
+    "@vscode/test-electron": "^2.3.8",
+    "eslint": "^8.56.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Scarmonit/LLM.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Scarmonit/LLM/issues"
+  },
+  "homepage": "https://github.com/Scarmonit/LLM#readme",
+  "license": "ISC"
+}
