@@ -177,7 +177,7 @@ export class NodeJSProvider {
     });
 
     const buildCommand = await this.getBuildCommand();
-    const startCommand = await getStartCommand();
+    const startCommand = await this.getStartCommand();
     const port = await this.detectPort();
     const systemDeps = await this.detectSystemDependencies();
 
