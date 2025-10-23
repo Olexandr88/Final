@@ -5,7 +5,7 @@
 
 import { EventEmitter } from 'node:events';
 import os from 'node:os';
-import { PERFORMANCE } from '../config/constants.js';
+import { PERFORMANCE } from '../config/cpu-optimized-constants.js';
 
 export class SystemMonitor extends EventEmitter {
   constructor({ updateInterval = PERFORMANCE.METRICS_UPDATE_INTERVAL_MS } = {}) {

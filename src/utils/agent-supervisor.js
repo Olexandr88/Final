@@ -6,7 +6,7 @@
 
 import { spawn } from 'node:child_process';
 import { EventEmitter } from 'node:events';
-import { AGENTS, NETWORK } from '../config/constants.js';
+import { AGENTS, NETWORK } from '../config/cpu-optimized-constants.js';
 
 export class AgentSupervisor extends EventEmitter {
   constructor({ logger = console } = {}) {

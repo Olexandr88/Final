@@ -12,7 +12,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { PERFORMANCE, NETWORK, MESSAGING } from '../config/constants.js';
+import { PERFORMANCE, NETWORK, MESSAGING } from '../config/cpu-optimized-constants.js';
 
 export class A2APerformanceEnhancer extends EventEmitter {
   constructor(options = {}) {

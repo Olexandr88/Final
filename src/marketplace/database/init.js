@@ -71,25 +71,15 @@ class MarketplaceDatabase {
 
       const schema = fs.readFileSync(schemaPath, 'utf-8');
 
-      // Execute schema (split by semicolon and execute each statement)
-      const statements = schema
-        .split(';')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0 && !s.startsWith('--'));
-
-      this.db.transaction(() => {
-        for (const statement of statements) {
-          try {
-            this.db.exec(statement);
-          } catch (error) {
-            logger.error('Failed to execute schema statement', {
-              statement: statement.substring(0, 100),
-              error: error.message,
-            });
-            throw error;
-          }
-        }
-      })();
+      // Execute entire schema at once (better-sqlite3 handles multiple statements)
+      try {
+        this.db.exec(schema);
+      } catch (error) {
+        logger.error('Failed to execute schema', {
+          error: error.message,
+        });
+        throw error;
+      }
 
       this.initialized = true;
       logger.info('Marketplace database initialized successfully', {

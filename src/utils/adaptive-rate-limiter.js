@@ -4,7 +4,10 @@
  */
 
 import { EventEmitter } from 'node:events';
-import { SECURITY, PERFORMANCE } from '../config/constants.js';
+import { PERFORMANCE } from '../config/cpu-optimized-constants.js';
+
+// Keep SECURITY from original constants (not CPU-related)
+import { SECURITY } from '../config/constants.js';
 
 export class AdaptiveRateLimiter extends EventEmitter {
   constructor({

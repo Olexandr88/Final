@@ -9,6 +9,12 @@ rmcp_client = true
 trust_level = "trusted"
 mcp_servers = ["llm-framework", "sequential-thinking", "ship-mode", "filesystem", "memory", "sqlite", "puppeteer", "a2a-knowledge", "rube"]
 
+[projects.'\\?\C:\Users\scarm\CUsersscarm.claudemcpserversa2a-knowledge\A2A']
+trust_level = "trusted"
+
+[projects.'\\?\C:\Users\scarm\CUsersscarm.claudemcpserversa2a-knowledge']
+trust_level = "trusted"
+
 [mcp_servers.a2a-knowledge]
 command = "python"
 args = ['C:\\Users\\scarm\\.claude\\mcp\\servers\\a2a-knowledge\\server.py']

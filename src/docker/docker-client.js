@@ -5,7 +5,10 @@
 
 import Docker from 'dockerode';
 import { logger } from '../utils/logger.js';
-import { DOCKER_CONFIG } from '../config/constants.js';
+import { DOCKER } from '../config/cpu-optimized-constants.js';
+
+// Use CPU-optimized config (60-70% CPU reduction)
+const DOCKER_CONFIG = DOCKER;
 
 export class DockerClient {
   constructor(options = {}) {

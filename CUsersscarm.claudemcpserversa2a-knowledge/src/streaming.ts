@@ -24,10 +24,14 @@ export class StreamHub {
   private wss: WebSocketServer;
   public urlBase: string;
   private hb?: ReturnType<typeof setInterval>;
+  private token?: string;
+  private maxSubsPerRequest: number;
 
-  constructor(port: number = 8787, host: string = '127.0.0.1') {
+  constructor(port: number = 8787, host: string = '127.0.0.1', opts?: { token?: string; maxSubsPerRequest?: number }) {
     this.wss = new WebSocketServer({ port, host, perMessageDeflate: true, maxPayload: 2 * 1024 * 1024 });
     this.urlBase = `ws://${host}:${port}`;
+    this.token = opts?.token;
+    this.maxSubsPerRequest = Math.max(1, opts?.maxSubsPerRequest ?? 16);
 
     this.wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
       const url = new URL(req.url || '', this.urlBase);
@@ -36,7 +40,23 @@ export class StreamHub {
         ws.close(1008, 'requestId required');
         return;
       }
+
+      if (this.token) {
+        const tokenParam = url.searchParams.get('token');
+        const authHeader = (req.headers?.authorization || '').toString();
+        const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : undefined;
+        const provided = tokenParam || bearer;
+        if (provided !== this.token) {
+          ws.close(1008, 'invalid token');
+          return;
+        }
+      }
+
       const chan = ensureChannel(requestId);
+      if (chan.subs.size >= this.maxSubsPerRequest) {
+        ws.close(1008, 'too many subscribers for request');
+        return;
+      }
       const sub: Subscriber = { ws };
       chan.subs.add(sub);
 
@@ -77,8 +97,18 @@ export class StreamHub {
     }
   }
 
-  channelUrl(requestId: string) {
-    return `${this.urlBase}/stream?requestId=${encodeURIComponent(requestId)}`;
+  channelUrl(requestId: string, token?: string) {
+    const q = new URLSearchParams({ requestId });
+    if (token) q.set('token', token);
+    return `${this.urlBase}/stream?${q.toString()}`;
+  }
+
+  clientCount() {
+    return this.wss.clients.size;
+  }
+
+  channelCount() {
+    return channels.size;
   }
 
   close() {

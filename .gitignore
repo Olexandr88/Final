@@ -200,3 +200,4 @@ A2A_STATUS.txt
 
 .gemini/
 gha-creds-*.json
+.vercel

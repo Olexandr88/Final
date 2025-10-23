@@ -4,7 +4,7 @@
  */
 
 import { EventEmitter } from 'events';
-import { NETWORK } from '../config/constants.js';
+import { NETWORK } from '../config/cpu-optimized-constants.js';
 
 export class WebSocketPool extends EventEmitter {
   constructor(options = {}) {
