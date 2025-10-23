@@ -1,0 +1,93 @@
+{
+  "name": "LLM Marketplace",
+  "version": "1.0.0",
+  "description": "Marketplace for MCP servers, AI agents, and workflow templates",
+  "categories": [
+    {
+      "id": "mcp-servers",
+      "name": "MCP Servers",
+      "description": "Model Context Protocol servers that extend AI capabilities",
+      "icon": "📧"
+    },
+    {
+      "id": "ai-agents",
+      "name": "AI Agents",
+      "description": "Autonomous agents for specialized tasks",
+      "icon": "🤖"
+    },
+    {
+      "id": "workflow-templates",
+      "name": "Workflow Templates",
+      "description": "Pre-built workflows for common automation patterns",
+      "icon": "⚙️"
+    },
+    {
+      "id": "tools-utilities",
+      "name": "Tools & Utilities",
+      "description": "Development tools and utilities",
+      "icon": "🛠️"
+    }
+  ],
+  "package_schema": {
+    "required_fields": [
+      "id",
+      "name",
+      "version",
+      "category",
+      "author",
+      "description",
+      "install_command"
+    ],
+    "optional_fields": [
+      "homepage",
+      "repository",
+      "license",
+      "tags",
+      "screenshots",
+      "documentation"
+    ]
+  },
+  "installation_types": [
+    "npm",
+    "git",
+    "local",
+    "url"
+  ],
+  "rating_system": {
+    "min": 1,
+    "max": 5,
+    "allow_reviews": true,
+    "moderation_required": false
+  },
+  "ai_bridge_integration": {
+    "enabled": true,
+    "websocket_port": 65028,
+    "http_port": 65029,
+    "events": [
+      "package.installed",
+      "package.uninstalled",
+      "package.rated",
+      "package.updated",
+      "package.searched"
+    ],
+    "agent_notifications": true
+  },
+  "search": {
+    "enabled": true,
+    "full_text_search": true,
+    "filters": [
+      "category",
+      "rating",
+      "downloads",
+      "featured",
+      "verified"
+    ],
+    "sorting": [
+      "relevance",
+      "rating",
+      "downloads",
+      "created_at",
+      "updated_at"
+    ]
+  }
+}

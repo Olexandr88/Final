@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Marketplace</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .search-bar button {
+      padding: 12px 24px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .search-bar button:hover {
+      background: #0052a3;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tab:hover {
+      background: #f0f0f0;
+    }
+
+    .tab.active {
+      background: #0066cc;
+      color: white;
+    }
+
+    .packages-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .package-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+
+    .package-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .package-header {
+      display: flex;
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .package-icon {
+      font-size: 32px;
+    }
+
+    .package-info {
+      flex: 1;
+    }
+
+    .package-name {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .package-author {
+      font-size: 13px;
+      color: #666;
+    }
+
+    .package-description {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .package-stats {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .package-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #0066cc;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0052a3;
+    }
+
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .btn-secondary:hover {
+      background: #e0e0e0;
+    }
+
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .empty-state h2 {
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-featured {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .badge-verified {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .badge-installed {
+      background: #d1ecf1;
+      color: #0c5460;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🛍️ LLM Marketplace</h1>
+      <p>Discover and install MCP servers, AI agents, and workflow templates</p>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search packages..." />
+        <button onclick="searchPackages()">Search</button>
+      </div>
+    </header>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('featured')">Featured</button>
+      <button class="tab" onclick="switchTab('all')">All Packages</button>
+      <button class="tab" onclick="switchTab('mcp-servers')">MCP Servers</button>
+      <button class="tab" onclick="switchTab('ai-agents')">AI Agents</button>
+      <button class="tab" onclick="switchTab('templates')">Templates</button>
+      <button class="tab" onclick="switchTab('installed')">Installed</button>
+    </div>
+
+    <div id="packagesContainer">
+      <div class="loading">Loading packages...</div>
+    </div>
+  </div>
+
+  <script>
+    let currentTab = 'featured';
+    let packages = [];
+
+    // Initialize
+    async function init() {
+      await loadFeatured();
+      setupEventListeners();
+    }
+
+    function setupEventListeners() {
+      // Listen for installation events
+      if (window.marketplace) {
+        window.marketplace.on('package-installed', (data) => {
+          console.log('Package installed:', data);
+          refreshCurrentView();
+        });
+
+        window.marketplace.on('package-uninstalled', (data) => {
+          console.log('Package uninstalled:', data);
+          refreshCurrentView();
+        });
+
+        window.marketplace.on('installation-progress', (data) => {
+          console.log('Installation progress:', data);
+        });
+      }
+
+      // Search on Enter key
+      document.getElementById('searchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          searchPackages();
+        }
+      });
+    }
+
+    async function loadFeatured() {
+      try {
+        const result = await window.marketplace.getFeatured();
+        packages = result.data;
+        renderPackages(packages);
+      } catch (error) {
+        console.error('Failed to load featured packages:', error);
+        showError('Failed to load packages');
+      }
+    }
+
+    async function searchPackages() {
+      const query = document.getElementById('searchInput').value;
+      try {
+        const result = await window.marketplace.search(query, {});
+        packages = result.data.packages;
+        renderPackages(packages);
+      } catch (error) {
+        console.error('Search failed:', error);
+        showError('Search failed');
+      }
+    }
+
+    async function switchTab(tab) {
+      currentTab = tab;
+
+      // Update active tab
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+
+      // Load data based on tab
+      try {
+        switch(tab) {
+          case 'featured':
+            const featured = await window.marketplace.getFeatured();
+            packages = featured.data;
+            break;
+          case 'installed':
+            const installed = await window.marketplace.getInstalled();
+            packages = installed.data;
+            break;
+          case 'all':
+            const all = await window.marketplace.search('', {});
+            packages = all.data.packages;
+            break;
+          default:
+            const filtered = await window.marketplace.search('', { category: tab });
+            packages = filtered.data.packages;
+        }
+        renderPackages(packages);
+      } catch (error) {
+        console.error('Failed to switch tab:', error);
+        showError('Failed to load packages');
+      }
+    }
+
+    function renderPackages(pkgs) {
+      const container = document.getElementById('packagesContainer');
+
+      if (pkgs.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <h2>No packages found</h2>
+            <p>Try a different search or category</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '<div class="packages-grid">' + pkgs.map(pkg => `
+        <div class="package-card" onclick="viewPackage('${pkg.id}')">
+          <div class="package-header">
+            <div class="package-icon">${getCategoryIcon(pkg.category)}</div>
+            <div class="package-info">
+              <div class="package-name">${pkg.name}</div>
+              <div class="package-author">by ${pkg.author}</div>
+            </div>
+          </div>
+
+          ${pkg.featured ? '<span class="badge badge-featured">Featured</span> ' : ''}
+          ${pkg.verified ? '<span class="badge badge-verified">Verified</span> ' : ''}
+          ${pkg.installed ? '<span class="badge badge-installed">Installed</span> ' : ''}
+
+          <div class="package-description">${pkg.description}</div>
+
+          <div class="package-stats">
+            <span>⭐ ${pkg.rating.toFixed(1)} (${pkg.rating_count})</span>
+            <span>📥 ${pkg.downloads}</span>
+          </div>
+
+          <div class="package-actions" onclick="event.stopPropagation()">
+            ${pkg.installed
+              ? `<button class="btn btn-secondary" onclick="uninstallPackage('${pkg.id}')">Uninstall</button>`
+              : `<button class="btn btn-primary" onclick="installPackage('${pkg.id}')">Install</button>`
+            }
+          </div>
+        </div>
+      `).join('') + '</div>';
+    }
+
+    function getCategoryIcon(category) {
+      const icons = {
+        'mcp-servers': '📧',
+        'ai-agents': '🤖',
+        'workflow-templates': '⚙️',
+        'tools-utilities': '🛠️'
+      };
+      return icons[category] || '📦';
+    }
+
+    async function viewPackage(id) {
+      try {
+        const result = await window.marketplace.getPackage(id);
+        console.log('Package details:', result.data);
+        // TODO: Show detailed package view in modal
+      } catch (error) {
+        console.error('Failed to load package:', error);
+      }
+    }
+
+    async function installPackage(id) {
+      try {
+        const result = await window.marketplace.install(id);
+        console.log('Installation result:', result);
+        await refreshCurrentView();
+      } catch (error) {
+        console.error('Installation failed:', error);
+        alert('Installation failed: ' + error.message);
+      }
+    }
+
+    async function uninstallPackage(id) {
+      if (!confirm('Are you sure you want to uninstall this package?')) {
+        return;
+      }
+      try {
+        const result = await window.marketplace.uninstall(id);
+        console.log('Uninstallation result:', result);
+        await refreshCurrentView();
+      } catch (error) {
+        console.error('Uninstallation failed:', error);
+        alert('Uninstallation failed: ' + error.message);
+      }
+    }
+
+    async function refreshCurrentView() {
+      const activeTab = document.querySelector('.tab.active');
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+
+    function showError(message) {
+      const container = document.getElementById('packagesContainer');
+      container.innerHTML = `
+        <div class="empty-state">
+          <h2>❌ Error</h2>
+          <p>${message}</p>
+        </div>
+      `;
+    }
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
