@@ -1,0 +1,63 @@
+/* Status Bar Styles */
+
+.status-bar {
+  height: 24px;
+  background: var(--bg-tertiary);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 12px;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.status-bar-left,
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px;
+  cursor: default;
+}
+
+.status-button {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.2s;
+  border-radius: 3px;
+}
+
+.status-button:hover {
+  background: var(--bg-hover);
+}
+
+.status-icon {
+  font-size: 14px;
+}
+
+.status-text {
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.status-text.connected {
+  color: #4EC9B0;
+}
+
+.status-text.disconnected {
+  color: #CE9178;
+}
+
+.status-separator {
+  width: 1px;
+  height: 16px;
+  background: var(--border-color);
+}

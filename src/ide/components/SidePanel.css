@@ -1,0 +1,242 @@
+/* Side Panel Styles */
+
+.side-panel {
+  display: flex;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.side-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.side-panel-resize-handle {
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transition: background 0.2s;
+}
+
+.side-panel-resize-handle:hover {
+  background: var(--accent-color);
+}
+
+/* Panel View */
+.panel-view {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.panel-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* File Tree */
+.file-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.file-tree-message {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* Search */
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--accent-color);
+}
+
+.search-results {
+  margin-top: 16px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+/* AI Chat */
+.ai-chat {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-status {
+  font-size: 16px;
+}
+
+.ai-status.connected {
+  color: #4EC9B0;
+}
+
+.ai-status.disconnected {
+  color: #CE9178;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.chat-message {
+  padding: 12px;
+  border-radius: 6px;
+  max-width: 85%;
+}
+
+.chat-message.assistant {
+  background: var(--bg-tertiary);
+  align-self: flex-start;
+}
+
+.chat-message.user {
+  background: var(--accent-color);
+  align-self: flex-end;
+  color: white;
+}
+
+.message-content {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chat-input-container {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.chat-input:focus {
+  border-color: var(--accent-color);
+}
+
+.ai-disconnected {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 24px 0;
+}
+
+.ai-disconnected p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.ai-disconnected code {
+  display: block;
+  margin-top: 16px;
+  padding: 8px 12px;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-send {
+  padding: 8px 16px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover,
+.btn-send:hover {
+  background: var(--accent-hover);
+}
+
+/* Settings */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.setting-item label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.setting-item select,
+.setting-item input {
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 13px;
+  outline: none;
+}
+
+.setting-item select:focus,
+.setting-item input:focus {
+  border-color: var(--accent-color);
+}
