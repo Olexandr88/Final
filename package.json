@@ -159,6 +159,7 @@
     "agent:claude": "cross-env NODE_OPTIONS='--max-old-space-size=384' BRIDGE_WS=ws://localhost:65028 node src/agents/a2a-claude-agent.js",
     "agent:claude-autonomous": "node scripts/claude-autonomous-agent.js",
     "agent:analyzer": "cross-env NODE_OPTIONS='--max-old-space-size=300' BRIDGE_WS=ws://localhost:65028 node src/agents/code-analyzer-agent.js",
+    "agent:windows-dev": "node src/agents/windows-dev-agent.js",
     "pm2:start": "pm2 start ecosystem.config.cjs",
     "pm2:stop": "pm2 stop ecosystem.config.cjs",
     "pm2:restart": "pm2 restart ecosystem.config.cjs",
