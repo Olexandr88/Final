@@ -43,6 +43,19 @@ export const AGENTS = {
   HEARTBEAT_WARNING_THRESHOLD_MS: 30000,
 };
 
+// DevTools Configuration
+export const DEVTOOLS = {
+  CDP_PORT: 9222,
+  CDP_HOST: 'localhost',
+  ERROR_THRESHOLD: 3,
+  SLOW_REQUEST_MS: 1000,
+  SAMPLING_INTERVAL_MS: 5000,
+  MEMORY_LEAK_MB: 50,
+  MAX_CONSOLE_ERRORS: 100,
+  MAX_NETWORK_REQUESTS: 1000,
+  PERFORMANCE_SAMPLES: 100,
+};
+
 // Message Queue & History
 export const MESSAGING = {
   HISTORY_LIMIT: 50,

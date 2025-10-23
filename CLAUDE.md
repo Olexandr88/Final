@@ -54,6 +54,7 @@ LLM/
 - **WebSocket**: ws library for real-time agent coordination
 - **Database**: SQLite (better-sqlite3), PostgreSQL support
 - **Vector Store**: ChromaDB for RAG
+- **DevTools**: Chrome DevTools Protocol (CDP) via chrome-remote-interface
 - **Testing**: Node.js native test runner (`node:test`), Python pytest
 - **Packaging**: Electron for desktop GUI
 - **Type Safety**: JSDoc annotations (TypeScript definitions available)
@@ -85,6 +86,7 @@ npm run start:bridge        # Start AI Bridge WebSocket hub (port 65028)
 npm run agent:ollama        # Start Ollama agent
 npm run agent:claude        # Start Claude agent
 npm run agent:analyzer      # Start code analyzer agent
+npm run agent:devtools      # Start Chrome DevTools agent (requires Chrome with --remote-debugging-port=9222)
 npm run system:start        # Start bridge + agents concurrently
 
 # Python A2A MCP Client
@@ -634,6 +636,7 @@ The framework supports specialized agents for distinct tasks:
 - **Code Fixer**: Automated refactoring and bug fixes
 - **Context Manager**: Maintains conversation context
 - **Performance Monitor**: Real-time metrics collection
+- **DevTools Agent**: Chrome DevTools Protocol integration for AI-powered debugging
 
 **Sub-Agent Template**:
 
