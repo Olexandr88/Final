@@ -1,0 +1,150 @@
+/**
+ * Global CSS Variables and Styles
+ * LLM Framework IDE
+ */
+
+:root {
+  /* Dark Theme - Default */
+  --bg-primary: #1E1E1E;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2D2D30;
+  --bg-hover: #2A2D2E;
+  --bg-active: #37373D;
+
+  --text-primary: #CCCCCC;
+  --text-secondary: #969696;
+  --text-tertiary: #6E6E6E;
+
+  --accent-color: #007ACC;
+  --accent-hover: #005A9E;
+
+  --border-color: #3C3C3C;
+
+  --error-color: #F48771;
+  --warning-color: #CCA700;
+  --success-color: #89D185;
+  --info-color: #75BEFF;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #F3F3F3;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #ECECEC;
+  --bg-hover: #E8E8E8;
+  --bg-active: #E0E0E0;
+
+  --text-primary: #1E1E1E;
+  --text-secondary: #6E6E6E;
+  --text-tertiary: #959595;
+
+  --accent-color: #0078D4;
+  --accent-hover: #005A9E;
+
+  --border-color: #E5E5E5;
+
+  --error-color: #E51400;
+  --warning-color: #F6C000;
+  --success-color: #107C10;
+  --info-color: #0078D4;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               'Helvetica Neue', Arial, 'Noto Sans', sans-serif,
+               'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+               'Noto Color Emoji';
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bg-active);
+}
+
+/* Selection */
+::selection {
+  background: var(--accent-color);
+  color: white;
+}
+
+/* Focus */
+:focus {
+  outline: 1px solid var(--accent-color);
+  outline-offset: -1px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Buttons */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Inputs */
+input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Code */
+code, pre {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+/* Links */
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
