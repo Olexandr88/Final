@@ -18,7 +18,9 @@ export default {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'renderer.js',
-    clean: true
+    clean: {
+      keep: /index\.html|monaco-editor/
+    }
   },
 
   module: {
