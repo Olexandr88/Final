@@ -1,0 +1,39 @@
+{
+  "File Operations": [
+    { "action": "New File", "keys": ["Ctrl", "N"], "description": "Create new file" },
+    { "action": "Open File", "keys": ["Ctrl", "O"], "description": "Open file dialog" },
+    { "action": "Save", "keys": ["Ctrl", "S"], "description": "Save current file" },
+    { "action": "Save As", "keys": ["Ctrl", "Shift", "S"], "description": "Save file as new name" },
+    { "action": "Close File", "keys": ["Ctrl", "W"], "description": "Close current file" }
+  ],
+  "Editor": [
+    { "action": "Find", "keys": ["Ctrl", "F"], "description": "Find in current file" },
+    { "action": "Replace", "keys": ["Ctrl", "H"], "description": "Find and replace" },
+    { "action": "Undo", "keys": ["Ctrl", "Z"], "description": "Undo last action" },
+    { "action": "Redo", "keys": ["Ctrl", "Y"], "description": "Redo last action" },
+    { "action": "Cut Line", "keys": ["Ctrl", "X"], "description": "Cut current line" },
+    { "action": "Copy Line", "keys": ["Ctrl", "C"], "description": "Copy current line" },
+    { "action": "Paste", "keys": ["Ctrl", "V"], "description": "Paste from clipboard" },
+    { "action": "Comment Line", "keys": ["Ctrl", "/"], "description": "Toggle line comment" },
+    { "action": "Format Document", "keys": ["Shift", "Alt", "F"], "description": "Auto-format document" }
+  ],
+  "AI Features": [
+    { "action": "AI Assistant", "keys": ["Ctrl", "Shift", "A"], "description": "Open AI assistant panel" },
+    { "action": "AI Generate Docs", "keys": ["Ctrl", "Shift", "D"], "description": "Generate documentation for selection" },
+    { "action": "AI Refactor", "keys": ["Ctrl", "Shift", "R"], "description": "AI-powered code refactoring" },
+    { "action": "AI Explain", "keys": ["Ctrl", "Shift", "E"], "description": "Explain selected code" }
+  ],
+  "Navigation": [
+    { "action": "Explorer", "keys": ["Ctrl", "Shift", "E"], "description": "Open file explorer" },
+    { "action": "Search", "keys": ["Ctrl", "Shift", "F"], "description": "Open search panel" },
+    { "action": "Documentation", "keys": ["Ctrl", "Shift", "H"], "description": "Open documentation panel" },
+    { "action": "Go to Line", "keys": ["Ctrl", "G"], "description": "Jump to specific line" },
+    { "action": "Go to File", "keys": ["Ctrl", "P"], "description": "Quick file opener" }
+  ],
+  "Git": [
+    { "action": "Source Control", "keys": ["Ctrl", "Shift", "G"], "description": "Open source control panel" },
+    { "action": "Commit", "keys": ["Ctrl", "Enter"], "description": "Commit staged changes" },
+    { "action": "Pull", "keys": ["Ctrl", "Shift", "P"], "description": "Pull from remote" },
+    { "action": "Push", "keys": ["Ctrl", "Shift", "U"], "description": "Push to remote" }
+  ]
+}

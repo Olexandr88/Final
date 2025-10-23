@@ -240,3 +240,379 @@
 .setting-item input:focus {
   border-color: var(--accent-color);
 }
+
+/* Documentation Panel Styles (Chromium Blog Inspired) */
+
+.documentation-view .panel-body {
+  padding: 0;
+}
+
+.doc-widget {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.doc-widget:last-child {
+  border-bottom: none;
+}
+
+.doc-widget-header {
+  padding: 12px 16px;
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-secondary);
+  transition: background 0.2s;
+}
+
+.doc-widget-header:hover {
+  background: var(--bg-tertiary);
+}
+
+.doc-widget-header h4 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.widget-icon {
+  font-size: 10px;
+  color: var(--text-secondary);
+  width: 12px;
+}
+
+.doc-widget-content {
+  padding: 16px;
+  background: var(--bg-primary);
+}
+
+/* Keyboard Shortcuts Widget */
+
+.shortcut-category {
+  margin-bottom: 20px;
+}
+
+.shortcut-category:last-child {
+  margin-bottom: 0;
+}
+
+.category-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.shortcut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 12px;
+}
+
+.shortcut-action {
+  color: var(--text-primary);
+}
+
+.shortcut-keys {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+kbd.key {
+  display: inline-block;
+  padding: 3px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  min-width: 20px;
+  text-align: center;
+}
+
+.key-plus {
+  color: var(--text-secondary);
+  font-size: 10px;
+  padding: 0 2px;
+}
+
+/* Recent Files Widget */
+
+.empty-state {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+  padding: 20px 0;
+}
+
+.recent-file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.recent-file-item:last-child {
+  border-bottom: none;
+}
+
+.recent-file-item:hover {
+  background: var(--bg-tertiary);
+  margin: 0 -16px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.file-icon {
+  font-size: 16px;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+/* Code Snippets Widget */
+
+.snippet-category {
+  margin-bottom: 20px;
+}
+
+.snippet-category:last-child {
+  margin-bottom: 0;
+}
+
+.snippet-item {
+  margin-bottom: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.snippet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-secondary);
+}
+
+.snippet-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.snippet-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-icon {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.btn-icon.favorite {
+  color: #f9c74f;
+}
+
+.snippet-code-container {
+  border-top: 1px solid var(--border-color);
+}
+
+.snippet-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: var(--bg-tertiary);
+}
+
+.code-language {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-copy {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.btn-copy:hover {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.snippet-code {
+  margin: 0;
+  padding: 12px;
+  background: #fafafa;
+  overflow-x: auto;
+  font-size: 11px;
+  line-height: 1.5;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+
+.snippet-code code {
+  color: #24292e;
+  white-space: pre;
+}
+
+/* Quick Reference Widget */
+
+.reference-section {
+  margin-bottom: 24px;
+}
+
+.reference-section:last-child {
+  margin-bottom: 0;
+}
+
+.reference-section h5 {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 12px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.api-item {
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.api-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.api-signature {
+  margin-bottom: 6px;
+}
+
+.api-signature code {
+  display: inline-block;
+  padding: 4px 8px;
+  background: #fafafa;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  color: #e83e8c;
+  word-break: break-word;
+}
+
+.api-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Responsive Design (Chromium Blog Inspired) */
+
+@media (max-width: 900px) {
+  .doc-widget-content {
+    padding: 12px;
+  }
+
+  .panel-body {
+    padding: 0;
+  }
+}
+
+@media (max-width: 712px) {
+  .shortcut-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .doc-widget-header {
+    padding: 10px 12px;
+  }
+
+  .doc-widget-content {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  kbd.key {
+    font-size: 10px;
+    padding: 2px 5px;
+  }
+
+  .snippet-code {
+    padding: 10px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .doc-widget-content {
+    padding: 8px;
+  }
+
+  .file-name {
+    font-size: 11px;
+  }
+
+  .api-signature code {
+    font-size: 10px;
+  }
+}

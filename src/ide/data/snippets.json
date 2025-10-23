@@ -1,0 +1,62 @@
+{
+  "React": [
+    {
+      "name": "Functional Component",
+      "language": "javascript",
+      "code": "import React from 'react';\n\nconst ComponentName = () => {\n  return (\n    <div>\n      {/* Component content */}\n    </div>\n  );\n};\n\nexport default ComponentName;"
+    },
+    {
+      "name": "useState Hook",
+      "language": "javascript",
+      "code": "import { useState } from 'react';\n\nconst [state, setState] = useState(initialValue);\n\n// Update state\nsetState(newValue);"
+    },
+    {
+      "name": "useEffect Hook",
+      "language": "javascript",
+      "code": "import { useEffect } from 'react';\n\nuseEffect(() => {\n  // Effect logic here\n\n  return () => {\n    // Cleanup logic (optional)\n  };\n}, [dependencies]);"
+    }
+  ],
+  "Async Patterns": [
+    {
+      "name": "Async Function",
+      "language": "javascript",
+      "code": "async function fetchData() {\n  try {\n    const response = await fetch(url);\n    const data = await response.json();\n    return data;\n  } catch (error) {\n    console.error('Error:', error);\n    throw error;\n  }\n}"
+    },
+    {
+      "name": "Promise Chain",
+      "language": "javascript",
+      "code": "fetch(url)\n  .then(response => response.json())\n  .then(data => {\n    console.log(data);\n  })\n  .catch(error => {\n    console.error('Error:', error);\n  });"
+    }
+  ],
+  "Electron IPC": [
+    {
+      "name": "IPC Invoke (Renderer)",
+      "language": "javascript",
+      "code": "// Renderer process\nconst result = await window.electron.invoke('channel-name', arg1, arg2);\nconsole.log('Result:', result);"
+    },
+    {
+      "name": "IPC Handle (Main)",
+      "language": "javascript",
+      "code": "// Main process\nconst { ipcMain } = require('electron');\n\nipcMain.handle('channel-name', async (event, arg1, arg2) => {\n  // Handle request\n  return result;\n});"
+    }
+  ],
+  "AI Bridge": [
+    {
+      "name": "Connect to AI Bridge",
+      "language": "javascript",
+      "code": "const ws = await window.aiBridge.connect('ws://localhost:65028');\n\nws.onmessage = (event) => {\n  const message = JSON.parse(event.data);\n  console.log('Received:', message);\n};\n\nws.onerror = (error) => {\n  console.error('WebSocket error:', error);\n};"
+    },
+    {
+      "name": "Send AI Request",
+      "language": "javascript",
+      "code": "const message = {\n  type: 'query',\n  data: {\n    prompt: 'Your AI prompt here',\n    model: 'claude'\n  },\n  metadata: {\n    timestamp: Date.now()\n  }\n};\n\nwindow.aiBridge.send(ws, message);"
+    }
+  ],
+  "Error Handling": [
+    {
+      "name": "Try-Catch Block",
+      "language": "javascript",
+      "code": "try {\n  // Code that might throw an error\n  const result = riskyOperation();\n  console.log(result);\n} catch (error) {\n  console.error('Error occurred:', error.message);\n  // Handle error gracefully\n} finally {\n  // Always executes (optional)\n  cleanup();\n}"
+    }
+  ]
+}

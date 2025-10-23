@@ -27,6 +27,12 @@ const ActivityBar = ({ activeView, onViewChange }) => {
       shortcut: 'Ctrl+Shift+G'
     },
     {
+      id: 'documentation',
+      icon: '📚',
+      title: 'Documentation',
+      shortcut: 'Ctrl+Shift+H'
+    },
+    {
       id: 'ai-assistant',
       icon: '🤖',
       title: 'AI Assistant',
