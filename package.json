@@ -276,7 +276,14 @@
     "llmpacks:plan": "node src/llmpacks/cli.js plan",
     "llmpacks:build": "node src/llmpacks/cli.js build",
     "llmpacks:init": "node src/llmpacks/cli.js init",
-    "llmpacks:info": "node src/llmpacks/cli.js info"
+    "llmpacks:info": "node src/llmpacks/cli.js info",
+    "training:sync": "node -e \"import('./src/services/training-sync-service.js').then(m => { const s = new m.TrainingSyncService(); s.start(); })\"",
+    "training:agent": "node -e \"import('./src/agents/training-assistant-agent.js').then(m => { const a = new m.TrainingAssistantAgent(); a.connect(); })\"",
+    "training:status": "curl http://localhost:3000/api/training/sync/status",
+    "training:trigger-sync": "curl -X POST http://localhost:3000/api/training/sync/trigger -H 'Content-Type: application/json' -d '{\"syncType\":\"INCREMENTAL\"}'",
+    "training:deploy": "bash scripts/deploy-training-catalog.sh",
+    "start:training-sync": "node -e \"import('./src/services/training-sync-service.js').then(m => { const s = new m.TrainingSyncService(); s.start(); })\"",
+    "start:training-agent": "node -e \"import('./src/agents/training-assistant-agent.js').then(m => { const a = new m.TrainingAssistantAgent(); a.connect(); })\""
   },
   "build": {
     "appId": "com.scarmonit.a2a-control-center",
@@ -350,6 +357,8 @@
     "inquirer": "^12.4.0",
     "ioredis": "^5.8.1",
     "lru-cache": "^10.4.3",
+    "node-cache": "^5.1.2",
+    "node-cron": "^3.0.3",
     "node-fetch": "^3.3.2",
     "nodemailer": "^7.0.10",
     "openai": "^6.6.0",
