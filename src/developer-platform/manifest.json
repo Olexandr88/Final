@@ -1,0 +1,90 @@
+{
+  "name": "LLM Developer Platform",
+  "version": "1.0.0",
+  "description": "Comprehensive developer platform with blog, events, learning paths, and community features",
+  "port": 65031,
+  "components": {
+    "blog": {
+      "enabled": true,
+      "categories": ["news", "tutorial", "announcement", "case-study", "technical"],
+      "features": ["fts_search", "comments", "likes", "featured"]
+    },
+    "events": {
+      "enabled": true,
+      "types": ["webinar", "conference", "workshop", "meetup", "hackathon"],
+      "features": ["registration", "calendar", "reminders", "attendance_tracking"]
+    },
+    "learning_paths": {
+      "enabled": true,
+      "categories": ["ai", "azure", "copilot", "devops", "security", "web-dev", "mobile", "data-science"],
+      "difficulty_levels": ["beginner", "intermediate", "advanced"],
+      "features": ["progress_tracking", "certificates", "quizzes", "projects"]
+    },
+    "communities": {
+      "enabled": true,
+      "platforms": ["internal", "discord", "slack", "teams", "external"],
+      "features": ["posts", "discussions", "moderation", "roles"]
+    },
+    "products": {
+      "enabled": true,
+      "categories": ["microsoft-365", "azure", "visual-studio", "windows", "github", "ai-tools"],
+      "features": ["showcase", "documentation_links", "tech_hubs"]
+    }
+  },
+  "integrations": {
+    "ai_bridge": {
+      "enabled": true,
+      "websocket_port": 65028,
+      "http_port": 65029,
+      "events": [
+        "blog.published",
+        "event.created",
+        "event.registered",
+        "learning.enrolled",
+        "learning.completed",
+        "community.joined",
+        "community.post_created"
+      ]
+    },
+    "marketplace": {
+      "enabled": true,
+      "port": 65030,
+      "features": ["cross_reference_packages", "learning_path_packages"]
+    }
+  },
+  "security": {
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_minute": 100,
+      "requests_per_hour": 1000
+    },
+    "authentication": {
+      "required": false,
+      "providers": ["oauth", "api_key", "jwt"]
+    },
+    "cors": {
+      "enabled": true,
+      "origins": ["http://localhost:3000", "http://localhost:65030"]
+    }
+  },
+  "database": {
+    "type": "sqlite",
+    "path": "./data/developer-platform.db",
+    "wal_mode": true,
+    "foreign_keys": true,
+    "fts5_enabled": true
+  },
+  "caching": {
+    "enabled": true,
+    "ttl": 300,
+    "max_size": 1000
+  },
+  "api": {
+    "base_path": "/developer-platform",
+    "version": "v1",
+    "rate_limit": {
+      "window_ms": 60000,
+      "max_requests": 100
+    }
+  }
+}
