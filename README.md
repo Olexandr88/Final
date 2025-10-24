@@ -326,7 +326,7 @@ npm run format
 
 ## 📝 License
 
-MIT License - see [LICENSE](https://opensource.org/license/MIT) file for details
+MIT License - see [LICENSE](https://opensource.org/license/MIT) for details
 
 ## 🔗 Links
 
